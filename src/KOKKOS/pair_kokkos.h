@@ -747,14 +747,16 @@ struct PairComputeFunctor  {
   }
 
   // Cluster-pair kernel (GPU only, FULL list, no special-pair scaling)
-  // One warp (32 threads) per i-cluster; loads 4 i-coords + 4 j-coords into
-  // shared memory and computes all 4x4=16 pairs from L1 instead of DRAM.
+  // One warp (32 threads) per i-cluster of CI=8; loads CJ=4 j-coords into
+  // scratch per tile and computes CI*CJ=32 pairs per tile (full warp utilization).
 
-  static constexpr int CLUSTER_SIZE = 4;
+  static constexpr int CI = 8;   // i-atoms per i-cluster (one warp = CI*CJ threads)
+  static constexpr int CJ = 4;   // j-atoms per j-cluster tile
 
-  // Scratch bytes: positions (i: 3, j: 3), force accumulators (3), types/indices (3 int arrays).
+  // Scratch: 3*CI i-positions + 3*CJ j-positions + 3*CI force accumulators
+  //        + 2*CI ints (itype, iatom) + CJ ints (jtype)
   static constexpr int cluster_scratch_bytes =
-      9 * CLUSTER_SIZE * sizeof(KK_FLOAT) + 3 * CLUSTER_SIZE * sizeof(int);
+      (6*CI + 3*CJ) * sizeof(KK_FLOAT) + (2*CI + CJ) * sizeof(int);
 
 #if defined(LMP_KOKKOS_GPU)
 
@@ -773,24 +775,24 @@ struct PairComputeFunctor  {
     auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     const int ci = team.league_rank();
-    const int start_ii = ci * CLUSTER_SIZE;
-    const int end_ii = (start_ii + CLUSTER_SIZE < inum) ? start_ii + CLUSTER_SIZE : inum;
+    const int start_ii = ci * CI;
+    const int end_ii = (start_ii + CI < inum) ? start_ii + CI : inum;
     const int n_i = end_ii - start_ii;
 
-    ScratchF s_xi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_yi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_zi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_xj(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_yj(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_zj(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_fxi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_fyi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_fzi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchI s_itype(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchI s_jtype(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchI s_iatom(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_xi(team.team_scratch(0), CI);
+    ScratchF s_yi(team.team_scratch(0), CI);
+    ScratchF s_zi(team.team_scratch(0), CI);
+    ScratchF s_xj(team.team_scratch(0), CJ);
+    ScratchF s_yj(team.team_scratch(0), CJ);
+    ScratchF s_zj(team.team_scratch(0), CJ);
+    ScratchF s_fxi(team.team_scratch(0), CI);
+    ScratchF s_fyi(team.team_scratch(0), CI);
+    ScratchF s_fzi(team.team_scratch(0), CI);
+    ScratchI s_itype(team.team_scratch(0), CI);
+    ScratchI s_jtype(team.team_scratch(0), CJ);
+    ScratchI s_iatom(team.team_scratch(0), CI);
 
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int ki) {
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CI), [&](int ki) {
       s_fxi(ki) = 0; s_fyi(ki) = 0; s_fzi(ki) = 0;
       if (ki < n_i) {
         const int i = list.d_ilist[start_ii + ki];
@@ -804,9 +806,9 @@ struct PairComputeFunctor  {
     const int cj_count = list.d_cluster_numneigh(ci);
     for (int cj_idx = 0; cj_idx < cj_count; cj_idx++) {
       const int cj = list.d_cluster_jlist(ci, cj_idx);
-      const int first_j = cj * CLUSTER_SIZE;
+      const int first_j = cj * CJ;
 
-      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int kj) {
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CJ), [&](int kj) {
         const int j = first_j + kj;
         if (j < nall) {
           s_xj(kj) = c.x(j,0); s_yj(kj) = c.x(j,1); s_zj(kj) = c.x(j,2);
@@ -820,10 +822,11 @@ struct PairComputeFunctor  {
       });
       team.team_barrier();
 
-      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE*CLUSTER_SIZE),
+      // CI*CJ = 32 active threads — full warp utilization
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CI*CJ),
           [&](int pidx) {
-        const int ki = pidx / CLUSTER_SIZE;
-        const int kj = pidx % CLUSTER_SIZE;
+        const int ki = pidx / CJ;
+        const int kj = pidx % CJ;
         if (ki >= n_i) return;
         const int i = s_iatom(ki);
         const int j = first_j + kj;
@@ -867,24 +870,24 @@ struct PairComputeFunctor  {
     auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
 
     const int ci = team.league_rank();
-    const int start_ii = ci * CLUSTER_SIZE;
-    const int end_ii = (start_ii + CLUSTER_SIZE < inum) ? start_ii + CLUSTER_SIZE : inum;
+    const int start_ii = ci * CI;
+    const int end_ii = (start_ii + CI < inum) ? start_ii + CI : inum;
     const int n_i = end_ii - start_ii;
 
-    ScratchF s_xi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_yi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_zi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_xj(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_yj(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_zj(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_fxi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_fyi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_fzi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchI s_itype(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchI s_jtype(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchI s_iatom(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_xi(team.team_scratch(0), CI);
+    ScratchF s_yi(team.team_scratch(0), CI);
+    ScratchF s_zi(team.team_scratch(0), CI);
+    ScratchF s_xj(team.team_scratch(0), CJ);
+    ScratchF s_yj(team.team_scratch(0), CJ);
+    ScratchF s_zj(team.team_scratch(0), CJ);
+    ScratchF s_fxi(team.team_scratch(0), CI);
+    ScratchF s_fyi(team.team_scratch(0), CI);
+    ScratchF s_fzi(team.team_scratch(0), CI);
+    ScratchI s_itype(team.team_scratch(0), CI);
+    ScratchI s_jtype(team.team_scratch(0), CJ);
+    ScratchI s_iatom(team.team_scratch(0), CI);
 
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int ki) {
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CI), [&](int ki) {
       s_fxi(ki) = 0; s_fyi(ki) = 0; s_fzi(ki) = 0;
       if (ki < n_i) {
         const int i = list.d_ilist[start_ii + ki];
@@ -898,9 +901,9 @@ struct PairComputeFunctor  {
     const int cj_count = list.d_cluster_numneigh(ci);
     for (int cj_idx = 0; cj_idx < cj_count; cj_idx++) {
       const int cj = list.d_cluster_jlist(ci, cj_idx);
-      const int first_j = cj * CLUSTER_SIZE;
+      const int first_j = cj * CJ;
 
-      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int kj) {
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CJ), [&](int kj) {
         const int j = first_j + kj;
         if (j < nall) {
           s_xj(kj) = c.x(j,0); s_yj(kj) = c.x(j,1); s_zj(kj) = c.x(j,2);
@@ -914,10 +917,10 @@ struct PairComputeFunctor  {
       });
       team.team_barrier();
 
-      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE*CLUSTER_SIZE),
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CI*CJ),
           [&](int pidx) {
-        const int ki = pidx / CLUSTER_SIZE;
-        const int kj = pidx % CLUSTER_SIZE;
+        const int ki = pidx / CJ;
+        const int kj = pidx % CJ;
         if (ki >= n_i) return;
         const int i = s_iatom(ki);
         const int j = first_j + kj;
@@ -970,24 +973,24 @@ struct PairComputeFunctor  {
     EV_FLOAT ev;
 
     const int ci = team.league_rank();
-    const int start_ii = ci * CLUSTER_SIZE;
-    const int end_ii = (start_ii + CLUSTER_SIZE < inum) ? start_ii + CLUSTER_SIZE : inum;
+    const int start_ii = ci * CI;
+    const int end_ii = (start_ii + CI < inum) ? start_ii + CI : inum;
     const int n_i = end_ii - start_ii;
 
-    ScratchF s_xi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_yi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_zi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_xj(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_yj(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_zj(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_fxi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_fyi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchF s_fzi(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchI s_itype(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchI s_jtype(team.team_scratch(0), CLUSTER_SIZE);
-    ScratchI s_iatom(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_xi(team.team_scratch(0), CI);
+    ScratchF s_yi(team.team_scratch(0), CI);
+    ScratchF s_zi(team.team_scratch(0), CI);
+    ScratchF s_xj(team.team_scratch(0), CJ);
+    ScratchF s_yj(team.team_scratch(0), CJ);
+    ScratchF s_zj(team.team_scratch(0), CJ);
+    ScratchF s_fxi(team.team_scratch(0), CI);
+    ScratchF s_fyi(team.team_scratch(0), CI);
+    ScratchF s_fzi(team.team_scratch(0), CI);
+    ScratchI s_itype(team.team_scratch(0), CI);
+    ScratchI s_jtype(team.team_scratch(0), CJ);
+    ScratchI s_iatom(team.team_scratch(0), CI);
 
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int ki) {
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CI), [&](int ki) {
       s_fxi(ki) = 0; s_fyi(ki) = 0; s_fzi(ki) = 0;
       if (ki < n_i) {
         const int i = list.d_ilist[start_ii + ki];
@@ -1001,9 +1004,9 @@ struct PairComputeFunctor  {
     const int cj_count = list.d_cluster_numneigh(ci);
     for (int cj_idx = 0; cj_idx < cj_count; cj_idx++) {
       const int cj = list.d_cluster_jlist(ci, cj_idx);
-      const int first_j = cj * CLUSTER_SIZE;
+      const int first_j = cj * CJ;
 
-      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int kj) {
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CJ), [&](int kj) {
         const int j = first_j + kj;
         if (j < nall) {
           s_xj(kj) = c.x(j,0); s_yj(kj) = c.x(j,1); s_zj(kj) = c.x(j,2);
@@ -1017,10 +1020,10 @@ struct PairComputeFunctor  {
       });
       team.team_barrier();
 
-      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE*CLUSTER_SIZE),
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CI*CJ),
           [&](int pidx) {
-        const int ki = pidx / CLUSTER_SIZE;
-        const int kj = pidx % CLUSTER_SIZE;
+        const int ki = pidx / CJ;
+        const int kj = pidx % CJ;
         if (ki >= n_i) return;
         const int i = s_iatom(ki);
         const int j = first_j + kj;
@@ -1222,8 +1225,9 @@ template<class DeviceType>
 struct ClusterBuildFunctor {
   typedef ArrayTypes<DeviceType> AT;
 
-  static constexpr int CS   = 4;    // atoms per cluster
-  static constexpr int HASH = 512;  // open-address hash slots (must be power of 2)
+  static constexpr int CI   = 8;    // i-atoms per i-cluster
+  static constexpr int CJ   = 4;    // j-atoms per j-cluster
+  static constexpr int HASH = 4096; // open-address hash slots; CI=8 clusters have ~2x more unique j-clusters
 
   typename AT::t_neighbors_2d_const d_neighbors;
   typename AT::t_int_1d_const       d_numneigh;
@@ -1246,10 +1250,10 @@ struct ClusterBuildFunctor {
 
   KOKKOS_FUNCTION
   void operator()(int ci) const {
-    const int start_ii = ci * CS;
-    const int end_ii = (start_ii + CS < inum) ? start_ii + CS : inum;
+    const int start_ii = ci * CI;
+    const int end_ii = (start_ii + CI < inum) ? start_ii + CI : inum;
 
-    // Register-spill hash table for seen j-clusters (spills to L1 local mem)
+    // Hash table for seen j-clusters; lives in local memory on GPU (spills to DRAM)
     int jcset[HASH];
     for (int k = 0; k < HASH; k++) jcset[k] = -1;
     int njc = 0;
@@ -1259,7 +1263,7 @@ struct ClusterBuildFunctor {
       const int i = d_ilist(ii);
       const int jnum = d_numneigh(i);
       for (int jj = 0; jj < jnum && !overflow; jj++) {
-        const int cj = (d_neighbors(i,jj) & NEIGHMASK) / CS;
+        const int cj = (d_neighbors(i,jj) & NEIGHMASK) / CJ;
         int slot = cj & (HASH - 1);
         for (int probe = 0; probe < HASH; probe++) {
           const int here = jcset[slot];
@@ -1288,7 +1292,8 @@ template<class DeviceType>
 void build_cluster_list(NeighListKokkos<DeviceType>* list)
 {
   if (list->inum == 0) return;
-  const int num_iclusters = (list->inum + 3) / 4;
+  const int CI = ClusterBuildFunctor<DeviceType>::CI;
+  const int num_iclusters = (list->inum + CI - 1) / CI;
 
   if (list->max_jclusters == 0) list->max_jclusters = 256;
 
@@ -1405,11 +1410,10 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
       using DeviceType = typename PairStyle::device_type;
       using PolicyType = Kokkos::TeamPolicy<DeviceType, Kokkos::IndexType<int>>;
 
-      constexpr int cluster_ts = 32; // one warp per i-cluster
-      const int num_iclusters = (inum + PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation>::CLUSTER_SIZE - 1) /
-                                 PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation>::CLUSTER_SIZE;
-
-      constexpr int scratch_bytes = PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation>::cluster_scratch_bytes;
+      using PCF = PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation>;
+      constexpr int cluster_ts = PCF::CI * PCF::CJ;  // CI*CJ = 32 threads per team
+      const int num_iclusters = (inum + PCF::CI - 1) / PCF::CI;
+      constexpr int scratch_bytes = PCF::cluster_scratch_bytes;
 
       const int nall = fpair->atom->nlocal + fpair->atom->nghost;
       if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {

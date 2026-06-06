@@ -61,8 +61,8 @@ jobs:
 
     - name: Run LAMMPS executable
       run: |
-        build\lmp.exe -h
-        build\lmp.exe -in bench\in.lj
+        .\build\lmp.exe -h
+        .\build\lmp.exe -in bench\in.lj
 
     - name: Run Unit Tests
       working-directory: build

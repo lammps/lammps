@@ -52,8 +52,6 @@ class FixUVT : public FixNH {
   void nve_x() override;
 
  private:
-  enum DednSource { DEDN_VARIABLE, DEDN_COMPUTE, DEDN_FIX };
-
   void nhc_mu_integrate();
   void compute_mu_target();
   double evaluate_dedn();

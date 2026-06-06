@@ -89,6 +89,11 @@ TEST_F(FixUVTTest, RestartRestoresElectronState)
     command("write_restart uvt.restart");
     command("clear");
     command("read_restart uvt.restart");
+    command("variable k_quad equal 5.0");
+    command("variable N0_quad equal 1.0");
+    command("variable dEdN equal v_k_quad*(f_cp[13]-v_N0_quad)");
+    command("fix cp all uvt temp 1.0 1.0 0.5 mu 2.0 2.0 0.5 ne 1.8 ne_velocity 0.0 dedn v_dEdN");
+    command("run 0 post no");
     platform::unlink("uvt.restart");
     END_HIDE_OUTPUT();
 

@@ -171,7 +171,6 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nvt/sllod/eff <fix_nvt_sllod_eff>`
    * :doc:`nvt/sphere (ko) <fix_nvt_sphere>`
    * :doc:`nvt/uef <fix_nh_uef>`
-   * :doc:`uvt <fix_uvt>`
    * :doc:`oneway (k) <fix_oneway>`
    * :doc:`orient/bcc <fix_orient>`
    * :doc:`orient/fcc <fix_orient>`
@@ -274,6 +273,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`ttm/mod <fix_ttm>`
    * :doc:`ttm/thermal <fix_ttm>`
    * :doc:`tune/kspace <fix_tune_kspace>`
+   * :doc:`uvt <fix_uvt>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
    * :doc:`viscous (k) <fix_viscous>`

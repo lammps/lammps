@@ -1,6 +1,8 @@
 fix uvt command
 ================
 
+.. versionadded:: 6Jun2026
+
 Syntax
 """"""
 
@@ -36,8 +38,9 @@ The ``dedn`` value may be supplied as an equal-style variable
 component can be selected with the usual ``[index]`` syntax, e.g.
 ``c_model[1]`` or ``f_state[2]``.
 
-The meaning of the uVT keywords is the same as described in
-:doc:`fix nvt <fix_nh>`.
+The thermostat keywords follow the same meaning as in
+:doc:`fix nvt <fix_nh>`.  The ``mu``, ``ne``, ``dedn``, and
+``ne_velocity`` keywords are specific to ``fix uvt``.
 
 Restrictions
 """"""""""""

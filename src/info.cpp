@@ -942,10 +942,10 @@ bool find_style(const LAMMPS *lmp, const CreatorRegistry<Creator> &styles,
 
   if (suffix_check && lmp->suffix_enable) {
     if (lmp->suffix) {
-      if (find_style(lmp, styles, name + "/" + lmp->suffix, false)) return true;
+      if (find_style(lmp, styles, fmt::format("{}/{}", name, lmp->suffix), false)) return true;
     }
     if (lmp->suffix2) {
-      if (find_style(lmp, styles, name + "/" + lmp->suffix2, false)) return true;
+      if (find_style(lmp, styles, fmt::format("{}/{}", name, lmp->suffix2), false)) return true;
     }
   }
   return false;

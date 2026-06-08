@@ -84,6 +84,9 @@ public:
   int max_jclusters;
   typename AT::t_int_1d d_cluster_numneigh;
   typename AT::t_int_2d d_cluster_jlist;
+  // d_cluster_excl(ci, 2*cj_idx)   = bits 0..31: sbmask(2 bits) for pairs  0..15
+  // d_cluster_excl(ci, 2*cj_idx+1) = bits 0..31: sbmask(2 bits) for pairs 16..31
+  typename AT::t_int_2d d_cluster_excl;
   typename AT::t_int_1d d_cluster_scratch;  // [0]=overflow flag (1=jlist,2=hash), [1]=new max j-clusters, [2]=hash-full sentinel
   void grow_clusters(int num_iclusters, int max_jc);
   [[noreturn]] void cluster_fatal(const std::string &file, int line, const std::string &msg);

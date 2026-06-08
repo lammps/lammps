@@ -814,8 +814,10 @@ struct PairComputeFunctor  {
 
     const int cj_count = list.d_cluster_numneigh(ci);
     for (int cj_idx = 0; cj_idx < cj_count; cj_idx++) {
-      const int cj = list.d_cluster_jlist(ci, cj_idx);
+      const int cj      = list.d_cluster_jlist(ci, cj_idx);
       const int first_j = cj * CJ;
+      const int excl_lo = list.d_cluster_excl(ci, 2*cj_idx);
+      const int excl_hi = list.d_cluster_excl(ci, 2*cj_idx + 1);
 
       Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CJ), [&](int kj) {
         const int j = first_j + kj;
@@ -842,16 +844,22 @@ struct PairComputeFunctor  {
           const int i = s_iatom(ki);
           const int j = first_j + kj;
           if (i != j) {
-            const KK_FLOAT delx = s_xi(ki) - s_xj(kj);
-            const KK_FLOAT dely = s_yi(ki) - s_yj(kj);
-            const KK_FLOAT delz = s_zi(ki) - s_zj(kj);
-            const int itype = s_itype(ki);
-            const int jtype = s_jtype(kj);
-            const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-            if (rsq < (STACKPARAMS ? c.m_cutsq[itype][jtype] : c.d_cutsq(itype,jtype))) {
-              const KK_FLOAT fpair = c.template
-                  compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-              dfx = delx*fpair; dfy = dely*fpair; dfz = delz*fpair;
+            const int sm = (pidx < 16) ?
+                ((excl_lo >> (pidx * 2)) & 3) :
+                ((excl_hi >> ((pidx - 16) * 2)) & 3);
+            const KK_FLOAT factor_lj = c.special_lj[sm];
+            if (factor_lj != static_cast<KK_FLOAT>(0.0)) {
+              const KK_FLOAT delx = s_xi(ki) - s_xj(kj);
+              const KK_FLOAT dely = s_yi(ki) - s_yj(kj);
+              const KK_FLOAT delz = s_zi(ki) - s_zj(kj);
+              const int itype = s_itype(ki);
+              const int jtype = s_jtype(kj);
+              const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+              if (rsq < (STACKPARAMS ? c.m_cutsq[itype][jtype] : c.d_cutsq(itype,jtype))) {
+                const KK_FLOAT fpair = factor_lj * c.template
+                    compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+                dfx = delx*fpair; dfy = dely*fpair; dfz = delz*fpair;
+              }
             }
           }
         }
@@ -876,7 +884,6 @@ struct PairComputeFunctor  {
       team.team_barrier();
 
       // Phase D: Newton 3rd law — atomic force update to j-atoms (HALF/HALFTHREAD only).
-      // For FULL lists each pair is computed from both sides; no Phase D needed.
       if (NEIGHFLAG != FULL) {
         Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CI*CJ), [&](int pidx) {
           const int ki = pidx / CJ;
@@ -949,8 +956,10 @@ struct PairComputeFunctor  {
 
     const int cj_count = list.d_cluster_numneigh(ci);
     for (int cj_idx = 0; cj_idx < cj_count; cj_idx++) {
-      const int cj = list.d_cluster_jlist(ci, cj_idx);
+      const int cj      = list.d_cluster_jlist(ci, cj_idx);
       const int first_j = cj * CJ;
+      const int excl_lo = list.d_cluster_excl(ci, 2*cj_idx);
+      const int excl_hi = list.d_cluster_excl(ci, 2*cj_idx + 1);
 
       Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CJ), [&](int kj) {
         const int j = first_j + kj;
@@ -975,6 +984,11 @@ struct PairComputeFunctor  {
           const int i = s_iatom(ki);
           const int j = first_j + kj;
           if (i != j) {
+            const int sm = (pidx < 16) ?
+                ((excl_lo >> (pidx * 2)) & 3) :
+                ((excl_hi >> ((pidx - 16) * 2)) & 3);
+            const KK_FLOAT factor_lj   = c.special_lj[sm];
+            const KK_FLOAT factor_coul = c.special_coul[sm];
             const KK_FLOAT delx = s_xi(ki) - s_xj(kj);
             const KK_FLOAT dely = s_yi(ki) - s_yj(kj);
             const KK_FLOAT delz = s_zi(ki) - s_zj(kj);
@@ -985,10 +999,10 @@ struct PairComputeFunctor  {
             if (rsq < (STACKPARAMS ? c.m_cutsq[itype][jtype] : c.d_cutsq(itype,jtype))) {
               KK_FLOAT fpair = KK_FLOAT();
               if (rsq < (STACKPARAMS ? c.m_cut_ljsq[itype][jtype] : c.d_cut_ljsq(itype,jtype)))
-                fpair += c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+                fpair += factor_lj * c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
               if (rsq < (STACKPARAMS ? c.m_cut_coulsq[itype][jtype] : c.d_cut_coulsq(itype,jtype)))
                 fpair += c.template compute_fcoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,
-                                                                               static_cast<KK_FLOAT>(1.0),qtmp);
+                                                                               factor_coul,qtmp);
               dfx = delx*fpair; dfy = dely*fpair; dfz = delz*fpair;
             }
           }
@@ -1092,8 +1106,10 @@ struct PairComputeFunctor  {
 
     const int cj_count = list.d_cluster_numneigh(ci);
     for (int cj_idx = 0; cj_idx < cj_count; cj_idx++) {
-      const int cj = list.d_cluster_jlist(ci, cj_idx);
+      const int cj      = list.d_cluster_jlist(ci, cj_idx);
       const int first_j = cj * CJ;
+      const int excl_lo = list.d_cluster_excl(ci, 2*cj_idx);
+      const int excl_hi = list.d_cluster_excl(ci, 2*cj_idx + 1);
 
       Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CJ), [&](int kj) {
         const int j = first_j + kj;
@@ -1123,48 +1139,54 @@ struct PairComputeFunctor  {
           const int i = s_iatom(ki);
           const int j = first_j + kj;
           if (i != j) {
-            const KK_FLOAT delx = s_xi(ki) - s_xj(kj);
-            const KK_FLOAT dely = s_yi(ki) - s_yj(kj);
-            const KK_FLOAT delz = s_zi(ki) - s_zj(kj);
-            const int itype = s_itype(ki);
-            const int jtype = s_jtype(kj);
-            const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-            if (rsq < (STACKPARAMS ? c.m_cutsq[itype][jtype] : c.d_cutsq(itype,jtype))) {
-              const KK_FLOAT fpair = c.template
-                  compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-              fpair_v = fpair;
-              dfx = delx*fpair; dfy = dely*fpair; dfz = delz*fpair;
-              if (c.eflag_either || c.vflag_either) {
-                const KK_FLOAT evdwl = c.template
-                    compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-                evdwl_v = evdwl;
-                const KK_FLOAT ef = (NEIGHFLAG == FULL) ?
-                    static_cast<KK_FLOAT>(0.5) : static_cast<KK_FLOAT>(1.0);
-                if (c.eflag_global)
-                  ev.evdwl += static_cast<KK_ACC_FLOAT>(ef * evdwl);
-                if (c.eflag_atom)
-                  a_eatom[i] += static_cast<KK_ACC_FLOAT>(0.5*evdwl);
-                if (c.vflag_global || c.vflag_atom) {
-                  const auto half = static_cast<KK_FLOAT>(0.5);
-                  const KK_FLOAT v[6] = { delx*delx*fpair*half, dely*dely*fpair*half,
-                      delz*delz*fpair*half, delx*dely*fpair*half,
-                      delx*delz*fpair*half, dely*delz*fpair*half };
-                  if (c.vflag_global) {
-                    if (NEIGHFLAG == FULL) {
-                      for (int n = 0; n < 6; n++)
-                        ev.v[n] += static_cast<KK_ACC_FLOAT>(v[n]);
-                    } else {
-                      // newton on: full pair virial (2x); newton off: i's share here,
-                      // j's share added in Phase D when j is local
-                      const KK_FLOAT vf = c.newton_pair ?
-                          static_cast<KK_FLOAT>(2.0) : static_cast<KK_FLOAT>(1.0);
-                      for (int n = 0; n < 6; n++)
-                        ev.v[n] += static_cast<KK_ACC_FLOAT>(vf * v[n]);
+            const int sm = (pidx < 16) ?
+                ((excl_lo >> (pidx * 2)) & 3) :
+                ((excl_hi >> ((pidx - 16) * 2)) & 3);
+            const KK_FLOAT factor_lj = c.special_lj[sm];
+            if (factor_lj != static_cast<KK_FLOAT>(0.0)) {
+              const KK_FLOAT delx = s_xi(ki) - s_xj(kj);
+              const KK_FLOAT dely = s_yi(ki) - s_yj(kj);
+              const KK_FLOAT delz = s_zi(ki) - s_zj(kj);
+              const int itype = s_itype(ki);
+              const int jtype = s_jtype(kj);
+              const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+              if (rsq < (STACKPARAMS ? c.m_cutsq[itype][jtype] : c.d_cutsq(itype,jtype))) {
+                const KK_FLOAT fpair = factor_lj * c.template
+                    compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+                fpair_v = fpair;
+                dfx = delx*fpair; dfy = dely*fpair; dfz = delz*fpair;
+                if (c.eflag_either || c.vflag_either) {
+                  const KK_FLOAT evdwl = factor_lj * c.template
+                      compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+                  evdwl_v = evdwl;
+                  const KK_FLOAT ef = (NEIGHFLAG == FULL) ?
+                      static_cast<KK_FLOAT>(0.5) : static_cast<KK_FLOAT>(1.0);
+                  if (c.eflag_global)
+                    ev.evdwl += static_cast<KK_ACC_FLOAT>(ef * evdwl);
+                  if (c.eflag_atom)
+                    a_eatom[i] += static_cast<KK_ACC_FLOAT>(0.5*evdwl);
+                  if (c.vflag_global || c.vflag_atom) {
+                    const auto half = static_cast<KK_FLOAT>(0.5);
+                    const KK_FLOAT v[6] = { delx*delx*fpair*half, dely*dely*fpair*half,
+                        delz*delz*fpair*half, delx*dely*fpair*half,
+                        delx*delz*fpair*half, dely*delz*fpair*half };
+                    if (c.vflag_global) {
+                      if (NEIGHFLAG == FULL) {
+                        for (int n = 0; n < 6; n++)
+                          ev.v[n] += static_cast<KK_ACC_FLOAT>(v[n]);
+                      } else {
+                        // newton on: full pair virial (2x); newton off: i's share here,
+                        // j's share added in Phase D when j is local
+                        const KK_FLOAT vf = c.newton_pair ?
+                            static_cast<KK_FLOAT>(2.0) : static_cast<KK_FLOAT>(1.0);
+                        for (int n = 0; n < 6; n++)
+                          ev.v[n] += static_cast<KK_ACC_FLOAT>(vf * v[n]);
+                      }
                     }
+                    if (c.vflag_atom)
+                      for (int n = 0; n < 6; n++)
+                        a_vatom(i,n) += static_cast<KK_ACC_FLOAT>(v[n]);
                   }
-                  if (c.vflag_atom)
-                    for (int n = 0; n < 6; n++)
-                      a_vatom(i,n) += static_cast<KK_ACC_FLOAT>(v[n]);
                 }
               }
             }
@@ -1415,6 +1437,7 @@ struct ClusterBuildFunctor {
   typename AT::t_int_1d_const       d_ilist;
   typename AT::t_int_1d             d_cluster_numneigh;
   typename AT::t_int_2d             d_cluster_jlist;
+  typename AT::t_int_2d             d_cluster_excl;
   typename AT::t_int_1d             d_scratch;
   int inum;
   int max_jclusters;
@@ -1425,68 +1448,97 @@ struct ClusterBuildFunctor {
     d_ilist(list->d_ilist),
     d_cluster_numneigh(list->d_cluster_numneigh),
     d_cluster_jlist(list->d_cluster_jlist),
+    d_cluster_excl(list->d_cluster_excl),
     d_scratch(list->d_cluster_scratch),
     inum(list->inum),
     max_jclusters(list->max_jclusters) {}
 
+  // Scratch layout (all ints):
+  //   [0 .. HASH_SH-1]           : j-cluster index per slot (-1 = empty)
+  //   [HASH_SH .. 2*HASH_SH-1]   : excl_lo: 2-bit sbmask for pairs  0..15
+  //   [2*HASH_SH .. 3*HASH_SH-1] : excl_hi: 2-bit sbmask for pairs 16..31
+  //   [3*HASH_SH]                 : output-slot counter (njc)
+  //   [3*HASH_SH+1]               : overflow flag
   static int scratch_size_needed() {
-    return ScratchI::shmem_size(HASH_SH + 2);
+    return ScratchI::shmem_size(3 * HASH_SH + 2);
   }
 
   KOKKOS_FUNCTION
   void operator()(const team_member& team) const {
     const int ci = team.league_rank();
 
-    ScratchI scratch(team.team_scratch(0), HASH_SH + 2);
+    ScratchI scratch(team.team_scratch(0), 3 * HASH_SH + 2);
 
-    // Init hash to sentinel, zero counter and overflow flag
+    // Init: hash sentinel, excl words to 0, zero counter and overflow flag
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, HASH_SH), [&](int k) {
-      scratch(k) = -1;
+      scratch(k)            = -1;
+      scratch(HASH_SH + k)  = 0;
+      scratch(2*HASH_SH + k) = 0;
     });
     Kokkos::single(Kokkos::PerTeam(team), [&]() {
-      scratch(HASH_SH)     = 0;
-      scratch(HASH_SH + 1) = 0;
+      scratch(3*HASH_SH)     = 0;
+      scratch(3*HASH_SH + 1) = 0;
     });
     team.team_barrier();
 
     const int start_ii = ci * CI;
     const int end_ii   = (start_ii + CI < inum) ? start_ii + CI : inum;
 
-    // Insert phase: distribute each i-atom's neighbor list across TEAM_SIZE
-    // threads; each inserts its j-cluster into the shared hash via atomicCAS.
-    // Single-warp team guarantees shared-mem coherence between iterations.
+    // Insert: each i-atom's neighbor list is distributed across the warp.
+    // For each (ki, j) pair, insert j's j-cluster into the hash and OR the
+    // 2-bit sbmask into the slot's excl word at the pair's bit position.
     for (int ii = start_ii; ii < end_ii; ii++) {
-      if (scratch(HASH_SH + 1)) break; // hash saturated, no point continuing
+      if (scratch(3*HASH_SH + 1)) break; // hash saturated
+      const int ki   = ii - start_ii;   // i-atom index within i-cluster
       const int i    = d_ilist(ii);
       const int jnum = d_numneigh(i);
 
       Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](int jj) {
-        const int cj = (d_neighbors(i, jj) & NEIGHMASK) / CJ;
+        const int j_enc = d_neighbors(i, jj);
+        const int j     = j_enc & NEIGHMASK;
+        const int cj    = j / CJ;
+        const int kj    = j % CJ;              // j-atom position in j-cluster
+        const int pidx  = ki * CJ + kj;        // pair index 0..CI*CJ-1
+        const int sm    = sbmask(j_enc);        // 0..3
+
         int slot = cj & (HASH_SH - 1);
         for (int probe = 0; probe < HASH_SH; probe++) {
           const int old = Kokkos::atomic_compare_exchange(&scratch(slot), -1, cj);
-          if (old == -1 || old == cj) return; // inserted or already present
+          if (old == -1 || old == cj) {
+            // Record sbmask — skip atomic if sm==0 (most pairs)
+            if (sm != 0) {
+              if (pidx < 16)
+                Kokkos::atomic_fetch_or(&scratch(HASH_SH + slot),
+                                        sm << (pidx * 2));
+              else
+                Kokkos::atomic_fetch_or(&scratch(2*HASH_SH + slot),
+                                        sm << ((pidx - 16) * 2));
+            }
+            return;
+          }
           slot = (slot + 1) & (HASH_SH - 1);
         }
-        Kokkos::atomic_fetch_max(&scratch(HASH_SH + 1), 1); // hash full
+        Kokkos::atomic_fetch_max(&scratch(3*HASH_SH + 1), 1); // hash full
       });
       team.team_barrier();
     }
 
-    // Compact pass: scan hash in parallel, write unique j-clusters to output.
-    // scratch(HASH_SH) starts at 0 (untouched during insert) and serves as
-    // the output-slot counter; each thread atomically claims its write index.
+    // Compact: each occupied slot writes j-cluster index + excl words.
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, HASH_SH), [&](int k) {
       if (scratch(k) != -1) {
-        const int idx = Kokkos::atomic_fetch_add(&scratch(HASH_SH), 1);
-        if (idx < max_jclusters) d_cluster_jlist(ci, idx) = scratch(k);
+        const int idx = Kokkos::atomic_fetch_add(&scratch(3*HASH_SH), 1);
+        if (idx < max_jclusters) {
+          d_cluster_jlist(ci, idx)      = scratch(k);
+          d_cluster_excl(ci, 2*idx)     = scratch(HASH_SH + k);
+          d_cluster_excl(ci, 2*idx + 1) = scratch(2*HASH_SH + k);
+        }
       }
     });
     team.team_barrier();
 
     Kokkos::single(Kokkos::PerTeam(team), [&]() {
-      const int njc        = scratch(HASH_SH);
-      const int hash_ovf   = scratch(HASH_SH + 1);
+      const int njc        = scratch(3*HASH_SH);
+      const int hash_ovf   = scratch(3*HASH_SH + 1);
       const bool jlist_ovf = (njc > max_jclusters);
       d_cluster_numneigh(ci) = (hash_ovf || jlist_ovf) ? 0 : njc;
       if (hash_ovf)
@@ -1613,17 +1665,13 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
       }
 
       // Build cluster list when neigh/cluster is enabled
-      if (fpair->lmp->kokkos->neigh_cluster &&
-          fpair->special_lj[1] == 1.0 && fpair->special_lj[2] == 1.0 &&
-          fpair->special_lj[3] == 1.0)
+      if (fpair->lmp->kokkos->neigh_cluster)
         build_cluster_list<typename PairStyle::device_type>(list);
     }
 
     // Cluster-pair kernel: 32 threads per i-cluster, no vector lanes.
-    // Supports FULL, HALF, and HALFTHREAD neighbor lists.
-    const bool do_cluster = fpair->lmp->kokkos->neigh_cluster &&
-        fpair->special_lj[1] == 1.0 && fpair->special_lj[2] == 1.0 &&
-        fpair->special_lj[3] == 1.0;
+    // Supports FULL, HALF, and HALFTHREAD neighbor lists and any special_lj/coul.
+    const bool do_cluster = fpair->lmp->kokkos->neigh_cluster;
 
     if (do_cluster) {
       using DeviceType = typename PairStyle::device_type;

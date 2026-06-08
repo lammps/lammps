@@ -67,6 +67,11 @@ void NeighListKokkos<DeviceType>::grow_clusters(int num_iclusters, int max_jc)
       (int)d_cluster_jlist.extent(1) < max_jc)
     d_cluster_jlist = typename AT::t_int_2d(
         Kokkos::NoInit("neighlist:cluster_jlist"), num_iclusters, max_jc);
+  if ((int)d_cluster_excl.extent(0) < num_iclusters ||
+      (int)d_cluster_excl.extent(1) < 2*max_jc)
+    d_cluster_excl = typename AT::t_int_2d(
+        Kokkos::NoInit("neighlist:cluster_excl"),
+        num_iclusters, 2*max_jc);
   if ((int)d_cluster_scratch.extent(0) < 3)
     d_cluster_scratch = typename AT::t_int_1d("neighlist:cluster_scratch", 3);
 }

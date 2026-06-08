@@ -13,6 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_list_kokkos.h"
+#include "error.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 
@@ -66,8 +67,17 @@ void NeighListKokkos<DeviceType>::grow_clusters(int num_iclusters, int max_jc)
       (int)d_cluster_jlist.extent(1) < max_jc)
     d_cluster_jlist = typename AT::t_int_2d(
         Kokkos::NoInit("neighlist:cluster_jlist"), num_iclusters, max_jc);
-  if ((int)d_cluster_scratch.extent(0) < 2)
-    d_cluster_scratch = typename AT::t_int_1d("neighlist:cluster_scratch", 2);
+  if ((int)d_cluster_scratch.extent(0) < 3)
+    d_cluster_scratch = typename AT::t_int_1d("neighlist:cluster_scratch", 3);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void NeighListKokkos<DeviceType>::cluster_fatal(
+    const std::string &file, int line, const std::string &msg)
+{
+  error->all(file, line, msg);
 }
 
 /* ---------------------------------------------------------------------- */

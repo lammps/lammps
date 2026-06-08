@@ -845,8 +845,8 @@ LAMMPS::~LAMMPS() noexcept(false)
   delete[] exename;
 
   if (num_in_arg) {
-    for (int i = 0; i < num_in_arg; i++) delete in_args[i];
-    delete in_args;
+    for (int i = 0; i < num_in_arg; i++) delete[] in_args[i];
+    delete[] in_args;
   }
 }
 

@@ -3,7 +3,10 @@ The FENIX package enables online checkpoint/restart with spare-rank replacement.
 The package provides the following features:
 * A fenix command for enabling online recovery (i.e. without relaunching a job) using spare MPI ranks
 
-The different options for the command is explained in the documentation.
+The different options for the command are explained in the documentation.
+
+Due to some quirks of CMake and LAMMPS's fmt/format setup, building with the FENIX package may require
+you to configure LAMMMPS with the flag "-DCMAKE_CXX_STANDARD=20".
 
 Once built, you can test this package using one of the input files from the examples/PACKAGES/fenix dir
 

@@ -9,7 +9,7 @@ Syntax
 .. code-block:: LAMMPS
    fenix keyword value ...
 
-* keyword = *restart_file*, *restart_label*, or *spares*
+* keyword = *restart_file*, *restart_label*, *universal*, or *spares*
 
    .. parsed-literal::
 
@@ -19,6 +19,8 @@ Syntax
          file = the label argument to pass to a jump command
       *spares* arg = N
          N = the number of ranks for Fenix to use as spares
+      *universal* arg = none
+         initialize Fenix with universal scope
 
 Examples
 """"""""
@@ -27,6 +29,7 @@ Examples
 
    fenix spares 10
    fenix spares 10 restart_label restart
+   fenix universal restart_label restart
 
 ----------
 
@@ -51,12 +54,26 @@ If this command is called more than once, subsequent invocations will update
 arguments. Fenix is not reinitialized, so changes to the spares argument are
 ignored.
 
+By default, Fenix initializes at world scope. This is the best option for runs
+that do not involve partitions, or runs with partitions but no communication
+between them. For runs with partitions that communicate, the universal flag is
+needed to ensure the universe's uworld is always valid to communicate on.
+
 ----------
 
 Restrictions
 """"""""""""
 
-This fix is part of the FENIX package. It is only enabled if LAMMPS was built
+When the universal flag is not used, communication on the universe's uworld may
+cause MPI to abort if any processes have failed.
+
+When the universal flag is used, you must not specify a number of spare ranks -
+instead, all ranks in the last partition are used as spares.
+
+When the universal flag is used, shrinking recovery (recovering when all spare
+ranks have been consumed) is not currently supported.
+
+This command is part of the FENIX package. It is only enabled if LAMMPS was built
 with that package. See the :doc:`Build package <Build_package>` page for more
 info.
 

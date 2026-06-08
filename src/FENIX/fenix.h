@@ -35,9 +35,12 @@ class Fenix : public Command {
   void fault_handler();
 
   void recover();
-  void recover_impl();
+  void try_recover();
+
+  void try_setup_universe();
 
   int spare_ranks;
+  bool universal;
   std::string restart_file;
   std::string restart_label;
 

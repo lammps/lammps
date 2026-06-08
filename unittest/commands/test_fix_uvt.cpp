@@ -51,7 +51,7 @@ protected:
         command("variable Ne equal f_cp[13]");
         command("variable NeDot equal f_cp[14]");
         command("variable dEdNfix equal f_cp[15]");
-        command("fix avg all ave/time 1 1000 1000 v_Ne v_NeDot v_dEdNfix mode vector");
+        command("fix avg all ave/time 1 1000 1000 v_Ne v_NeDot v_dEdNfix");
     }
 
     double fix_value(const char *id, int index)
@@ -65,11 +65,11 @@ protected:
 
 TEST_F(FixUVTTest, QuadraticToyPhysicsAveragesConverge)
 {
-    BEGIN_HIDE_OUTPUT();
-    setup_quadratic_system();
-    setup_quadratic_fix();
-    command("run 1000 post no");
-    END_HIDE_OUTPUT();
+    HIDE_OUTPUT([&] {
+        setup_quadratic_system();
+        setup_quadratic_fix();
+        command("run 1000 post no");
+    });
 
     EXPECT_NEAR(fix_value("avg", 0), 1.4, 5.0e-2);
     EXPECT_NEAR(fix_value("avg", 1), 0.0, 5.0e-2);
@@ -78,24 +78,28 @@ TEST_F(FixUVTTest, QuadraticToyPhysicsAveragesConverge)
 
 TEST_F(FixUVTTest, RestartRestoresElectronState)
 {
-    BEGIN_HIDE_OUTPUT();
-    setup_quadratic_system();
-    setup_quadratic_fix();
-    command("run 1000 post no");
-    double ne_before = fix_value("cp", 12);
-    double nedot_before = fix_value("cp", 13);
-    double dedn_before = fix_value("cp", 14);
-    double energy_before = fix_value("cp", 15);
-    command("write_restart uvt.restart");
-    command("clear");
-    command("read_restart uvt.restart");
-    command("variable k_quad equal 5.0");
-    command("variable N0_quad equal 1.0");
-    command("variable dEdN equal v_k_quad*(f_cp[13]-v_N0_quad)");
-    command("fix cp all uvt temp 1.0 1.0 0.5 mu 2.0 2.0 0.5 ne 1.8 ne_velocity 0.0 dedn v_dEdN");
-    command("run 0 post no");
-    platform::unlink("uvt.restart");
-    END_HIDE_OUTPUT();
+    double ne_before = 0.0;
+    double nedot_before = 0.0;
+    double dedn_before = 0.0;
+    double energy_before = 0.0;
+    HIDE_OUTPUT([&] {
+        setup_quadratic_system();
+        setup_quadratic_fix();
+        command("run 1000 post no");
+        ne_before = fix_value("cp", 12);
+        nedot_before = fix_value("cp", 13);
+        dedn_before = fix_value("cp", 14);
+        energy_before = fix_value("cp", 15);
+        command("write_restart uvt.restart");
+        command("clear");
+        command("read_restart uvt.restart");
+        command("variable k_quad equal 5.0");
+        command("variable N0_quad equal 1.0");
+        command("variable dEdN equal v_k_quad*(f_cp[13]-v_N0_quad)");
+        command("fix cp all uvt temp 1.0 1.0 0.5 mu 2.0 2.0 0.5 ne 1.8 ne_velocity 0.0 dedn v_dEdN");
+        command("run 0 post no");
+        platform::unlink("uvt.restart");
+    });
 
     EXPECT_NEAR(fix_value("cp", 12), ne_before, 1.0e-12);
     EXPECT_NEAR(fix_value("cp", 13), nedot_before, 1.0e-12);

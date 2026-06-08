@@ -153,8 +153,10 @@ accelerated styles exist.
 * :doc:`coul/ctip <pair_coul>` - Charge Transfer Interatomic (Coulomb) Potential
 * :doc:`coul/cut <pair_coul>` - cutoff Coulomb potential
 * :doc:`coul/cut/dielectric <pair_dielectric>` -
+* :doc:`coul/cut/functor <pair_coul_cut_functor>` - cutoff Coulomb potential (FUNCTOR framework)
 * :doc:`coul/cut/global <pair_coul>` - cutoff Coulomb potential
 * :doc:`coul/cut/soft <pair_fep_soft>` - Coulomb potential with a soft core
+* :doc:`coul/cut/soft/functor <pair_coul_cut_soft_functor>` - soft-core cutoff Coulomb potential (FUNCTOR framework)
 * :doc:`coul/cut/soft/gapsys <pair_fep_soft>` - Coulomb potential with a soft core with continuous force and first derivative of force
 * :doc:`coul/debye <pair_coul>` - cutoff Coulomb potential with Debye screening
 * :doc:`coul/diel <pair_coul_diel>` - Coulomb potential with dielectric permittivity
@@ -163,8 +165,11 @@ accelerated styles exist.
 * :doc:`coul/exclude <pair_coul>` - subtract Coulomb potential for excluded pairs
 * :doc:`coul/long <pair_coul>` - long-range Coulomb potential
 * :doc:`coul/long/cs <pair_cs>` - long-range Coulomb potential and core/shell
+* :doc:`coul/long/cs/functor <pair_coul_long_cs_functor>` - core-shell long-range Coulomb potential (FUNCTOR framework)
 * :doc:`coul/long/dielectric <pair_dielectric>` -
+* :doc:`coul/long/functor <pair_coul_long_functor>` - long-range Coulomb potential (FUNCTOR framework)
 * :doc:`coul/long/soft <pair_fep_soft>` - long-range Coulomb potential with a soft core
+* :doc:`coul/long/soft/functor <pair_coul_long_soft_functor>` - soft-core long-range Coulomb potential (FUNCTOR framework)
 * :doc:`coul/msm <pair_coul>` - long-range MSM Coulomb
 * :doc:`coul/slater/cut <pair_coul>` - smeared out Coulomb
 * :doc:`coul/slater/long <pair_coul>` - long-range smeared out Coulomb
@@ -236,6 +241,7 @@ accelerated styles exist.
 * :doc:`lj/charmm/coul/charmm <pair_charmm>` - CHARMM potential with cutoff Coulomb
 * :doc:`lj/charmm/coul/charmm/implicit <pair_charmm>` - CHARMM for implicit solvent
 * :doc:`lj/charmm/coul/long <pair_charmm>` - CHARMM with long-range Coulomb
+* :doc:`lj/charmm/coul/long/functor <pair_lj_charmm_coul_long_functor>` - CHARMM with long-range Coulomb (FUNCTOR framework)
 * :doc:`lj/charmm/coul/long/soft <pair_fep_soft>` - CHARMM with long-range Coulomb and a soft core
 * :doc:`lj/charmm/coul/msm <pair_charmm>` - CHARMM with long-range MSM Coulomb
 * :doc:`lj/charmmfsw/coul/charmmfsh <pair_charmm>` - CHARMM with force switching and shifting
@@ -251,25 +257,32 @@ accelerated styles exist.
 * :doc:`lj/cut <pair_lj>` - cutoff Lennard-Jones potential without Coulomb
 * :doc:`lj/cut/coul/cut <pair_lj_cut_coul>` - LJ with cutoff Coulomb
 * :doc:`lj/cut/coul/cut/dielectric <pair_dielectric>` -
+* :doc:`lj/cut/coul/cut/functor <pair_lj_cut_coul_cut_functor>` - LJ with cutoff Coulomb (FUNCTOR framework)
 * :doc:`lj/cut/coul/cut/soft <pair_fep_soft>` - LJ with cutoff Coulomb with a soft core
+* :doc:`lj/cut/coul/cut/soft/functor <pair_lj_cut_coul_cut_soft_functor>` - soft-core LJ with cutoff Coulomb (FUNCTOR framework)
 * :doc:`lj/cut/coul/debye <pair_lj_cut_coul>` - LJ with Debye screening added to Coulomb
 * :doc:`lj/cut/coul/debye/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/dsf <pair_lj_cut_coul>` - LJ with Coulomb via damped shifted forces
 * :doc:`lj/cut/coul/esp <pair_lj_cut_coul>` - LJ with long-range Coulomb for ESP kspace solver
 * :doc:`lj/cut/coul/long <pair_lj_cut_coul>` - LJ with long-range Coulomb
 * :doc:`lj/cut/coul/long/cs <pair_cs>` - LJ with long-range Coulomb with core/shell adjustments
+* :doc:`lj/cut/coul/long/cs/functor <pair_lj_cut_coul_long_cs_functor>` - LJ with core-shell long-range Coulomb (FUNCTOR framework)
 * :doc:`lj/cut/coul/long/dielectric <pair_dielectric>` -
+* :doc:`lj/cut/coul/long/functor <pair_lj_cut_coul_long_functor>` - LJ with long-range Coulomb (FUNCTOR framework)
 * :doc:`lj/cut/coul/long/soft <pair_fep_soft>` - LJ with long-range Coulomb with a soft core
+* :doc:`lj/cut/coul/long/soft/functor <pair_lj_cut_coul_long_soft_functor>` - soft-core LJ with long-range Coulomb (FUNCTOR framework)
 * :doc:`lj/cut/coul/msm <pair_lj_cut_coul>` - LJ with long-range MSM Coulomb
 * :doc:`lj/cut/coul/msm/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/wolf <pair_lj_cut_coul>` - LJ with Coulomb via Wolf potential
 * :doc:`lj/cut/dipole/cut <pair_dipole>` - point dipoles with cutoff
 * :doc:`lj/cut/dipole/long <pair_dipole>` - point dipoles with long-range Ewald
+* :doc:`lj/cut/functor <pair_lj_cut_functor>` - cutoff Lennard-Jones potential (FUNCTOR framework)
 * :doc:`lj/cut/soft <pair_fep_soft>` - LJ with a soft core
 * :doc:`lj/cut/sphere <pair_lj_cut_sphere>` - LJ where per-atom radius is used as LJ sigma
 * :doc:`lj/cut/thole/long <pair_thole>` - LJ with Coulomb with thole damping
 * :doc:`lj/cut/tip4p/cut <pair_lj_cut_tip4p>` - LJ with cutoff Coulomb for TIP4P water
 * :doc:`lj/cut/tip4p/long <pair_lj_cut_tip4p>` - LJ with long-range Coulomb for TIP4P water
+* :doc:`lj/cut/tip4p/long/functor <pair_lj_cut_tip4p_long_functor>` - LJ with long-range Coulomb for TIP4P water (FUNCTOR framework)
 * :doc:`lj/cut/tip4p/long/soft <pair_fep_soft>` - LJ with cutoff Coulomb for TIP4P water with a soft core
 * :doc:`lj/expand <pair_lj_expand>` - Lennard-Jones for variable size particles
 * :doc:`lj/expand/coul/long <pair_lj_expand>` - Lennard-Jones for variable size particles with long-range Coulomb
@@ -311,6 +324,7 @@ accelerated styles exist.
 * :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - Smoothed MM3 vdW potential with Gaussian electrostatics
 * :doc:`momb <pair_momb>` - Many-Body Metal-Organic (MOMB) force field
 * :doc:`morse <pair_morse>` - Morse potential
+* :doc:`morse/functor <pair_morse_functor>` - Morse potential (FUNCTOR framework)
 * :doc:`morse/smooth/linear <pair_morse>` - Linear smoothed Morse potential
 * :doc:`morse/soft <pair_morse>` - Morse potential with a soft core
 * :doc:`multi/lucy <pair_multi_lucy>` - DPD potential with density-dependent force

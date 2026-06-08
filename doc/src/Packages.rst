@@ -223,6 +223,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`compute fep <compute_fep>`
      - ``PACKAGES/fep``
      - no
+   * - :ref:`FUNCTOR <PKG-FUNCTOR>`
+     - functor/template pair styles
+     - :doc:`Developer_write_pair_functor`
+     - n/a
+     - no
    * - :ref:`GPU <PKG-GPU>`
      - GPU-enabled styles
      - :doc:`Section gpu <Speed_gpu>`

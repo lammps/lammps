@@ -47,7 +47,6 @@ protected:
         command("variable N0_quad equal 1.0");
         command("variable dEdN equal v_k_quad*(f_cp[13]-v_N0_quad)");
         command("fix cp all uvt temp 1.0 1.0 0.5 mu 2.0 2.0 0.5 ne 1.8 ne_velocity 0.0 dedn v_dEdN");
-        command("fix avg all ave/time 1 1000 1000 f_cp[13] f_cp[14] f_cp[15]");
     }
 
     double fix_value(const char *id, int index)
@@ -63,7 +62,8 @@ TEST_F(FixUVTTest, QuadraticToyPhysicsAveragesConverge)
 {
     setup_quadratic_system();
     setup_quadratic_fix();
-    command("run 1000 post no");
+    command("fix avg all ave/time 1 10000 10000 f_cp[13] f_cp[14] f_cp[15]");
+    command("run 10000 post no");
 
     EXPECT_NEAR(fix_value("avg", 0), 1.4, 1.0e-1);
     EXPECT_NEAR(fix_value("avg", 1), 0.0, 1.0e-1);

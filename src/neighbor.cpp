@@ -206,6 +206,7 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
 
   // Multi data
 
+  bin_hash = 0;
   type2collection = nullptr;
   collection2cut = nullptr;
   collection = nullptr;
@@ -2903,6 +2904,12 @@ void Neighbor::modify_params(int narg, char **arg)
       }
 
       iarg += 2 + ncollections;
+    } else if (strcmp(arg[iarg],"bin/hash") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify bin/hash", error);
+      bin_hash = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      if (style != Neighbor::MULTI && bin_hash)
+        error->all(FLERR, iarg, "Cannot use bin/hash command without multi setting");
+      iarg += 2;
     } else error->all(FLERR, iarg, "Unknown neigh_modify keyword: {}", arg[iarg]);
   }
 }

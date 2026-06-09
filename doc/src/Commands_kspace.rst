@@ -1,14 +1,16 @@
+.. include:: Commands_html.rst
+
 KSpace styles
 =============
 
 All LAMMPS :doc:`kspace_style <kspace_style>` solvers.  Some styles have
 accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
-OPT.
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
 
 .. table_from_list::
    :columns: 5
 
+   * :doc:`esp <kspace_style>`
    * :doc:`ewald (o) <kspace_style>`
    * :doc:`ewald/disp <kspace_style>`
    * :doc:`ewald/disp/dipole <kspace_style>`

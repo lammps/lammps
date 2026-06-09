@@ -1,10 +1,11 @@
 .. index:: improper_style distharm
+.. index:: improper_style distharm/kk
 .. index:: improper_style distharm/omp
 
 improper_style distharm command
 ===============================
 
-Accelerator Variants: *distharm/omp*
+Accelerator Variants: *distharm/kk*, *distharm/omp*
 
 Syntax
 """"""

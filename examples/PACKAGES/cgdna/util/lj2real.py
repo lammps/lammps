@@ -58,15 +58,15 @@ class ConversionFactors:
 
     def __init__(self, invert: bool = False):
         self.inverted = False
-        self.temp_conv_factor = 3000.038822
-        self.energy_conv_factor = 5.961689060210325
-        self.kT_conv_factor = 0.001987204155
-        self.mass_conv_factor = 100.0277580236
+        self.temp_conv_factor = 3000.0
+        self.energy_conv_factor = 5.961612775922496
+        self.kT_conv_factor = 0.0019872042586408316
+        self.mass_conv_factor = 100.0
         self.length_conv_factor = 8.518
-        self.time_conv_factor = 1706.0
-        self.vel_conv_factor = 0.004992966002344666
-        self.angular_mom_conv_factor = 4.254188991883894
-        self.density_conv_factor = 0.2687551067436886
+        self.time_conv_factor = 1705.5321720702023
+        self.vel_conv_factor = 0.004994335574251124
+        self.angular_mom_conv_factor = 4.254175042147109
+        self.density_conv_factor = 0.2686805266223118
 
         self.oxdna_fene_string = "11.92337812042065 2.1295 6.409795"
         self.oxdna_excv_string = "11.92337812042065 5.9626 5.74965 11.92337812042065 4.38677 4.259 11.92337812042065 2.81094 2.72576"
@@ -143,10 +143,7 @@ def check_datafile_header(line: str, sections: Sections):
 
     Args:
         line (str): The line to check
-        masses_section (bool): If the current section is the masses section
-        atoms_section (bool): If the current section is the atoms section
-        velocities_section (bool): If the current section is the velocities section
-        ellipsoids_section (bool): If the current section is the ellipsoids section
+        sections (Sections): The Sections object to modify
     """
 
     if any(header in line for header in ["xlo", "xhi", "ylo", "yhi", "zlo", "zhi"]):
@@ -192,6 +189,7 @@ def modify_datafile(datafile_path: str, conversion_factors: ConversionFactors):
 
     Args:
         datafile_path (str): The path to the file to modify
+        conversion_factors (ConversionFactors): The conversion factors to use
     """
     lines_changed = 0
     current_section = Sections(False, False, False, False, False)
@@ -290,6 +288,7 @@ def modify_inputfile(inputfile_path: str, conversion_factors: ConversionFactors)
 
     Args:
         inputfile_path (str): The path to the input file to modify
+        conversion_factors (ConversionFactors): The conversion factors to use
     """
 
     lines_changed = 0
@@ -310,6 +309,10 @@ def modify_inputfile(inputfile_path: str, conversion_factors: ConversionFactors)
                 "Warning: Both oxdna2 and oxrna2 found in input file. Output will likely be incorrect."
             )
 
+        elements = line.split()
+        if not elements:
+            continue
+
         if "variable T" in line:
             old_value = line.split()[3]
 
@@ -327,7 +330,6 @@ def modify_inputfile(inputfile_path: str, conversion_factors: ConversionFactors)
             lines_changed += 1
 
         elif "atom_modify" in line:
-            elements = line.split()
             elements[3] = str(
                 round(float(elements[3]) * conversion_factors.length_conv_factor, 3)
             )
@@ -335,7 +337,6 @@ def modify_inputfile(inputfile_path: str, conversion_factors: ConversionFactors)
             lines_changed += 1
 
         elif "neighbor" in line:
-            elements = line.split()
             elements[1] = str(
                 round(float(elements[1]) * conversion_factors.length_conv_factor, 3)
             )
@@ -343,18 +344,15 @@ def modify_inputfile(inputfile_path: str, conversion_factors: ConversionFactors)
             lines_changed += 1
 
         elif "read_data" in line:
-            elements = line.split()
             if conversion_factors.inverted:
                 elements[1] = elements[1] + "_lj"
             else:
-                elements[1] = (
-                    elements[1] + "_real"
-                )  # naming convention of datafile after conversion
+                elements[1] = elements[1] + "_real"
+                # naming convention of datafile after conversion
             lines[i] = " ".join(elements) + "\n"
             lines_changed += 1
 
         elif "mass" in line:
-            elements = line.split()
             elements[4] = str(
                 round(float(elements[4]) * conversion_factors.mass_conv_factor, 4)
             )
@@ -362,16 +360,25 @@ def modify_inputfile(inputfile_path: str, conversion_factors: ConversionFactors)
             lines_changed += 1
 
         elif "bond_coeff" in line or "pair_coeff" in line:
-            if ".lj" in line or ".real" in line:
+            if ".cgdna" in line:  # potential files
                 if conversion_factors.inverted:
-                    line = line.replace(".real", ".lj")
+                    line = line.replace("real.cgdna", "lj.cgdna")
                 else:
-                    line = line.replace(".lj", ".real")
+                    line = line.replace("lj.cgdna", "real.cgdna")
                 lines[i] = line
                 lines_changed += 1
 
+                # converting modifiable paramters outside of potential files
                 if "stk" in line and "xstk" not in line and "coaxstk" not in line:
                     elements = line.split()
+                    if elements[5] != "${T}":
+                        elements[5] = str(  # convert T
+                            round(
+                                float(elements[5])
+                                * conversion_factors.temp_conv_factor,
+                                1,
+                            )
+                        )
                     elements[6] = str(  # convert xi
                         round(
                             float(elements[6]) * conversion_factors.energy_conv_factor,
@@ -383,9 +390,19 @@ def modify_inputfile(inputfile_path: str, conversion_factors: ConversionFactors)
                     )
                     lines[i] = " ".join(elements) + "\n"
 
-            else:
-                elements = line.split()
+                elif "dh" in line:
+                    elements = line.split()
+                    if elements[4] != "${T}":
+                        elements[4] = str(  # convert T
+                            round(
+                                float(elements[4])
+                                * conversion_factors.temp_conv_factor,
+                                1,
+                            )
+                        )
+                        lines[i] = " ".join(elements) + "\n"
 
+            else:  # non-potential files
                 if "bond_coeff" in line:
                     if oxdna2_flag:
                         elements[2:] = conversion_factors.oxdna2_fene_string.split()
@@ -427,6 +444,14 @@ def modify_inputfile(inputfile_path: str, conversion_factors: ConversionFactors)
                             elements[4:] = conversion_factors.oxdna_xstk_string.split()
 
                     else:  # stk
+                        if elements[5] != "${T}":
+                            elements[5] = str(  # convert T
+                                round(
+                                    float(elements[5])
+                                    * conversion_factors.temp_conv_factor,
+                                    1,
+                                )
+                            )
                         elements[6] = str(  # convert xi
                             round(
                                 float(elements[6])
@@ -472,11 +497,27 @@ def modify_inputfile(inputfile_path: str, conversion_factors: ConversionFactors)
                             elements[5:] = (
                                 conversion_factors.oxdna_hbond_1_4_2_3_string.split()
                             )
+                elif "dh" in line:
+                    if elements[4] != "${T}":
+                        elements[4] = str(
+                            round(
+                                float(elements[4])
+                                * conversion_factors.temp_conv_factor,
+                                1,
+                            )
+                        )
                 lines[i] = " ".join(elements) + "\n"
                 lines_changed += 1
 
-        elif "langevin" in line:
-            elements = line.split()
+        elif "langevin" in line:  # compatible with fix langevin
+            if elements[4] != "${T}":
+                elements[4] = str(
+                    round(float(elements[4]) * conversion_factors.temp_conv_factor, 1)
+                )
+            if elements[5] != "${T}":
+                elements[5] = str(
+                    round(float(elements[5]) * conversion_factors.temp_conv_factor, 1)
+                )
             elements[6] = str(
                 round(float(elements[6]) * conversion_factors.time_conv_factor, 2)
             )
@@ -484,15 +525,13 @@ def modify_inputfile(inputfile_path: str, conversion_factors: ConversionFactors)
             lines_changed += 1
 
         elif "timestep" in line:
-            elements = line.split()
             elements[1] = str(
-                round(float(elements[1]) * conversion_factors.time_conv_factor, 5)
+                round(float(elements[1]) * conversion_factors.time_conv_factor, 6)
             )
             lines[i] = " ".join(elements) + "\n"
             lines_changed += 1
 
         elif "comm_modify" in line:
-            elements = line.split()
             elements[2] = str(
                 round(float(elements[2]) * conversion_factors.length_conv_factor, 1)
             )

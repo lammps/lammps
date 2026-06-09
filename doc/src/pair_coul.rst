@@ -3,6 +3,7 @@
 .. index:: pair_style coul/cut/kk
 .. index:: pair_style coul/cut/omp
 .. index:: pair_style coul/cut/global
+.. index:: pair_style coul/cut/global/kk
 .. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/ctip
 .. index:: pair_style coul/debye
@@ -13,6 +14,7 @@
 .. index:: pair_style coul/dsf/gpu
 .. index:: pair_style coul/dsf/kk
 .. index:: pair_style coul/dsf/omp
+.. index:: pair_style coul/esp
 .. index:: pair_style coul/exclude
 .. index:: pair_style coul/long
 .. index:: pair_style coul/long/omp
@@ -38,7 +40,7 @@ Accelerator Variants: *coul/cut/gpu*, *coul/cut/kk*, *coul/cut/omp*
 pair_style coul/cut/global command
 ==================================
 
-Accelerator Variants: *coul/cut/global/omp*
+Accelerator Variants: *coul/cut/global/kk*, *coul/cut/global/omp*
 
 pair_style coul/ctip command
 ============================
@@ -96,6 +98,7 @@ Syntax
    pair_style coul/ctip alpha cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
+   pair_style coul/esp cutoff
    pair_style coul/exclude cutoff
    pair_style coul/long cutoff
    pair_style coul/wolf alpha cutoff
@@ -131,6 +134,9 @@ Examples
    pair_coeff 2 2 3.5
 
    pair_style coul/dsf 0.05 10.0
+   pair_coeff * *
+
+   pair_style coul/esp 10.0
    pair_coeff * *
 
    pair_style hybrid/overlay coul/exclude 10.0 ...
@@ -301,7 +307,7 @@ be computed via an Ewald summation.  For example:
 
 Keyword *ewald* does not need a damping parameter, but a
 :doc:`kspace_style <kspace_style>` must be defined, which can be style
-*ewald* or *pppm*\ .  The Ewald method was used in Streitz and
+*ewald*, *esp* or *pppm*\ .  The Ewald method was used in Streitz and
 Mintmire's original paper, but a Wolf summation offers a speed-up in
 some cases.
 
@@ -365,14 +371,14 @@ molecular systems with :doc:`kspace style scafacos <kspace_style>`,
 which always computes the *full* Coulomb interactions without exclusions.
 Pair style *coul/exclude* will then *subtract* the excluded interactions
 accordingly. So to achieve the same forces as with ``pair_style lj/cut/coul/long 12.0``
-with ``kspace_style pppm 1.0e-6``, one would use
-``pair_style hybrid/overlay lj/cut 12.0 coul/exclude 12.0`` with
-``kspace_style scafacos p3m 1.0e-6``.
+with ``kspace_style pppm 1.0e-6``, one would use ``pair_style lj/cut/coul/esp 12.0``
+with ``kspace_style esp 1.0e-6`` or ``pair_style hybrid/overlay lj/cut 12.0 coul/exclude 12.0``
+with ``kspace_style scafacos p3m 1.0e-6``.
 
-Styles *coul/long* and *coul/msm* compute the same Coulombic
+Styles *coul/esp*, *coul/long* and *coul/msm* compute the same Coulombic
 interactions as style *coul/cut* except that an additional damping
 factor is applied so it can be used in conjunction with the
-:doc:`kspace_style <kspace_style>` command and its *ewald* or *pppm*
+:doc:`kspace_style <kspace_style>` command and its *ewald*, *esp* or *pppm*
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
@@ -385,7 +391,7 @@ hydrogen atoms, the bond and angle types for OH and HOH interactions,
 and the distance to the massless charge site are specified as
 pair_style arguments.  Style *tip4p/cut* uses a global cutoff for
 Coulomb interactions; style *tip4p/long* is for use with a long-range
-Coulombic solver (Ewald or PPPM).
+Coulombic solver (Ewald, ESP or PPPM).
 
 .. note::
 

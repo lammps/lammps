@@ -5231,6 +5231,7 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_EQ(lmp->atom->ellipsoid_flag, 1);
     ASSERT_NE(lmp->atom->ellipsoid, nullptr);
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
+    ASSERT_NE(lmp->atom->id3p, nullptr);
     ASSERT_NE(lmp->atom->id5p, nullptr);
 
     BEGIN_HIDE_OUTPUT();
@@ -5314,6 +5315,7 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_EQ(lmp->atom->ellipsoid_flag, 1);
     ASSERT_NE(lmp->atom->ellipsoid, nullptr);
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
+    ASSERT_NE(lmp->atom->id3p, nullptr);
     ASSERT_NE(lmp->atom->id5p, nullptr);
 
     auto *x         = lmp->atom->x;
@@ -5495,6 +5497,7 @@ TEST_F(AtomStyleTest, oxdna)
     auto *num_bond  = lmp->atom->num_bond;
     auto *bond_type = lmp->atom->bond_type;
     auto *bond_atom = lmp->atom->bond_atom;
+    auto *id3p      = lmp->atom->id3p;
     auto *id5p      = lmp->atom->id5p;
 
     ASSERT_EQ(num_bond[GETIDX(1)], 1);
@@ -5525,6 +5528,17 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_EQ(bond_atom[GETIDX(7)][0], 8);
     ASSERT_EQ(bond_atom[GETIDX(8)][0], 9);
     ASSERT_EQ(bond_atom[GETIDX(9)][0], 10);
+
+    ASSERT_EQ(id3p[GETIDX(1)], -1);
+    ASSERT_EQ(id3p[GETIDX(2)], 1);
+    ASSERT_EQ(id3p[GETIDX(3)], 2);
+    ASSERT_EQ(id3p[GETIDX(4)], 3);
+    ASSERT_EQ(id3p[GETIDX(5)], 4);
+    ASSERT_EQ(id3p[GETIDX(6)], -1);
+    ASSERT_EQ(id3p[GETIDX(7)], 6);
+    ASSERT_EQ(id3p[GETIDX(8)], 7);
+    ASSERT_EQ(id3p[GETIDX(9)], 8);
+    ASSERT_EQ(id3p[GETIDX(10)], 9);
 
     ASSERT_EQ(id5p[GETIDX(1)], 2);
     ASSERT_EQ(id5p[GETIDX(2)], 3);

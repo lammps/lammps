@@ -97,13 +97,14 @@ Description
 """""""""""
 
 This command defines a geometric region of space.  Various other
-commands use regions.  For example, the region can be filled with
-atoms via the :doc:`create_atoms <create_atoms>` command.  Or a bounding
-box around the region, can be used to define the simulation box via
-the :doc:`create_box <create_box>` command.  Or the atoms in the region
-can be identified as a group via the :doc:`group <group>` command, or
+commands use regions.  For example, the region can be filled with atoms
+via the :doc:`create_atoms <create_atoms>` command.  Or a bounding box
+around the region, can be used to define the simulation box via the
+:doc:`create_box <create_box>` command.  Or the atoms in the region can
+be identified as a group via the :doc:`group <group>` command, or
 deleted via the :doc:`delete_atoms <delete_atoms>` command.  Or the
-surface of the region can be used as a boundary wall via the :doc:`fix wall/region <fix_wall_region>` command.
+surface of the region can be used as a boundary wall via the :doc:`fix
+wall/region <fix_wall_region>` command.
 
 Commands which use regions typically test whether an atom's position
 is contained in the region or not.  For this purpose, coordinates
@@ -114,13 +115,16 @@ defined with the *side in* keyword, but would not be part of the
 region if it were defined using the *side out* keyword.  See more
 details on the *side* keyword below.
 
-Normally, regions in LAMMPS are "static", meaning their geometric
-extent does not change with time.  If the *move* or *rotate* keyword
-is used, as described below, the region becomes "dynamic", meaning
-its location or orientation changes with time.  This may be useful,
-for example, when thermostatting a region, via the compute temp/region
-command, or when the fix wall/region command uses a region surface as
-a bounding wall on particle motion, i.e. a rotating container.
+Normally, regions in LAMMPS are "static", meaning their geometric extent
+does not change with time unless their geometry is defined using
+references to :doc:`equal style variables <variable>` where the value
+changes over time.  See below for more details on "variable shapes".  If
+the *move* or *rotate* keyword is used, as described below, the region
+becomes "dynamic", meaning its location or orientation can change with
+time.  This may be useful, for example, when thermostatting a region,
+via the compute temp/region command, or when the fix wall/region command
+uses a region surface as a bounding wall on particle motion, i.e. a
+rotating container.
 
 The *delete* style removes the named region.  Since there is little
 overhead to defining extra regions, there is normally no need to do
@@ -313,9 +317,7 @@ If the *move* or *rotate* keywords are used, the region is "dynamic",
 meaning its location or orientation changes with time.  These keywords
 cannot be used with a *union* or *intersect* style region.  Instead, the
 keywords should be used to make the individual sub-regions of the
-*union* or *intersect* region dynamic.  Normally, each sub-region should
-be "dynamic" in the same manner (e.g. rotate around the same point),
-though this is not a requirement.
+*union* or *intersect* region dynamic.
 
 The *move* keyword allows one or more :doc:`equal-style variables
 <variable>` to be used to specify the x,y,z displacement of the region,

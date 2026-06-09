@@ -78,8 +78,9 @@ class Image : protected Pointers {
 
   int addcolor(const std::string &, double, double, double);
   double *element2color(const std::string &);
-  double element2diam(const std::string &);
+  double element2diam(const std::string &) const;
   double *color2rgb(const std::string &);
+  std::string rgb2color(const double *) const;
 
  private:
   int me, nprocs;

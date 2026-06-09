@@ -1,11 +1,15 @@
 .. index:: bond_style oxdna/fene
 .. index:: bond_style oxdna2/fene
+.. index:: bond_style oxdna3/fene
 .. index:: bond_style oxrna2/fene
 
 bond_style oxdna/fene command
 =============================
 
 bond_style oxdna2/fene command
+==============================
+
+bond_style oxdna3/fene command
 ==============================
 
 bond_style oxrna2/fene command
@@ -19,6 +23,8 @@ Syntax
    bond_style oxdna/fene
 
    bond_style oxdna2/fene
+
+   bond_style oxdna3/fene
 
    bond_style oxrna2/fene
 
@@ -34,11 +40,11 @@ Examples
    bond_style oxdna2/fene
    bond_coeff * 2.0 0.25 0.7564
 
+   bond_style oxdna3/fene
+   bond_coeff * oxdna3_lj.cgdna
+
    bond_style oxrna2/fene
    bond_coeff * 2.0 0.25 0.76107
-
-   bond_style oxdna/fene
-   bond_coeff * oxdna_lj.cgdna
 
    # Real units
    bond_style oxdna/fene
@@ -47,11 +53,11 @@ Examples
    bond_style oxdna2/fene
    bond_coeff * 11.92337812042065 2.1295 6.4430152
 
-   bond_style oxrna2/fene
-   bond_coeff * 11.92337812042065 2.1295 6.482800913
+   bond_style oxdna3/fene
+   bond_coeff * oxdna3_real.cgdna
 
    bond_style oxrna2/fene
-   bond_coeff * oxrna2_real.cgdna
+   bond_coeff * 11.92337812042065 2.1295 6.482800913
 
 .. note::
 
@@ -59,14 +65,15 @@ Examples
    cannot be changed without reparameterizing the entire model. They are
    provided in forms compatible with both *units lj* and *units real*
    (see documentation of :doc:`units <units>`).  These can also be read
-   from a potential file with correct unit style by specifying the name
-   of the file. Several potential files for each unit style are included
-   in the ``potentials`` directory of the LAMMPS distribution.
+   from a potential file (sole option for oxDNA3) with correct
+   unit style by specifying the name of the file. Several potential files
+   for each unit style are included in the ``potentials`` directory of
+   the LAMMPS distribution.
 
 Description
 """""""""""
 
-The *oxdna/fene*, *oxdna2/fene*, and *oxrna2/fene* bond styles use the potential
+The *oxdna/fene*, *oxdna2/fene*, *oxdna3/fene* and *oxrna2/fene* bond styles use the potential
 
 .. math::
 
@@ -97,7 +104,8 @@ in the data file or restart files read by the :doc:`read_data
    bond style the analogous pair styles *oxdna2/excv* , *oxdna2/stk* ,
    *oxdna2/xstk* , *oxdna2/coaxstk* , *oxdna2/hbond* and an additional
    Debye-Hueckel pair style *oxdna2/dh* have to be defined. The same
-   applies to the oxRNA2 :ref:`(Sulc1) <Sulc01>` styles.
+   applies to the oxDNA3 :ref:`(Bonato) <Bonato>`
+   and oxRNA2 :ref:`(Sulc1) <Sulc01>` styles.
 
 .. note::
 
@@ -111,15 +119,15 @@ in the data file or restart files read by the :doc:`read_data
 .. warning::
 
    If data files are produced with :doc:`write_data <write_data>`, then
-   the :doc:`newton <newton>` command should be set to *newton on* or
-   *newton off on*.  Otherwise the data files will not have the same
-   3'-to-5' polarity as the initial data file. This limitation does not
-   apply to binary restart files produced with :doc:`write_restart
-   <write_restart>`.
+   the :doc:`newton <newton>` command should be set to *newton on*.
+   Otherwise the data files will not have the same 3'-to-5' polarity
+   as the initial data file. This limitation does not apply to
+   binary restart files produced with :doc:`write_restart <write_restart>`.
 
 Example input and data files for DNA and RNA duplexes can be found in
-``examples/PACKAGES/cgdna/examples/oxDNA/`, `.../oxDNA2/`` and
-``.../oxRNA2/``.  A simple python setup tool which creates single
+``examples/PACKAGES/cgdna/examples/lj_units/oxDNA/`, `.../oxDNA2/`, `.../oxDNA3/``
+and ``.../oxRNA2/`` or in the corresponding folder for real units.
+A simple python setup tool which creates single
 straight or helical DNA strands, DNA/RNA duplexes or arrays of DNA/RNA
 duplexes can be found in ``examples/PACKAGES/cgdna/util/``.
 
@@ -132,6 +140,7 @@ Please cite also the relevant oxDNA/oxRNA publications. These are
 :ref:`(Ouldridge) <Ouldridge0>` and
 :ref:`(Ouldridge-DPhil) <Ouldridge-DPhil0>` for oxDNA,
 :ref:`(Snodin) <Snodin0>` for oxDNA2,
+:ref:`(Bonato) <Bonato>` for oxDNA3,
 :ref:`(Sulc1) <Sulc01>` for oxRNA2
 and for sequence-specific hydrogen-bonding and stacking interactions
 :ref:`(Sulc2) <Sulc02>`.
@@ -141,7 +150,7 @@ and for sequence-specific hydrogen-bonding and stacking interactions
 Potential file reading
 """"""""""""""""""""""
 
-For each style oxdna, oxdna2 and oxrna2, the first parameter argument
+For each style oxdna, oxdna2, oxdna3 and oxrna2, the first parameter argument
 can be a filename, and if it is, no further arguments should be
 supplied. Therefore the following command:
 
@@ -181,8 +190,9 @@ CG-DNA package and the MOLECULE and ASPHERE package.  See the
 Related commands
 """"""""""""""""
 
-:doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
-:doc:`bond_coeff <bond_coeff>`, :doc:`atom_style oxdna <atom_style>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
+:doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`, :doc:`pair_style oxdna3/excv <pair_oxdna3>`,
+:doc:`pair_style oxrna2/excv <pair_oxrna2>`, :doc:`bond_coeff <bond_coeff>`, :doc:`atom_style oxdna <atom_style>`,
+:doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
 Default
 """""""
@@ -194,7 +204,7 @@ none
 
 .. _Henrich0:
 
-**(Henrich)** O. Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
+**(Henrich)** O. Henrich, Y.A. Gutierrez-Fosado, T. Curk, T.E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
 
 .. _Ouldridge-DPhil0:
 
@@ -208,9 +218,13 @@ none
 
 **(Snodin)** B.E. Snodin, F. Randisi, M. Mosayebi, et al., J. Chem. Phys. 142, 234901 (2015).
 
+.. _Bonato:
+
+**(Bonato)** A. Bonato, T.E. Ouldridge, A.A. Louis, J.P.K. Doye, L. Rovigatti, M. Matthies, O.Henrich, in preparation.
+
 .. _Sulc01:
 
-**(Sulc1)** P. Sulc, F. Romano, T. E. Ouldridge, et al., J. Chem. Phys. 140, 235102 (2014).
+**(Sulc1)** P. Sulc, F. Romano, T.E. Ouldridge, et al., J. Chem. Phys. 140, 235102 (2014).
 
 .. _Sulc02:
 

@@ -1,10 +1,11 @@
 .. index:: improper_style umbrella
+.. index:: improper_style umbrella/kk
 .. index:: improper_style umbrella/omp
 
 improper_style umbrella command
 ===============================
 
-Accelerator Variants: *umbrella/omp*
+Accelerator Variants: *umbrella/kk*, *umbrella/omp*
 
 Syntax
 """"""

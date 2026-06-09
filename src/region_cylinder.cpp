@@ -519,6 +519,10 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
           xp = x[0];
         }
         d2 = d2prev = dr2 + dx * dx;
+        if (r > radius) {
+          crad = 2.0 * radius;
+          varflag = 1;
+        }
       }
 
       // closest point on bottom cap
@@ -618,6 +622,10 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
           yp = x[1];
         }
         d2 = d2prev = dr2 + dx * dx;
+        if (r > radius) {
+          crad = 2.0 * radius;
+          varflag = 1;
+        }
       }
 
       // closest point on bottom cap
@@ -717,6 +725,10 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
           zp = x[2];
         }
         d2prev = dr2 + dx * dx;
+        if (r > radius) {
+          crad = 2.0 * radius;
+          varflag = 1;
+        }
       }
 
       // closest point on bottom cap

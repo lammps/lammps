@@ -1,10 +1,11 @@
 .. index:: improper_style inversion/harmonic
+.. index:: improper_style inversion/harmonic/kk
 .. index:: improper_style inversion/harmonic/omp
 
 improper_style inversion/harmonic command
 =========================================
 
-Accelerator Variants: *inversion/harmonic/omp*
+Accelerator Variants: *inversion/harmonic/kk*, *inversion/harmonic/omp*
 
 Syntax
 """"""

@@ -27,13 +27,17 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair_dpd_fdt_energy.h"
-#include "safe_pointers.h"
 #include "update.h"
+#include "potential_file_reader.h"
+#include "tokenizer.h"
 
-#include <algorithm> // std::max
+#include <algorithm> // std::max, std::find, std::find_if
+#include <iterator> // std::distance
 #include <cfloat> // DBL_EPSILON
 #include <cmath>
 #include <cstring>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,8 +45,6 @@ using namespace MathSpecial;
 
 enum { NONE, HARMONIC };
 enum { LUCY };
-
-static constexpr int MAXLINE = 1024;
 
 #ifdef DBL_EPSILON
 static constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
@@ -70,7 +72,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   stoich(nullptr), stoichReactants(nullptr), stoichProducts(nullptr), kR(nullptr),
   pairDPDE(nullptr), dpdThetaLocal(nullptr), sumWeights(nullptr), sparseKinetics_nu(nullptr),
   sparseKinetics_nuk(nullptr), sparseKinetics_inu(nullptr), sparseKinetics_isIntegralReaction(nullptr),
-  kineticsFile(nullptr), id_fix_species(nullptr),
+  id_fix_species(nullptr),
   id_fix_species_old(nullptr), fix_species(nullptr), fix_species_old(nullptr)
 {
   if (narg < 7 || narg > 12) error->all(FLERR,"Illegal fix rx command");
@@ -89,7 +91,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
 
   // Read the kinetic file in arg[3].
-  kineticsFile = arg[iarg++];
+  kineticsFile = std::string(arg[iarg++]);
 
   // Determine the local temperature averaging method in arg[4].
   wtFlag = 0;
@@ -229,110 +231,127 @@ FixRX::~FixRX()
 
 void FixRX::post_constructor()
 {
-  int maxspecies = 1000;
   int nUniqueSpecies = 0;
-  bool match;
 
-  auto *tmpspecies = new char*[maxspecies];
-  for (int jj=0; jj < maxspecies; jj++)
-    tmpspecies[jj] = nullptr;
+  std::string newcmd1, newcmd2;
+  int newcmd1_size = 0, newcmd2_size = 0;
 
-  // open file on proc 0
-
-  SafeFilePtr fp;
-  if (comm->me == 0) {
-    fp = utils::open_potential(kineticsFile,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,"Cannot open rx file {}: {}",kineticsFile,utils::getsyserror());
-  }
-
-  // Assign species names to tmpspecies array and determine the number of unique species
-
-  int n;
-  char line[MAXLINE] = {'\0'};
-  char *ptr;
-  int eof = 0;
-  char * word;
-
-  while (true) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-    // strip comment, skip line if blank
-
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    if (utils::count_words(line) == 0) continue;
-
-    // words = ptrs to all words in line
-
-    word = strtok(line," \t\n\r\f");
-    while (word != nullptr) {
-      word = strtok(nullptr, " \t\n\r\f");
-      match=false;
-      for (int jj=0;jj<nUniqueSpecies;jj++) {
-        if (strcmp(word,tmpspecies[jj])==0) {
-          match=true;
-          break;
-        }
-      }
-      if (!match) {
-        if (nUniqueSpecies+1>=maxspecies)
-          error->all(FLERR,"Exceeded the maximum number of species permitted in fix rx.");
-        tmpspecies[nUniqueSpecies] = utils::strdup(word);
-        nUniqueSpecies++;
-      }
-      word = strtok(nullptr, " \t\n\r\f");
-      if (strcmp(word,"+") != 0 && strcmp(word,"=") != 0) break;
-      word = strtok(nullptr, " \t\n\r\f");
-    }
-  }
-  atom->nspecies_dpd = nUniqueSpecies;
-  nspecies = atom->nspecies_dpd;
-
-  // new id = fix-ID + FIX_STORE_ATTRIBUTE
-  // new fix group = group for this fix
-
-  id_fix_species = nullptr;
-  id_fix_species_old = nullptr;
-
+  nreactions = 0;
   id_fix_species = utils::strdup(std::string(id)+"_SPECIES");
   id_fix_species_old = utils::strdup(std::string(id)+"_SPECIES_OLD");
 
-  std::string newcmd1 = id_fix_species;
-  newcmd1 += " ";
-  newcmd1 += group->names[igroup];
-  newcmd1 += " property/atom ";
+  if (comm->me == 0) {
+    std::unordered_set<std::string> tmpspecies;
 
-  std::string newcmd2 = id_fix_species_old;
-  newcmd2 += " ";
-  newcmd2 += group->names[igroup];
-  newcmd2 += " property/atom ";
+    PotentialFileReader kineticsFileReader(lmp, kineticsFile, "rx");
+    char * line;
 
-  for (int ii=0; ii<nspecies; ii++) {
-    newcmd1 += fmt::format(" d_{}", tmpspecies[ii]);
-    newcmd2 += fmt::format(" d_{}Old", tmpspecies[ii]);
+    while ((line = kineticsFileReader.next_line())) {
+      try {
+        ValueTokenizer values(line);
+        int num_equal_signs_found = 0;
+
+        std::string shouldBeOperator; // This is the last token that
+                                      // is read in the following
+                                      // loop.
+
+        while (values.has_next()) {
+
+          const auto shouldBeCoeff = values.next_double();
+
+          if (shouldBeCoeff < 0.0) {
+            error->one(FLERR,
+                       "Negative coefficient "
+                       "({}) found. Bad line is {}", shouldBeCoeff, line);
+          }
+
+          const auto shouldBeSpecies = values.next_string();
+
+          tmpspecies.emplace(shouldBeSpecies);
+
+          shouldBeOperator = values.next_string();
+
+          if (shouldBeOperator == "=") {
+            num_equal_signs_found++;
+          }
+
+          if (num_equal_signs_found > 1) {
+            error->one(FLERR,
+                       "Only one equals sign allowed "
+                       "per reaction. Bad line is {}", line);
+          }
+
+          if ((shouldBeOperator != "+") && (shouldBeOperator != "=")) {
+            // Note: shouldBeOperator might also be a number, but that
+            // will be checked in read_file(), where it will need to
+            // be converted to a number anyway.
+
+            if (num_equal_signs_found != 1) {
+              error->one(FLERR, "Equals sign missing from "
+                         "reaction line. Full line: {}", line);
+            }
+
+            nreactions++;
+            break;
+          }
+        }
+
+        if ((shouldBeOperator == "+") || (shouldBeOperator == "=")) {
+          error->one(FLERR, "Dangling operator {}. Full line: {}",
+                     shouldBeOperator, line);
+        }
+
+      } catch (TokenizerException & e) {
+        error->one(FLERR, "{}. File: {} Full line: {}",
+                   e.what(), kineticsFile, line);
+      }
+    }
+
+    nUniqueSpecies = tmpspecies.size();
+
+    newcmd1 = id_fix_species;
+    newcmd1 += " ";
+    newcmd1 += group->names[igroup];
+    newcmd1 += " property/atom ";
+
+    newcmd2 = id_fix_species_old;
+    newcmd2 += " ";
+    newcmd2 += group->names[igroup];
+    newcmd2 += " property/atom ";
+
+    for (const auto & species: tmpspecies) {
+      newcmd1 += fmt::format(" d_{}", species);
+      newcmd2 += fmt::format(" d_{}Old", species);
+    }
+
+    newcmd1 += " ghost yes";
+    newcmd2 += " ghost yes";
+
+    newcmd1_size = newcmd1.size();
+    newcmd2_size = newcmd2.size();
   }
-  newcmd1 += " ghost yes";
-  newcmd2 += " ghost yes";
+
+  MPI_Bcast(&nreactions, 1, MPI_INT, 0, world);
+  MPI_Bcast(&nUniqueSpecies, 1, MPI_INT, 0, world);
+  MPI_Bcast(&newcmd1_size, 1, MPI_INT, 0, world);
+  MPI_Bcast(&newcmd2_size, 1, MPI_INT, 0, world);
+
+  newcmd1.resize(newcmd1_size);
+  newcmd2.resize(newcmd2_size);
+
+  // Note: This relies on C++17, since that allows the data() member
+  // function to return non-const.
+  MPI_Bcast(newcmd1.data(), newcmd1_size, MPI_CHAR, 0, world);
+  MPI_Bcast(newcmd2.data(), newcmd2_size, MPI_CHAR, 0, world);
+
+  atom->nspecies_dpd = nUniqueSpecies;
+  nspecies = atom->nspecies_dpd;
 
   fix_species = dynamic_cast<FixPropertyAtom *>(modify->add_fix(newcmd1));
   restartFlag = fix_species->restart_reset;
   fix_species_old = dynamic_cast<FixPropertyAtom *>(modify->add_fix(newcmd2));
 
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
-
-  for (int jj=0;jj<nspecies;jj++) {
-    delete[] tmpspecies[jj];
-  }
-  delete[] tmpspecies;
 
   read_file( kineticsFile );
 
@@ -744,7 +763,7 @@ void FixRX::pre_force(int /*vflag*/)
 
   // Warn the user if a failure was detected in the ODE solver.
   if (nFails > 0)
-    error->warning(FLERR, fmt::format("FixRX::pre_force ODE solver failed for {} atoms.", nFails));
+    error->warning(FLERR, "FixRX::pre_force ODE solver failed for {} atoms.", nFails);
 
   // Compute and report ODE diagnostics, if requested.
   if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency != 0) {
@@ -768,57 +787,8 @@ void FixRX::pre_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRX::read_file(char *file)
+void FixRX::read_file(const std::string & file)
 {
-  nreactions = 0;
-
-  // open file on proc 0
-
-  SafeFilePtr fp;
-  if (comm->me == 0) {
-    fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open rx file %s",file);
-      error->one(FLERR,str);
-    }
-  }
-
-  // Count the number of reactions from kinetics file
-
-  int n,ispecies;
-  char line[MAXLINE] = {'\0'};
-  char *ptr;
-  int eof = 0;
-
-  while (true) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-    // strip comment, skip line if blank
-
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    if (utils::count_words(line) == 0) continue;
-
-    nreactions++;
-  }
-
-  // open file on proc 0
-  if (comm->me == 0) fp = utils::open_potential(file,lmp,nullptr);
-
-  // read each reaction from kinetics file
-  eof=0;
-  char * word;
-  double tmpStoich;
-  double sign;
 
   Arr = new double[nreactions];
   nArr = new double[nreactions];
@@ -841,66 +811,76 @@ void FixRX::read_file(char *file)
     }
   }
 
-  nreactions=0;
-  sign = -1.0;
-  while (true) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-      } else n = strlen(line) + 1;
+  if (comm->me == 0) {
+    PotentialFileReader kineticsFileReader(lmp, file, "rx");
+
+    std::unordered_map<std::string,int> species_to_index_map;
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
+      species_to_index_map.insert({atom->dvname[ispecies], ispecies});
     }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    // strip comment, skip line if blank
+    for (int ireaction = 0; ireaction < nreactions; ireaction++) {
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    if (utils::count_words(line) == 0) continue;
+      char * line = kineticsFileReader.next_line();
 
-    // words = ptrs to all words in line
+      try {
+        ValueTokenizer values(line);
+        double sign = -1.0;
 
-    word = strtok(line," \t\n\r\f");
-    while (word != nullptr) {
-      tmpStoich = std::stod(word);
-      word = strtok(nullptr, " \t\n\r\f");
-      for (ispecies = 0; ispecies < nspecies; ispecies++) {
-        if (strcmp(word,&atom->dvname[ispecies][0]) == 0) {
-          stoich[nreactions][ispecies] += sign*tmpStoich;
-          if (sign<0.0)
-            stoichReactants[nreactions][ispecies] += tmpStoich;
-          else stoichProducts[nreactions][ispecies] += tmpStoich;
-          break;
+        while (values.has_next()) {
+          auto tmpStoich = values.next_double();
+          auto tmpSpecies = values.next_string();
+
+          auto species_to_index_itr = species_to_index_map.find(tmpSpecies);
+
+          if (species_to_index_itr == species_to_index_map.end()) {
+            // Desired species has NOT been found.
+            error->one(FLERR,
+                       "{} mol fraction is not found in data file\n"
+                       "Illegal fix rx command", tmpSpecies);
+          } else {
+            auto species_index = species_to_index_itr->second;
+
+            stoich[ireaction][species_index] += sign*tmpStoich;
+            if (sign<0.0)
+              stoichReactants[ireaction][species_index] += tmpStoich;
+            else stoichProducts[ireaction][species_index] += tmpStoich;
+          }
+
+          auto possOperatorOrNumber = values.next_string();
+          if (possOperatorOrNumber == "=") sign = 1.0;
+
+          if ((possOperatorOrNumber != "+") && (possOperatorOrNumber != "=")) {
+            Arr[ireaction] = utils::numeric(FLERR, possOperatorOrNumber, true, lmp);
+            nArr[ireaction] = values.next_double();
+            Ea[ireaction] = values.next_double();
+
+            if (values.has_next()) {
+              error->one(FLERR,
+                         "Misplaced characters at end of line in "
+                         "file {}. Full line: {}", file, line);
+            }
+
+            break;
+          }
         }
+      } catch (TokenizerException & e) {
+        error->one(FLERR, "{}. File: {} Full line: {}",
+                   e.what(), file, line);
       }
-      if (ispecies==nspecies) {
-        if (comm->me) {
-          fprintf(stderr,"%s mol fraction is not found in data file\n",word);
-          fprintf(stderr,"nspecies=%d ispecies=%d\n",nspecies,ispecies);
-        }
-        error->all(FLERR,"Illegal fix rx command");
-      }
-      word = strtok(nullptr, " \t\n\r\f");
-      if (word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-      if (strcmp(word,"=") == 0) sign = 1.0;
-      if (strcmp(word,"+") != 0 && strcmp(word,"=") != 0) {
-        if (word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-        Arr[nreactions] = std::stod(word);
-        word = strtok(nullptr, " \t\n\r\f");
-        if (word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-        nArr[nreactions]  = std::stod(word);
-        word = strtok(nullptr, " \t\n\r\f");
-        if (word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-        Ea[nreactions]  = std::stod(word);
-        sign = -1.0;
-        break;
-      }
-      word = strtok(nullptr, " \t\n\r\f");
     }
-    nreactions++;
   }
+
+  MPI_Bcast(Arr, nreactions, MPI_DOUBLE, 0, world);
+  MPI_Bcast(nArr, nreactions, MPI_DOUBLE, 0, world);
+  MPI_Bcast(Ea, nreactions, MPI_DOUBLE, 0, world);
+
+  for (int ii = 0; ii < nreactions; ii++) {
+    MPI_Bcast(stoich[ii], nspecies, MPI_DOUBLE, 0, world);
+    MPI_Bcast(stoichReactants[ii], nspecies, MPI_DOUBLE, 0, world);
+    MPI_Bcast(stoichProducts[ii], nspecies, MPI_DOUBLE, 0, world);
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */

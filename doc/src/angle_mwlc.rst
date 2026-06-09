@@ -1,10 +1,11 @@
 .. index:: angle_style mwlc
+.. index:: angle_style mwlc/kk
 .. index:: angle_style mwlc/omp
 
 angle_style mwlc command
 ========================
 
-Accelerator Variants: *mwlc/omp*
+Accelerator Variants: *mwlc/kk*, *mwlc/omp*
 
 Syntax
 """"""

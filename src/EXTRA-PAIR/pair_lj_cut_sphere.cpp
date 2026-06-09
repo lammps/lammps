@@ -39,6 +39,8 @@ PairLJCutSphere::PairLJCutSphere(LAMMPS *lmp) :
 
 PairLJCutSphere::~PairLJCutSphere()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

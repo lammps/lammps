@@ -45,6 +45,8 @@ AngleCosineShift::AngleCosineShift(LAMMPS *lmp) : Angle(lmp)
 
 AngleCosineShift::~AngleCosineShift()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

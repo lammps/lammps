@@ -47,6 +47,7 @@ PairMIECut::PairMIECut(LAMMPS *lmp) : Pair(lmp)
 
 PairMIECut::~PairMIECut()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

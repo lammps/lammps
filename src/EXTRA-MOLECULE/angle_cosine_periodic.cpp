@@ -48,6 +48,8 @@ AngleCosinePeriodic::AngleCosinePeriodic(LAMMPS *lmp) : Angle(lmp)
 
 AngleCosinePeriodic::~AngleCosinePeriodic()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

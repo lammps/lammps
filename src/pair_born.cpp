@@ -45,6 +45,8 @@ PairBorn::PairBorn(LAMMPS *lmp) : Pair(lmp)
 
 PairBorn::~PairBorn()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

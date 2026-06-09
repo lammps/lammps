@@ -23,7 +23,7 @@ using namespace LAMMPS_NS;
 PairOxrna2Hbond::PairOxrna2Hbond(LAMMPS *lmp) : PairOxdnaHbond(lmp)
 {
   single_enable = 0;
-  writedata = 1;
+  writedata = 0;
   trim_flag = 0;
 
   // sequence-specific base-pairing strength

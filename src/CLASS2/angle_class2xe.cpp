@@ -177,8 +177,8 @@ void AngleClass2xe::compute(int eflag, int vflag)
     dr2 = r2 - bb_r2[type];
     bb_ralpha1 = exp(-bb_alpha[type]*dr1);
     bb_ralpha2 = exp(-bb_alpha[type]*dr2);
-    tk1 = bb_d0[type]*bb_alpha[type]*bb_ralpha1*(1 - bb_ralpha2);
-    tk2 = bb_d0[type]*bb_alpha[type]*bb_ralpha2*(1 - bb_ralpha1);
+    tk1 = bb_d0[type]*bb_alpha[type]*bb_ralpha2*(1 - bb_ralpha1);
+    tk2 = bb_d0[type]*bb_alpha[type]*bb_ralpha1*(1 - bb_ralpha2);
 
     f1[0] -= delx1*tk2/r1;
     f1[1] -= dely1*tk2/r1;
@@ -513,4 +513,18 @@ double AngleClass2xe::single(int type, int i1, int i2, int i3)
   energy += ba_d1[type]*(1 - ba_ralpha1)*dtheta + ba_d2[type]*(1 - ba_ralpha2)*dtheta;
 
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleClass2xe::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "k3") == 0) return (void *) k3;
+  if (strcmp(str, "k4") == 0) return (void *) k4;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

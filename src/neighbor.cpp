@@ -206,6 +206,7 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
 
   // Multi data
 
+  bin_hash = 0;
   type2collection = nullptr;
   collection2cut = nullptr;
   collection = nullptr;
@@ -552,14 +553,15 @@ void Neighbor::init()
   } else {
     PairHybrid *ph = reinterpret_cast<PairHybrid *>(force->pair_match("^hybrid", 0));
     if (ph) {
-      int flag = 0;
-      for (int isub = 0; isub < ph->nstyles; ++isub) {
-        if (force->pair_match("amoeba", 0, isub)
-            || force->pair_match("hippo", 0, isub)
-            || force->pair_match("coul/wolf", 0, isub)
-            || force->pair_match("coul/dsf", 0, isub)
-            || force->pair_match("coul/exclude", 0)
-            || force->pair_match("thole", 0, isub))
+      int flag=0;
+      for (int isub=0; isub < ph->nstyles; ++isub) {
+        if (force->pair_match("amoeba",0,isub)
+            || force->pair_match("hippo",0,isub)
+            || force->pair_match("coul/wolf",0,isub)
+            || force->pair_match("coul/dsf",0,isub)
+            || force->pair_match("coul/exclude",0)
+            || force->pair_match("thole",0,isub)
+            || force->pair_match("^ox.*/excv",0,isub))
           ++flag;
       }
       if (flag)
@@ -570,7 +572,8 @@ void Neighbor::init()
           || force->pair_match("coul/wolf",0)
           || force->pair_match("coul/dsf",0)
           || force->pair_match("coul/exclude",0)
-          || force->pair_match("thole",0))
+          || force->pair_match("thole",0)
+          || force->pair_match("^ox.*/excv",0))
         special_flag[1] = special_flag[2] = special_flag[3] = 2;
     }
   }
@@ -2901,6 +2904,12 @@ void Neighbor::modify_params(int narg, char **arg)
       }
 
       iarg += 2 + ncollections;
+    } else if (strcmp(arg[iarg],"bin/hash") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify bin/hash", error);
+      bin_hash = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      if (style != Neighbor::MULTI && bin_hash)
+        error->all(FLERR, iarg, "Cannot use bin/hash command without multi setting");
+      iarg += 2;
     } else error->all(FLERR, iarg, "Unknown neigh_modify keyword: {}", arg[iarg]);
   }
 }

@@ -44,6 +44,8 @@ PairLJCutCoulWolf::PairLJCutCoulWolf(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCutCoulWolf::~PairLJCutCoulWolf()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

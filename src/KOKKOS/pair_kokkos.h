@@ -1463,6 +1463,10 @@ struct ClusterBuildFunctor {
     return ScratchI::shmem_size(3 * HASH_SH + 2);
   }
 
+  KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {
+    return j >> SBBITS & 3;
+  }
+
   KOKKOS_FUNCTION
   void operator()(const team_member& team) const {
     const int ci = team.league_rank();

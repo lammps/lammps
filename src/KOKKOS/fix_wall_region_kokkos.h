@@ -83,7 +83,7 @@ class FixWallRegionKokkos : public FixWallRegion {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void v_tally(value_type, int, KK_FLOAT*) const;
+  void v_tally(value_type, int, KK_ACC_FLOAT*) const;
 };
 
 template <class DeviceType, class T>
@@ -113,6 +113,6 @@ struct FixWallRegionKokkosFunctor {
 
 }
 
-#endif
+#endif // !LMP_FIX_WALL_REGION_KOKKOS_H
 #endif
 

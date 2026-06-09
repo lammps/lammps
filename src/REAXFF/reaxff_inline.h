@@ -23,6 +23,8 @@
 
 #include "accelerator_kokkos.h"    // for LAMMPS_INLINE
 
+#include <cmath>                   // for std::abs
+
 namespace ReaxFF {
 struct LR_data {
   double H;
@@ -65,6 +67,11 @@ struct cubic_spline_coef {
     return *this;
   }
 };
+
+inline bool mass_equal(double m1, double m2) {
+  return (std::abs(m1-m2) < 0.0001);
+}
+
 }    // namespace ReaxFF
 
 #endif

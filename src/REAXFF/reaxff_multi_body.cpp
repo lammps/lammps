@@ -171,9 +171,10 @@ namespace ReaxFF {
 
     CEover3 = CEover2 * (1.0 - dfvl * workspace->dDelta_lp[i] * inv_exp_ovun1);
 
+    // exp_ovun1 * SQR(inv_exp_ovun1) = inv_exp_ovun1 * (1 - inv_exp_ovun1)
+    // stable form to prevent numerically unstable unit test
     CEover4 = CEover2 * (dfvl * workspace->Delta_lp_temp[i]) *
-      p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1);
-
+      p_ovun4 * inv_exp_ovun1 * (1.0 - inv_exp_ovun1);
 
     /* under-coordination potential */
     p_ovun2 = sbp_i->p_ovun2;
@@ -199,8 +200,11 @@ namespace ReaxFF {
         p_ovun2 * e_un * exp_ovun2n);
     CEunder2 = -e_un * p_ovun8 * exp_ovun8 * inv_exp_ovun8;
     CEunder3 = CEunder1 * (1.0 - dfvl*workspace->dDelta_lp[i]*inv_exp_ovun1);
+
+    // exp_ovun1 * SQR(inv_exp_ovun1) = inv_exp_ovun1 * (1 - inv_exp_ovun1)
+    // stable form to prevent numerically unstable unit test
     CEunder4 = CEunder1 * (dfvl*workspace->Delta_lp_temp[i]) *
-      p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1) + CEunder2;
+      p_ovun4 * inv_exp_ovun1 * (1.0 - inv_exp_ovun1) + CEunder2;
 
     /* tally energy into global or per-atom energy accumulators */
     if (system->pair_ptr->eflag_either) {

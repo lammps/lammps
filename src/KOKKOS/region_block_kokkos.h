@@ -33,6 +33,8 @@ namespace LAMMPS_NS {
 
 using namespace MathSpecialKokkos;
 
+typedef Kokkos::Array<Region::Contact,6> contacts_t;
+
 struct TagRegBlockMatchAll{};
 
 template<class DeviceType>
@@ -63,7 +65,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int surface_kokkos(double x, double y, double z, double cutoff)
+  int surface_kokkos(double x, double y, double z, double cutoff, contacts_t& contacts)
   {
     int ncontact;
     double xs, ys, zs;
@@ -78,31 +80,31 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
 
     if (!openflag) {
       if (interior)
-        ncontact = surface_interior_kokkos(xnear, cutoff);
+        ncontact = surface_interior_kokkos(xnear, cutoff, contacts);
       else
-        ncontact = surface_exterior_kokkos(xnear, cutoff);
+        ncontact = surface_exterior_kokkos(xnear, cutoff, contacts);
     } else {
       // one of surface_int/ext() will return 0
       // so no need to worry about offset of contact indices
-      ncontact = surface_exterior_kokkos(xnear, cutoff) + surface_interior_kokkos(xnear, cutoff);
+      ncontact = surface_exterior_kokkos(xnear, cutoff, contacts) + surface_interior_kokkos(xnear, cutoff, contacts);
     }
 
     if (rotateflag && ncontact) {
       for (int i = 0; i < ncontact; i++) {
-        xs = xnear[0] - d_contact[i].delx;
-        ys = xnear[1] - d_contact[i].dely;
-        zs = xnear[2] - d_contact[i].delz;
+        xs = xnear[0] - contacts[i].delx;
+        ys = xnear[1] - contacts[i].dely;
+        zs = xnear[2] - contacts[i].delz;
         forward_transform(xs, ys, zs);
-        d_contact[i].delx = xorig[0] - xs;
-        d_contact[i].dely = xorig[1] - ys;
-        d_contact[i].delz = xorig[2] - zs;
+        contacts[i].delx = xorig[0] - xs;
+        contacts[i].dely = xorig[1] - ys;
+        contacts[i].delz = xorig[2] - zs;
       }
     }
 
     return ncontact;
   }
 
-  Kokkos::View<Contact*, DeviceType> d_contact;
+  //Kokkos::View<Contact*, DeviceType> d_contact;
 
  private:
   int groupbit;
@@ -112,7 +114,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int surface_interior_kokkos(double *x, double cutoff)
+  int surface_interior_kokkos(double *x, double cutoff, contacts_t& contacts )
   {
     double delta;
 
@@ -126,58 +128,58 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
 
     delta = x[0] - xlo;
     if (delta < cutoff && !open_faces[0]) {
-      d_contact[n].r = delta;
-      d_contact[n].delx = delta;
-      d_contact[n].dely = d_contact[n].delz = 0.0;
-      d_contact[n].radius = 0;
-      d_contact[n].iwall = 0;
+      contacts[n].r = delta;
+      contacts[n].delx = delta;
+      contacts[n].dely = contacts[n].delz = 0.0;
+      contacts[n].radius = 0;
+      contacts[n].iwall = 0;
       n++;
     }
     delta = xhi - x[0];
     if (delta < cutoff && !open_faces[1]) {
-      d_contact[n].r = delta;
-      d_contact[n].delx = -delta;
-      d_contact[n].dely = d_contact[n].delz = 0.0;
-      d_contact[n].radius = 0;
-      d_contact[n].iwall = 1;
+      contacts[n].r = delta;
+      contacts[n].delx = -delta;
+      contacts[n].dely = contacts[n].delz = 0.0;
+      contacts[n].radius = 0;
+      contacts[n].iwall = 1;
       n++;
     }
 
     delta = x[1] - ylo;
     if (delta < cutoff && !open_faces[2]) {
-      d_contact[n].r = delta;
-      d_contact[n].dely = delta;
-      d_contact[n].delx = d_contact[n].delz = 0.0;
-      d_contact[n].radius = 0;
-      d_contact[n].iwall = 2;
+      contacts[n].r = delta;
+      contacts[n].dely = delta;
+      contacts[n].delx = contacts[n].delz = 0.0;
+      contacts[n].radius = 0;
+      contacts[n].iwall = 2;
       n++;
     }
     delta = yhi - x[1];
     if (delta < cutoff && !open_faces[3]) {
-      d_contact[n].r = delta;
-      d_contact[n].dely = -delta;
-      d_contact[n].delx = d_contact[n].delz = 0.0;
-      d_contact[n].radius = 0;
-      d_contact[n].iwall = 3;
+      contacts[n].r = delta;
+      contacts[n].dely = -delta;
+      contacts[n].delx = contacts[n].delz = 0.0;
+      contacts[n].radius = 0;
+      contacts[n].iwall = 3;
       n++;
     }
 
     delta = x[2] - zlo;
     if (delta < cutoff && !open_faces[4]) {
-      d_contact[n].r = delta;
-      d_contact[n].delz = delta;
-      d_contact[n].delx = d_contact[n].dely = 0.0;
-      d_contact[n].radius = 0;
-      d_contact[n].iwall = 4;
+      contacts[n].r = delta;
+      contacts[n].delz = delta;
+      contacts[n].delx = contacts[n].dely = 0.0;
+      contacts[n].radius = 0;
+      contacts[n].iwall = 4;
       n++;
     }
     delta = zhi - x[2];
     if (delta < cutoff && !open_faces[5]) {
-      d_contact[n].r = delta;
-      d_contact[n].delz = -delta;
-      d_contact[n].delx = d_contact[n].dely = 0.0;
-      d_contact[n].radius = 0;
-      d_contact[n].iwall = 5;
+      contacts[n].r = delta;
+      contacts[n].delz = -delta;
+      contacts[n].delx = contacts[n].dely = 0.0;
+      contacts[n].radius = 0;
+      contacts[n].iwall = 5;
       n++;
     }
 
@@ -186,7 +188,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int surface_exterior_kokkos(double *x, double cutoff)
+  int surface_exterior_kokkos(double *x, double cutoff, contacts_t& contacts)
   {
     double xp, yp, zp;
     double xc, yc, zc, dist, mindist;
@@ -205,24 +207,19 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
     // do not add contact point if r >= cutoff
 
     if (!openflag) {
-      if (x[0] < xlo)
-        xp = xlo;
-      else if (x[0] > xhi)
-        xp = xhi;
-      else
-        xp = x[0];
-      if (x[1] < ylo)
-        yp = ylo;
-      else if (x[1] > yhi)
-        yp = yhi;
-      else
-        yp = x[1];
-      if (x[2] < zlo)
-        zp = zlo;
-      else if (x[2] > zhi)
-        zp = zhi;
-      else
-        zp = x[2];
+
+      if (x[0] < xlo) xp = xlo;
+      else if (x[0] > xhi) xp = xhi;
+      else xp = x[0];
+
+      if (x[1] < ylo) yp = ylo;
+      else if (x[1] > yhi) yp = yhi;
+      else yp = x[1];
+
+      if (x[2] < zlo) zp = zlo;
+      else if (x[2] > zhi) zp = zhi;
+      else zp = x[2];
+
     } else {
       mindist = MAXDOUBLEINT;
       for (int i = 0; i < 6; i++) {
@@ -237,24 +234,24 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
       }
     }
 
-    add_contact(0, x, xp, yp, zp);
-    d_contact[0].iwall = 0;
-    if (d_contact[0].r < cutoff) return 1;
+    add_contact(0, x, xp, yp, zp, contacts);
+    contacts[0].iwall = 0;
+    if (contacts[0].r < cutoff) return 1;
     return 0;
   }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void add_contact(int n, double *x, double xp, double yp, double zp)
+  void add_contact(int n, double *x, double xp, double yp, double zp, contacts_t& contacts)
   {
     double delx = x[0] - xp;
     double dely = x[1] - yp;
     double delz = x[2] - zp;
-    d_contact[n].r = sqrt(delx * delx + dely * dely + delz * delz);
-    d_contact[n].radius = 0;
-    d_contact[n].delx = delx;
-    d_contact[n].dely = dely;
-    d_contact[n].delz = delz;
+    contacts[n].r = sqrt(delx * delx + dely * dely + delz * delz);
+    contacts[n].radius = 0;
+    contacts[n].delx = delx;
+    contacts[n].dely = dely;
+    contacts[n].delz = delz;
   }
 
 // NOLINTNEXTLINE
@@ -435,6 +432,6 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
 
 }
 
-#endif
+#endif // !LMP_REGION_BLOCK_KOKKOS_H
 #endif
 

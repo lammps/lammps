@@ -575,6 +575,10 @@ class PairReaxFFKokkos : public PairReaxFF {
   DAT::tdual_int_1d k_count_angular_torsion;
   typename AT::t_int_1d d_count_angular_torsion;
 
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  bool mass_equal(const KK_FLOAT, const KK_FLOAT) const;
+
 };
 
 template <class DeviceType>

@@ -363,7 +363,7 @@ void PairReaxFFKokkos<DeviceType>::setup()
   // bond order cutoffs
   bo_cut = static_cast<KK_FLOAT>(0.01 * gp[29]);
   thb_cut = static_cast<KK_FLOAT>(api->control->thb_cut);
-  thb_cutsq = static_cast<KK_FLOAT>(0.000010); //thb_cut*thb_cut;
+  thb_cutsq = thb_cut * thb_cut;
 
   // misc precision conversions
   C_ele_reduced = static_cast<KK_FLOAT>(C_ele);
@@ -2152,8 +2152,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
         f5 = 1. / (1. + exp_f5);
         f4f5 = f4 * f5;
 
-        Cf45_ij = -f4 * exp_f4;
-        Cf45_ji = -f5 * exp_f5;
+        // f4 * exp_f4 = exp_f4/(1+exp_f4) = 1 - f4: stable form avoids inf*0=NaN in float
+        Cf45_ij = -(static_cast<KK_FLOAT>(1.0) - f4);
+        Cf45_ji = -(static_cast<KK_FLOAT>(1.0) - f5);
       } else {
         f4 = f5 = f4f5 = 1.0;
         Cf45_ij = Cf45_ji = 0.0;
@@ -2328,7 +2329,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
 
   const KK_FLOAT exp_ovun2 = exp(p_ovun2 * Delta_lpcorr);
   const KK_FLOAT inv_exp_ovun2 = 1.0 / (1.0 + exp_ovun2);
-  const KK_FLOAT DlpVi = 1.0 / (Delta_lpcorr + val_i + 1e-8);
+  // 1e-5 guard prevents division by zero; 1e-8 is below float epsilon near val_i~4
+  // so 1e-5 is safer for mixed precision without affecting chemistry
+  const KK_FLOAT DlpVi = static_cast<KK_FLOAT>(1.0) / (Delta_lpcorr + val_i + static_cast<KK_FLOAT>(1e-5));
 
   CEover1 = Delta_lpcorr * DlpVi * inv_exp_ovun2;
   e_ov = d_sum_ovun(i,1) * CEover1;
@@ -2338,9 +2341,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   //if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,i,e_ov);
 
   CEover2 = d_sum_ovun(i,1) * DlpVi * inv_exp_ovun2 *
-    (1.0 - Delta_lpcorr * (DlpVi + p_ovun2 * exp_ovun2 * inv_exp_ovun2));
+    // exp_ovun2 * inv_exp_ovun2 = exp(x)/(1+exp(x)) = 1 - 1/(1+exp(x)) = 1 - inv_exp_ovun2
+    // Use stable form to avoid inf*0=NaN when exp_ovun2 overflows in float
+    (1.0 - Delta_lpcorr * (DlpVi + p_ovun2 * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun2)));
   CEover3 = CEover2 * (1.0 - dfvl * d_dDelta_lp[i] * inv_exp_ovun1);
-  CEover4 = CEover2 * (dfvl * d_Delta_lp_temp[i]) * p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1);
+  // exp_ovun1 * SQR(inv_exp_ovun1) = inv_exp_ovun1 * (1 - inv_exp_ovun1)
+  // Use this stable form to avoid inf*0=NaN when exp_ovun1 overflows in float
+  CEover4 = CEover2 * (dfvl * d_Delta_lp_temp[i]) * p_ovun4 * inv_exp_ovun1 * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun1);
 
   // under coordination
 
@@ -2358,12 +2365,21 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,i,e_un,0.0,0.0,0.0,0.0);
   //if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,i,e_un);
 
+  // p_ovun2 * e_un * exp_ovun2n: e_un contains inv_exp_ovun2n, so when exp_ovun2n→inf
+  // e_un→0 and e_un*exp_ovun2n = 0*inf = NaN. Expand e_un and use:
+  //   exp_ovun2n * inv_exp_ovun2n = 1 - inv_exp_ovun2n  (stable)
+  // Similarly CEunder2: e_un contains inv_exp_ovun8, so e_un*exp_ovun8 = 0*inf = NaN
+  //   exp_ovun8 * inv_exp_ovun8 = 1 - inv_exp_ovun8  (stable)
+  // e_un_base = -e_un/inv_exp_ovun2n; must be zero when e_un is zero (no bonds)
+  const KK_FLOAT e_un_base = (numbonds > 0 || enobondsflag) ?
+      p_ovun5 * (static_cast<KK_FLOAT>(1.0) - exp_ovun6) * inv_exp_ovun8 : static_cast<KK_FLOAT>(0.0);
   CEunder1 = inv_exp_ovun2n *
-    (p_ovun5 * p_ovun6 * exp_ovun6 * inv_exp_ovun8 + p_ovun2 * e_un * exp_ovun2n);
-  CEunder2 = -e_un * p_ovun8 * exp_ovun8 * inv_exp_ovun8;
+    (p_ovun5 * p_ovun6 * exp_ovun6 * inv_exp_ovun8
+     - p_ovun2 * e_un_base * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun2n));
+  CEunder2 = e_un_base * inv_exp_ovun2n * p_ovun8 * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun8);
   CEunder3 = CEunder1 * (1.0 - dfvl * d_dDelta_lp[i] * inv_exp_ovun1);
   CEunder4 = CEunder1 * (dfvl * d_Delta_lp_temp[i]) *
-      p_ovun4 * exp_ovun1 * inv_exp_ovun1 * inv_exp_ovun1 + CEunder2;
+      p_ovun4 * inv_exp_ovun1 * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun1) + CEunder2;
 
   const KK_FLOAT eng_tmp = e_lp + e_ov + e_un;
   if (eflag_atom) this->template e_tally_single<NEIGHFLAG>(ev,i,eng_tmp);
@@ -2385,13 +2401,14 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
     const KK_FLOAT De_s = paramstwbp(itype,jtype).De_s;
 
     // multibody lone pair: correction for C2
-    if (p_lp3 > 0.001 && imass == 12.0 && jmass == 12.0) {
+    if (p_lp3 > 0.001 && mass_equal(imass, 12.0000) && mass_equal(jmass, 12.0000)) {
       const KK_FLOAT Di = d_Delta[i];
-      const KK_FLOAT vov3 = d_BO(i,j_index) - Di - 0.040*pow(Di,4.0);
+      const KK_FLOAT Di2 = Di * Di;
+      const KK_FLOAT vov3 = d_BO(i,j_index) - Di - static_cast<KK_FLOAT>(0.040) * Di2 * Di2;
       if (vov3 > 3.0) {
         const KK_FLOAT e_lph = p_lp3 * (vov3-3.0)*(vov3-3.0);
         const KK_FLOAT deahu2dbo = 2.0 * p_lp3 * (vov3 - 3.0);
-        const KK_FLOAT deahu2dsbo = 2.0 * p_lp3 * (vov3 - 3.0) * (-1.0 - 0.16 * pow(Di,3.0));
+        const KK_FLOAT deahu2dsbo = 2.0 * p_lp3 * (vov3 - 3.0) * (-1.0 - static_cast<KK_FLOAT>(0.16) * Di2 * Di);
         d_Cdbo(i,j_index) += deahu2dbo;
         CdDelta_i += deahu2dsbo;
 
@@ -2752,7 +2769,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   dSBO1 = d_angular_intermediates(i, 2);
   dSBO2 = d_angular_intermediates(i, 3);
 
-  expval6 = exp(p_val6 * d_Delta_boc[i]);
+  // Compute expval6/expval7 in double to prevent float overflow (p_val6*Delta_boc can exceed ~10).
+  // trm8 is already double; computing the exps in KK_FLOAT first then promoting gives float:inf
+  // before double can help, causing inf/inf=NaN in f8_Dj and inf*0=NaN in Cf8j.
+  const double expval6_d = exp(static_cast<double>(p_val6) * static_cast<double>(d_Delta_boc[i]));
+  const double expval7_d = exp(-static_cast<double>(p_val7) * static_cast<double>(d_Delta_boc[i]));
+  expval6 = static_cast<KK_FLOAT>(expval6_d);
+  expval7 = static_cast<KK_FLOAT>(expval7_d); // assigned later below but needed here for trm8
 
   KK_ACC_FLOAT CdDelta_i = 0.0;
   KK_ACC_FLOAT fitmp[3],fjtmp[3];
@@ -2816,11 +2839,17 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   exp3jk = exp(-p_val3 * pow(BOA_ik, p_val4));
   f7_jk = 1.0 - exp3jk;
   Cf7jk = p_val3 * p_val4 * pow(BOA_ik, p_val4 - 1.0) * exp3jk;
-  expval7 = exp(-p_val7 * d_Delta_boc[i]);
-  trm8 = 1.0 + expval6 + expval7;
-  f8_Dj = p_val5 - ((p_val5 - 1.0) * (2.0 + expval6) / trm8);
-  Cf8j = ((1.0 - p_val5) / (trm8*trm8)) *
-   (p_val6 * expval6 * trm8 - (2.0 + expval6) * (p_val6*expval6 - p_val7*expval7));
+  expval7 = static_cast<KK_FLOAT>(expval7_d); // already set above; keep for downstream KK_FLOAT uses
+  trm8 = 1.0 + expval6_d + expval7_d;
+  // Stable forms: T6/(1+T6+T7) = 1-(1+T7)/trm8; T7/(1+T6+T7) = 1-(1+T6)/trm8.
+  // Avoids inf/inf=NaN (f8_Dj) and inf*0=NaN (Cf8j) when expval6 or expval7 overflows in float.
+  const double T6_over_trm8 = 1.0 - (1.0 + expval7_d) / trm8;
+  const double T7_over_trm8 = 1.0 - (1.0 + expval6_d) / trm8;
+  f8_Dj = static_cast<KK_FLOAT>(p_val5 - (p_val5 - 1.0) * (2.0 / trm8 + T6_over_trm8));
+  // Cf8j numerator simplified: p_val6*T6*(T7-1) + p_val7*T7*(2+T6) — no inf cancellation
+  Cf8j = static_cast<KK_FLOAT>((1.0 - p_val5) *
+    ( static_cast<double>(p_val6) * T6_over_trm8 * (expval7_d - 1.0) / trm8
+    + static_cast<double>(p_val7) * T7_over_trm8 * (2.0 / trm8 + T6_over_trm8) ));
   theta_0 = 180.0 - theta_00 * (1.0 - exp(-p_val10 * (2.0 - SBO2)));
   theta_0 = theta_0*constPI/180.0;
 
@@ -2849,12 +2878,24 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
 
   exp_pen2ij = exp(-p_pen2 * (BOA_ij - 2.0)*(BOA_ij - 2.0));
   exp_pen2jk = exp(-p_pen2 * (BOA_ik - 2.0)*(BOA_ik - 2.0));
-  exp_pen3 = exp(-p_pen3 * d_Delta[i]);
-  exp_pen4 = exp(p_pen4 * d_Delta[i]);
-  trm_pen34 = 1.0 + exp_pen3 + exp_pen4;
-  f9_Dj = (2.0 + exp_pen3) / trm_pen34;
-  Cf9j = (-p_pen3 * exp_pen3 * trm_pen34 - (2.0 + exp_pen3) *
-   (-p_pen3 * exp_pen3 + p_pen4 * exp_pen4))/(trm_pen34*trm_pen34);
+  // Compute penalty exps in double to prevent float overflow (p_pen3/4 * |Delta| can exceed ~10).
+  // Stable forms avoid inf/inf=NaN (f9_Dj) and inf*inf-inf*inf=NaN (Cf9j).
+  // Numerator simplification: -p_pen3*T3*trm - (2+T3)*(-p_pen3*T3+p_pen4*T4)
+  //   = p_pen3*T3*(1-T4) - p_pen4*T4*(2+T3)   [no catastrophic cancellation]
+  // T3/(1+T3+T4) = 1-(1+T4)/trm, T4/(1+T3+T4) = 1-(1+T3)/trm  [stable ratios]
+  const double exp_pen3_d = exp(-static_cast<double>(p_pen3) * static_cast<double>(d_Delta[i]));
+  const double exp_pen4_d = exp( static_cast<double>(p_pen4) * static_cast<double>(d_Delta[i]));
+  const double trm_pen34_d = 1.0 + exp_pen3_d + exp_pen4_d;
+  exp_pen3 = static_cast<KK_FLOAT>(exp_pen3_d);
+  exp_pen4 = static_cast<KK_FLOAT>(exp_pen4_d);
+  trm_pen34 = static_cast<KK_FLOAT>(trm_pen34_d);
+  const double T3_over_trm = 1.0 - (1.0 + exp_pen4_d) / trm_pen34_d;
+  const double T4_over_trm = 1.0 - (1.0 + exp_pen3_d) / trm_pen34_d;
+  // f9_Dj = (2+T3)/trm = 1 + (1-T4)/trm  (stable: avoids inf/inf)
+  f9_Dj = static_cast<KK_FLOAT>(1.0 + (1.0 - exp_pen4_d) / trm_pen34_d);
+  Cf9j  = static_cast<KK_FLOAT>(
+    ( static_cast<double>(p_pen3) * T3_over_trm * (1.0 - exp_pen4_d)
+    - static_cast<double>(p_pen4) * T4_over_trm * (2.0 + exp_pen3_d) ) / trm_pen34_d);
 
   e_pen = p_pen1 * f9_Dj * exp_pen2ij * exp_pen2jk;
   if (eflag) ev.ereax[4] += e_pen;
@@ -2876,7 +2917,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
 
   CEcoa1 = -2 * p_coa4 * (BOA_ij - 1.5) * e_coa;
   CEcoa2 = -2 * p_coa4 * (BOA_ik - 1.5) * e_coa;
-  CEcoa3 = -p_coa2 * exp_coa2 * e_coa / (1 + exp_coa2);
+  // exp_coa2 * e_coa / (1+exp_coa2): e_coa contains 1/(1+exp_coa2), so when
+  // exp_coa2 overflows to inf, e_coa→0 and exp_coa2*e_coa = inf*0 = NaN.
+  // Stable form: exp_coa2/(1+exp_coa2) = 1 - 1/(1+exp_coa2)
+  CEcoa3 = -p_coa2 * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(1.0) + exp_coa2)) * e_coa;
   CEcoa4 = -2 * p_coa3 * (d_total_bo[j]-BOA_ij) * e_coa;
   CEcoa5 = -2 * p_coa3 * (d_total_bo[k]-BOA_ik) * e_coa;
 
@@ -3151,8 +3195,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   e_tor = fn10 * sin_ijk * sin_jil * CV;
   if (eflag) ev.ereax[6] += e_tor;
 
-  dfn11 = (-p_tor3 * exp_tor3_DiDj + (p_tor3 * exp_tor3_DiDj - p_tor4 * exp_tor4_DiDj) *
-          (2.0 + exp_tor3_DiDj) * exp_tor34_inv) * exp_tor34_inv;
+  // exp_tor4_DiDj * exp_tor34_inv = T4/(1+T3+T4). When T4 overflows to inf,
+  // exp_tor34_inv→0 and T4*exp_tor34_inv = inf*0 = NaN.
+  // Stable form: T4/(1+T3+T4) = 1 - (1+T3)*exp_tor34_inv
+  const KK_FLOAT T4_over_tot = static_cast<KK_FLOAT>(1.0) - (static_cast<KK_FLOAT>(1.0) + exp_tor3_DiDj) * exp_tor34_inv;
+  dfn11 = (-p_tor3 * exp_tor3_DiDj * exp_tor34_inv
+          + p_tor3 * exp_tor3_DiDj * (2.0 + exp_tor3_DiDj) * SQR(exp_tor34_inv)
+          - p_tor4 * T4_over_tot * (2.0 + exp_tor3_DiDj) * exp_tor34_inv);
 
   CEtors1 = sin_ijk * sin_jil * CV;
 
@@ -3563,13 +3612,18 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
     KK_FLOAT estriph = 0.0;
 
     if (BO_i >= 1.00) {
-      if (gp[37] == 2 || (imass == 12.0000 && jmass == 15.9990) ||
-                         (jmass == 12.0000 && imass == 15.9990)) {
+      if (gp[37] == 2 ||
+          (mass_equal(imass, 12.0000) && mass_equal(jmass, 15.9990)) ||
+          (mass_equal(jmass, 12.0000) && mass_equal(imass, 15.9990))) {
         const KK_FLOAT exphu = exp(-gp[7] * SQR(BO_i - 2.50));
         const KK_FLOAT exphua1 = exp(-gp[3] * (d_total_bo[i]-BO_i));
         const KK_FLOAT exphub1 = exp(-gp[3] * (d_total_bo[j]-BO_i));
-        const KK_FLOAT exphuov = exp(gp[4] * (d_Delta[i] + d_Delta[j]));
+        const KK_FLOAT exphuov_arg = gp[4] * (d_Delta[i] + d_Delta[j]);
+        const KK_FLOAT exphuov = exp(exphuov_arg);
         const KK_FLOAT hulpov = 1.0 / (1.0 + 25.0 * exphuov);
+        // exphuov*hulpov = exp(x)/(1+25*exp(x)) = 1/(exp(-x)+25)
+        // Use this stable form to avoid inf*0=NaN when exphuov overflows in float
+        const KK_FLOAT exphuov_hulpov = static_cast<KK_FLOAT>(1.0) / (exp(-exphuov_arg) + static_cast<KK_FLOAT>(25.0));
         estriph = gp[10] * exphu * hulpov * (exphua1 + exphub1);
 
         if (EFLAG && eflag_global) ev.evdwl += estriph;
@@ -3579,9 +3633,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
         const KK_FLOAT decobdbo = gp[10] * exphu * hulpov * (exphua1 + exphub1) *
             (gp[3] - 2.0 * gp[7] * (BO_i-2.50));
         const KK_FLOAT decobdboua = -gp[10] * exphu * hulpov *
-            (gp[3]*exphua1 + 25.0*gp[4]*exphuov*hulpov*(exphua1+exphub1));
+            (gp[3]*exphua1 + 25.0*gp[4]*exphuov_hulpov*(exphua1+exphub1));
         const KK_FLOAT decobdboub = -gp[10] * exphu * hulpov *
-            (gp[3]*exphub1 + 25.0*gp[4]*exphuov*hulpov*(exphua1+exphub1));
+            (gp[3]*exphub1 + 25.0*gp[4]*exphuov_hulpov*(exphua1+exphub1));
 
         d_Cdbo(i,j_index) += decobdbo;
         CdDelta_i += decobdboua;
@@ -4395,6 +4449,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondSpecies, const 
       if (nj > MAXSPECBOND) k_error_flag.view<DeviceType>()() = 1;
     }
   }
+}
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+bool PairReaxFFKokkos<DeviceType>::mass_equal(const KK_FLOAT m1, const KK_FLOAT m2) const {
+  return (Kokkos::abs(m1-m2) < KK_FLOAT(.0001));
 }
 
 template class PairReaxFFKokkos<LMPDeviceType>;

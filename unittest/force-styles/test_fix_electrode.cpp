@@ -434,7 +434,7 @@ TEST(FixElectrode, intel)
 
     LAMMPS::argv args = {"FixElectrode", "-log", "none", "-echo",  "screen", "-nocite", "-pk",
                          "intel",        "0",    "mode", "double", "omp",    "4",       "lrt",
-                         "no",           "-sf",  "intel"};
+                         "no",           "pppm_table",   "no",     "-sf",  "intel"};
 
     // cannot use more than 1 thread for dpd styles due to pRNG
     if (utils::strmatch(test_config.pair_style, "^dpd")) args[12] = "1";

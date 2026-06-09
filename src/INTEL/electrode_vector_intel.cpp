@@ -56,7 +56,7 @@ void ElectrodeVectorIntel::pair_contribution(IntelBuffers<flt_t,acc_t> *buffers,
   const int nall = atom->nlocal + atom->nghost;
 
   if (buffers_stale) {
-    if (_lrt == 0 && ago != 0 && fix->separate_buffers() == 0) {
+    if (_lrt == 0 && fix->separate_buffers() == 0) {
       fix->start_watch(TIME_PACK);
       int packthreads;
       if (nthreads > INTEL_HTHREADS) packthreads = nthreads;

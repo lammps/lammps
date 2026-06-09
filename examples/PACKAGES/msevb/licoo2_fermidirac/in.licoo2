@@ -35,3 +35,5 @@ thermo_modify flush yes
 thermo 1
 
 run 0
+
+write_data scf.dump.${p}

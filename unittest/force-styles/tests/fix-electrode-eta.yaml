@@ -15,7 +15,7 @@ post_commands: ! |
   pair_modify table 0
   pair_modify table/disp 0
   kspace_style pppm/electrode 1.0e-8
-  kspace_modify gewald 0.23118
+  kspace_modify gewald 0.23118 order 5
   kspace_modify slab 3.0
   fix fxcpm bot electrode/conp -1.0 eta 1.805 couple top 1.0 qtotal 0 etypes ${etypes}
 input_file: in.conp

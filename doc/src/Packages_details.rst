@@ -1637,8 +1637,8 @@ MC package
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand canonical
-MC (GCMC), semi-grand canonical MC (SGCMC), or similar processes in
-conjunction with molecular dynamics (MD).
+MC (GCMC), semi-grand canonical MC (SGCMC), Gibbs ensemble MC (GEMC)
+or similar processes in conjunction with molecular dynamics (MD).
 
 **Supporting info:**
 
@@ -1650,9 +1650,10 @@ conjunction with molecular dynamics (MD).
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix gemc <fix_gemc>`
 * :doc:`fix hmc <fix_hmc>`
 * :doc:`fix mol/swap <fix_mol_swap>`
-* :doc:`fix neighbo/swap <fix_neighbor_swap>`
+* :doc:`fix neighbor/swap <fix_neighbor_swap>`
 * :doc:`fix sgcmc <fix_sgcmc>`
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`

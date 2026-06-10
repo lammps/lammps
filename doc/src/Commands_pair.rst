@@ -176,6 +176,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut/dipole/long (go) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/cut/soft (o) <pair_fep_soft>`
+   * :doc:`lj/cut/soft/gapsys <pair_fep_soft>`
    * :doc:`lj/cut/sphere (ko) <pair_lj_cut_sphere>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
    * :doc:`lj/cut/tip4p/cut (o) <pair_lj_cut_tip4p>`

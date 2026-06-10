@@ -1496,6 +1496,8 @@
 /pair_lj_cut_sphere.h
 /pair_lj_cut_soft.cpp
 /pair_lj_cut_soft.h
+/pair_lj_cut_soft_gapsys.cpp
+/pair_lj_cut_soft_gapsys.h
 /pair_lj_cut_tip4p_long.cpp
 /pair_lj_cut_tip4p_long.h
 /pair_lj_cut_tip4p_long_soft.cpp

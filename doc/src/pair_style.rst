@@ -268,6 +268,7 @@ accelerated styles exist.
 * :doc:`lj/cut/dipole/cut <pair_dipole>` - point dipoles with cutoff
 * :doc:`lj/cut/dipole/long <pair_dipole>` - point dipoles with long-range Ewald
 * :doc:`lj/cut/soft <pair_fep_soft>` - LJ with a soft core
+* :doc:`lj/cut/soft/gapsys <pair_fep_soft>` - LJ potential with a soft core with continuous force and first derivative of force
 * :doc:`lj/cut/sphere <pair_lj_cut_sphere>` - LJ where per-atom radius is used as LJ sigma
 * :doc:`lj/cut/thole/long <pair_thole>` - LJ with Coulomb with thole damping
 * :doc:`lj/cut/tip4p/cut <pair_lj_cut_tip4p>` - LJ with cutoff Coulomb for TIP4P water

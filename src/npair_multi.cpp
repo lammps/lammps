@@ -262,7 +262,9 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+    if (ipage->status())
+      error->one(FLERR, Error::NOLASTLINE,
+                 "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
   }
 
   list->inum = inum;
@@ -274,7 +276,7 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
 template<int HALF, int NEWTON, int TRI, int SIZE, int ATOMONLY>
 void NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build_hash(NeighList *list)
 {
-  int i, j, jh, js, k, n, itype, jtype, icollection, jcollection, which, ns, imol, iatom, moltemplate;
+  int i, j, jh, k, n, itype, jtype, icollection, jcollection, which, ns, imol, iatom, moltemplate;
   tagint itag, jtag, tagprev;
   bigint ibin, jbin;
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq, radsum, cut, cutsq;

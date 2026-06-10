@@ -40,19 +40,19 @@ void LddPotentialConstant::allocate()
   allocated = 1;
 }
 
-void LddPotentialConstant::setup_potl(int ipt, int narg, char **arg)
+void LddPotentialConstant::setup_potl(int ipt, int /*narg*/, char ** arg)
 {
   if (!allocated) allocate();
 
   coeffs[0] = utils::numeric(FLERR, arg[ipt + 2], false, lmp);
 }
 
-double LddPotentialConstant::u(double rho)
+double LddPotentialConstant::u(double /*rho*/)
 {
   return coeffs[0];
 }
 
-double LddPotentialConstant::f(double rho)
+double LddPotentialConstant::f(double /*rho*/)
 {
   return 0.0;
 }

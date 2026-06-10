@@ -48,6 +48,7 @@
 #define MPI_MAXLOC 4
 #define MPI_MINLOC 5
 #define MPI_LOR 6
+#define MPI_BOR 7
 
 #define MPI_UNDEFINED -1
 #define MPI_COMM_NULL -1

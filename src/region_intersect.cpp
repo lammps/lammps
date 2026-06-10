@@ -23,7 +23,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
-    Region(lmp, narg, arg), contact_indx(nullptr), idsub(nullptr)
+    Region(lmp, narg, arg), idsub(nullptr), contact_indx(nullptr)
 {
   nregion = 0;
 
@@ -142,8 +142,7 @@ void RegIntersect::init()
 void RegIntersect::prematch()
 {
   int ilist;
-  for (ilist = 0; ilist < nregion; ilist++)
-    reglist[ilist]->prematch();
+  for (ilist = 0; ilist < nregion; ilist++) reglist[ilist]->prematch();
 }
 
 /* ----------------------------------------------------------------------

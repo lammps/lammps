@@ -1198,11 +1198,17 @@ void ComputeFrenkel::exchange_lattice_ghosts()
   for (int i = 0; i < nprocs * max_size * 3; i++) x_recv[0][0][i] = 0.0;
   for (int i = 0; i < nprocs * max_size; i++) clusterID_recv[0][i] = 0;
   // self (p == me) is just a local copy; the four per-site quantities are then
-  // exchanged with the neighbor processes one message type at a time
+  // exchanged with the neighbor processes one message type at a time.  A site is
+  // sent to itself only as a periodic self-image (procgrid == 1 in a periodic
+  // dimension); the ghost occupancy is a verbatim copy of the owner's, exactly
+  // like the cross-proc path -- it is only used to classify the ghost as
+  // vacancy/normal/interstitial during clustering and never re-counted (real
+  // occupancy is tallied on the owning rank in find_defects).  Accumulating
+  // (+=) would be equivalent anyway: already_sent[p] sends each owned site to a
+  // given proc at most once, so every self slot is written exactly once.
   for (int i = 0; i < n_send[me]; i++) {
     tag_recv[me][i] = tag_send[me][i];
-    occup_recv[me][i] = occup_send[me][i];    // FIXME - which one should this be?
-    //occup_recv[me][i] += occup_send[me][i];
+    occup_recv[me][i] = occup_send[me][i];
     clusterID_recv[me][i] = clusterID_send[me][i];
     x_recv[me][i][0] = x_send[me][i][0];
     x_recv[me][i][1] = x_send[me][i][1];

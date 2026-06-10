@@ -251,8 +251,10 @@ void ComputeFrenkel::init()
   // local sites, which find_clusters merges.
   exchange_lattice_ghosts();    // should skip occupancies until second one
   construct_site_nlists();
-  // FIXME:  Do we really need to do these two things (since we do them again
-  // when find_defects is called)?
+  // These two are redone every time find_defects() runs, so the initial pass
+  // here is partly redundant; it is kept because it is a one-time setup cost
+  // (negligible against the per-invocation defect search) and primes the ghost
+  // sites and neighbor lists before the first compute call.
 
   // Store current box boundaries
   old_boxlo[0] = domain->boxlo[0];

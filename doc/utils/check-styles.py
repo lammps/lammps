@@ -270,6 +270,10 @@ for header in headers:
                     register_style(region,style,info)
                 elif m[0] == 'GranSubMod':
                     pass  # ignore GranSubMod styles for now
+                elif m[0] == 'LddIndicator':
+                    pass  # ignore LddIndicator styles for now
+                elif m[0] == 'LddPotential':
+                    pass  # ignore LddPotential styles for now
                 else:
                     print("Skipping over: ",m)
 

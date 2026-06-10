@@ -96,7 +96,7 @@ already be defined and should hold fixed numeric values (e.g.
 ``variable lam vector [0.0,0.25,0.5,0.75,1.0]``) rather than quantities that
 could change during the run.
 
-At each sampling stage of the MBAR method, the perturbed parameter is *set*
+At each sampling state of the MBAR method, the perturbed parameter is *set*
 to the corresponding grid value (its original value is saved and restored
 after the compute).
 
@@ -107,13 +107,14 @@ parameter such as *epsilon* or *sigma* of a Lennard-Jones potential. The
 grid then lists the values that parameter takes along the alchemical path;
 any non-linear schedule is encoded directly in those values. The grid for a
 soft-core activation parameter typically runs from ``0.0`` (interaction off)
-to ``1.0`` (fully coupled), but any sequence of values is allowed.
+to ``1.0`` (fully coupled), but the sequence of values is to be adapted for
+each specific parameter.
 
 Electrostatic charges are coupled in the same way using the *atom charge*
-attribute. Although charges can also be coupled through a soft-core Coulomb
-pair style, in many applications the Lennard-Jones interactions are coupled
-first and the charges are activated afterwards, so it is convenient to set
-the charges directly without a soft-core Coulomb potential. The grid then
+attribute. Although the electrostatic charges can also be coupled through a 
+soft-core Coulomb pair style, in many applications the van der Waals
+interactions are coupled first and the charges are activated afterwards, so
+it is convenient to be able to set the charges directly. The grid then
 lists the charge of the selected atom type at each state (e.g. from ``0.0``
 to the fully-coupled charge), and these values are assigned to all atoms of
 that type in the group; the original charges are restored after the compute.

@@ -124,6 +124,8 @@ accelerated styles exist.
 * :doc:`body/nparticle <pair_body_nparticle>` - interactions between body particles
 * :doc:`body/rounded/polygon <pair_body_rounded_polygon>` - granular-style 2d polygon potential
 * :doc:`body/rounded/polyhedron <pair_body_rounded_polyhedron>` - granular-style 3d polyhedron potential
+* :doc:`bondval <pair_bondval>` - Bond-Valence potential
+* :doc:`bondval/vec <pair_bondval>` - Bond-Valence vector potential
 * :doc:`bop <pair_bop>` - BOP potential of Pettifor
 * :doc:`born <pair_born>` - Born-Mayer-Huggins potential
 * :doc:`born/coul/dsf <pair_born>` - Born with damped-shifted-force model

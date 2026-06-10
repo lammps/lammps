@@ -374,7 +374,7 @@ package.
 
 .. deprecated:: TBD
 
-Support for offloading to Intel(R) Xeon Phi(TM) coprocessors was
+Support for offloading to Intel(R) Xeon Phi(TM) co-processors was
 removed.  The leading numeric argument (formerly the number of
 co-processors per node) is ignored.
 

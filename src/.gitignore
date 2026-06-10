@@ -1954,4 +1954,8 @@
 /pair_vashishta*.h
 /pair_lj_pirani.cpp
 /pair_lj_pirani.h
+/pair_bondval.cpp
+/pair_bondval.h
+/pair_bondval_vec.cpp
+/pair_bondval_vec.h
 

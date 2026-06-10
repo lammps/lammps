@@ -235,6 +235,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`fabric <compute_fabric>` - calculates fabric tensors from pair interactions
 * :doc:`fep <compute_fep>` - compute free energies for alchemical transformation from perturbation theory
 * :doc:`fep/ta <compute_fep_ta>` - compute free energies for a test area perturbation
+* :doc:`frenkel <compute_frenkel>` - identify point defects by Wigner-Seitz analysis
 * :doc:`force/tally <compute_tally>` - force between two groups of atoms via the tally callback mechanism
 * :doc:`fragment/atom <compute_cluster_atom>` - fragment ID for each atom
 * :doc:`gaussian/grid/local <compute_gaussian_grid_local>` - local array of Gaussian atomic contributions on a regular grid

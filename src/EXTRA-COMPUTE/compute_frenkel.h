@@ -87,8 +87,6 @@ class ComputeFrenkel : public Compute {
   bigint invoked_find_clusters;
   bigint invoked_construct_WS_cell;
 
-  FILE *old_screen, *old_logfile;
-
   void create_lattice_sites();
   void put_sites_in_bins();
   int site_tag2index(tagint);
@@ -109,8 +107,6 @@ class ComputeFrenkel : public Compute {
   void rescale_lattice_sites();
 
   int process_neighbor(int, int, int);
-  void turnoffoutput();
-  void revertoutput();
 
   static int compareIDs(const void *, const void *);
 

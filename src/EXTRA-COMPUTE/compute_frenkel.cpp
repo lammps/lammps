@@ -25,39 +25,25 @@
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
-#include "create_atoms.h"
-#include "delete_atoms.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "graphics.h"
 #include "group.h"
-#include "input.h"
 #include "lattice.h"
 #include "memory.h"
 #include "update.h"
+#include <array>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <mpi.h>
+#include <vector>
 
-static constexpr char Frenkel_latticesites[] = "Frenkel_latticesites";
-static constexpr char Frenkel_everything[] = "Frenkel_everything";
 static constexpr int BIN_GROW_SIZE = 32;    // bins start this size and grow by this
 static constexpr int MAX_OCCUPANTS = 8;     // max number of occupants of one lattice site
 static constexpr double BIG = 1.0e20;
 static constexpr double SMALL = 1.0e-10;
-
-// round to the nearest integer (nint) or nearest integral value (anint)
-static inline int nint(double x)
-{
-  return static_cast<int>(std::lround(x));
-}
-static inline double anint(double x)
-{
-  return std::round(x);
-}
 
 using namespace LAMMPS_NS;
 
@@ -83,8 +69,7 @@ ComputeFrenkel::ComputeFrenkel(class LAMMPS *lmp, int narg, char **arg) :
     site_tag(nullptr), first_local_tag(0), nlatbins{0, 0, 0, 0}, latbins(nullptr),
     clusterID(nullptr), cluster_size(nullptr), cluster_nsites(nullptr), cluster_center(nullptr),
     noccupied(0), occupied_cluster_ID(nullptr), old_boxlo{0.0, 0.0, 0.0}, old_boxhi{0.0, 0.0, 0.0},
-    invoked_find_defects(-1), invoked_find_clusters(-1), invoked_construct_WS_cell(-1),
-    old_screen(nullptr), old_logfile(nullptr)
+    invoked_find_defects(-1), invoked_find_clusters(-1), invoked_construct_WS_cell(-1)
 {
   if (narg != 3) error->all(FLERR, "Illegal compute frenkel command");
 
@@ -884,184 +869,133 @@ int ComputeFrenkel::compute_image(int *&objs, double **&parms)
 
 void ComputeFrenkel::create_lattice_sites()
 {
-  // First, isolate the current atoms in their own group
-  int *flags = new int[atom->nlocal];
-  for (int m = 0; m < atom->nlocal; m++) flags[m] = 1;
-  char *createstring = new char[strlen(Frenkel_everything) + 1];
-  strcpy(createstring, Frenkel_everything);
-  group->create(createstring, flags);
-  delete[] flags;
-  delete[] createstring;
-
-  // Now create the lattice points; entities created here are FAKE sites
   if (domain->lattice == nullptr)
-    error->all(FLERR, "Use of compute style frenkel with undefined lattice");
+    error->all(FLERR, Error::NOLASTLINE, "Use of compute style frenkel with undefined lattice");
+
+  // Generate the reference lattice sites directly from the lattice definition,
+  // keeping the ones whose position falls in this processor's subdomain.  This
+  // is the same tiling create_atoms does, but a compute must not add atoms,
+  // create groups, or run input commands, so it is done inline here.
+
+  static constexpr double EPSILON = 1.0e-6;
+  Lattice *const lattice = domain->lattice;
+  const int triclinic = domain->triclinic;
+
+  // my subdomain bounds (box coords if orthogonal, lamda coords if triclinic),
+  // shrunk by EPSILON at the global periodic boundaries so that a site sitting
+  // exactly on a periodic face is generated on exactly one side of the box.
+  double sublo[3], subhi[3];
+  for (int d = 0; d < 3; ++d) {
+    sublo[d] = triclinic ? domain->sublo_lamda[d] : domain->sublo[d];
+    subhi[d] = triclinic ? domain->subhi_lamda[d] : domain->subhi[d];
+  }
+  const int periodic[3] = {domain->xperiodic, domain->yperiodic, domain->zperiodic};
+  for (int d = 0; d < 3; ++d) {
+    if (!periodic[d]) continue;
+    const double eps = triclinic ? EPSILON : domain->prd[d] * EPSILON;
+    if (comm->layout != Comm::LAYOUT_TILED) {
+      if (comm->myloc[d] == 0) sublo[d] -= eps;
+      if (comm->myloc[d] == comm->procgrid[d] - 1) subhi[d] -= 2.0 * eps;
+    } else {
+      if (comm->mysplit[d][0] == 0.0) sublo[d] -= eps;
+      if (comm->mysplit[d][1] == 1.0) subhi[d] -= 2.0 * eps;
+    }
+  }
+
+  // true if box-coordinate point x lies in my (shrunk) subdomain
+  auto in_subdomain = [&](double *x) {
+    double lamda[3];
+    const double *c = x;
+    if (triclinic) {
+      domain->x2lamda(x, lamda);
+      c = lamda;
+    }
+    return (c[0] >= sublo[0] && c[0] < subhi[0] && c[1] >= sublo[1] && c[1] < subhi[1] &&
+            c[2] >= sublo[2] && c[2] < subhi[2]);
+  };
+
+  std::vector<std::array<double, 3>> sites;
+
   if (sitefile) {
-    // User provided a file that creates atoms in arbitrary fashion; parse it!
-    const int maxline = 1024;
-    char line[maxline];    // Assume no user is stupid enough to write looong lines
-    char wholeline[maxline];
-    char *loc;
-    FILE *sfile;
-    strcpy(wholeline, "");
-    sfile = fopen(sitefile, "r");
-    turnoffoutput();
-    while (true) {
-      fgets(line, maxline, sfile);
-      if (feof(sfile)) break;
-      // Remove end of line character
-      loc = strrchr(line, '\n');
-      if (loc != nullptr) loc[0] = 0;
-      // Join line to the next one(s), if necessary
-      loc = strrchr(line, '&');
-      if (loc != nullptr && loc[1] == '\0') {
-        loc[0] = '\0';
-        strcat(wholeline, line);
-        continue;
-      }
-      strcat(wholeline, line);
-      input->one(wholeline);
-      strcpy(wholeline, "");
+    // read explicit site coordinates, one "x y z" per line
+    FILE *fp = fopen(sitefile, "r");
+    if (!fp)
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open compute frenkel site file {}", sitefile);
+    char line[256];
+    while (fgets(line, sizeof(line), fp)) {
+      double x[3];
+      if (sscanf(line, "%lg %lg %lg", &x[0], &x[1], &x[2]) != 3) continue;
+      if (region && !region->match(x[0], x[1], x[2])) continue;
+      if (in_subdomain(x)) sites.push_back({x[0], x[1], x[2]});
     }
-    revertoutput();
-
-  }
-  //else if ( iregion == -1 ) {
-  else if (!region) {
-    // do equivalent of "create_atoms 1 box"
-    char **createcommand = new char *[2];
-    createcommand[0] = new char[2];
-    createcommand[1] = new char[4];
-    strcpy(createcommand[0], "1");
-    strcpy(createcommand[1], "box");
-    CreateAtoms create_latticepoints(lmp);
-    turnoffoutput();
-    create_latticepoints.command(2, createcommand);
-    revertoutput();
-    delete[] createcommand[1];
-    delete[] createcommand[0];
-    delete[] createcommand;
+    fclose(fp);
   } else {
-    // do equivalent of "create_atoms 1 region mbox"
-    char **createcommand = new char *[3];
-    createcommand[0] = new char[2];
-    createcommand[1] = new char[7];
-    strcpy(createcommand[0], "1");
-    strcpy(createcommand[1], "region");
-    //createcommand[2] = idregion;
-    createcommand[2] = region->id;
-    CreateAtoms create_latticepoints(lmp);
-    turnoffoutput();
-    create_latticepoints.command(3, createcommand);
-    revertoutput();
-    delete[] createcommand[1];
-    delete[] createcommand[0];
-    delete[] createcommand;
-  }
-
-  // Now set flags so we can put the lattice points in their own group
-  int everything = group->find(Frenkel_everything);
-  if (everything == -1) {
-    char errorstring[80];
-    sprintf(errorstring, "Failed to find group %s in compute style frenkel", Frenkel_everything);
-    error->all(FLERR, errorstring);
-  }
-  flags = new int[atom->nlocal];
-  for (int m = 0; m < atom->nlocal; m++) {
-    if (atom->mask[m] & group->bitmask[everything])
-      flags[m] = 0;    // regular atoms
-    else
-      flags[m] = 1;    // lattice sites
-  }
-
-  // Put the lattice points in their own group
-  createstring = new char[strlen(Frenkel_latticesites) + 1];
-  strcpy(createstring, Frenkel_latticesites);
-  turnoffoutput();
-  group->create(createstring, flags);
-  revertoutput();
-  delete[] flags;
-  delete[] createstring;
-  int latticesitesgroup = group->find(Frenkel_latticesites);
-  if (latticesitesgroup == -1)
-    error->all(FLERR, "Unable to find lattice sites group for dump style frenkel");
-
-  // Set up lattice sites array (we don't know the right size yet)
-  int nsites = group->count(latticesitesgroup);
-  if (nsites == 0) error->warning(FLERR, "I didn't find any lattice sites");
-  double **sites = memory->create(sites, nsites, 3, "Frenkel-temp-lattice-sites");
-  int n = 0;
-  for (int m = 0; m < atom->nlocal; m++) {
-    if (atom->mask[m] & group->bitmask[latticesitesgroup]) {
-      sites[n][0] = atom->x[m][0];
-      sites[n][1] = atom->x[m][1];
-      sites[n][2] = atom->x[m][2];
-      n++;
+    // lattice-index bounds covering my subdomain (use the unshrunk subbox)
+    double bboxlo[3], bboxhi[3];
+    if (triclinic) {
+      domain->bbox(domain->sublo_lamda, domain->subhi_lamda, bboxlo, bboxhi);
+    } else {
+      for (int d = 0; d < 3; ++d) {
+        bboxlo[d] = domain->sublo[d];
+        bboxhi[d] = domain->subhi[d];
+      }
     }
+    double lo[3] = {BIG, BIG, BIG}, hi[3] = {-BIG, -BIG, -BIG};
+    for (int c = 0; c < 8; ++c) {
+      double cx = (c & 1) ? bboxhi[0] : bboxlo[0];
+      double cy = (c & 2) ? bboxhi[1] : bboxlo[1];
+      double cz = (c & 4) ? bboxhi[2] : bboxlo[2];
+      lattice->bbox(1, cx, cy, cz, lo[0], lo[1], lo[2], hi[0], hi[1], hi[2]);
+    }
+    int ilo = static_cast<int>(lo[0]) - 1;
+    int jlo = static_cast<int>(lo[1]) - 1;
+    int klo = static_cast<int>(lo[2]) - 1;
+    int ihi = static_cast<int>(hi[0]) + 1;
+    int jhi = static_cast<int>(hi[1]) + 1;
+    int khi = static_cast<int>(hi[2]) + 1;
+    if (lo[0] < 0.0) --ilo;
+    if (lo[1] < 0.0) --jlo;
+    if (lo[2] < 0.0) --klo;
+    if (domain->dimension == 2) klo = khi = 0;
+
+    const double *const *const basis = lattice->basis;
+    const int nbasis = lattice->nbasis;
+    for (int k = klo; k <= khi; ++k)
+      for (int j = jlo; j <= jhi; ++j)
+        for (int i = ilo; i <= ihi; ++i)
+          for (int m = 0; m < nbasis; ++m) {
+            double x[3] = {i + basis[m][0], j + basis[m][1], k + basis[m][2]};
+            lattice->lattice2box(x[0], x[1], x[2]);
+            if (region && !region->match(x[0], x[1], x[2])) continue;
+            if (in_subdomain(x)) sites.push_back({x[0], x[1], x[2]});
+          }
   }
-  nlatsites = n;    // THIS is the right size
+
+  nlatsites = static_cast<int>(sites.size());
   nlatghosts = 0;
+  if (nlatsites == 0) error->warning(FLERR, "compute frenkel generated no lattice sites");
+
   memory->destroy(latsites);
-  memory->create(latsites, nlatsites, 3, "Frenkel-lattice-sites");
-  for (n = 0; n < nlatsites; n++) {
+  memory->create(latsites, MAX(nlatsites, 1), 3, "ComputeFrenkel:latsites");
+  for (int n = 0; n < nlatsites; ++n) {
     latsites[n][0] = sites[n][0];
     latsites[n][1] = sites[n][1];
     latsites[n][2] = sites[n][2];
   }
-  memory->destroy(sites);
 
-  // Delete the atoms that you used to place the lattice sites
-  char **deletecommand = new char *[4];
-  deletecommand[0] = new char[6];
-  deletecommand[1] = new char[strlen(Frenkel_latticesites) + 1];
-  deletecommand[2] = new char[strlen("compress") + 1];
-  deletecommand[3] = new char[strlen("no") + 1];
-  strcpy(deletecommand[0], "group");
-  strcpy(deletecommand[1], Frenkel_latticesites);
-  DeleteAtoms delete_vacancies(lmp);
-  turnoffoutput();
-  delete_vacancies.command(2, deletecommand);
-  revertoutput();
-  delete[] deletecommand[3];
-  delete[] deletecommand[2];
-  delete[] deletecommand[1];
-  delete[] deletecommand[0];
-  delete[] deletecommand;
-
-  // Delete the group IDs as well
-  char **groupcommand = new char *[2];
-  groupcommand[0] = new char[strlen(Frenkel_latticesites) + 1];
-  groupcommand[1] = new char[7];
-  strcpy(groupcommand[0], Frenkel_latticesites);
-  strcpy(groupcommand[1], "delete");
-  turnoffoutput();
-  group->assign(2, groupcommand);
-  revertoutput();
-  delete[] groupcommand[0];
-  groupcommand[0] = new char[strlen(Frenkel_everything) + 1];
-  strcpy(groupcommand[0], Frenkel_everything);
-  turnoffoutput();
-  group->assign(2, groupcommand);
-  revertoutput();
-  delete[] groupcommand[1];
-  delete[] groupcommand[0];
-  delete[] groupcommand;
-
-  // Now give each lattice site a unique ID ("tag")
+  // give every site a globally unique tag, numbered above the real atom tags
   memory->destroy(site_tag);
-  memory->create(site_tag, nlatsites, "ComputeFrenkel:site_tag");
-  first_local_tag = 0;
+  memory->create(site_tag, MAX(nlatsites, 1), "ComputeFrenkel:site_tag");
   tagint nlats = nlatsites;
+  first_local_tag = 0;
   MPI_Scan(&nlats, &first_local_tag, 1, MPI_LMP_TAGINT, MPI_SUM, world);
   first_local_tag = first_local_tag - nlatsites + 1 + atom->natoms;
-  // The starting tag is now natoms + 1 on process 0,
-  //  nlatsites[proc 0] + natoms + 1 on process 1, etc.
-  for (int k = 0; k < nlatsites; k++) site_tag[k] = first_local_tag + k;
+  for (int n = 0; n < nlatsites; ++n) site_tag[n] = first_local_tag + n;
 
-  // Make a copy of the lattice sites' coordinates if we're rescaling
+  // keep a pristine copy of the coordinates when rescaling is enabled
   memory->destroy(latsites0);
   if (rescale) {
-    memory->create(latsites0, nlatsites, 3, "ComputeFrenkel:latsites0");
+    memory->create(latsites0, MAX(nlatsites, 1), 3, "ComputeFrenkel:latsites0");
     memcpy(*latsites0, *latsites, nlatsites * 3 * sizeof(double));
   } else
     latsites0 = nullptr;
@@ -1451,9 +1385,9 @@ void ComputeFrenkel::find_closest_bin(double *r, int &i, int &j, int &k)
   double x = r[0] - domain->sublo[0];
   double y = r[1] - domain->sublo[1];
   double z = r[2] - domain->sublo[2];
-  i = nint(x / binwidth);
-  j = nint(y / binwidth);
-  k = nint(z / binwidth);
+  i = std::lround(x / binwidth);
+  j = std::lround(y / binwidth);
+  k = std::lround(z / binwidth);
 
   // Apply periodic boundaries, if appropriate
   if (domain->xperiodic && comm->procneigh[0][0] == me)
@@ -1722,25 +1656,6 @@ int ComputeFrenkel::process_neighbor(int x, int y, int z)
   } else
     rank = comm->grid2proc[a][b][c];
   return rank;
-}
-
-/****************************************************************************/
-
-void ComputeFrenkel::turnoffoutput()
-{
-  // Turn off output and logging
-  old_screen = lmp->screen;
-  old_logfile = lmp->logfile;
-  lmp->screen = nullptr;
-  lmp->logfile = nullptr;
-}
-
-/****************************************************************************/
-
-void ComputeFrenkel::revertoutput()
-{  // Revert output and logging to their previous values
-  lmp->screen = old_screen;
-  lmp->logfile = old_logfile;
 }
 
 /****************************************************************************/

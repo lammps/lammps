@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   https://www.lammps.org/ Sandia National Laboratories
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,8 +46,8 @@ static constexpr double BIG = 1.0e20;
 static constexpr double SMALL = 1.0e-10;
 
 using namespace LAMMPS_NS;
-using MathConst::MY_PI;
 using MathConst::MY_2PI;
+using MathConst::MY_PI;
 
 static const char cite_compute_frenkel_c[] =
     "compute_frenkel command: doi:10.1016/j.cpc.2019.106862\n\n"

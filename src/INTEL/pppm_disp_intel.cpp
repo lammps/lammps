@@ -95,13 +95,6 @@ void PPPMDispIntel::init()
   fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  _use_base = 0;
-  if (fix->offload_balance() != 0.0) {
-    _use_base = 1;
-    return;
-  }
-  #endif
 
   fix->kspace_init_check();
 
@@ -146,12 +139,6 @@ void PPPMDispIntel::init()
 
 void PPPMDispIntel::compute(int eflag, int vflag)
 {
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_use_base) {
-    PPPMDisp::compute(eflag, vflag);
-    return;
-  }
-  #endif
 
   int i;
 
@@ -3203,11 +3190,6 @@ void PPPMDispIntel::precompute_rho()
 }
 
 /* ----------------------------------------------------------------------
-   Returns 0 if Intel optimizations for PPPM ignored due to offload
+   Returns 0 if Intel optimizations for PPPM are not in use
 ------------------------------------------------------------------------- */
 
-#ifdef _LMP_INTEL_OFFLOAD
-int PPPMDispIntel::use_base() {
-  return _use_base;
-}
-#endif

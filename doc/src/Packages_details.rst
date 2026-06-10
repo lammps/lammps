@@ -1219,7 +1219,7 @@ INTEL package
 **Contents:**
 
 Dozens of pair, fix, bond, angle, dihedral, improper, and kspace styles
-which are optimized for Intel CPUs and KNLs (Knights Landing).  All of
+which are optimized for Intel CPUs.  All of
 them have an "intel" in their style name.  The :doc:`INTEL package
 <Speed_intel>` page gives details of what hardware and compilers are
 required on your system, and how to build and use this package.  Its

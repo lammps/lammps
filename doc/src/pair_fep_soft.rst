@@ -11,16 +11,21 @@
 .. index:: pair_style lj/charmm/coul/long/soft
 .. index:: pair_style lj/charmm/coul/long/soft/omp
 .. index:: pair_style lj/class2/soft
+.. index:: pair_style lj/class2/soft/omp
 .. index:: pair_style lj/class2/coul/cut/soft
+.. index:: pair_style lj/class2/coul/cut/soft/omp
 .. index:: pair_style lj/class2/coul/long/soft
+.. index:: pair_style lj/class2/coul/long/soft/omp
 .. index:: pair_style coul/cut/soft
 .. index:: pair_style coul/cut/soft/omp
 .. index:: pair_style coul/cut/soft/gapsys
+.. index:: pair_style coul/cut/soft/gapsys/omp
 .. index:: pair_style coul/long/soft
 .. index:: pair_style coul/long/soft/omp
 .. index:: pair_style tip4p/long/soft
 .. index:: pair_style tip4p/long/soft/omp
 .. index:: pair_style morse/soft
+.. index:: pair_style morse/soft/omp
 
 pair_style lj/cut/soft command
 ==============================
@@ -50,11 +55,17 @@ Accelerator Variants: *lj/charmm/coul/long/soft/omp*
 pair_style lj/class2/soft command
 =================================
 
+Accelerator Variants: *lj/class2/soft/omp*
+
 pair_style lj/class2/coul/cut/soft command
 ==========================================
 
+Accelerator Variants: *lj/class2/coul/cut/soft/omp*
+
 pair_style lj/class2/coul/long/soft command
 ===========================================
+
+Accelerator Variants: *lj/class2/coul/long/soft/omp*
 
 pair_style coul/cut/soft command
 ================================
@@ -63,6 +74,8 @@ Accelerator Variants: *coul/cut/soft/omp*
 
 pair_style coul/cut/soft/gapsys command
 =======================================
+
+Accelerator Variants: *coul/cut/soft/gapsys/omp*
 
 pair_style coul/long/soft command
 =================================
@@ -76,6 +89,8 @@ Accelerator Variants: *tip4p/long/soft/omp*
 
 pair_style morse/soft command
 =============================
+
+Accelerator Variants: *morse/soft/omp*
 
 Syntax
 """"""

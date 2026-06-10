@@ -307,7 +307,7 @@ void ComputeOrientOrderAtom::compute_peratom()
         ncount = nnn;
       }
 
-      calc_boop(rlist, ncount, qn, qlist, nqlist);
+      calc_boop(rlist, ncount, qn, qlist, nqlist, qnm_r, qnm_i);
     }
   }
 }
@@ -417,7 +417,7 @@ void ComputeOrientOrderAtom::select3(int k, int n, double *arr, int *iarr, doubl
 ------------------------------------------------------------------------- */
 
 void ComputeOrientOrderAtom::calc_boop(double **rlist, int ncount, double qn[], int qlist[],
-                                       int nqlist)
+                                       int nqlist, double **qnm_r, double **qnm_i)
 {
 
   for (int il = 0; il < nqlist; il++) {

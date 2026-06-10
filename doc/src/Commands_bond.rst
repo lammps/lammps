@@ -78,7 +78,7 @@ OPT.
    * :doc:`class2/p6 (ko) <angle_class2>`
    * :doc:`class2xe (ko) <angle_class2>`
    * :doc:`cosine (ko) <angle_cosine>`
-   * :doc:`cosine/buck6d <angle_cosine_buck6d>`
+   * :doc:`cosine/buck6d (o) <angle_cosine_buck6d>`
    * :doc:`cosine/delta (ko) <angle_cosine_delta>`
    * :doc:`cosine/periodic (ko) <angle_cosine_periodic>`
    * :doc:`cosine/shift (ko) <angle_cosine_shift>`

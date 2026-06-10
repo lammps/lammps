@@ -1171,9 +1171,7 @@ bool Info::has_accelerator_feature(const std::string &package,
       else return false;
     }
     if (category == "api") {
-#if defined(LMP_INTEL_OFFLOAD)
-      if (setting == "phi") return true;
-#elif defined(_OPENMP)
+#if defined(_OPENMP)
       if (setting == "openmp") return true;
 #else
       if (setting == "serial") return true;
@@ -1239,7 +1237,6 @@ std::string Info::get_accelerator_info(const std::string &package)
   }
   if ((package.empty() || (package == "INTEL")) && has_package("INTEL")) {
     mesg += "INTEL package API:";
-    if (has_accelerator_feature("INTEL","api","phi"))      mesg += " Phi";
     if (has_accelerator_feature("INTEL","api","openmp"))   mesg += " OpenMP";
     mesg +=  "\nINTEL package precision:";
     if (has_accelerator_feature("INTEL","precision","single")) mesg += " single";

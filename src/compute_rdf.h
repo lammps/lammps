@@ -32,7 +32,7 @@ class ComputeRDF : public Compute {
   void init_list(int, class NeighList *) override;
   void compute_array() override;
 
- private:
+ protected:
   int nbin;                // # of rdf bins
   int cutflag;             // user cutoff flag
   int npairs;              // # of rdf pairs

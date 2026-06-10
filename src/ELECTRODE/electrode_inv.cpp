@@ -37,6 +37,11 @@ void dgetri_(const int *N, double *A, const int *lda, const int *ipiv, double *w
              const int *lwork, int *info);
 }
 
+#if defined(FFT_MKL) || defined(FFT_MKL_THREADS)
+extern "C" void MKL_Set_Num_Threads(int nth);
+extern "C" int MKL_Get_Max_Threads(void);
+#endif
+
 ElectrodeInv::ElectrodeInv(LAMMPS *lmp) : Pointers(lmp), ChargeSolver()
 {
   setup = cap_set = vac_cap_computed = false;
@@ -95,8 +100,15 @@ void ElectrodeInv::set_elastance(int nele_world, double **elastance)
   std::vector<double> work(lwork);
 
   int info_rf, info_ri;
+#if defined(FFT_MKL) || defined(FFT_MKL_THREADS)
+  int mkl_threads = MKL_Get_Max_Threads();
+  MKL_Set_Num_Threads(1);
+#endif
   dgetrf_(&m, &n, &capacitance[0][0], &lda, ipiv.data(), &info_rf);
   dgetri_(&n, &capacitance[0][0], &lda, ipiv.data(), work.data(), &lwork, &info_ri);
+#if defined(FFT_MKL) || defined(FFT_MKL_THREADS)
+  MKL_Set_Num_Threads(mkl_threads);
+#endif
   if (info_rf != 0 || info_ri != 0) error->all(FLERR, "CONP matrix inversion failed!");
   MPI_Barrier(world);
   //if (timer_flag && (comm->me == 0))
@@ -476,8 +488,15 @@ void ElectrodeInv::compute_macro_matrices(bool symm)
         }
       }
       int info_rf, info_ri;
+#if defined(FFT_MKL) || defined(FFT_MKL_THREADS)
+      int mkl_threads = MKL_Get_Max_Threads();
+      MKL_Set_Num_Threads(1);
+#endif
       dgetrf_(&m, &n, tmp.data(), &lda, ipiv.data(), &info_rf);
       dgetri_(&n, tmp.data(), &lda, ipiv.data(), work.data(), &lwork, &info_ri);
+#if defined(FFT_MKL) || defined(FFT_MKL_THREADS)
+      MKL_Set_Num_Threads(mkl_threads);
+#endif
       if (info_rf != 0 || info_ri != 0)
         error->all(FLERR, "ELECTRODE macro matrix inversion failed!");
       for (int i = 0; i < ngroups; i++) {

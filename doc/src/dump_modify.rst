@@ -738,11 +738,12 @@ descending order.
 The dump *local* style cannot be sorted by atom ID, since there are
 typically multiple lines of output per atom.  Some dump styles, such
 as *dcd* and *xtc*, require sorting by atom ID to format the output
-file correctly.  If multiple processors are writing the dump file, via
-the "%" wildcard in the dump filename and the *nfile* or *fileper*
-keywords are set to non-default values (i.e., the number of dump file
-pieces is not equal to the number of procs), then sorting cannot be
-performed.
+file correctly.  When multiple processors write separate dump file
+pieces via the "%" wildcard together with the *nfile* or *fileper*
+keywords, sorting is performed globally across all processors first and
+the sorted data are then forwarded to the respective file-writer
+processors in order, so each file piece contains a consecutive, sorted
+portion of the snapshot.
 
 In a parallel run, the per-processor dump file pieces can have
 significant imbalance in number of lines of per-atom info. The *balance*

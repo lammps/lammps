@@ -212,9 +212,6 @@ void Dump::init()
   }
 
   if (sort_flag) {
-    if (multiproc > 1)
-      error->all(FLERR, Error::NOLASTLINE,
-                 "Cannot sort dump when 'nfile' or 'fileper' keywords have non-default values");
     if (sortcol == 0 && atom->tag_enable == 0)
       error->all(FLERR, Error::NOLASTLINE,
                  "Cannot sort dump on atom IDs with no atom IDs defined");

@@ -170,6 +170,8 @@ action fix_freeze_kokkos.cpp fix_freeze.cpp
 action fix_freeze_kokkos.h fix_freeze.h
 action fix_gravity_kokkos.cpp
 action fix_gravity_kokkos.h
+action fix_halt_kokkos.cpp
+action fix_halt_kokkos.h
 action fix_langevin_kokkos.cpp
 action fix_langevin_kokkos.h
 action fix_lineforce_kokkos.cpp

@@ -663,14 +663,6 @@ commands like the following:
 
    clang-format -i some_file.cpp
 
-
-The following target are available for both, GNU make and CMake:
-
-.. code-block:: bash
-
-   make format-src       # apply clang-format to all files in src and the package folders
-   make format-tests     # apply clang-format to all files in the unittest tree
-
 ----------
 
 .. _gh-cli:

@@ -200,10 +200,7 @@ void PairLJCutTIP4PLongGPU::init_style()
   GPU_EXTRA::check_flag(success, error, world);
   if (gpu_mode == GPU_FORCE) {
     auto *req = neighbor->add_request(this, NeighConst::REQ_FULL);
-    // Neighbor::init() adds the neighbor skin to a perpetual request's cutoff when
-    // checking it against the communication cutoff, so request only cut_coulplus here;
-    // adding the skin too would double-count it and exceed the communication cutoff
-    // (which is set to cut_coulplus + skin above).
+    // NOTE: we must not add the neighbor list skin here. It is already added automatically.
     req->set_cutoff(cut_coulplus);
   }
 }

@@ -121,8 +121,9 @@ double LddPotentialTableGradSpline::splint(double x0, double x1, double y0, doub
 }
 
 //MCL adding an interpolator for the derivative
-double LddPotentialTableGradSpline::dsplint(double x0, double x1, double y0, double y1, double y20,
-                                            double y21, double dr, double x, double a, double b)
+double LddPotentialTableGradSpline::dsplint(double /*x0*/, double /*x1*/, double y0, double y1,
+                                            double y20, double y21, double dr, double /*x*/,
+                                            double a, double b)
 {
   //MCL -> This will be equation 3.3.5
   double dy_dx =

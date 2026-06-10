@@ -129,6 +129,13 @@
 /lepton_utils.cpp
 /lepton_utils.h
 
+/mtp_radial_basis.cpp
+/mtp_radial_basis.h
+/pair_mtp.cpp
+/pair_mtp.h
+/pair_mtp_extrapolation.cpp
+/pair_mtp_extrapolation.h
+
 /compute_pace.cpp
 /compute_pace.h
 /pair_pace.cpp

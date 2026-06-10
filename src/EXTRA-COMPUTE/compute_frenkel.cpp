@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -30,6 +30,7 @@
 #include "graphics.h"
 #include "group.h"
 #include "lattice.h"
+#include "math_const.h"
 #include "memory.h"
 #include "text_file_reader.h"
 #include "update.h"
@@ -45,6 +46,8 @@ static constexpr double BIG = 1.0e20;
 static constexpr double SMALL = 1.0e-10;
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PI;
+using MathConst::MY_2PI;
 
 static const char cite_compute_frenkel_c[] =
     "compute_frenkel command: doi:10.1016/j.cpc.2019.106862\n\n"
@@ -477,19 +480,19 @@ void ComputeFrenkel::find_clusters()
     if (noccupants[k] != 1) {
       local_cluster_nsites[n] += 1;
       if (domain->xperiodic) {
-        theta = (latsites[k][0] - domain->boxlo[0]) / domain->xprd * 2 * M_PI;
+        theta = (latsites[k][0] - domain->boxlo[0]) / domain->xprd * MY_2PI;
         local_cluster_zeta[n][0] += sin(theta);
         local_cluster_xi[n][0] += cos(theta);
       } else    // If not periodic, xi = x (no projection required)
         local_cluster_xi[n][0] += latsites[k][0];
       if (domain->yperiodic) {
-        theta = (latsites[k][1] - domain->boxlo[1]) / domain->yprd * 2 * M_PI;
+        theta = (latsites[k][1] - domain->boxlo[1]) / domain->yprd * MY_2PI;
         local_cluster_zeta[n][1] += sin(theta);
         local_cluster_xi[n][1] += cos(theta);
       } else
         local_cluster_xi[n][1] += latsites[k][1];
       if (domain->zperiodic) {
-        theta = (latsites[k][2] - domain->boxlo[2]) / domain->zprd * 2 * M_PI;
+        theta = (latsites[k][2] - domain->boxlo[2]) / domain->zprd * MY_2PI;
         local_cluster_zeta[n][2] += sin(theta);
         local_cluster_xi[n][2] += cos(theta);
       } else
@@ -529,18 +532,18 @@ void ComputeFrenkel::find_clusters()
     cluster_zeta[n][1] /= cluster_nsites[n];
     cluster_zeta[n][2] /= cluster_nsites[n];
     if (domain->xperiodic) {
-      theta = atan2(-cluster_zeta[n][0], -cluster_xi[n][0]) + M_PI;
-      cluster_approx_center[n][0] = domain->xprd * theta / (2.0 * M_PI) + domain->boxlo[0];
+      theta = atan2(-cluster_zeta[n][0], -cluster_xi[n][0]) + MY_PI;
+      cluster_approx_center[n][0] = domain->xprd * theta / MY_2PI + domain->boxlo[0];
     } else
       cluster_approx_center[n][0] = cluster_xi[n][0];
     if (domain->yperiodic) {
-      theta = atan2(-cluster_zeta[n][1], -cluster_xi[n][1]) + M_PI;
-      cluster_approx_center[n][1] = domain->yprd * theta / (2.0 * M_PI) + domain->boxlo[1];
+      theta = atan2(-cluster_zeta[n][1], -cluster_xi[n][1]) + MY_PI;
+      cluster_approx_center[n][1] = domain->yprd * theta / MY_2PI + domain->boxlo[1];
     } else
       cluster_approx_center[n][1] = cluster_xi[n][1];
     if (domain->zperiodic) {
-      theta = atan2(-cluster_zeta[n][2], -cluster_xi[n][2]) + M_PI;
-      cluster_approx_center[n][2] = domain->zprd * theta / (2.0 * M_PI) + domain->boxlo[2];
+      theta = atan2(-cluster_zeta[n][2], -cluster_xi[n][2]) + MY_PI;
+      cluster_approx_center[n][2] = domain->zprd * theta / MY_2PI + domain->boxlo[2];
     } else
       cluster_approx_center[n][2] = cluster_xi[n][2];
 

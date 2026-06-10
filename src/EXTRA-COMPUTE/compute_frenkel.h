@@ -21,11 +21,9 @@ ComputeStyle(frenkel, ComputeFrenkel)
 #define LMP_COMPUTE_FRENKEL_H
 
 #include "compute.h"
-#include "memory.h"
 #include "region.h"
 
 #include <list>
-#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -53,10 +51,8 @@ class ComputeFrenkel : public Compute {
   double **image_objarray;
   int image_nmax;
 
-  //int iregion;
-  //char* idregion;
   Region *region;
-  char *sitefile;
+  std::string sitefile;
   int ifgroup, fgroupbit;
   bool rescale;
 
@@ -76,8 +72,8 @@ class ComputeFrenkel : public Compute {
   int ****latbins;
   std::vector<std::list<tagint>> nlist;    // per-site neighbor lists
   tagint *clusterID;                       // Per-site vector
-  int *cluster_size;                       // Negative => vacancy; positive => interstitial
-  int *cluster_nsites;                     // Number of sites involved in cluster
+  std::vector<int> cluster_size;           // Negative => vacancy; positive => interstitial
+  std::vector<int> cluster_nsites;         // Number of sites involved in cluster
   double **cluster_center;                 // Geometric center of cluster in x,y,z
   int noccupied;
   tagint *occupied_cluster_ID;    // Per-cluster vector, length noccupied
@@ -109,45 +105,7 @@ class ComputeFrenkel : public Compute {
   int process_neighbor(int, int, int);
 
   static int compareIDs(const void *, const void *);
-
-  template <typename TYPE>
-  TYPE ****grow(TYPE ****&array, int n1, int n2, int n3, int n4, const char *name)
-  {
-
-    if (array == NULL) return memory->create(array, n1, n2, n3, n4, name);
-
-    bigint nbytes = static_cast<bigint>(sizeof(TYPE)) * n1 * n2 * n3 * n4;
-    TYPE *data = static_cast<TYPE *>(memory->srealloc(array[0][0][0], nbytes, name));
-    nbytes = static_cast<bigint>(sizeof(TYPE *)) * n1 * n2 * n3;
-    TYPE **cube = static_cast<TYPE **>(memory->srealloc(array[0][0], nbytes, name));
-    nbytes = static_cast<bigint>(sizeof(TYPE **)) * n1 * n2;
-    TYPE ***plane = static_cast<TYPE ***>(memory->srealloc(array[0], nbytes, name));
-    nbytes = static_cast<bigint>(sizeof(TYPE ***)) * n1;
-    array = static_cast<TYPE ****>(memory->srealloc(array, nbytes, name));
-
-    int i, j, k;
-    bigint m1, m2, m3;
-    bigint n = 0;
-    for (i = 0; i < n1; i++) {
-      m2 = static_cast<bigint>(i) * n2;
-      array[i] = &plane[m2];
-      for (j = 0; j < n2; j++) {
-        m1 = static_cast<bigint>(i) * n2 + j;
-        m2 = static_cast<bigint>(i) * n2 * n3 + j * n3;
-        plane[m1] = &cube[m2];
-        for (k = 0; k < n3; k++) {
-          m1 = static_cast<bigint>(i) * n2 * n3 + j * n3 + k;
-          cube[m1] = &data[n];
-          n += n4;
-        }
-      }
-    }
-
-    return array;
-  }
-
 };    // end class ComputeFrenkel
-
 }    // namespace LAMMPS_NS
 
 #endif

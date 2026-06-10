@@ -102,15 +102,31 @@ the MPI process: the cluster ID, the cluster size (negative for vacancy
 clusters, positive for interstitial clusters), and the *x*, *y*, *z*
 coordinates of the cluster center.  To avoid double counting, a cluster
 is stored only on the process whose subdomain contains its center.  The
-array can be written with the :doc:`dump local <dump>` command, e.g.
+array can be written with the :doc:`dump local <dump>` command.
+
+The following excerpt from a displacement-cascade simulation in bcc iron
+(a primary knock-on atom has been given a high velocity in the steps
+before) follows the defect count on the fly and records the surviving
+defects without any post-processing:
 
 .. code-block:: LAMMPS
 
-   compute fr all frenkel
-   # live Frenkel-pair count vs. time
-   fix rec all ave/time 100 1 100 c_fr[1] file frenkel.dat
-   # write the surviving defects (id, size, x, y, z) every 1000 steps
-   dump dl all local 1000 defects.dump index c_fr[2] c_fr[3] c_fr[4] c_fr[5]
+   lattice         bcc 2.8553                     # reference lattice for the WS analysis
+   compute         fr all frenkel
+   # live vacancy / interstitial / irregular-site count in the thermo output
+   thermo_style    custom step time temp c_fr[1] c_fr[2] c_fr[3]
+   # log the number of Frenkel pairs c_fr[1] versus time
+   variable        t equal time
+   fix             rec all ave/time 20 1 20 v_t c_fr[1] file frenkel.dat
+   # write the surviving defects (size, x, y, z) every 1000 steps
+   dump            dl all local 1000 defects.dump index c_fr[2] c_fr[3] c_fr[4] c_fr[5]
+   run             15000
+
+Here ``c_fr[1]`` in the :doc:`thermo_style <thermo_style>` and :doc:`fix
+ave/time <fix_ave_time>` commands refers to the *global* vector (the
+defect counts), while ``c_fr[2]`` ... ``c_fr[5]`` in the :doc:`dump local
+<dump>` command refer to the columns of the *local* array (defect size and
+position).
 
 Dump image info
 """""""""""""""

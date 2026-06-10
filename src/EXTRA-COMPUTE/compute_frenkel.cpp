@@ -27,23 +27,36 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "graphics.h"
 #include "group.h"
 #include "lattice.h"
 #include "math_const.h"
 #include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
 #include "text_file_reader.h"
 #include "update.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 
 static constexpr int BIN_GROW_SIZE = 32;    // bins start this size and grow by this
 static constexpr int MAX_OCCUPANTS = 8;     // max number of occupants of one lattice site
 static constexpr double BIG = 1.0e20;
 static constexpr double SMALL = 1.0e-10;
+
+// small, fixed MPI message tags for the ghost-site exchange.  Using the MPI
+// rank (or rank + n*nprocs) as a tag can exceed the guaranteed MPI_TAG_UB
+// (>= 32767) on large runs; the source rank is already given to MPI_Irecv, so
+// one constant tag per message type is sufficient and portable.
+static constexpr int TAG_COUNT = 0;
+static constexpr int TAG_SITE = 1;
+static constexpr int TAG_X = 2;
+static constexpr int TAG_OCCUP = 3;
+static constexpr int TAG_CLUST = 4;
 
 using namespace LAMMPS_NS;
 using MathConst::MY_2PI;
@@ -196,23 +209,44 @@ void ComputeFrenkel::init()
   if (!domain->lattice)
     error->all(FLERR, Error::NOLASTLINE, "Use of compute style frenkel with undefined lattice");
 
+  // Recompute the derived search/bin cutoffs from the (possibly compute_modify
+  // changed) vacancy and interstitial radii, so drvac/drint stay consistent
+  // with the values used for binning, ghost exchange, and nearest-site search.
+  cutoff = MAX(cut_vac, cut_int);
+  binwidth = cutoff;
+
+  // Ghost atoms must reach at least one search cutoff beyond the subdomain or
+  // defects near subdomain boundaries can be silently misidentified.  The
+  // actual ghost range is not finalized until comm->setup() (after this), so
+  // estimate it the way the neighbor/comm code will (pair cutoff + skin, or a
+  // user-set comm cutoff), as compute rdf does.
+  double ghostcut = comm->cutghostuser;
+  if (force->pair) ghostcut = MAX(ghostcut, force->pair->cutforce + neighbor->skin);
+  if ((comm->me == 0) && (comm->nprocs > 1) && (cutoff > ghostcut))
+    error->warning(FLERR,
+                   "Compute frenkel cutoff {} exceeds the communication cutoff {}; "
+                   "use the comm_modify cutoff command to increase the ghost range",
+                   cutoff, ghostcut);
+
   create_lattice_sites();
   put_sites_in_bins();
 
-  // Initialize occupancy lists for all sites
+  // Initialize occupancy lists for all (local) sites
   memory->destroy(noccupants);
   memory->destroy(occupant_tag);
   memory->create(noccupants, nlatsites, "ComputeFrenkel:noccupants");
   memory->create(occupant_tag, nlatsites, MAX_OCCUPANTS, "ComputeFrenkel:occupant_tag");
-  for (int i = 0; i < nlatsites; i++) noccupants[i] = 0;
-  // Assumes occupant_tag is contiguous (should be true)
-  for (int i = 0; i < nlatsites * MAX_OCCUPANTS; i++) occupant_tag[0][i] = -1;
-
-  // Check cutoffs, in case the user changed them
+  std::fill_n(noccupants, nlatsites, 0);
+  std::fill_n(&occupant_tag[0][0], nlatsites * MAX_OCCUPANTS, tagint(-1));    // contiguous block
 
   construct_WS_cell();
 
-  // Build neighbor list, which should never change until the sites do
+  // Build neighbor list, which should never change until the sites do.  Note
+  // ghost sites are deliberately NOT binned: the atom-to-site assignment in
+  // find_defects must only ever pick a local site (occupancy is counted by the
+  // owning rank).  Cross-boundary clusters still connect because each ghost
+  // site's neighbor list (from its clamped edge bin) points back at the nearby
+  // local sites, which find_clusters merges.
   exchange_lattice_ghosts();    // should skip occupancies until second one
   construct_site_nlists();
   // FIXME:  Do we really need to do these two things (since we do them again
@@ -265,14 +299,13 @@ void ComputeFrenkel::find_defects()
   // Allocate and zero out mindist, site_mindist, and noccupants
   memory->destroy(site_mindist);
   memory->create(site_mindist, nlatsites, "ComputeFrenkel:site_mindist");
-  for (int k = 0; k < nlatsites; k++) noccupants[k] = 0;
-  for (int n = 0; n < nlatsites * MAX_OCCUPANTS; n++)
-    occupant_tag[0][n] = -1;    // assumes occupant_tag is contiguous
-  for (int k = 0; k < nlatsites; k++) site_mindist[k] = BIG;
+  std::fill_n(noccupants, nlatsites, 0);
+  std::fill_n(&occupant_tag[0][0], nlatsites * MAX_OCCUPANTS, tagint(-1));    // contiguous block
+  std::fill_n(site_mindist, nlatsites, BIG);
 
   memory->destroy(mindist);
   memory->create(mindist, atom->nmax, "ComputeFrenkel:mindist");
-  for (int n = 0; n < atom->nmax; n++) mindist[n] = BIG;
+  std::fill_n(mindist, atom->nmax, BIG);
 
   double cutsq = cutoff * cutoff;
 
@@ -309,10 +342,8 @@ void ComputeFrenkel::find_defects()
       int closest_site_before = closest_site;
       do {
         closest_site_before = closest_site;
-        std::list<tagint>::iterator item, end;
-        end = nlist[closest_site].end();
-        for (item = nlist[closest_site].begin(); item != end; item++) {
-          int s = site_tag2index(*item);
+        for (tagint t : nlist[closest_site]) {
+          int s = site_tag2index(t);
           if (s < 0) continue;    // Reached end of list
           double *r_s = latsites[s];
           dx = r_s[0] - atom->x[n][0];
@@ -378,8 +409,6 @@ void ComputeFrenkel::find_clusters()
       clusterID[k] = site_tag[k];    // interstitials, vacancies, and "irregulars"
   }
 
-  std::list<tagint>::iterator item, end;
-
   double dx, dy, dz, drsq;
   double cutvacsq = cut_vac * cut_vac;
   double cutintsq = cut_int * cut_int;
@@ -395,11 +424,8 @@ void ComputeFrenkel::find_clusters()
       done = true;
       for (int n = 0; n < nlatsites + nlatghosts; n++) {
         if (noccupants[n] == 1) continue;    // Skip "normal" sites
-        if (nlist[n].empty()) continue;
-        item = nlist[n].begin();
-        end = nlist[n].end();
-        while (item != end) {
-          int m = site_tag2index(*item);
+        for (tagint t : nlist[n]) {
+          int m = site_tag2index(t);
           if (m != n && m >= 0 && noccupants[m] != 1 && clusterID[m] != clusterID[n]) {
             dx = latsites[n][0] - latsites[m][0];
             dy = latsites[n][1] - latsites[m][1];
@@ -412,7 +438,6 @@ void ComputeFrenkel::find_clusters()
               done = false;
             }
           }
-          item++;
         }
       }
       if (!done) changes_made = true;
@@ -588,24 +613,12 @@ void ComputeFrenkel::find_occupied_clusters()
   int n = 0;
   for (int k = 0; k < nlatsites; k++)
     if (clusterID[k] > 0) local_occupied_cluster_ID[n++] = clusterID[k];
-  // sort, then remove duplicates (defects with more than one site involved)
-  qsort(local_occupied_cluster_ID, local_noccupied, sizeof(local_occupied_cluster_ID[0]),
-        &compareIDs);
-  tagint previous = (local_noccupied > 0 ? local_occupied_cluster_ID[0] : 0);
-  for (n = 1; n < local_noccupied; n++) {
-    if (previous <= 0) break;
-    // If previous entry is the same as this one, delete this entry
-    while (local_occupied_cluster_ID[n] == previous) {
-      for (int n1 = n; n1 < local_noccupied - 1; n1++)
-        local_occupied_cluster_ID[n1] = local_occupied_cluster_ID[n1 + 1];
-      local_occupied_cluster_ID[local_noccupied - 1] = -1;
-    }
-    previous = local_occupied_cluster_ID[n];
-  }
-  // Shrink array so it doesn't include negative entries
-  for (n = 0; n < local_noccupied; n++)
-    if (local_occupied_cluster_ID[n] < 0) break;
-  local_noccupied = n;
+  // sort, then remove duplicates (defects with more than one site involved);
+  // all stored IDs are positive, so sort+unique yields the distinct cluster IDs
+  std::sort(local_occupied_cluster_ID, local_occupied_cluster_ID + local_noccupied);
+  local_noccupied = static_cast<int>(
+      std::unique(local_occupied_cluster_ID, local_occupied_cluster_ID + local_noccupied) -
+      local_occupied_cluster_ID);
   memory->grow(local_occupied_cluster_ID, local_noccupied,
                "ComputeFrenkel:reallocate_local_occupied_cluster_ID");
 
@@ -625,39 +638,20 @@ void ComputeFrenkel::find_occupied_clusters()
                  nreceive.data(), displacement.data(), MPI_LMP_TAGINT, world);
   memory->destroy(local_occupied_cluster_ID);
 
-  // sort the big array and once again remove duplicates
-  qsort(occupied_cluster_ID, noccupied, sizeof(occupied_cluster_ID[0]), &compareIDs);
-  previous = (noccupied > 0 ? occupied_cluster_ID[0] : 0);
-  for (n = 1; n < noccupied; n++) {
-    if (previous <= 0) break;
-    // If previous entry is the same as this one, delete this entry
-    while (occupied_cluster_ID[n] == previous) {
-      for (int n1 = n; n1 < noccupied - 1; n1++)
-        occupied_cluster_ID[n1] = occupied_cluster_ID[n1 + 1];
-      occupied_cluster_ID[noccupied - 1] = -1;
-    }
-    previous = occupied_cluster_ID[n];
-  }
-  for (n = 0; n < noccupied; n++)
-    if (occupied_cluster_ID[n] < 0) break;
-  noccupied = n;
+  // sort the gathered array and once again remove duplicates
+  std::sort(occupied_cluster_ID, occupied_cluster_ID + noccupied);
+  noccupied = static_cast<int>(std::unique(occupied_cluster_ID, occupied_cluster_ID + noccupied) -
+                               occupied_cluster_ID);
   memory->grow(occupied_cluster_ID, noccupied, "ComputeFrenkel:reallocate_occupied_cluster_ID");
 }
 
 /****************************************************************************/
 
-int ComputeFrenkel::clusterID2occupied_index(int id)
+int ComputeFrenkel::clusterID2occupied_index(tagint id)
 {
   for (int i = 0; i < noccupied; i++)
     if (id == occupied_cluster_ID[i]) return i;
   return -1;
-}
-
-/****************************************************************************/
-
-int ComputeFrenkel::compareIDs(const void *a, const void *b)
-{
-  return (*(int *) a - *(int *) b);
 }
 
 /****************************************************************************/
@@ -744,6 +738,17 @@ void ComputeFrenkel::compute_peratom()
 
 /****************************************************************************/
 
+// True if point c lies in this processor's subdomain.  Used to assign each
+// defect cluster to exactly one rank (by its center) so global per-cluster
+// output is neither duplicated nor dropped in parallel runs.
+bool ComputeFrenkel::center_in_subdomain(const double *c) const
+{
+  return (c[0] >= domain->sublo[0] && c[0] < domain->subhi[0] && c[1] >= domain->sublo[1] &&
+          c[1] < domain->subhi[1] && c[2] >= domain->sublo[2] && c[2] < domain->subhi[2]);
+}
+
+/****************************************************************************/
+
 void ComputeFrenkel::compute_local()
 {
   invoked_local = update->ntimestep;
@@ -761,13 +766,8 @@ void ComputeFrenkel::compute_local()
   std::vector<bool> owned(noccupied);
   int nowned = 0;
   for (int i = 0; i < noccupied; i++) {
-    if (cluster_center[i][0] >= domain->sublo[0] && cluster_center[i][0] < domain->subhi[0] &&
-        cluster_center[i][1] >= domain->sublo[1] && cluster_center[i][1] < domain->subhi[1] &&
-        cluster_center[i][2] >= domain->sublo[2] && cluster_center[i][2] < domain->subhi[2]) {
-      owned[i] = true;
-      nowned++;
-    } else
-      owned[i] = false;
+    owned[i] = center_in_subdomain(cluster_center[i]);
+    if (owned[i]) nowned++;
   }
 
   size_local_rows = nowned;
@@ -810,12 +810,8 @@ int ComputeFrenkel::compute_image(int *&objs, double **&parms)
     // only draw clusters whose center is owned by this subdomain, so each
     // defect is rendered exactly once when running in parallel
     int nowned = 0;
-    for (int j = 0; j < noccupied; j++) {
-      double *c = cluster_center[j];
-      if (c[0] >= domain->sublo[0] && c[0] < domain->subhi[0] && c[1] >= domain->sublo[1] &&
-          c[1] < domain->subhi[1] && c[2] >= domain->sublo[2] && c[2] < domain->subhi[2])
-        nowned++;
-    }
+    for (int j = 0; j < noccupied; j++)
+      if (center_in_subdomain(cluster_center[j])) nowned++;
 
     memory->destroy(image_objvec);
     memory->destroy(image_objarray);
@@ -831,9 +827,7 @@ int ComputeFrenkel::compute_image(int *&objs, double **&parms)
     int n = 0;
     for (int j = 0; j < noccupied; j++) {
       double *c = cluster_center[j];
-      if (!(c[0] >= domain->sublo[0] && c[0] < domain->subhi[0] && c[1] >= domain->sublo[1] &&
-            c[1] < domain->subhi[1] && c[2] >= domain->sublo[2] && c[2] < domain->subhi[2]))
-        continue;
+      if (!center_in_subdomain(c)) continue;
       image_objvec[n] = Graphics::SPHERE;
       image_objarray[n][0] = (cluster_size[j] < 0) ? 1.0 : 2.0;
       image_objarray[n][1] = c[0];
@@ -997,13 +991,40 @@ int ComputeFrenkel::site_tag2index(tagint tag)
   int idx = static_cast<int>(tag - this->first_local_tag);
   if (idx >= 0 && idx < nlatsites) return idx;
 
-  // Tag belongs only to a ghost; find it!
-  for (int i = nlatsites; i < nlatsites + nlatghosts; i++)
-    if (site_tag[i] == tag) return i;
+  // Tag belongs only to a ghost; look it up in the O(1) ghost index
+  auto it = ghost_index.find(tag);
+  if (it != ghost_index.end()) return it->second;
 
   // Hmm...this tag doesn't seem to exist!  Why are you looking for it?
   error->warning(FLERR, "(proc {}): Didn't find an index for tag {}\n", comm->me, tag);
   return -1;
+}
+
+/****************************************************************************/
+
+// Post nonblocking sends of sbuf(p) and matching receives into rbuf(p) for all
+// p != me (message length in datatype units = n_send[p]*stride on send,
+// n_recv[p]*stride on receive), then wait for all to complete.  The caller
+// handles the self (p == me) copy.  One fixed tag per message type keeps the
+// tags well below MPI_TAG_UB; the source rank already disambiguates messages.
+void ComputeFrenkel::exchange_one(const std::function<void *(int)> &sbuf,
+                                  const std::function<void *(int)> &rbuf,
+                                  const std::vector<int> &n_send, const std::vector<int> &n_recv,
+                                  int stride, MPI_Datatype type, int tag)
+{
+  const int me = comm->me;
+  const int nprocs = comm->nprocs;
+  if (nprocs == 1) return;    // nothing to exchange in serial
+
+  std::vector<MPI_Request> sreq(nprocs, MPI_REQUEST_NULL);
+  std::vector<MPI_Request> rreq(nprocs, MPI_REQUEST_NULL);
+  for (int p = 0; p < nprocs; p++) {
+    if (p == me) continue;
+    if (n_send[p] > 0) MPI_Isend(sbuf(p), n_send[p] * stride, type, p, tag, world, &sreq[p]);
+    if (n_recv[p] > 0) MPI_Irecv(rbuf(p), n_recv[p] * stride, type, p, tag, world, &rreq[p]);
+  }
+  MPI_Waitall(nprocs, sreq.data(), MPI_STATUSES_IGNORE);
+  MPI_Waitall(nprocs, rreq.data(), MPI_STATUSES_IGNORE);
 }
 
 /****************************************************************************/
@@ -1028,6 +1049,7 @@ void ComputeFrenkel::exchange_lattice_ghosts()
   int max_size = NINCR;
 
   nlatghosts = 0;
+  ghost_index.clear();
   std::vector<int> n_send(nprocs, 0);
   std::vector<int> n_recv(nprocs, 0);
   std::vector<int> idx(nprocs, 0);
@@ -1108,15 +1130,13 @@ void ComputeFrenkel::exchange_lattice_ghosts()
     if (p == me)
       n_recv[p] = n_send[p];
     else {
-      MPI_Isend(&n_send[p], 1, MPI_INT, p, me, world, &send_request[p]);
-      MPI_Irecv(&n_recv[p], 1, MPI_INT, p, p, world, &recv_request[p]);
+      MPI_Isend(&n_send[p], 1, MPI_INT, p, TAG_COUNT, world, &send_request[p]);
+      MPI_Irecv(&n_recv[p], 1, MPI_INT, p, TAG_COUNT, world, &recv_request[p]);
     }
   }
-  std::vector<MPI_Status> send_status(nprocs);
-  std::vector<MPI_Status> recv_status(nprocs);
   if (nprocs > 1) {
-    MPI_Waitall(nprocs, send_request.data(), send_status.data());
-    MPI_Waitall(nprocs, recv_request.data(), recv_status.data());
+    MPI_Waitall(nprocs, send_request.data(), MPI_STATUSES_IGNORE);
+    MPI_Waitall(nprocs, recv_request.data(), MPI_STATUSES_IGNORE);
   }
 
   max_size = 0;
@@ -1136,76 +1156,49 @@ void ComputeFrenkel::exchange_lattice_ghosts()
   for (int i = 0; i < nprocs * max_size; i++) occup_recv[0][i] = 0;
   for (int i = 0; i < nprocs * max_size * 3; i++) x_recv[0][0][i] = 0.0;
   for (int i = 0; i < nprocs * max_size; i++) clusterID_recv[0][i] = 0;
-  std::vector<MPI_Request> send_request_x(nprocs);
-  std::vector<MPI_Request> recv_request_x(nprocs);
-  std::vector<MPI_Request> send_request_o(nprocs);
-  std::vector<MPI_Request> recv_request_o(nprocs);
-  std::vector<MPI_Request> send_request_c(nprocs);
-  std::vector<MPI_Request> recv_request_c(nprocs);
-  std::vector<MPI_Status> send_status_x(nprocs);
-  std::vector<MPI_Status> recv_status_x(nprocs);
-  std::vector<MPI_Status> send_status_o(nprocs);
-  std::vector<MPI_Status> recv_status_o(nprocs);
-  std::vector<MPI_Status> send_status_c(nprocs);
-  std::vector<MPI_Status> recv_status_c(nprocs);
-  send_request[me] = MPI_REQUEST_NULL;
-  recv_request[me] = MPI_REQUEST_NULL;
-  send_request_x[me] = MPI_REQUEST_NULL;
-  recv_request_x[me] = MPI_REQUEST_NULL;
-  send_request_o[me] = MPI_REQUEST_NULL;
-  recv_request_o[me] = MPI_REQUEST_NULL;
-  send_request_c[me] = MPI_REQUEST_NULL;
-  recv_request_c[me] = MPI_REQUEST_NULL;
-  for (int p = 0; p < nprocs; p++) {
-    if (p == me) {    // Don't talk to yourself, just copy
-      for (int i = 0; i < n_send[p]; i++) {
-        tag_recv[p][i] = tag_send[p][i];
-        occup_recv[p][i] = occup_send[p][i];    // FIXME - which one should this be?
-        //occup_recv[p][i] += occup_send[p][i];
-        clusterID_recv[p][i] = clusterID_send[p][i];
-        x_recv[p][i][0] = x_send[p][i][0];
-        x_recv[p][i][1] = x_send[p][i][1];
-        x_recv[p][i][2] = x_send[p][i][2];
-      }
-      continue;
-    }
-    // First send...
-    if (n_send[p] > 0) {
-      MPI_Isend(tag_send[p], n_send[p], MPI_LMP_TAGINT, p, me, world, &send_request[p]);
-      MPI_Isend(x_send[p][0], n_send[p] * 3, MPI_DOUBLE, p, me + nprocs, world, &send_request_x[p]);
-      MPI_Isend(occup_send[p], n_send[p], MPI_INT, p, me + nprocs * 2, world, &send_request_o[p]);
-      MPI_Isend(clusterID_send[p], n_send[p], MPI_LMP_TAGINT, p, me + nprocs * 3, world,
-                &send_request_c[p]);
-    } else {
-      send_request[p] = MPI_REQUEST_NULL;
-      send_request_x[p] = MPI_REQUEST_NULL;
-      send_request_o[p] = MPI_REQUEST_NULL;
-      send_request_c[p] = MPI_REQUEST_NULL;
-    }
-    // ...now receive
-    if (n_recv[p] > 0) {
-      MPI_Irecv(tag_recv[p], n_recv[p], MPI_LMP_TAGINT, p, p, world, &recv_request[p]);
-      MPI_Irecv(x_recv[p][0], n_recv[p] * 3, MPI_DOUBLE, p, p + nprocs, world, &recv_request_x[p]);
-      MPI_Irecv(occup_recv[p], n_recv[p], MPI_INT, p, p + nprocs * 2, world, &recv_request_o[p]);
-      MPI_Irecv(clusterID_recv[p], n_recv[p], MPI_LMP_TAGINT, p, p + nprocs * 3, world,
-                &recv_request_c[p]);
-    } else {
-      recv_request[p] = MPI_REQUEST_NULL;
-      recv_request_x[p] = MPI_REQUEST_NULL;
-      recv_request_o[p] = MPI_REQUEST_NULL;
-      recv_request_c[p] = MPI_REQUEST_NULL;
-    }
+  // self (p == me) is just a local copy; the four per-site quantities are then
+  // exchanged with the neighbor processes one message type at a time
+  for (int i = 0; i < n_send[me]; i++) {
+    tag_recv[me][i] = tag_send[me][i];
+    occup_recv[me][i] = occup_send[me][i];    // FIXME - which one should this be?
+    //occup_recv[me][i] += occup_send[me][i];
+    clusterID_recv[me][i] = clusterID_send[me][i];
+    x_recv[me][i][0] = x_send[me][i][0];
+    x_recv[me][i][1] = x_send[me][i][1];
+    x_recv[me][i][2] = x_send[me][i][2];
   }
-  if (nprocs > 1) {
-    MPI_Waitall(nprocs, send_request.data(), send_status.data());
-    MPI_Waitall(nprocs, recv_request.data(), recv_status.data());
-    MPI_Waitall(nprocs, send_request_x.data(), send_status_x.data());
-    MPI_Waitall(nprocs, recv_request_x.data(), recv_status_x.data());
-    MPI_Waitall(nprocs, send_request_o.data(), send_status_o.data());
-    MPI_Waitall(nprocs, recv_request_o.data(), recv_status_o.data());
-    MPI_Waitall(nprocs, send_request_c.data(), send_status_c.data());
-    MPI_Waitall(nprocs, recv_request_c.data(), recv_status_c.data());
-  }
+  exchange_one(
+      [&](int p) {
+        return (void *) tag_send[p];
+      },
+      [&](int p) {
+        return (void *) tag_recv[p];
+      },
+      n_send, n_recv, 1, MPI_LMP_TAGINT, TAG_SITE);
+  exchange_one(
+      [&](int p) {
+        return (void *) x_send[p][0];
+      },
+      [&](int p) {
+        return (void *) x_recv[p][0];
+      },
+      n_send, n_recv, 3, MPI_DOUBLE, TAG_X);
+  exchange_one(
+      [&](int p) {
+        return (void *) occup_send[p];
+      },
+      [&](int p) {
+        return (void *) occup_recv[p];
+      },
+      n_send, n_recv, 1, MPI_INT, TAG_OCCUP);
+  exchange_one(
+      [&](int p) {
+        return (void *) clusterID_send[p];
+      },
+      [&](int p) {
+        return (void *) clusterID_recv[p];
+      },
+      n_send, n_recv, 1, MPI_LMP_TAGINT, TAG_CLUST);
 
   // Reallocate the necessary memory
   nlatghosts = 0;
@@ -1225,6 +1218,7 @@ void ComputeFrenkel::exchange_lattice_ghosts()
       latsites[kk][2] = x_recv[p][i][2];
       noccupants[kk] = occup_recv[p][i];
       if (clusterID) clusterID[kk] = clusterID_recv[p][i];
+      ghost_index[site_tag[kk]] = kk;
       kk++;
     }
   }
@@ -1278,8 +1272,8 @@ void ComputeFrenkel::construct_site_nlists()
       }
     }
     // Sort neighbor list and remove duplicates
-    nlist[n].sort();
-    nlist[n].unique();
+    std::sort(nlist[n].begin(), nlist[n].end());
+    nlist[n].erase(std::unique(nlist[n].begin(), nlist[n].end()), nlist[n].end());
   }
 }
 
@@ -1622,7 +1616,7 @@ double ComputeFrenkel::memory_usage()
   nbytes += (atom->nmax) * sizeof(mindist[0]);
   nbytes += nlatsites * sizeof(site_mindist[0]);
   nbytes += (nlatsites + nlatghosts) * sizeof(noccupants[0]);
-  nbytes += nlatsites * MAX_OCCUPANTS * sizeof(occupant_tag[0]);
+  nbytes += nlatsites * MAX_OCCUPANTS * sizeof(occupant_tag[0][0]);
   nbytes += nnormal * 3 * sizeof(normal[0][0]);
   nbytes += (nlatsites + nlatghosts) * 3 * sizeof(latsites[0][0]);
   nbytes += (nlatsites + nlatghosts) * sizeof(site_tag[0]);

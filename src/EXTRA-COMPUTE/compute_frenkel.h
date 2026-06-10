@@ -23,7 +23,8 @@ ComputeStyle(frenkel, ComputeFrenkel)
 #include "compute.h"
 #include "region.h"
 
-#include <list>
+#include <functional>
+#include <unordered_map>
 
 namespace LAMMPS_NS {
 
@@ -70,11 +71,12 @@ class ComputeFrenkel : public Compute {
   tagint first_local_tag;
   int nlatbins[4];
   int ****latbins;
-  std::vector<std::list<tagint>> nlist;    // per-site neighbor lists
-  tagint *clusterID;                       // Per-site vector
-  std::vector<int> cluster_size;           // Negative => vacancy; positive => interstitial
-  std::vector<int> cluster_nsites;         // Number of sites involved in cluster
-  double **cluster_center;                 // Geometric center of cluster in x,y,z
+  std::vector<std::vector<tagint>> nlist;         // per-site neighbor lists
+  std::unordered_map<tagint, int> ghost_index;    // ghost site tag -> local ghost index
+  tagint *clusterID;                              // Per-site vector
+  std::vector<int> cluster_size;                  // Negative => vacancy; positive => interstitial
+  std::vector<int> cluster_nsites;                // Number of sites involved in cluster
+  double **cluster_center;                        // Geometric center of cluster in x,y,z
   int noccupied;
   tagint *occupied_cluster_ID;    // Per-cluster vector, length noccupied
   double old_boxlo[3], old_boxhi[3];
@@ -87,12 +89,15 @@ class ComputeFrenkel : public Compute {
   void put_sites_in_bins();
   int site_tag2index(tagint);
   void exchange_lattice_ghosts();
+  void exchange_one(const std::function<void *(int)> &, const std::function<void *(int)> &,
+                    const std::vector<int> &, const std::vector<int> &, int, MPI_Datatype, int);
   void construct_WS_cell();
   bool inside_WS_cell(int, int);
   void find_defects();
   void find_clusters();
   void find_occupied_clusters();
-  int clusterID2occupied_index(int);
+  int clusterID2occupied_index(tagint);
+  bool center_in_subdomain(const double *) const;
   void find_closest_bin(double *, int &, int &, int &);
   void bin_pbc(int &, int &, int &);
   bool tag_is_already_in_occupancy_list(tagint, int);
@@ -103,8 +108,6 @@ class ComputeFrenkel : public Compute {
   void rescale_lattice_sites();
 
   int process_neighbor(int, int, int);
-
-  static int compareIDs(const void *, const void *);
 };    // end class ComputeFrenkel
 }    // namespace LAMMPS_NS
 

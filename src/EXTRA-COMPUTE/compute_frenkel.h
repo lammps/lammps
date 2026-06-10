@@ -73,6 +73,8 @@ class ComputeFrenkel : public Compute {
   int ****latbins;
   std::vector<std::vector<tagint>> nlist;         // per-site neighbor lists
   std::unordered_map<tagint, int> ghost_index;    // ghost site tag -> local ghost index
+  std::vector<int> ghost_send_counts;             // owned sites mirrored onto each proc
+  std::vector<int> ghost_recv_counts;             // ghosts held from each proc (this pass)
   tagint *clusterID;                              // Per-site vector
   std::vector<int> cluster_size;                  // Negative => vacancy; positive => interstitial
   std::vector<int> cluster_nsites;                // Number of sites involved in cluster
@@ -89,6 +91,7 @@ class ComputeFrenkel : public Compute {
   void put_sites_in_bins();
   int site_tag2index(tagint);
   void exchange_lattice_ghosts();
+  int push_ghost_labels_to_owners();
   void exchange_one(const std::function<void *(int)> &, const std::function<void *(int)> &,
                     const std::vector<int> &, const std::vector<int> &, int, MPI_Datatype, int);
   void construct_WS_cell();

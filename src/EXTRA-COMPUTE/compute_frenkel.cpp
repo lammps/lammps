@@ -57,6 +57,8 @@ static constexpr int TAG_SITE = 1;
 static constexpr int TAG_X = 2;
 static constexpr int TAG_OCCUP = 3;
 static constexpr int TAG_CLUST = 4;
+static constexpr int TAG_RTAG = 5;    // reverse (ghost -> owner) label push: site tags
+static constexpr int TAG_RCID = 6;    // reverse (ghost -> owner) label push: cluster IDs
 
 using namespace LAMMPS_NS;
 using MathConst::MY_2PI;
@@ -413,13 +415,34 @@ void ComputeFrenkel::find_clusters()
   double cutvacsq = cut_vac * cut_vac;
   double cutintsq = cut_int * cut_int;
 
-  // For each local site, parse the neighbor list to find clusters.  Repeat
-  // until there are no changes on any process.
-  int changes_made, global_changes_made, done;
-  global_changes_made = false;
+  // For each local site, parse the neighbor list to find clusters.  This is a
+  // distributed connected-components (union-find) labelling: adjacent defect
+  // sites repeatedly adopt the smaller of their two cluster IDs until a global
+  // fixpoint is reached.  Each outer pass:
+  //   (1) exchange_lattice_ghosts() stamps each owner's current cluster ID onto
+  //       the ghost copies held by neighbouring subdomains;
+  //   (2) a local relaxation merges neighbouring sites (owned and ghost) by MIN;
+  //   (3) push_ghost_labels_to_owners() reverse-communicates any label a ghost
+  //       picked up in step (2) back to its owner (also by MIN).
+  //
+  // Step (3) is essential.  Without it a relabelling that can only be found on
+  // the *receiver* side of a boundary lives solely on a ghost copy, is
+  // overwritten by the next exchange, and is rediscovered every pass.  For a
+  // compact cluster wrapping a corner where >= 2 subdomain cuts meet that made
+  // the old "did any (owned-or-ghost) label change?" flag stay true forever -- a
+  // livelock.  We instead iterate until no *owned* label changes on any rank,
+  // which is a genuine fixpoint because owned labels only ever decrease and are
+  // bounded below (so the loop is guaranteed to terminate).
+  int global_changes_made = false;
+  std::vector<tagint> prev_clusterID(nlatsites);
   do {
     exchange_lattice_ghosts();
-    changes_made = false;
+
+    // snapshot the owned labels so we can detect real progress this pass
+    for (int k = 0; k < nlatsites; k++) prev_clusterID[k] = clusterID[k];
+
+    // local relaxation over owned sites and ghosts (only ever lowers labels)
+    int done;
     do {
       done = true;
       for (int n = 0; n < nlatsites + nlatghosts; n++) {
@@ -440,10 +463,20 @@ void ComputeFrenkel::find_clusters()
           }
         }
       }
-      if (!done) changes_made = true;
     } while (!done);
 
-    // We stop only if NO process has changes in its cluster assignments
+    // send labels learned on ghost copies back to their owners (MIN)
+    push_ghost_labels_to_owners();
+
+    // a pass is productive only if some *owned* label actually decreased
+    int changes_made = 0;
+    for (int k = 0; k < nlatsites; k++)
+      if (clusterID[k] != prev_clusterID[k]) {
+        changes_made = 1;
+        break;
+      }
+
+    // we stop only once no process lowered an owned label this pass
     MPI_Allreduce(&changes_made, &global_changes_made, 1, MPI_INT, MPI_LOR, world);
 
   } while (global_changes_made);
@@ -1139,6 +1172,14 @@ void ComputeFrenkel::exchange_lattice_ghosts()
     MPI_Waitall(nprocs, recv_request.data(), MPI_STATUSES_IGNORE);
   }
 
+  // Remember the per-proc message sizes so push_ghost_labels_to_owners() can
+  // run the reverse (ghost -> owner) exchange.  Record them now, before the
+  // "no ghosts received" early return below: a rank may receive no ghosts of
+  // its own yet still own sites that are ghosts elsewhere, and those owners
+  // will reverse-send label updates back to it.
+  ghost_send_counts = n_send;
+  ghost_recv_counts = n_recv;
+
   max_size = 0;
   for (int p = 0; p < nprocs; p++) max_size = MAX(max_size, n_recv[p]);
   if (max_size == 0) {
@@ -1232,6 +1273,84 @@ void ComputeFrenkel::exchange_lattice_ghosts()
   memory->destroy(x_recv);
   memory->destroy(occup_recv);
   memory->destroy(clusterID_recv);
+}
+
+/****************************************************************************/
+
+// Reverse of the cluster-ID part of exchange_lattice_ghosts(): every ghost site
+// sends the (possibly lowered) cluster ID it now holds back to the rank that
+// owns it, which keeps the smaller of its stored value and the incoming one.
+// This is the ghost -> owner half of the union-find label propagation: without
+// it a relabelling discovered on the receiver side of a subdomain boundary
+// would be discarded by the next exchange instead of reaching the owner.
+// Returns nonzero on this rank if any owned label was lowered.
+int ComputeFrenkel::push_ghost_labels_to_owners()
+{
+  const int me = comm->me;
+  const int nprocs = comm->nprocs;
+  int changed = 0;
+
+  // Slice the ghost range back into the per-proc groups it arrived in: the same
+  // ascending proc order used when the ghosts were appended, ghost_recv_counts[p]
+  // entries each (the p == me group carries periodic self-images).
+  std::vector<std::vector<tagint>> tag_back(nprocs), cid_back(nprocs);
+  int kk = nlatsites;
+  for (int p = 0; p < nprocs; p++) {
+    tag_back[p].reserve(ghost_recv_counts[p]);
+    cid_back[p].reserve(ghost_recv_counts[p]);
+    for (int i = 0; i < ghost_recv_counts[p]; i++, kk++) {
+      tag_back[p].push_back(site_tag[kk]);
+      cid_back[p].push_back(clusterID[kk]);
+    }
+  }
+
+  // self group: this rank is the owner, so apply the MIN locally
+  for (std::size_t i = 0; i < tag_back[me].size(); i++) {
+    int idx = site_tag2index(tag_back[me][i]);
+    if (idx >= 0 && idx < nlatsites && cid_back[me][i] < clusterID[idx]) {
+      clusterID[idx] = cid_back[me][i];
+      changed = 1;
+    }
+  }
+  if (nprocs == 1) return changed;
+
+  // Reverse exchange: send each held ghost's label back to its owner.  The send
+  // counts are ghost_recv_counts (ghosts we hold from p) and the receive counts
+  // are ghost_send_counts (our owned sites mirrored onto p, now coming back).
+  std::vector<std::vector<tagint>> rtag(nprocs), rcid(nprocs);
+  for (int p = 0; p < nprocs; p++) {
+    rtag[p].assign(ghost_send_counts[p], 0);
+    rcid[p].assign(ghost_send_counts[p], 0);
+  }
+  exchange_one(
+      [&](int p) {
+        return (void *) tag_back[p].data();
+      },
+      [&](int p) {
+        return (void *) rtag[p].data();
+      },
+      ghost_recv_counts, ghost_send_counts, 1, MPI_LMP_TAGINT, TAG_RTAG);
+  exchange_one(
+      [&](int p) {
+        return (void *) cid_back[p].data();
+      },
+      [&](int p) {
+        return (void *) rcid[p].data();
+      },
+      ghost_recv_counts, ghost_send_counts, 1, MPI_LMP_TAGINT, TAG_RCID);
+
+  // owner side: keep the smaller of the stored and incoming cluster IDs
+  for (int p = 0; p < nprocs; p++) {
+    if (p == me) continue;
+    for (int i = 0; i < ghost_send_counts[p]; i++) {
+      int idx = site_tag2index(rtag[p][i]);
+      if (idx >= 0 && idx < nlatsites && rcid[p][i] < clusterID[idx]) {
+        clusterID[idx] = rcid[p][i];
+        changed = 1;
+      }
+    }
+  }
+  return changed;
 }
 
 /****************************************************************************/

@@ -182,6 +182,8 @@ action fix_gravity_kokkos.cpp
 action fix_gravity_kokkos.h
 action fix_gjf_kokkos.cpp fix_gjf.cpp
 action fix_gjf_kokkos.h fix_gjf.h
+action fix_halt_kokkos.cpp
+action fix_halt_kokkos.h
 action fix_langevin_kokkos.cpp
 action fix_langevin_kokkos.h
 action fix_lineforce_kokkos.cpp

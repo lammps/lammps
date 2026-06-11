@@ -13,41 +13,48 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(halt,FixHalt);
+FixStyle(halt/kk,FixHaltKokkos<LMPDeviceType>);
+FixStyle(halt/kk/device,FixHaltKokkos<LMPDeviceType>);
+FixStyle(halt/kk/host,FixHaltKokkos<LMPHostType>);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_HALT_H
-#define LMP_FIX_HALT_H
+// clang-format off
+#ifndef LMP_FIX_HALT_KOKKOS_H
+#define LMP_FIX_HALT_KOKKOS_H
 
-#include "fix.h"
+#include "fix_halt.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class FixHalt : public Fix {
+struct TagFixHaltBondmax{};
+
+template<class DeviceType>
+class FixHaltKokkos : public FixHalt {
  public:
-  FixHalt(class LAMMPS *, int, char **);
-  ~FixHalt() override;
-  int setmask() override;
-  void init() override;
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+
+  FixHaltKokkos(class LAMMPS *, int, char **);
+  ~FixHaltKokkos() {};
   void end_of_step() override;
-  void min_post_force(int) override;
-  void post_run() override;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixHaltBondmax, const int &, KK_FLOAT &) const;
 
  protected:
-  int attribute, operation, eflag, msgflag, ivar, uflag;
-  bool triggered;
-  bigint nextstep, thisstep;
-  double value, tratio;
-  char *idvar;
-  char *dlimit_path;
+  double bondmax() override;
 
-  virtual double bondmax();
-  double tlimit();
-  double diskfree();
+ private:
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_int_2d_lr d_bondlist;
+
+  class NeighborKokkos *neighborKK;
 };
 
-}    // namespace LAMMPS_NS
+}
 
 #endif
 #endif

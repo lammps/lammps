@@ -1927,7 +1927,7 @@ FLOPs), and **ease**.
 | Target | Type | Why | Recipe |
 |---|---|---|---|
 | `press/langevin/kk` | fix (src/) | Stochastic (Langevin piston) barostat | **DONE** (May 2026).  See "Lessons Learned — press/langevin/kk" below. |
-| `ewald/kk` | kspace | Long-range Coulomb for NPT of small/medium systems or non-PPPM workflows; only `pppm/kk` exists | Moderate-high complexity. |
+| `ewald/kk` | kspace | **DEFERRED — low priority.**  Ewald is `O(N^3/2)`; KOKKOS/GPU pays off for *large* systems, where `pppm/kk` (`O(N log N)`) is what is actually used.  A KOKKOS Ewald would mainly accelerate cases that do not need it; Ewald's real role is a **CPU validation reference for small test cases** (which do not need the GPU).  Port the PPPM family instead. |
 | `compute temp/partial/kk` | compute | Partial-DOF / anisotropic thermostatting frequently paired with NPT; most 2D runs; feeds `nvt`/`npt` via `fix_modify temp` | **DONE** (May 2026).  See "Lessons Learned — compute temp/partial/kk" below. |
 | `compute ke/atom/kk` | compute | Per-atom kinetic energy; self-contained (pure v/mass), the clean per-atom diagnostic | **DONE** (May 2026).  See "Lessons Learned — per-atom-output computes" below. |
 | `compute stress/atom/kk`, `pe/atom/kk`, `centroid/stress/atom/kk` | compute | Per-atom virial/energy | **DEFERRED — not a clean full port.**  See "Per-atom virial/energy aggregation" below. |

@@ -87,8 +87,7 @@ void FixTempCSVRKokkos<DeviceType>::end_of_step()
     modify->clearstep_compute();
     t_target = input->variable->compute_equal(tvar);
     if (t_target < 0.0)
-      error->one(FLERR, "Fix {} variable {} returned negative temperature",
-                 style, input->variable->names[tvar]);
+      error->one(FLERR, "Fix {} variable {} returned negative temperature", style, tstr);
     modify->addstep_compute(update->ntimestep + nevery);
   }
 

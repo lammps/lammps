@@ -406,6 +406,11 @@ elseif(GPU_API STREQUAL "HIP")
   add_library(gpu STATIC ${GPU_LIB_SOURCES})
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
   target_compile_definitions(gpu PRIVATE -DUSE_HIP -D_${GPU_PREC_SETTING})
+  # SPIR-V (chipStar) gives no warp-synchronous guarantee, so the device-side
+  # block-wide energy/virial reduction yields NaN; accumulate it on the host.
+  if(HIP_ARCH STREQUAL "spirv")
+    target_compile_definitions(gpu PRIVATE -DLAL_NO_BLOCK_REDUCE)
+  endif()
   if(GPU_DEBUG)
     target_compile_definitions(gpu PRIVATE -DUCL_DEBUG -DGERYON_KERNEL_DUMP)
   else()

@@ -39,8 +39,12 @@ class FixOrientECO : public Fix {
   void unpack_forward_comm(int, int, double *) override;
   double memory_usage() override;
 
- private:
-  struct Nbr;    // forward declaration. private struct for managing precomputed terms
+ protected:
+  struct Nbr {               // precomputed terms per owned and ghost atom
+    double duchi;            // potential derivative
+    double real_phi[2][3];   // real part of wave function
+    double imag_phi[2][3];   // imaginary part of wave function
+  };
 
   int me;              // this processors rank
   int nmax;            // maximal # of owned + ghost atoms on this processor

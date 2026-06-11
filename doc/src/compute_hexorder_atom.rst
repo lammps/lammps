@@ -1,7 +1,10 @@
 .. index:: compute hexorder/atom
+.. index:: compute hexorder/atom/omp
 
 compute hexorder/atom command
 =============================
+
+Accelerator Variants: *hexorder/atom/omp*
 
 Syntax
 """"""
@@ -107,6 +110,12 @@ unit disk of the complex plane (i.e., :math:`\Re(q_n)^2 + \Im(q_n)^2 \le 1`).
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

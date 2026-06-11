@@ -129,6 +129,41 @@ if(PKG_KSPACE AND PKG_KOKKOS)
     target_compile_definitions(test_fft3d_kokkos PRIVATE -DFFT_SINGLE)
   endif()
 
+  # Compile the test against the same Kokkos FFT backend as the library.  The
+  # -DFFT_KOKKOS_<backend> macro is added PRIVATE to the lammps target (see
+  # cmake/Modules/Packages/KOKKOS.cmake), so without re-adding it here the
+  # KOKKOS FFT headers in this translation unit would default to KISS and
+  # disagree with the actual (FFTW3/MKL/NVPL/cuFFT/...) build of liblammps --
+  # an ODR mismatch in the FFT3dKokkos class layout.  Also link the matching
+  # FFT library so its headers (fftw3.h, mkl_dfti.h, ...) are on the include
+  # path; the imported targets carry the include directories.
+  if(FFT_KOKKOS)
+    target_compile_definitions(test_fft3d_kokkos PRIVATE -DFFT_KOKKOS_${FFT_KOKKOS})
+    if(FFT_KOKKOS STREQUAL "FFTW3")
+      if(FFT_SINGLE)
+        set(_kokkos_fft_tgt FFTW3F::FFTW3F)
+      else()
+        set(_kokkos_fft_tgt FFTW3::FFTW3)
+      endif()
+    elseif(FFT_KOKKOS STREQUAL "NVPL")
+      set(_kokkos_fft_tgt nvpl::fftw)
+    elseif(FFT_KOKKOS STREQUAL "MKL" OR FFT_KOKKOS STREQUAL "MKL_GPU")
+      set(_kokkos_fft_tgt MKL::MKL)
+    elseif(FFT_KOKKOS STREQUAL "CUFFT")
+      set(_kokkos_fft_tgt CUDA::cufft)
+    elseif(FFT_KOKKOS STREQUAL "HIPFFT")
+      set(_kokkos_fft_tgt hip::hipfft)
+    else()
+      set(_kokkos_fft_tgt "")
+    endif()
+    if(_kokkos_fft_tgt AND TARGET ${_kokkos_fft_tgt})
+      target_link_libraries(test_fft3d_kokkos PRIVATE ${_kokkos_fft_tgt})
+    endif()
+    if((FFT_KOKKOS STREQUAL "FFTW3" OR FFT_KOKKOS STREQUAL "NVPL") AND FFT_FFTW_THREADS)
+      target_compile_definitions(test_fft3d_kokkos PRIVATE -DFFT_KOKKOS_FFTW_THREADS)
+    endif()
+  endif()
+
   # Register serial test
   add_test(NAME FFT3DKokkos COMMAND test_fft3d_kokkos)
   set_tests_properties(FFT3DKokkos PROPERTIES

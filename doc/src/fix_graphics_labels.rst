@@ -246,16 +246,16 @@ fix will receive the actual values from the dump with the given
 .. admonition:: Dynamic color maps
    :class: note
 
-  When using a dynamic color map with "min" or "max" as the upper or
-  lower range values of the map, the dump will execute only *after* the
-  fix, and thus the upper and lower boundary values will be those from
-  the *previous* step where the dump created an image. will be
-  determined every time the fix is executed and the numbers updated
-  accordingly.  Thus when adding a *colorscale* label with this fix it
-  is generally recommended to use a map with a fixed range. This is
-  especially true when creating movies as a fixed range prevents the
-  color scale label to shrink or grow due to the different width of
-  characters.
+   When using a dynamic color map with "min" or "max" as the upper or
+   lower range values of the map, the dump will execute only *after* the
+   fix, and thus the upper and lower boundary values will be those from
+   the *previous* step where the dump created an image. will be
+   determined every time the fix is executed and the numbers updated
+   accordingly.  Thus when adding a *colorscale* label with this fix it
+   is generally recommended to use a map with a fixed range. This is
+   especially true when creating movies as a fixed range prevents the
+   color scale label to shrink or grow due to the different width of
+   characters.
 
 When using the *colorscale* keyword, the dump-ID, text and its position
 in the "scene" are required arguments.  Optional keyword / value pairs

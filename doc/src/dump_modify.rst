@@ -763,7 +763,7 @@ processors who accumulate the data.
    Because balancing is performed before data accumulation, *nfile* or
    *fileper* should divide the total number of processors evenly when
    using the *balance* keyword. Otherwise, some processors will
-   accumulate more data than others, reintroducing load imbalance during
+   accumulate more data than others, reintroducing imbalance during
    file output.
 
 .. note::

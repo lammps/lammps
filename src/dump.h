@@ -92,6 +92,8 @@ class Dump : protected Pointers {
   int write_header_flag;    // 1 if write header, 0 if not
   int has_id;               // 1 if output contains Atom-IDs
 
+  int nfile, nper;
+
   bigint delaystep;
 
   int refreshflag;      // 1 if dump_modify refresh specified

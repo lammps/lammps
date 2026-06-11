@@ -68,6 +68,8 @@ class PairEAM : public Pair {
   double cutforcesq;
   double **scale;
   bigint embedstep;    // timestep, the embedding term was computed
+  int he_flag;         // 1 if eam/he format: embedding table starts at rhomin
+                       // (usually negative) with two-sided linear extrapolation
 
   int exceeded_rhomax;    // global flag for whether rho[i] has exceeded rhomax
                           // on a step energy is computed - 0 = no, 1 = yes
@@ -112,6 +114,35 @@ class PairEAM : public Pair {
 
   virtual void read_file(char *);
   virtual void file2array();
+
+  // embedding spline table index m and fractional offset p for density rho_i
+  // classic tables start at 0 and clamp at the table ends;
+  // eam/he tables start at rhomin and allow extrapolation past both ends
+
+  inline void embedding_index(double rho_i, int &m, double &p) const
+  {
+    if (he_flag) {
+      p = (rho_i - rhomin) * rdrho + 1.0;
+      m = static_cast<int>(p);
+      if (m < 2) {
+        m = 2;
+      } else if (m > nrho - 1) {
+        m = nrho - 1;
+      }
+      p -= m;
+      if (p < -1.0) {
+        p = -1.0;
+      } else if (p > 1.0) {
+        p = 1.0;
+      }
+    } else {
+      p = rho_i * rdrho + 1.0;
+      m = static_cast<int>(p);
+      m = MAX(1, MIN(m, nrho - 1));
+      p -= m;
+      p = MIN(p, 1.0);
+    }
+  }
 };
 
 }    // namespace LAMMPS_NS

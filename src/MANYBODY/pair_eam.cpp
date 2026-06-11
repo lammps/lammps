@@ -41,6 +41,7 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   atomic_energy_enable = 1;
   embedstep = -1;
+  he_flag = 0;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nmax = 0;
@@ -226,23 +227,22 @@ void PairEAM::compute(int eflag, int vflag)
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
-  // if rho > rhomax (e.g. due to close approach of two atoms),
-  //   will exceed table, so add linear term to conserve energy
+  // if rho > rhomax (e.g. due to close approach of two atoms) the table is
+  //   exceeded, so add linear term to conserve energy; for eam/he the table
+  //   starts at rhomin and may be exceeded on either side
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    p = rho[i]*rdrho + 1.0;
-    m = static_cast<int>(p);
-    m = MAX(1,MIN(m,nrho-1));
-    p -= m;
-    p = MIN(p,1.0);
+    embedding_index(rho[i],m,p);
     coeff = frho_spline[type2frho[type[i]]][m];
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (eflag) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-      if (rho[i] > rhomax) {
+      if (he_flag && (rho[i] < rhomin)) {
+        phi += fp[i] * (rho[i]-rhomin);
+      } else if (rho[i] > rhomax) {
         phi += fp[i] * (rho[i]-rhomax);
-        beyond_rhomax = 1;
+        if (!he_flag) beyond_rhomax = 1;
       }
       phi *= scale[type[i]][type[i]];
       if (eflag_global) eng_vdwl += phi;
@@ -393,14 +393,17 @@ double PairEAM::compute_atomic_energy(int i, NeighList *neighborList)
   }
 
   // compute the change in embedding energy of atom i.
+  // classic styles keep their historical behavior of clamping at the table
+  // ends; for eam/he extrapolate linearly as in compute()
 
-  p = rhoi * rdrho + 1.0;
-  m = static_cast<int>(p);
-  m = MAX(1, MIN(m, nrho - 1));
-  p -= m;
-  p = MIN(p, 1.0);
+  embedding_index(rhoi, m, p);
   coeff = frho_spline[type2frho[itype]][m];
   Ei += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+  if (he_flag) {
+    const double fpi = (coeff[0]*p + coeff[1])*p + coeff[2];
+    if (rhoi < rhomin) Ei += fpi * (rhoi - rhomin);
+    else if (rhoi > rhomax) Ei += fpi * (rhoi - rhomax);
+  }
 
   return Ei;
 }
@@ -894,14 +897,11 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   }
 
   if (numforce[i] > 0) {
-    p = rho[i]*rdrho + 1.0;
-    m = static_cast<int>(p);
-    m = MAX(1,MIN(m,nrho-1));
-    p -= m;
-    p = MIN(p,1.0);
+    embedding_index(rho[i],m,p);
     coeff = frho_spline[type2frho[itype]][m];
     phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-    if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+    if (he_flag && (rho[i] < rhomin)) phi += fp[i] * (rho[i]-rhomin);
+    else if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
     phi *= 1.0/static_cast<double>(numforce[i]);
   } else phi = 0.0;
 

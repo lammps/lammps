@@ -35,7 +35,6 @@ class PairEAMFS : virtual public PairEAM {
  protected:
   void read_file(char *) override;
   void file2array() override;
-  int he_flag;
 };
 
 }    // namespace LAMMPS_NS

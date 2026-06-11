@@ -738,12 +738,12 @@ descending order.
 The dump *local* style cannot be sorted by atom ID, since there are
 typically multiple lines of output per atom.  Some dump styles, such
 as *dcd* and *xtc*, require sorting by atom ID to format the output
-file correctly.  When multiple processors write separate dump file
+file correctly. When multiple processors write separate dump file
 pieces via the "%" wildcard together with the *nfile* or *fileper*
-keywords, sorting is performed globally across all processors first and
-the sorted data are then forwarded to the respective file-writer
-processors in order, so each file piece contains a consecutive, sorted
-portion of the snapshot.
+keywords, sorting is performed globally across all processors first
+and the sorted data are then forwarded to a smaller subset of
+processors who accumulate the data in order, so each individual dump
+file contains a consecutive, sorted portion of the full snapshot.
 
 In a parallel run, the per-processor dump file pieces can have
 significant imbalance in number of lines of per-atom info. The *balance*
@@ -752,6 +752,19 @@ snapshot are balanced to be nearly the same. A balance value of *no*
 means no balancing will be done, while *yes* means balancing will be
 performed. This balancing preserves dump sorting order. For a serial
 run, this option is ignored since the output is already balanced.
+When multiple processors write separate dump file
+pieces via the "%" wildcard together with the *nfile* or *fileper*
+keywords, balancing is performed globally across all processors first
+and the balanced data are then forwarded to a smaller subset of
+processors who accumulate the data.
+
+.. note::
+
+   Because balancing is performed before data accumulation, *nfile* or
+   *fileper* should divide the total number of processors evenly when
+   using the *balance* keyword. Otherwise, some processors will
+   accumulate more data than others, reintroducing load imbalance during
+   file output.
 
 .. note::
 

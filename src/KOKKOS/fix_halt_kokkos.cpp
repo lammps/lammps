@@ -21,7 +21,6 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
 
 enum { BONDMAX, TLIMIT, DISKFREE, VARIABLE };
 
@@ -42,19 +41,11 @@ FixHaltKokkos<DeviceType>::FixHaltKokkos(LAMMPS *lmp, int narg, char **arg) :
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-FixHaltKokkos<DeviceType>::~FixHaltKokkos()
-{
-  if (copymode) return;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
 void FixHaltKokkos<DeviceType>::end_of_step()
 {
-  if (attribute == VARIABLE) {
+  if (attribute == VARIABLE)
     atomKK->sync(Host, ALL_MASK);
-  }
+
   FixHalt::end_of_step();
 }
 
@@ -67,7 +58,7 @@ double FixHaltKokkos<DeviceType>::bondmax()
   neighborKK->k_bondlist.template sync<DeviceType>();
 
   x = atomKK->k_x.template view<DeviceType>();
-  bondlist = neighborKK->k_bondlist.template view<DeviceType>();
+  d_bondlist = neighborKK->k_bondlist.template view<DeviceType>();
   int nbondlist = neighborKK->nbondlist;
 
   KK_FLOAT maxone = 0.0;
@@ -92,13 +83,13 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixHaltKokkos<DeviceType>::operator()(TagFixHaltBondmax, const int &n, KK_FLOAT &maxone) const
 {
-  const int i1 = bondlist(n, 0);
-  const int i2 = bondlist(n, 1);
-  const KK_FLOAT delx = x(i1, 0) - x(i2, 0);
-  const KK_FLOAT dely = x(i1, 1) - x(i2, 1);
-  const KK_FLOAT delz = x(i1, 2) - x(i2, 2);
+  const int i1 = d_bondlist(n,0);
+  const int i2 = d_bondlist(n,1);
+  const KK_FLOAT delx = x(i1,0) - x(i2,0);
+  const KK_FLOAT dely = x(i1,1) - x(i2,1);
+  const KK_FLOAT delz = x(i1,2) - x(i2,2);
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  if (rsq > maxone) maxone = rsq;
+  maxone = MAX(maxone,rsq);
 }
 
 namespace LAMMPS_NS {

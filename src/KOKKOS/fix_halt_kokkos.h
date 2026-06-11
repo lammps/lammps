@@ -37,7 +37,7 @@ class FixHaltKokkos : public FixHalt {
   typedef ArrayTypes<DeviceType> AT;
 
   FixHaltKokkos(class LAMMPS *, int, char **);
-  ~FixHaltKokkos() override;
+  ~FixHaltKokkos() {};
   void end_of_step() override;
 
 // NOLINTNEXTLINE
@@ -49,7 +49,7 @@ class FixHaltKokkos : public FixHalt {
 
  private:
   typename AT::t_kkfloat_1d_3_lr_randomread x;
-  typename AT::t_int_2d_lr bondlist;
+  typename AT::t_int_2d_lr d_bondlist;
 
   class NeighborKokkos *neighborKK;
 };

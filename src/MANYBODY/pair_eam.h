@@ -71,6 +71,14 @@ class PairEAM : public Pair {
   int he_flag;         // 1 if eam/he format: embedding table starts at rhomin
                        // (usually negative) with two-sided linear extrapolation
 
+  // which potential file format coeff() reads:
+  // one funcfl file per element (eam), or one setfl file for all
+  // elements (eam/alloy), or one Finnis-Sinclair setfl variant file
+  // with per-element-pair densities (eam/fs and eam/he)
+
+  enum EAMFileFormat { FUNCFL, SETFL, FS };
+  EAMFileFormat fileformat;
+
   int exceeded_rhomax;    // global flag for whether rho[i] has exceeded rhomax
                           // on a step energy is computed - 0 = no, 1 = yes
 
@@ -112,8 +120,22 @@ class PairEAM : public Pair {
   virtual void array2spline();
   void interpolate(int, double, double *, double **);
 
+  // coeff(), read_file(), and file2array() dispatch on fileformat
+  // to the per-format implementations below
+
   virtual void read_file(char *);
   virtual void file2array();
+
+  void coeff_funcfl(int, char **);
+  void coeff_mapped(int, char **);
+  void read_funcfl(char *);
+  void read_setfl(char *);
+  void read_fs(char *);
+  void file2array_funcfl();
+  void file2array_setfl();
+  void file2array_fs();
+  void delete_setfl();
+  void delete_fs();
 
   // embedding spline table index m and fractional offset p for density rho_i
   // classic tables start at 0 and clamp at the table ends;

@@ -21,7 +21,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairEAMHE::PairEAMHE(LAMMPS *lmp) : PairEAM(lmp), PairEAMFS(lmp)
+PairEAMHE::PairEAMHE(LAMMPS *lmp) : PairEAMFS(lmp)
 {
   he_flag = 1;
 }

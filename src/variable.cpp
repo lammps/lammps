@@ -5908,14 +5908,3 @@ int VarReader::read_peratom()
 
   return 0;
 }
-
-/* ---------------------------------------------------------------------- */
-
-double Variable::memory_usage()
-{
-  double bytes = (double) variables.capacity() * sizeof(VarInfo);
-  for (const auto &var : variables)
-    if ((var.style == VECTOR) && (var.vec.nmax > 0))
-      bytes += (double) var.vec.nmax * sizeof(double);
-  return bytes;
-}

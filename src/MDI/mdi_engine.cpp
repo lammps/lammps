@@ -183,7 +183,7 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
   buf3 = buf3all = nullptr;
   ibuf1 = ibuf1all = nullptr;
 
-  maxatom = 0;
+  maxatom = -1;
   sys_natoms = static_cast<int>(atom->natoms);
   reallocate();
 
@@ -1806,7 +1806,11 @@ void MDIEngine::reallocate()
   bigint nsize = (bigint) sys_natoms * 3;
   if (nsize > MAXSMALLINT) error->all(FLERR, "Natoms too large to use with mdi engine");
 
-  maxatom = sys_natoms;
+  // allocate at least 1 element (also for an empty system) so the buffers
+  // are never null pointers, since some MPI implementations dereference
+  // buffer arguments even for zero-size data
+
+  maxatom = MAX(1, sys_natoms);
 
   deallocate();
   allocate();

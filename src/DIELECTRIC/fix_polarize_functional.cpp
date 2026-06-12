@@ -183,6 +183,11 @@ void FixPolarizeFunctional::init()
   MPI_Allreduce(&max_tag, &itmp, 1, MPI_LMP_TAGINT, MPI_MAX, world);
   maxtag = (int) itmp;
 
+  // an empty group would lead to zero-size allocations whose null pointers
+  // get passed to MPI calls and dereferenced when computing induced charges
+
+  if (maxtag < 0) error->all(FLERR, "Fix polarize/functional group has no atoms");
+
   memory->create(ncount, maxtag + 1, "polarize:ncount");
   for (i = 0; i <= maxtag; i++) ncount[i] = 0;
 

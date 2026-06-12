@@ -3630,6 +3630,11 @@ void lammps_gather_atoms(void *handle, const char *name, int dtype, int count, v
 
     int natoms = static_cast<int> (lmp->atom->natoms);
 
+    // nothing to do without atoms.  this also avoids passing null pointers
+    // from zero-size allocations to MPI calls further down
+
+    if (natoms == 0) return;
+
     void *vptr = lmp->atom->extract(name);
     if (!vptr) lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): unknown property {}", FNERR, name);
 
@@ -3790,6 +3795,11 @@ void lammps_gather_atoms_concat(void *handle, const char *name, int dtype,
 
     int natoms = static_cast<int> (lmp->atom->natoms);
 
+    // nothing to do without atoms.  this also avoids passing null pointers
+    // from zero-size allocations to MPI calls further down
+
+    if (natoms == 0) return;
+
     void *vptr = lmp->atom->extract(name);
     if (!vptr) lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Unknown property {}", FNERR, name);
 
@@ -3939,6 +3949,11 @@ void lammps_gather_atoms_subset(void *handle, const char *name, int dtype,
     return;
   }
   if (!name || !ids || !data) return;
+
+  // nothing to do for an empty subset.  this also avoids passing null
+  // pointers from zero-size allocations to MPI calls further down
+
+  if (ndata <= 0) return;
 
   BEGIN_CAPTURE
   {
@@ -4124,6 +4139,11 @@ void lammps_scatter_atoms(void *handle, const char *name, int dtype, int count, 
 
     int natoms = static_cast<int> (lmp->atom->natoms);
 
+    // nothing to do without atoms.  this also avoids passing null pointers
+    // from zero-size allocations to MPI calls further down
+
+    if (natoms == 0) return;
+
     void *vptr = lmp->atom->extract(name);
     if (!vptr) lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): unknown property {}", FNERR, name);
 
@@ -4256,6 +4276,11 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int dtype,
     return;
   }
   if (!name || !ids || !data) return;
+
+  // nothing to do for an empty subset.  this also avoids passing null
+  // pointers from zero-size allocations to MPI calls further down
+
+  if (ndata <= 0) return;
 
   BEGIN_CAPTURE
   {
@@ -4918,6 +4943,11 @@ void lammps_gather(void *handle, const char *name, int dtype, int count, void *d
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Atom-IDs must exist and be consecutive", FNERR);
 
     int natoms = static_cast<int> (lmp->atom->natoms);
+
+    // nothing to do without atoms.  this also avoids passing null pointers
+    // from zero-size allocations to MPI calls further down
+
+    if (natoms == 0) return;
     void *vptr = lmp->atom->extract(name);
 
     // fix
@@ -5176,6 +5206,11 @@ void lammps_gather_concat(void *handle, const char *name, int dtype, int count, 
     if (flag) lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Atom-IDs must exist", FNERR);
 
     int natoms = static_cast<int> (lmp->atom->natoms);
+
+    // nothing to do without atoms.  this also avoids passing null pointers
+    // from zero-size allocations to MPI calls further down
+
+    if (natoms == 0) return;
     void *vptr = lmp->atom->extract(name);
 
     // fix
@@ -5430,6 +5465,11 @@ void lammps_gather_subset(void *handle, const char *name, int dtype, int count, 
     return;
   }
   if (!name || !ids || !data) return;
+
+  // nothing to do for an empty subset.  this also avoids passing null
+  // pointers from zero-size allocations to MPI calls further down
+
+  if (ndata <= 0) return;
 
   BEGIN_CAPTURE
   {
@@ -5719,6 +5759,11 @@ void lammps_scatter(void *handle, const char *name, int dtype, int count, void *
                       "{}(): Atom-IDs must exist, be consecutive, and be mapped", FNERR);
 
     int natoms = static_cast<int> (lmp->atom->natoms);
+
+    // nothing to do without atoms.  this also avoids passing null pointers
+    // from zero-size allocations to MPI calls further down
+
+    if (natoms == 0) return;
     void *vptr = lmp->atom->extract(name);
 
     // fix
@@ -5940,7 +5985,12 @@ void lammps_scatter_subset(void *handle, const char *name, int dtype, int count,
     STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
-  if (!name || !data) return;
+  if (!name || !ids || !data) return;
+
+  // nothing to do for an empty subset.  this also avoids passing null
+  // pointers from zero-size allocations to MPI calls further down
+
+  if (ndata <= 0) return;
 
   BEGIN_CAPTURE
   {

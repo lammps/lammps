@@ -125,7 +125,8 @@ void Ndx2Group::command(int narg, char **arg)
           }
           num = tags.size();
           MPI_Bcast(&num, 1, MPI_LMP_BIGINT, 0, world);
-          MPI_Bcast((void *) tags.data(), num, MPI_LMP_TAGINT, 0, world);
+          // empty sections are valid: skip Bcast since tags.data() may be a null pointer
+          if (num > 0) MPI_Bcast((void *) tags.data(), num, MPI_LMP_TAGINT, 0, world);
           create(name, tags);
           name = next;
         }
@@ -143,7 +144,8 @@ void Ndx2Group::command(int narg, char **arg)
           MPI_Bcast(buf, len, MPI_CHAR, 0, world);
           MPI_Bcast(&num, 1, MPI_LMP_BIGINT, 0, world);
           auto *tbuf = new tagint[num];
-          MPI_Bcast(tbuf, num, MPI_LMP_TAGINT, 0, world);
+          // empty sections are valid: skip Bcast to match the root rank
+          if (num > 0) MPI_Bcast(tbuf, num, MPI_LMP_TAGINT, 0, world);
           create(buf, std::vector<tagint>(tbuf, tbuf + num));
           delete[] buf;
           delete[] tbuf;
@@ -178,7 +180,8 @@ void Ndx2Group::command(int narg, char **arg)
           }
           num = tags.size();
           MPI_Bcast(&num, 1, MPI_LMP_BIGINT, 0, world);
-          MPI_Bcast((void *) tags.data(), num, MPI_LMP_TAGINT, 0, world);
+          // empty sections are valid: skip Bcast since tags.data() may be a null pointer
+          if (num > 0) MPI_Bcast((void *) tags.data(), num, MPI_LMP_TAGINT, 0, world);
           create(name, tags);
           name = next;
         }
@@ -189,7 +192,8 @@ void Ndx2Group::command(int narg, char **arg)
           MPI_Bcast(buf, len, MPI_CHAR, 0, world);
           MPI_Bcast(&num, 1, MPI_LMP_BIGINT, 0, world);
           auto *tbuf = new tagint[num];
-          MPI_Bcast(tbuf, num, MPI_LMP_TAGINT, 0, world);
+          // empty sections are valid: skip Bcast to match the root rank
+          if (num > 0) MPI_Bcast(tbuf, num, MPI_LMP_TAGINT, 0, world);
           create(buf, std::vector<tagint>(tbuf, tbuf + num));
           delete[] buf;
           delete[] tbuf;

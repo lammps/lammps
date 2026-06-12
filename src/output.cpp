@@ -699,7 +699,9 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
           MPI_Send(metadata_val.data(), len, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
         }
         MPI_Send(&n2send, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
-        MPI_Send(atoms_local.data(), n2send, ParticleStructType, 0, 0, MPI_COMM_WORLD);
+        // skip zero-size message: atoms_local.data() may be a null pointer
+        if (n2send > 0)
+          MPI_Send(atoms_local.data(), n2send, ParticleStructType, 0, 0, MPI_COMM_WORLD);
       }
       #endif
 
@@ -713,9 +715,12 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
             MPI_Recv(metadata_val.data(), len, MPI_CHAR, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
           }
           MPI_Recv(&n2recv, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-          std::vector<Particle> atoms_recv(n2recv);
-          MPI_Recv(atoms_recv.data(), n2recv, ParticleStructType, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-          atoms_root.insert(atoms_root.end(), atoms_recv.begin(), atoms_recv.end());
+          // skip zero-size message to match the corresponding MPI_Send()
+          if (n2recv > 0) {
+            std::vector<Particle> atoms_recv(n2recv);
+            MPI_Recv(atoms_recv.data(), n2recv, ParticleStructType, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            atoms_root.insert(atoms_root.end(), atoms_recv.begin(), atoms_recv.end());
+          }
         }
         #endif
         atoms_root.insert(atoms_root.end(), atoms_local.begin(), atoms_local.end());

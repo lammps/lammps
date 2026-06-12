@@ -197,6 +197,12 @@ void DumpMolfile::write()
   MPI_Allreduce(&bnme,&ntotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
 
+  // nmax = 0 is possible, e.g. for a dump of an empty or dynamic group.
+  // enforce nmax >= 1 so buf is never a null pointer, since some MPI
+  // implementations dereference buffer arguments even for zero-size data
+
+  nmax = MAX(nmax,1);
+
   // for single file output, the number of atoms must not change.
   if (natoms != ntotal) {
     if (multifile == 0) {

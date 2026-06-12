@@ -1217,9 +1217,11 @@ void ComputeChunkAtom::compress_chunk_ids()
   MPI_Allreduce(&nbone, &nball, 1, MPI_LMP_BIGINT, MPI_SUM, world);
 
   // create my list of populated IDs
+  // allocate at least 1 element so list is never a null pointer, since some
+  // MPI implementations dereference buffer arguments even for zero-size data
 
   int *list = nullptr;
-  memory->create(list, n, "chunk/atom:list");
+  memory->create(list, MAX(n, 1), "chunk/atom:list");
 
   n = 0;
   for (const auto &pos : hash) list[n++] = pos.first;
@@ -1237,7 +1239,7 @@ void ComputeChunkAtom::compress_chunk_ids()
     int *recvcounts, *displs, *listall;
     memory->create(recvcounts, nprocs, "chunk/atom:recvcounts");
     memory->create(displs, nprocs, "chunk/atom:displs");
-    memory->create(listall, nall, "chunk/atom:listall");
+    memory->create(listall, MAX(nall, 1), "chunk/atom:listall");
 
     MPI_Allgather(&n, 1, MPI_INT, recvcounts, 1, MPI_INT, world);
 
@@ -1277,13 +1279,22 @@ void ComputeChunkAtom::compress_chunk_ids()
   //   used by fix ave/chunk and compute property/chunk
 
   memory->destroy(chunkID);
-  memory->create(chunkID, nchunk, "chunk/atom:chunkID");
+  memory->create(chunkID, MAX(nchunk, 1), "chunk/atom:chunkID");
+  chunkID[0] = 0;
 
   n = 0;
   for (const auto &pos : hash) {
     chunkID[n] = pos.first;
     hash[pos.first] = ++n;
   }
+
+  // guarantee at least one (possibly empty) chunk, e.g. for an empty chunk
+  // group, the same way setup_chunks() does for the uncompressed case.
+  // per-chunk computes and fixes allocate their work arrays with nchunk
+  // elements and pass them to MPI calls, which would otherwise receive
+  // null buffer pointers that some MPI implementations dereference
+
+  if (nchunk == 0) nchunk = 1;
 }
 
 /* ----------------------------------------------------------------------

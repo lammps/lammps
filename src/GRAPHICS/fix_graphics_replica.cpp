@@ -161,11 +161,14 @@ void FixGraphicsReplica::end_of_step()
   MPI_Allgather(&ngroup, 1, MPI_INT, recvcounts.data(), 1, MPI_INT, world);
   for (int i = 1; i < nprocs; ++i) displs[i] = displs[i - 1] + recvcounts[i - 1];
 
-  std::vector<tagint> tagme;
+  // allocate at least 1 element so tagme.data() is never a null pointer, since
+  // some MPI implementations dereference buffer arguments even for zero-size data
+  std::vector<tagint> tagme(MAX(ngroup, 1));
   std::vector<tagint> taglist(nper, 0);
+  int ntagme = 0;
   for (int i = 0; i < nlocal; ++i)
-    if (mask[i] & groupbit) tagme.emplace_back(tag[i]);
-  MPI_Allgatherv(tagme.data(), tagme.size(), MPI_LMP_TAGINT, taglist.data(), recvcounts.data(),
+    if (mask[i] & groupbit) tagme[ntagme++] = tag[i];
+  MPI_Allgatherv(tagme.data(), ngroup, MPI_LMP_TAGINT, taglist.data(), recvcounts.data(),
                  displs.data(), MPI_LMP_TAGINT, world);
   std::sort(taglist.begin(), taglist.end());
 

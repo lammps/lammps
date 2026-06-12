@@ -377,6 +377,12 @@ void Dump::write()
   if (multiproc != nprocs) MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   else nmax = nme;
 
+  // nmax = 0 is possible, e.g. for a dump of an empty or dynamic group.
+  // enforce nmax >= 1 so buf is never a null pointer, since some MPI
+  // implementations dereference buffer arguments even for zero-size data
+
+  nmax = MAX(nmax,1);
+
   // ensure buf is sized for packing and communicating
   // use nmax to ensure filewriter proc can receive info from others
   // limit nmax*size_one to int since used as arg in MPI calls
@@ -456,6 +462,7 @@ void Dump::write()
     if (multiproc != nprocs)
       MPI_Allreduce(&nsme,&nsmax,1,MPI_INT,MPI_MAX,world);
     else nsmax = nsme;
+    nsmax = MAX(nsmax,1);    // avoid null sbuf pointer in MPI calls below
     if (nsmax > maxsbuf) {
       maxsbuf = nsmax;
       memory->grow(sbuf,maxsbuf,"dump:sbuf");

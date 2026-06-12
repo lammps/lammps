@@ -902,6 +902,12 @@ void DumpVTK::write()
   if (multiproc != nprocs) MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   else nmax = nme;
 
+  // nmax = 0 is possible, e.g. for a dump of an empty or dynamic group.
+  // enforce nmax >= 1 so buf is never a null pointer, since some MPI
+  // implementations dereference buffer arguments even for zero-size data
+
+  nmax = MAX(nmax,1);
+
   // write timestep header
   // for multiproc,
   //   nheader = # of lines in this file via Allreduce on clustercomm

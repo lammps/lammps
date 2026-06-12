@@ -572,12 +572,15 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     }
 
     // handshake before sending dots to ensure recvs have been posted
+    // pass a valid buffer address with the zero-size messages since
+    // some MPI implementations dereference buffer arguments
 
+    int tmp = 0;
     if (readnumber > 0) {
-      MPI_Send(nullptr,0,MPI_INT,procpartner,0,world);
-      if (readnumber == 2) MPI_Send(nullptr,0,MPI_INT,procpartner2,0,world);
+      MPI_Send(&tmp,0,MPI_INT,procpartner,0,world);
+      if (readnumber == 2) MPI_Send(&tmp,0,MPI_INT,procpartner2,0,world);
     }
-    MPI_Recv(nullptr,0,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
+    MPI_Recv(&tmp,0,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
 
     // send dots to partner
 
@@ -1064,12 +1067,15 @@ void RCB::compute_old(int dimension, int n, double **x, double *wt,
     }
 
     // handshake before sending dots to ensure recvs have been posted
+    // pass a valid buffer address with the zero-size messages since
+    // some MPI implementations dereference buffer arguments
 
+    int tmp = 0;
     if (readnumber > 0) {
-      MPI_Send(nullptr,0,MPI_INT,procpartner,0,world);
-      if (readnumber == 2) MPI_Send(nullptr,0,MPI_INT,procpartner2,0,world);
+      MPI_Send(&tmp,0,MPI_INT,procpartner,0,world);
+      if (readnumber == 2) MPI_Send(&tmp,0,MPI_INT,procpartner2,0,world);
     }
-    MPI_Recv(nullptr,0,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
+    MPI_Recv(&tmp,0,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
 
     // send dots to partner
 

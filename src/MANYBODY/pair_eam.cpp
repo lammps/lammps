@@ -123,10 +123,10 @@ PairEAM::~PairEAM()
 
 void PairEAM::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,m,inum,jnum,itype,jtype;
+  int i,j,ii,jj,m,inum,jnum,itype,jtype,nforce;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,p,rhoip,rhojp,z2,z2p,recip,phip,psip,phi;
-  double rhotmp,fxtmp,fytmp,fztmp;
+  double rhotmp,fxtmp,fytmp,fztmp,fptmp;
   double *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -239,14 +239,16 @@ void PairEAM::compute(int eflag, int vflag)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    numforce[i] = 0;
+    nforce = 0;
 
     // seeding the accumulators with f[i] keeps the summation order
-    // (and thus the result) identical to in-place accumulation
+    // (and thus the result) identical to in-place accumulation;
+    // fp[i] is constant over the inner loop
 
     fxtmp = f[i][0];
     fytmp = f[i][1];
     fztmp = f[i][2];
+    fptmp = fp[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -258,7 +260,7 @@ void PairEAM::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq) {
-        ++numforce[i];
+        ++nforce;
         jtype = type[j];
         r = sqrt(rsq);
         p = r*rdr + 1.0;
@@ -289,7 +291,7 @@ void PairEAM::compute(int eflag, int vflag)
         recip = 1.0/r;
         phi = z2*recip;
         phip = z2p*recip - phi*recip;
-        psip = fp[i]*rhojp + fp[j]*rhoip + phip;
+        psip = fptmp*rhojp + fp[j]*rhoip + phip;
         fpair = -scale[itype][jtype]*psip*recip;
 
         fxtmp += delx*fpair;
@@ -305,6 +307,7 @@ void PairEAM::compute(int eflag, int vflag)
         if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
+    numforce[i] = nforce;
     f[i][0] = fxtmp;
     f[i][1] = fytmp;
     f[i][2] = fztmp;

@@ -481,11 +481,18 @@ noise). Then it will restart from the previously generated restart and
 compare with the reference and also start from the data file.  A final
 check will use multi-cutoff r-RESPA (if supported by the pair style) at
 a 1:1 split and compare to the Verlet results.  These sets of tests are
-run with multiple test fixtures for accelerated styles (OPT, OPENMP,
-INTEL, KOKKOS (OpenMP only)) and for the latter three with 4 OpenMP
-threads enabled.  For these tests the relative error (epsilon) is lowered
-by a common factor due to the additional numerical noise, but the tests
-are still comparing to the same reference data.
+run with multiple test fixtures for accelerated styles: OPT, OPENMP and
+INTEL (the latter two with 4 OpenMP threads enabled), and two mutually
+exclusive KOKKOS fixtures for host backends: the ``kokkos_omp`` fixture
+requires a KOKKOS library with the OpenMP backend and uses 4 OpenMP
+threads, while the ``kokkos_serial`` fixture only runs when the Serial
+backend is the sole backend of the KOKKOS library (with any other
+backend enabled the host execution space would not be Serial, so this
+configuration must be tested with a separate build).  Both KOKKOS
+fixtures skip when a GPU backend (CUDA, HIP, SYCL) is enabled, since
+KOKKOS then must run on the GPU.  For these tests the relative error
+(epsilon) is lowered by a common factor due to the additional numerical
+noise, but the tests are still comparing to the same reference data.
 
 Additional tests will check whether all listed extract keywords are
 supported and have the correct dimensionality and the final set of tests
@@ -624,8 +631,9 @@ these added features.  If you are modifying some existing LAMMPS
 features, you may see failures for existing tests, if your modifications
 have some unexpected side effects or your changes render the existing
 test invalid.  If you are adding an accelerated version of an existing
-style, then only tests for INTEL, KOKKOS (with OpenMP only), OPENMP, and
-OPT will be run automatically.  Tests for the GPU package are time
+style, then only tests for INTEL, KOKKOS (with the OpenMP or Serial host
+backends, depending on how the KOKKOS library was configured), OPENMP,
+and OPT will be run automatically.  Tests for the GPU package are time
 consuming and thus are only run *after* a merge, or when a special
 label, ``gpu_unit_tests`` is added to the pull request.  After the test
 has started, it is often best to remove the label since every PR

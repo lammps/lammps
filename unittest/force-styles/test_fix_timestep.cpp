@@ -885,25 +885,8 @@ TEST(FixTimestep, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
-TEST(FixTimestep, kokkos_omp)
+static void run_kokkos_test(LAMMPS::argv &args)
 {
-    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
-    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
-    // test either OpenMP or Serial
-    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial") &&
-        !Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
-        GTEST_SKIP();
-    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
-    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
-        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
-        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
-        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
-    }
-    LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
-                         "-k",          "on",   "t",    "4",     "-sf",    "kk"};
-    // fall back to serial if openmp is not available
-    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[9] = "1";
-
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
     try {
@@ -1074,4 +1057,47 @@ TEST(FixTimestep, kokkos_omp)
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
+}
+
+TEST(FixTimestep, kokkos_omp)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // this test requires the OpenMP backend of KOKKOS
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        GTEST_SKIP() << "KOKKOS OpenMP backend not enabled";
+    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
+    }
+
+    LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",          "on",   "t",    "4",     "-sf",    "kk"};
+
+    run_kokkos_test(args);
+};
+
+TEST(FixTimestep, kokkos_serial)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // this test requires a KOKKOS library with only the Serial backend: when the
+    // OpenMP (or a GPU) backend is enabled, the host execution space is not Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial"))
+        GTEST_SKIP() << "KOKKOS Serial backend not enabled";
+    if (Info::has_accelerator_feature("KOKKOS", "api", "openmp") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "pthreads"))
+        GTEST_SKIP() << "Cannot test KOKKOS/Serial with threading support enabled";
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/Serial with GPU support enabled";
+    }
+
+    LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",          "on",   "t",    "1",     "-sf",    "kk"};
+
+    run_kokkos_test(args);
 };

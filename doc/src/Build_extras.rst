@@ -1696,8 +1696,7 @@ pre-compiled version already present on your system.
 INTEL package
 -----------------------------------
 
-To build with this package, you must choose which hardware you want to
-build for, either x86 CPUs or Intel KNLs in offload mode.  You should
+This package optimizes styles for x86 CPUs.  You should
 also typically :ref:`install the OPENMP package <openmp>`, as it can be
 used in tandem with the INTEL package to good effect, as explained
 on the :doc:`Speed_intel` page.
@@ -1717,31 +1716,18 @@ code when using features from the INTEL package.
 
       .. code-block:: bash
 
-         -D INTEL_ARCH=value     # value = cpu (default) or knl
          -D INTEL_LRT_MODE=value # value = threads, none, or c++17
 
    .. tab:: Traditional make
 
-      Choose which hardware to compile for in Makefile.machine via the
-      following settings.  See ``src/MAKE/OPTIONS/Makefile.intel_cpu*``
-      and ``Makefile.knl`` files for examples. and
-      ``src/INTEL/README`` for additional information.
-
-      For CPUs:
+      Choose compiler flags in Makefile.machine via the following
+      settings.  See ``src/MAKE/OPTIONS/Makefile.intel_cpu*`` files for
+      examples and ``src/INTEL/README`` for additional information.
 
       .. code-block:: make
 
          OPTFLAGS =  -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -qopt-zmm-usage=high
-         CCFLAGS =   -g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
-         LINKFLAGS = -g -qopenmp $(OPTFLAGS)
-         LIB =       -ltbbmalloc
-
-      For KNLs:
-
-      .. code-block:: make
-
-         OPTFLAGS =  -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
-         CCFLAGS =   -g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+         CCFLAGS =   -g -qopenmp -DLAMMPS_MEMALIGN=64 -fno-alias -ansi-alias -restrict $(OPTFLAGS)
          LINKFLAGS = -g -qopenmp $(OPTFLAGS)
          LIB =       -ltbbmalloc
 

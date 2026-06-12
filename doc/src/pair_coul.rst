@@ -16,6 +16,7 @@
 .. index:: pair_style coul/dsf/omp
 .. index:: pair_style coul/esp
 .. index:: pair_style coul/exclude
+.. index:: pair_style coul/exclude/omp
 .. index:: pair_style coul/long
 .. index:: pair_style coul/long/omp
 .. index:: pair_style coul/long/kk
@@ -57,6 +58,8 @@ Accelerator Variants: *coul/dsf/gpu*, *coul/dsf/kk*, *coul/dsf/omp*
 
 pair_style coul/exclude command
 ===============================
+
+Accelerator Variants: *coul/exclude/omp*
 
 pair_style coul/long command
 ============================

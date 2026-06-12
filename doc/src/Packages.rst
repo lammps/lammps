@@ -244,7 +244,7 @@ whether an extra library is needed to build and use the package:
      - n/a
      - ext
    * - :ref:`INTEL <PKG-INTEL>`
-     - optimized Intel CPU and KNL styles
+     - optimized Intel CPU styles
      - :doc:`Speed intel <Speed_intel>`
      - `Benchmarks <https://www.lammps.org/bench.html>`_
      - no

@@ -120,11 +120,11 @@ int LddPotential::get_table_index(double r)
   if (r < potl_table.r[0])
     error->all(FLERR, "local density = {} < {} = table lo", r, potl_table.r[0]);
 
-  return floor((r - potl_table.r[0]) / (potl_table.dr));
+  return (int)floor((r - potl_table.r[0]) / potl_table.dr);
 }
 
 /* ---------------------------------------------------------------------- */
 double LddPotential::calc_A_table(double r, int idx)
 {
-  return ((potl_table.r[idx + 1] - r) / (potl_table.dr));
+  return ((potl_table.r[idx + 1] - r) / potl_table.dr);
 }

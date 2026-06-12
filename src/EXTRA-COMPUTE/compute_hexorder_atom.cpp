@@ -237,7 +237,7 @@ void ComputeHexOrderAtom::compute_peratom()
 
 // calculate order parameter using std::complex::pow function
 
-inline void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, double &u, double &v) {
+void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, double &u, double &v) {
   double rinv = 1.0/sqrt(delx*delx+dely*dely);
   double x = delx*rinv;
   double y = dely*rinv;
@@ -250,7 +250,7 @@ inline void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, doubl
 // calculate order parameter using trig functions
 // this is usually slower, but can be used if <complex> not available
 
-inline void ComputeHexOrderAtom::calc_qn_trig(double delx, double dely, double &u, double &v) {
+void ComputeHexOrderAtom::calc_qn_trig(double delx, double dely, double &u, double &v) {
   double ntheta;
   if (fabs(delx) <= MY_EPSILON) {
     if (dely > 0.0) ntheta = ndegree * MY_PI / 2.0;

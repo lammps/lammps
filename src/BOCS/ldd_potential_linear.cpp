@@ -42,7 +42,7 @@ void LddPotentialLinear::allocate()
   allocated = 1;
 }
 
-void LddPotentialLinear::setup_potl(int ipt, int narg, char **arg)
+void LddPotentialLinear::setup_potl(int ipt, int /*narg*/, char **arg)
 {
   if (!allocated) allocate();
 
@@ -55,7 +55,7 @@ double LddPotentialLinear::u(double rho)
   return (coeffs[0] * rho + coeffs[1]);
 }
 
-double LddPotentialLinear::f(double rho)
+double LddPotentialLinear::f(double /*rho*/)
 {
   return -coeffs[0];
 }

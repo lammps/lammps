@@ -45,6 +45,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`oxdna3/fene <bond_oxdna>`
    * :doc:`oxrna2/fene <bond_oxdna>`
    * :doc:`quartic (ko) <bond_quartic>`
+   * :doc:`quartic/exp (k) <bond_quartic_exp>`
    * :doc:`rheo/shell <bond_rheo_shell>`
    * :doc:`special <bond_special>`
    * :doc:`table (o) <bond_table>`
@@ -78,7 +79,7 @@ OPT.
    * :doc:`class2/p6 (ko) <angle_class2>`
    * :doc:`class2xe (ko) <angle_class2>`
    * :doc:`cosine (ko) <angle_cosine>`
-   * :doc:`cosine/buck6d <angle_cosine_buck6d>`
+   * :doc:`cosine/buck6d (o) <angle_cosine_buck6d>`
    * :doc:`cosine/delta (ko) <angle_cosine_delta>`
    * :doc:`cosine/periodic (ko) <angle_cosine_periodic>`
    * :doc:`cosine/shift (ko) <angle_cosine_shift>`

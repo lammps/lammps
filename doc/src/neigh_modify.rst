@@ -90,6 +90,18 @@ only occurs if at least one atom has moved more than half the neighbor
 skin distance (specified in the :doc:`neighbor <neighbor>` command)
 since the last neighbor list build.
 
+Regardless of the *every*, *delay*, *check*, and *once* settings, a
+neighbor list rebuild is always forced on any timestep when a
+:doc:`restart <restart>` file is written, and on timesteps when a fix
+requests reneighboring (e.g. fixes that create or delete atoms, such as
+:doc:`fix deposit <fix_deposit>` or :doc:`fix evaporate
+<fix_evaporate>`).  This ensures that all atoms are correctly assigned
+to their owning subdomains before the operation is performed.  A
+consequence is that enabling :doc:`restart <restart>` output can change
+the total number of neighbor list builds reported at the end of a run
+(and thus, as noted below, subtly alter the trajectory) relative to an
+otherwise identical run without restart output.
+
 .. admonition:: Impact of neighbor list settings
    :class: note
 
@@ -113,10 +125,9 @@ since the last neighbor list build.
    - due to the limitations of floating-point math - the trajectory.
 
 If the *once* setting is yes, then the neighbor list is only built once
-at the beginning of each run, and never rebuilt, except on steps when a
-restart file is written, or steps when a fix forces a rebuild to occur
-(e.g. fixes that create or delete atoms, such as :doc:`fix deposit
-<fix_deposit>` or :doc:`fix evaporate <fix_evaporate>`).  This setting
+at the beginning of each run, and never rebuilt, except for the forced
+rebuilds described above (when a restart file is written or a fix
+requests reneighboring).  This setting
 should only be made if you are certain atoms will not move far enough
 that the neighbor list should be rebuilt, e.g. running a simulation of a
 cold crystal.  Note that it is not that expensive to check if neighbor

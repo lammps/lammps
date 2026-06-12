@@ -114,13 +114,13 @@ that have different s00 and :math:`\alpha` values.  The per-atom quantity
 accessible as ``s0`` via :doc:`compute property/atom <compute_property_atom>`
 stores this minimum stretch (not the critical stretch threshold).
 
-.. versionchanged:: TBD
+.. note::
 
-Previously the bond breaking criterion used a single per-particle critical
-stretch value shared across all bond-type pairs.  This was incorrect when
-atom types had different s00 or alpha parameters.  The ``s0`` per-atom
-property now stores the minimum bond stretch rather than the old (incorrect)
-critical-stretch scalar.
+   Previously the bond breaking criterion used a single per-particle critical
+   stretch value shared across all bond-type pairs.  This was incorrect when
+   atom types had different s00 or alpha parameters.  The ``s0`` per-atom
+   property now stores the minimum bond stretch rather than the old (incorrect)
+   critical-stretch scalar.
 
 For the *peri/lps* style:
 

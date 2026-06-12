@@ -140,13 +140,13 @@ position with the center-of-mass inside the region is found, the move is
 rejected (but still counted as an attempted move) and a warning is
 printed once.
 
-.. versionchanged:: TBD
+.. note::
 
-Previously a region-restricted translation move whose center-of-mass could
-not be placed inside the region was retried indefinitely, which could make
-the simulation appear to hang.  Such moves are now retried at most 1000
-times and then rejected, consistent with how region-restricted insertions
-are handled.
+   Previously a region-restricted translation move whose center-of-mass could
+   not be placed inside the region was retried indefinitely, which could make
+   the simulation appear to hang.  Such moves are now retried at most 1000
+   times and then rejected, consistent with how region-restricted insertions
+   are handled.
 
 If used with :doc:`fix nvt <fix_nh>`, the temperature of the imaginary
 reservoir, T, should be set to be equivalent to the target temperature

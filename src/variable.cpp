@@ -5913,9 +5913,9 @@ int VarReader::read_peratom()
 
 double Variable::memory_usage()
 {
-  double bytes = (double) maxvar * sizeof(VecVar);
-  for (int i = 0; i < nvar; i++)
-    if (style[i] == VECTOR && vecs[i].nmax > 0)
-      bytes += (double) vecs[i].nmax * sizeof(double);
+  double bytes = (double) variables.capacity() * sizeof(VarInfo);
+  for (const auto &var : variables)
+    if ((var.style == VECTOR) && (var.vec.nmax > 0))
+      bytes += (double) var.vec.nmax * sizeof(double);
   return bytes;
 }

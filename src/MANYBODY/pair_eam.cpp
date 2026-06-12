@@ -126,6 +126,7 @@ void PairEAM::compute(int eflag, int vflag)
   int i,j,ii,jj,m,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,p,rhoip,rhojp,z2,z2p,recip,phip,psip,phi;
+  double rhotmp,fxtmp,fytmp,fztmp;
   double *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -177,6 +178,11 @@ void PairEAM::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    // seeding the accumulator with rho[i] keeps the summation order
+    // (and thus the result) identical to in-place accumulation
+
+    rhotmp = rho[i];
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -194,13 +200,14 @@ void PairEAM::compute(int eflag, int vflag)
         p -= m;
         p = MIN(p,1.0);
         coeff = rhor_spline[type2rhor[jtype][itype]][m];
-        rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        rhotmp += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
         if (newton_pair || j < nlocal) {
           coeff = rhor_spline[type2rhor[itype][jtype]][m];
           rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
         }
       }
     }
+    rho[i] = rhotmp;
   }
 
   // communicate and sum densities
@@ -209,28 +216,11 @@ void PairEAM::compute(int eflag, int vflag)
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
-  // if rho > rhomax (e.g. due to close approach of two atoms) the table is
-  //   exceeded, so add linear term to conserve energy; for eam/he the table
-  //   starts at rhomin and may be exceeded on either side
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    embedding_index(rho[i],m,p);
-    coeff = frho_spline[type2frho[type[i]]][m];
-    fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
-    if (eflag) {
-      phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-      if (he_flag && (rho[i] < rhomin)) {
-        phi += fp[i] * (rho[i]-rhomin);
-      } else if (rho[i] > rhomax) {
-        phi += fp[i] * (rho[i]-rhomax);
-        if (!he_flag) beyond_rhomax = 1;
-      }
-      phi *= scale[type[i]][type[i]];
-      if (eflag_global) eng_vdwl += phi;
-      if (eflag_atom) eatom[i] += phi;
-    }
-  }
+  if (he_flag)
+    compute_embedding<1>(eflag, beyond_rhomax);
+  else
+    compute_embedding<0>(eflag, beyond_rhomax);
 
   // communicate derivative of embedding function
 
@@ -250,6 +240,13 @@ void PairEAM::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
     numforce[i] = 0;
+
+    // seeding the accumulators with f[i] keeps the summation order
+    // (and thus the result) identical to in-place accumulation
+
+    fxtmp = f[i][0];
+    fytmp = f[i][1];
+    fztmp = f[i][2];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -295,9 +292,9 @@ void PairEAM::compute(int eflag, int vflag)
         psip = fp[i]*rhojp + fp[j]*rhoip + phip;
         fpair = -scale[itype][jtype]*psip*recip;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
@@ -308,6 +305,9 @@ void PairEAM::compute(int eflag, int vflag)
         if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
+    f[i][0] = fxtmp;
+    f[i][1] = fytmp;
+    f[i][2] = fztmp;
   }
 
   if (eflag && (!exceeded_rhomax)) {
@@ -321,6 +321,45 @@ void PairEAM::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
+}
+
+/* ----------------------------------------------------------------------
+   embedding energy evaluation loop of compute():
+   fp = derivative of embedding energy at each atom,
+   embedding energy phi added to the global/per-atom energy.
+   if rho > rhomax (e.g. due to close approach of two atoms) the table is
+   exceeded, so add linear term to conserve energy; eam/he format tables
+   (HE=1) start at rhomin and may be exceeded on either side
+------------------------------------------------------------------------- */
+
+template <int HE> void PairEAM::compute_embedding(int eflag, int &beyond_rhomax)
+{
+  int i,m;
+  double p,phi;
+  double *coeff;
+
+  const int *type = atom->type;
+  const int inum = list->inum;
+  const int *ilist = list->ilist;
+
+  for (int ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    embedding_index<HE>(rho[i],m,p);
+    coeff = frho_spline[type2frho[type[i]]][m];
+    fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
+    if (eflag) {
+      phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+      if (HE && (rho[i] < rhomin)) {
+        phi += fp[i] * (rho[i]-rhomin);
+      } else if (rho[i] > rhomax) {
+        phi += fp[i] * (rho[i]-rhomax);
+        if (!HE) beyond_rhomax = 1;
+      }
+      phi *= scale[type[i]][type[i]];
+      if (eflag_global) eng_vdwl += phi;
+      if (eflag_atom) eatom[i] += phi;
+    }
+  }
 }
 
 /*********************************************************************
@@ -741,7 +780,7 @@ void PairEAM::read_setfl(char *filename)
         reader.next_dvector(&file->frho[i][1], file->nrho);
         reader.next_dvector(&file->rhor[i][1], file->nr);
         if (unit_convert) {
-          for (int j = 1; j < file->nrho; ++j) file->frho[i][j] *= conversion_factor;
+          for (int j = 1; j <= file->nrho; ++j) file->frho[i][j] *= conversion_factor;
         }
       }
 
@@ -749,7 +788,7 @@ void PairEAM::read_setfl(char *filename)
         for (int j = 0; j <= i; j++) {
           reader.next_dvector(&file->z2r[i][j][1], file->nr);
           if (unit_convert) {
-            for (int k = 1; k < file->nr; ++k) file->z2r[i][j][k] *= conversion_factor;
+            for (int k = 1; k <= file->nr; ++k) file->z2r[i][j][k] *= conversion_factor;
           }
         }
       }

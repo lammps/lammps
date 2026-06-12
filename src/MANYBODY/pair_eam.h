@@ -139,11 +139,13 @@ class PairEAM : public Pair {
 
   // embedding spline table index m and fractional offset p for density rho_i
   // classic tables start at 0 and clamp at the table ends;
-  // eam/he tables start at rhomin and allow extrapolation past both ends
+  // eam/he tables start at rhomin and allow extrapolation past both ends.
+  // the HE template parameter lets hot loops hoist the format selection
+  // out of the loop; the non-template overload dispatches on he_flag.
 
-  inline void embedding_index(double rho_i, int &m, double &p) const
+  template <int HE> inline void embedding_index(double rho_i, int &m, double &p) const
   {
-    if (he_flag) {
+    if (HE) {
       p = (rho_i - rhomin) * rdrho + 1.0;
       m = static_cast<int>(p);
       if (m < 2) {
@@ -165,6 +167,19 @@ class PairEAM : public Pair {
       p = MIN(p, 1.0);
     }
   }
+
+  inline void embedding_index(double rho_i, int &m, double &p) const
+  {
+    if (he_flag)
+      embedding_index<1>(rho_i, m, p);
+    else
+      embedding_index<0>(rho_i, m, p);
+  }
+
+  // embedding energy evaluation loop of compute(), templated on the
+  // table format so the format test is hoisted out of the loop
+
+  template <int HE> void compute_embedding(int, int &);
 };
 
 }    // namespace LAMMPS_NS

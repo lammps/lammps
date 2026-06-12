@@ -1370,3 +1370,12 @@ void PairBodyRoundedPolygon::distance(const double* x2, const double* x1,
     + (x2[1] - x1[1]) * (x2[1] - x1[1])
     + (x2[2] - x1[2]) * (x2[2] - x1[2]));
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairBodyRoundedPolygon::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) nmax * 4 * sizeof(int);    // dnum + dfirst + ednum + edfirst [nmax]
+  return bytes;
+}

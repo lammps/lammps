@@ -546,7 +546,7 @@ void FixGCMC::init()
     }
   }
 
-  if (full_flag) c_pe = modify->compute[modify->find_compute("thermo_pe")];
+  if (full_flag) c_pe = modify->get_compute_by_id("thermo_pe");
 
   int *type = atom->type;
 

@@ -170,9 +170,8 @@ int FixTempRescaleEff::modify_param(int narg, char **arg)
     delete [] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature) error->all(FLERR,"Could not find fix_modify temperature ID");
 
     if (temperature->tempflag == 0)
       error->all(FLERR,"Fix_modify temperature ID does not compute temperature");

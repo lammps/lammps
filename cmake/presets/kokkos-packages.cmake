@@ -5,8 +5,8 @@
 #   cmake -C ../cmake/presets/gcc.cmake -C ../cmake/presets/kokkos-openmp.cmake \
 #         -C ../cmake/presets/kokkos-packages.cmake ../cmake
 #
-# The ML-IAP package also has KOKKOS support but requires a double precision
-# KOKKOS library (-D KOKKOS_PREC=double), so it is not enabled here; add
+# The ML-IAP package also has KOKKOS support but requires the KOKKOS package
+# compiled for double precision (-D KOKKOS_PREC=double), so it is not enabled here; add
 # -D PKG_ML-IAP=on explicitly for double precision builds.
 #
 # The package list below can be regenerated with the following shell command:

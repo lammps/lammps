@@ -223,7 +223,7 @@ TEST(lammps_external, array)
 }
 
 // compare a computed thermo value to its reference: bit-for-bit with a double
-// precision KOKKOS library, with a relative tolerance for reduced precision
+// precision KOKKOS package, with a relative tolerance for reduced precision
 static void expect_thermo_value(double value, double ref)
 {
     if (LAMMPS_NS::Info::has_accelerator_feature("KOKKOS", "precision", "double")) {

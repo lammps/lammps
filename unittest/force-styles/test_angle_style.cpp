@@ -533,7 +533,7 @@ TEST(AngleStyle, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
-// precision of the KOKKOS library as selected with -D KOKKOS_PREC at compile time
+// precision of the KOKKOS package as selected with -D KOKKOS_PREC at compile time
 static std::string kokkos_precision()
 {
     if (Info::has_accelerator_feature("KOKKOS", "precision", "mixed")) return "mixed";
@@ -675,7 +675,7 @@ TEST(AngleStyle, kokkos_omp)
 {
     if (!Info::has_package("KOKKOS")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
-    // skip entries may also be qualified by the KOKKOS library precision,
+    // skip entries may also be qualified by the KOKKOS package precision,
     // e.g. "kokkos_omp_single" skips only single precision KOKKOS builds
     if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
         GTEST_SKIP();
@@ -698,11 +698,11 @@ TEST(AngleStyle, kokkos_serial)
 {
     if (!Info::has_package("KOKKOS")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
-    // skip entries may also be qualified by the KOKKOS library precision,
+    // skip entries may also be qualified by the KOKKOS package precision,
     // e.g. "kokkos_serial_single" skips only single precision KOKKOS builds
     if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
         GTEST_SKIP();
-    // this test requires a KOKKOS library with only the Serial backend: when the
+    // this test requires the KOKKOS package compiled with only the Serial backend: when the
     // OpenMP (or a GPU) backend is enabled, the host execution space is not Serial
     if (!Info::has_accelerator_feature("KOKKOS", "api", "serial"))
         GTEST_SKIP() << "KOKKOS Serial backend not enabled";

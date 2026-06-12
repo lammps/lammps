@@ -48,7 +48,7 @@ FixACKS2ReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
 {
   // the BiCGStab solver does not reliably converge in reduced precision
   if (!Info::has_accelerator_feature("KOKKOS", "precision", "double"))
-    error->all(FLERR, "Fix {} requires a double precision KOKKOS library (-D KOKKOS_PREC=double)",
+    error->all(FLERR, "Fix {} requires a double precision KOKKOS package (-D KOKKOS_PREC=double)",
                style);
 
   kokkosable = 1;

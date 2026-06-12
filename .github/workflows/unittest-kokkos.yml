@@ -53,7 +53,7 @@ jobs:
       shell: bash
       run: |
         ccache -z -M 3
-        # ML-IAP requires a double precision KOKKOS library
+        # ML-IAP requires a double precision KOKKOS package
         EXTRA_FLAGS=""
         if [ "${{ matrix.precision }}" == "double" ]; then
           EXTRA_FLAGS="-D PKG_ML-IAP=on -D MLIAP_ENABLE_PYTHON=off"

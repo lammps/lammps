@@ -483,13 +483,13 @@ check will use multi-cutoff r-RESPA (if supported by the pair style) at
 a 1:1 split and compare to the Verlet results.  These sets of tests are
 run with multiple test fixtures for accelerated styles: OPT, OPENMP and
 INTEL (the latter two with 4 OpenMP threads enabled), and two mutually
-exclusive KOKKOS fixtures for host backends: the ``kokkos_omp`` fixture
-requires the KOKKOS package compiled with the OpenMP backend and uses 4 OpenMP
+exclusive KOKKOS fixtures for host back ends: the ``kokkos_omp`` fixture
+requires the KOKKOS package compiled with the OpenMP back end and uses 4 OpenMP
 threads, while the ``kokkos_serial`` fixture only runs when the Serial
-backend is the sole backend of the KOKKOS package (with any other
-backend enabled the host execution space would not be Serial, so this
+back end is the sole back end of the KOKKOS package (with any other
+back end enabled the host execution space would not be Serial, so this
 configuration must be tested with a separate build).  Both KOKKOS
-fixtures skip when a GPU backend (CUDA, HIP, SYCL) is enabled, since
+fixtures skip when a GPU back end (CUDA, HIP, SYCL) is enabled, since
 KOKKOS then must run on the GPU.  For these tests the relative error
 (epsilon) is lowered by a common factor due to the additional numerical
 noise, but the tests are still comparing to the same reference data.
@@ -647,7 +647,7 @@ features, you may see failures for existing tests, if your modifications
 have some unexpected side effects or your changes render the existing
 test invalid.  If you are adding an accelerated version of an existing
 style, then only tests for INTEL, KOKKOS (with the OpenMP or Serial host
-backends, depending on how the KOKKOS package was configured), OPENMP,
+back ends, depending on how the KOKKOS package was configured), OPENMP,
 and OPT will be run automatically.  Tests for the GPU package are time
 consuming and thus are only run *after* a merge, or when a special
 label, ``gpu_unit_tests`` is added to the pull request.  After the test

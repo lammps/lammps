@@ -39,7 +39,7 @@ AngleDipoleKokkos<DeviceType>::AngleDipoleKokkos(LAMMPS *lmp) : AngleDipole(lmp)
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | MU_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | TORQUE_MASK | MU_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | TORQUE_MASK | ENERGY_MASK | VIRIAL_MASK;
 
   centroidstressflag = CENTROID_NOTAVAIL;

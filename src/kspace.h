@@ -82,6 +82,8 @@ class KSpace : protected Pointers {
   int tip4pflag;         // 1 if a TIP4P solver
   int dipoleflag;        // 1 if a dipole solver
   int spinflag;          // 1 if a spin solver
+  int rk_flag;           /* 1 if a solver uses two distinct communicator worlds for
+                            r-space and k-space computations*/
   int differentiation_flag;
   int neighrequest_flag;    // used to avoid obsolete construction
                             // of neighbor lists
@@ -196,6 +198,11 @@ class KSpace : protected Pointers {
 
   virtual int modify_param(int, char **) { return 0; }
   virtual double memory_usage() { return 0.0; }
+
+  // to be overridden in the *RK subclasses for which rk_flag == 1
+  virtual void r2k_comm(int &, int &) {};               //rk_flag == 1
+  virtual void k2r_comm(int, int) {};                   //rk_flag == 1
+  virtual void compute_grid_potentials(int, int) {};    //rk_flag == 1
 
   /* ----------------------------------------------------------------------
    compute gamma for MSM and pair styles

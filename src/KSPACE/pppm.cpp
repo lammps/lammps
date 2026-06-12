@@ -199,7 +199,10 @@ PPPM::~PPPM()
 
 void PPPM::init()
 {
-  if (me == 0) utils::logmesg(lmp,"PPPM initialization ...\n");
+  // don't print initialization message twice when we get called by PPPM_RK::init()
+  if (!rk_flag) {
+    if (me == 0) utils::logmesg(lmp,"PPPM initialization ...\n");
+  }
 
   // error check
 

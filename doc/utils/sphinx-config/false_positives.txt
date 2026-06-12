@@ -501,6 +501,7 @@ ceil
 Ceil
 cekk
 centerline
+CentOS
 centro
 centroid
 Centroid
@@ -2998,6 +2999,7 @@ ornl
 Ornstein
 Orsi
 ortho
+orthogonally
 orthonormal
 orthorhombic
 Ortner
@@ -4302,6 +4304,7 @@ Valone
 Valuev
 Vanden
 Vandenbrande
+Vandierendonck
 Vanduyfhuys
 varargs
 varavg

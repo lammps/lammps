@@ -644,6 +644,14 @@ TEST(PairStyle, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
+// precision of the KOKKOS library as selected with -D KOKKOS_PREC at compile time
+static std::string kokkos_precision()
+{
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "mixed")) return "mixed";
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "single")) return "single";
+    return "double";
+}
+
 static void run_kokkos_test(LAMMPS::argv &args)
 {
     ::testing::internal::CaptureStdout();
@@ -676,6 +684,12 @@ static void run_kokkos_test(LAMMPS::argv &args)
 
     // relax error a bit for KOKKOS package
     double epsilon = 5.0 * test_config.epsilon;
+    // relax error a lot for reduced precision KOKKOS builds
+    const std::string kk_precision = kokkos_precision();
+    if (kk_precision == "mixed")
+        epsilon *= 2.0e9;
+    else if (kk_precision == "single")
+        epsilon *= 1.0e10;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)
     if (lmp->force->kspace && lmp->force->kspace->compute_flag)
@@ -770,6 +784,10 @@ TEST(PairStyle, kokkos_omp)
 {
     if (!Info::has_package("KOKKOS")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS library precision,
+    // e.g. "kokkos_omp_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
     // this test requires the OpenMP backend of KOKKOS
     if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
         GTEST_SKIP() << "KOKKOS OpenMP backend not enabled";
@@ -803,6 +821,10 @@ TEST(PairStyle, kokkos_serial)
 {
     if (!Info::has_package("KOKKOS")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS library precision,
+    // e.g. "kokkos_serial_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
     // this test requires a KOKKOS library with only the Serial backend: when the
     // OpenMP (or a GPU) backend is enabled, the host execution space is not Serial
     if (!Info::has_accelerator_feature("KOKKOS", "api", "serial"))

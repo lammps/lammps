@@ -494,6 +494,21 @@ KOKKOS then must run on the GPU.  For these tests the relative error
 (epsilon) is lowered by a common factor due to the additional numerical
 noise, but the tests are still comparing to the same reference data.
 
+The KOKKOS fixtures also support libraries compiled for reduced
+precision with ``-D KOKKOS_PREC=mixed`` (compute in single precision,
+accumulate in double precision) or ``-D KOKKOS_PREC=single``: the test
+tolerance is then relaxed by a large additional factor, similar to what
+is done for the mixed and single precision variants of the GPU package.
+Individual tests can be skipped for a given fixture by listing the
+fixture name in the ``skip_tests:`` field of the YAML file (e.g.
+``skip_tests: kokkos_omp kokkos_serial``).  A skip entry may also be
+qualified by the KOKKOS precision, e.g. ``kokkos_serial_single`` or
+``kokkos_omp_mixed``, which skips the test only for that combination of
+fixture and precision.  This is used for tests whose reference
+quantities cannot be meaningfully compared in reduced precision, for
+example global force totals that are the cancellation sum of large
+per-atom contributions in a charge-neutral system.
+
 Additional tests will check whether all listed extract keywords are
 supported and have the correct dimensionality and the final set of tests
 will set up a few pairs of atoms explicitly and in such a fashion that

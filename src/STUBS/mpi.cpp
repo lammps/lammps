@@ -249,7 +249,7 @@ int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int ta
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm,
+int MPI_Isend(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm,
               MPI_Request *request)
 {
   static int callcount = 0;
@@ -550,6 +550,14 @@ int MPI_Bcast(void *buf, int count, MPI_Datatype datatype, int root, MPI_Comm co
 
 /* ---------------------------------------------------------------------- */
 
+int MPI_Ibcast(void *buf, int count, MPI_Datatype datatype, int root, MPI_Comm comm,
+               MPI_Request *req)
+{
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 /* copy values from data1 to data2 */
 
 int MPI_Allreduce(void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op,
@@ -660,6 +668,16 @@ int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvb
 
 /* ---------------------------------------------------------------------- */
 
+int MPI_Igatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf,
+                 int *recvcounts, int *displs, MPI_Datatype recvtype, int root, MPI_Comm comm,
+                 MPI_Request *req)
+{
+  return MPI_Gatherv(sendbuf, sendcount, sendtype, recvbuf, recvcounts, displs, recvtype, root,
+                     comm);
+}
+
+/* ---------------------------------------------------------------------- */
+
 /* copy values from data1 to data2 */
 
 int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount,
@@ -684,6 +702,15 @@ int MPI_Scatterv(void *sendbuf, int *sendcounts, int *displs, MPI_Datatype sendt
   if (sendbuf == MPI_IN_PLACE || recvbuf == MPI_IN_PLACE) return 0;
   memcpy(recvbuf, sendbuf, n);
   return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int MPI_Iscatterv(void *sendbuf, int *sendcounts, int *displs, MPI_Datatype sendtype, void *recvbuf,
+                  int recvcounts, MPI_Datatype recvtype, int root, MPI_Comm comm, MPI_Request *req)
+{
+  return MPI_Scatterv(sendbuf, sendcounts, displs, sendtype, recvbuf, recvcounts, recvtype, root,
+                      comm);
 }
 
 /* ---------------------------------------------------------------------- */

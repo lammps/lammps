@@ -19,6 +19,9 @@
 .. index:: pair_style eam/fs/omp
 .. index:: pair_style eam/fs/opt
 .. index:: pair_style eam/he
+.. index:: pair_style eam/he/gpu
+.. index:: pair_style eam/he/kk
+.. index:: pair_style eam/he/omp
 
 pair_style eam command
 ======================
@@ -43,6 +46,8 @@ Accelerator Variants: *eam/fs/gpu*, *eam/fs/intel*, *eam/fs/kk*, *eam/fs/omp*, *
 
 pair_style eam/he command
 =========================
+
+Accelerator Variants: *eam/he/gpu*, *eam/he/kk*, *eam/he/omp*
 
 Syntax
 """"""

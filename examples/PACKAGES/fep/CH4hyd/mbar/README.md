@@ -10,7 +10,7 @@ directory: instead of perturbing one state at a time, *compute mbar* evaluates
 the reduced potential of each sampled configuration at every state, producing
 one row of the u_kln matrix that MBAR requires.
 
-The transformation is split into two legs, run in sequence:
+The transformation is here split into two legs, run in sequence:
 
 * `in-mbar-lj.lmp` -- grow the Lennard-Jones (van der Waals) interactions of
   the methane sites. *fix adapt/fep* holds the soft-core activation parameter

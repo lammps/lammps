@@ -1,5 +1,5 @@
 /***************************************************************************
-                                 eam_fs_ext.cpp
+                                 eam_he_ext.cpp
                              -------------------
                    Trung Dac Nguyen, W. Michael Brown (ORNL)
 
@@ -22,12 +22,12 @@
 using namespace std;
 using namespace LAMMPS_AL;
 
-static EAM<PRECISION,ACC_PRECISION> EAMFSMF;
+static EAM<PRECISION,ACC_PRECISION> EAMHEMF;
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
+int eam_he_gpu_init(const int ntypes, double host_cutforcesq,
                  int **host_type2rhor, int **host_type2z2r, int *host_type2frho,
                  double ***host_rhor_spline, double ***host_z2r_spline,
                  double ***host_frho_spline, double** host_cutsq,
@@ -37,14 +37,14 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
                  const int nlocal, const int nall, const int max_nbors,
                  const int maxspecial, const double cell_size,
                  int &gpu_mode, FILE *screen, int &fp_size) {
-  EAMFSMF.clear();
-  gpu_mode=EAMFSMF.device->gpu_mode();
-  double gpu_split=EAMFSMF.device->particle_split();
-  int first_gpu=EAMFSMF.device->first_device();
-  int last_gpu=EAMFSMF.device->last_device();
-  int world_me=EAMFSMF.device->world_me();
-  int gpu_rank=EAMFSMF.device->gpu_rank();
-  int procs_per_gpu=EAMFSMF.device->procs_per_gpu();
+  EAMHEMF.clear();
+  gpu_mode=EAMHEMF.device->gpu_mode();
+  double gpu_split=EAMHEMF.device->particle_split();
+  int first_gpu=EAMHEMF.device->first_device();
+  int last_gpu=EAMHEMF.device->last_device();
+  int world_me=EAMHEMF.device->world_me();
+  int gpu_rank=EAMHEMF.device->gpu_rank();
+  int procs_per_gpu=EAMHEMF.device->procs_per_gpu();
 
   // disable host/device split for now
   if (gpu_split != 1.0)
@@ -52,10 +52,10 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
 
   fp_size=sizeof(PRECISION);
 
-  EAMFSMF.device->init_message(screen,"eam/fs",first_gpu,last_gpu);
+  EAMHEMF.device->init_message(screen,"eam/he",first_gpu,last_gpu);
 
   bool message=false;
-  if (EAMFSMF.device->replica_me()==0 && screen)
+  if (EAMHEMF.device->replica_me()==0 && screen)
     message=true;
 
   if (message) {
@@ -65,13 +65,13 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=EAMFSMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
+    init_ok=EAMHEMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
                        host_type2frho, host_rhor_spline, host_z2r_spline,
                        host_frho_spline, host_cutsq, rdr, rdrho, rhomax, rhomin, he_flag, nrhor, nrho, nz2r,
                        nfrho, nr, nlocal, nall, max_nbors, maxspecial, cell_size,
                        gpu_split, screen);
 
-  EAMFSMF.device->world_barrier();
+  EAMHEMF.device->world_barrier();
   if (message)
     fprintf(screen,"Done.\n");
 
@@ -85,13 +85,13 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=EAMFSMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
+      init_ok=EAMHEMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
                          host_type2frho, host_rhor_spline, host_z2r_spline,
                          host_frho_spline, host_cutsq, rdr, rdrho, rhomax, rhomin, he_flag, nrhor, nrho,
                          nz2r, nfrho, nr, nlocal, nall, max_nbors, maxspecial,
                          cell_size, gpu_split, screen);
 
-    EAMFSMF.device->serialize_init();
+    EAMHEMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }
@@ -99,46 +99,46 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
     fprintf(screen,"\n");
 
   if (init_ok==0)
-    EAMFSMF.estimate_gpu_overhead();
+    EAMHEMF.estimate_gpu_overhead();
   return init_ok;
 }
 
-void eam_fs_gpu_clear() {
-  EAMFSMF.clear();
+void eam_he_gpu_clear() {
+  EAMHEMF.clear();
 }
 
-int ** eam_fs_gpu_compute_n(const int ago, const int inum_full,
+int ** eam_he_gpu_compute_n(const int ago, const int inum_full,
                          const int nall, double **host_x, int *host_type,
                          double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,  const double cpu_time,
                          bool &success, int &inum, void **fp_ptr, double *prd, int *periodicity) {
-  return EAMFSMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
+  return EAMHEMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success,
                        inum, fp_ptr, prd, periodicity);
 }
 
-void eam_fs_gpu_compute(const int ago, const int inum_full, const int nlocal,
+void eam_he_gpu_compute(const int ago, const int inum_full, const int nlocal,
                      const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag,
                      const bool vflag, const bool eatom, const bool vatom,
                      int &host_start, const double cpu_time, bool &success,
                      void **fp_ptr) {
-  EAMFSMF.compute(ago,inum_full,nlocal,nall,host_x,host_type,ilist,numj,
+  EAMHEMF.compute(ago,inum_full,nlocal,nall,host_x,host_type,ilist,numj,
                 firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,
                 fp_ptr);
 }
 
-void eam_fs_gpu_compute_force(int *ilist, const bool eflag, const bool vflag,
+void eam_he_gpu_compute_force(int *ilist, const bool eflag, const bool vflag,
                       const bool eatom, const bool vatom) {
-  EAMFSMF.compute2(ilist, eflag, vflag, eatom, vatom);
+  EAMHEMF.compute2(ilist, eflag, vflag, eatom, vatom);
 }
 
 
-double eam_fs_gpu_bytes() {
-  return EAMFSMF.host_memory_usage();
+double eam_he_gpu_bytes() {
+  return EAMHEMF.host_memory_usage();
 }
 
 

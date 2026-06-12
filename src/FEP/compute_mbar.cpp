@@ -40,6 +40,16 @@ using namespace LAMMPS_NS;
 enum { PAIR, ATOM };
 enum { CHARGE };
 
+/* ----------------------------------------------------------------------
+   number of args consumed by a grid spec: 1 for a vector-style variable
+   (v_name), 3 for the bare numeric form "lo hi n"
+------------------------------------------------------------------------- */
+
+static int grid_nargs(const char *arg)
+{
+  return utils::strmatch(arg, "^v_") ? 1 : 3;
+}
+
 /* ---------------------------------------------------------------------- */
 
 ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
@@ -66,12 +76,16 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
   while (iarg < narg) {
     if (strcmp(arg[iarg], "pair") == 0) {
       if (iarg + 6 > narg) error->all(FLERR, "Illegal pair attribute in compute mbar");
+      int g = grid_nargs(arg[iarg + 5]);
+      if (iarg + 5 + g > narg) error->all(FLERR, "Illegal pair attribute in compute mbar");
       npert++;
-      iarg += 6;
+      iarg += 5 + g;
     } else if (strcmp(arg[iarg], "atom") == 0) {
       if (iarg + 4 > narg) error->all(FLERR, "Illegal atom attribute in compute mbar");
+      int g = grid_nargs(arg[iarg + 3]);
+      if (iarg + 3 + g > narg) error->all(FLERR, "Illegal atom attribute in compute mbar");
       npert++;
-      iarg += 4;
+      iarg += 3 + g;
     } else
       break;
   }
@@ -97,9 +111,12 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
       perturb[npert].pparam = utils::strdup(arg[iarg + 2]);
       utils::bounds(FLERR, arg[iarg + 3], 1, ntypes, perturb[npert].ilo, perturb[npert].ihi, error);
       utils::bounds(FLERR, arg[iarg + 4], 1, ntypes, perturb[npert].jlo, perturb[npert].jhi, error);
-      grid_from_variable(arg[iarg + 5], npert);
+      {
+        int g = grid_nargs(arg[iarg + 5]);
+        set_grid(&arg[iarg + 5], g, npert);
+        iarg += 5 + g;
+      }
       npert++;
-      iarg += 6;
     } else if (strcmp(arg[iarg], "atom") == 0) {
       perturb[npert].which = ATOM;
       if (strcmp(arg[iarg + 1], "charge") == 0) {
@@ -108,9 +125,12 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
       } else
         error->all(FLERR, "Illegal atom argument in compute mbar");
       utils::bounds(FLERR, arg[iarg + 2], 1, ntypes, perturb[npert].ilo, perturb[npert].ihi, error);
-      grid_from_variable(arg[iarg + 3], npert);
+      {
+        int g = grid_nargs(arg[iarg + 3]);
+        set_grid(&arg[iarg + 3], g, npert);
+        iarg += 3 + g;
+      }
       npert++;
-      iarg += 4;
     } else
       break;
   }
@@ -151,35 +171,56 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
 }
 
 /* ----------------------------------------------------------------------
-   resolve the vector-style variable named in arg (v_name) into the grid
-   of perturbation m. The grid holds the absolute values that the perturbed
-   parameter takes at each state. All grids must share the same length, which
-   is the number of states to sample, nlambda.
+   resolve the grid spec for perturbation m into perturb[m].grid, the
+   absolute values that the perturbed parameter takes at each state. The grid
+   is given either as a single vector-style variable (nargs == 1, arg[0] is
+   v_name) or as the bare numeric form "lo hi n" (nargs == 3) producing n
+   equally spaced values from lo to hi. All grids must share the same length,
+   which is the number of states to sample, nlambda.
 ------------------------------------------------------------------------- */
 
-void ComputeMBAR::grid_from_variable(const char *arg, int m)
+void ComputeMBAR::set_grid(char **arg, int nargs, int m)
 {
-  if (!utils::strmatch(arg, "^v_"))
-    error->all(FLERR, "Grid for compute mbar perturbation must be a vector-style variable");
-
-  perturb[m].gridname = utils::strdup(arg + 2);
-  int gridvar = input->variable->find(perturb[m].gridname);
-  if (gridvar < 0)
-    error->all(FLERR, "Variable name {} for compute mbar does not exist", perturb[m].gridname);
-  if (!input->variable->vectorstyle(gridvar))
-    error->all(FLERR, "Variable {} for compute mbar must be vector style", perturb[m].gridname);
-
   double *grid;
-  int n = input->variable->compute_vector(gridvar, &grid);
-  if (n == 0) error->all(FLERR, "No grid values in compute mbar");
+  double *linear = nullptr;
+  int n;
+
+  if (nargs == 1) {    // single vector-style variable v_name
+
+    if (!utils::strmatch(arg[0], "^v_"))
+      error->all(FLERR, "Grid for compute mbar perturbation must be a vector-style variable");
+
+    perturb[m].gridname = utils::strdup(arg[0] + 2);
+    int gridvar = input->variable->find(perturb[m].gridname);
+    if (gridvar < 0)
+      error->all(FLERR, "Variable name {} for compute mbar does not exist", perturb[m].gridname);
+    if (!input->variable->vectorstyle(gridvar))
+      error->all(FLERR, "Variable {} for compute mbar must be vector style", perturb[m].gridname);
+
+    n = input->variable->compute_vector(gridvar, &grid);
+    if (n == 0) error->all(FLERR, "No grid values in compute mbar");
+
+  } else {    // bare numeric form: lo hi n
+
+    double lo = utils::numeric(FLERR, arg[0], false, lmp);
+    double hi = utils::numeric(FLERR, arg[1], false, lmp);
+    n = utils::inumeric(FLERR, arg[2], false, lmp);
+    if (n < 2) error->all(FLERR, "Number of states in compute mbar grid must be >= 2");
+
+    linear = new double[n];
+    for (int k = 0; k < n; k++) linear[k] = lo + (hi - lo) * k / (n - 1);
+    grid = linear;
+  }
+
   if (nlambda == 0)
     nlambda = n;
   else if (n != nlambda)
     error->all(FLERR, "All perturbation grids in compute mbar must have the same length");
 
   perturb[m].grid = new double[n];
-  for (int k = 0; k < n; k++)
-    perturb[m].grid[k] = grid[k];
+  for (int k = 0; k < n; k++) perturb[m].grid[k] = grid[k];
+
+  delete[] linear;
 }
 
 /* ---------------------------------------------------------------------- */

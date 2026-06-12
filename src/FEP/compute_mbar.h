@@ -70,7 +70,7 @@ class ComputeMBAR : public Compute {
 
   Perturb *perturb;
 
-  void grid_from_variable(const char *, int);
+  void set_grid(char **, int, int);
   double compute_epair();
   void perturb_params(int);
   void backup_params();

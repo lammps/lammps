@@ -2,6 +2,17 @@ These are utility scripts provided as part of the FEP package for
 free energy perturbation simulations with soft-core pair potentials in
 LAMMPS.
 
+fep.py, bar.py, fdti.py, nti.py post-process the output of "compute fep"
+(single-state perturbations) using the FEP, BAR, FDTI or NTI estimators.
+
+lmp2ukln.py and mbar.py post-process the output of "compute mbar"
+(multistate perturbations) using the MBAR estimator:
+  lmp2ukln.py reshapes the "fix ave/time ... mode vector" file written from
+    "compute mbar" into a u_kln array (states, states, samples) in .npy format
+  mbar.py runs pymbar on that u_kln array (with per-state decorrelation) to
+    obtain the free energy difference and a profile along lambda
+mbar.py requires the pymbar package (and numpy, matplotlib).
+
 The person who created these tools is Agilio Padua at ENS de Lyon
 (agilio.padua at ens-lyon.fr)
 Contact him directly if you have questions.

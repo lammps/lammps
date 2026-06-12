@@ -18,15 +18,23 @@ Syntax
 
   .. parsed-literal::
 
-       *pair* args = pstyle pparam I J v_name
+       *pair* args = pstyle pparam I J grid
          pstyle = pair style name (e.g., *lj/cut/soft*)
          pparam = parameter to set
          I,J = type pair(s) to set parameter for (I<=J)
-         v_name = :doc:`vector-style variable <variable>` with the values of *pparam* at each state
-       *atom* args = aparam I v_name
+         grid = values of *pparam* at each state (see *grid* below)
+       *atom* args = aparam I grid
          aparam = *charge* = parameter to perturb
          I = type to set parameter for
-         v_name = :doc:`vector-style variable <variable>` with the charge values at each state
+         grid = charge values at each state (see *grid* below)
+
+  The *grid* of each perturbation is given in one of two forms:
+
+  .. parsed-literal::
+
+       grid = lo hi n or v_name
+         lo hi n = n equally spaced values from *lo* to *hi* (inclusive), n >= 2
+         v_name = :doc:`vector-style variable <variable>` listing the value at each state explicitly
 
 * zero or more keyword/value pairs may be appended
 * keyword = *tail*
@@ -42,15 +50,18 @@ Examples
 
 .. code-block:: LAMMPS
 
-   variable lam vector [0.0,0.2,0.4,0.6,0.8,1.0]
-   compute 1 all mbar 300 pair lj/cut/soft lambda 1 * v_lam
+   # 21 equally spaced states from 0.0 to 1.0
+   compute 1 all mbar 300 pair lj/cut/soft lambda 1 * 0.0 1.0 21
 
-   variable lam vector [0.0,0.25,0.5,0.75,1.0]
-   variable eps vector [0.0,0.05,0.1,0.15,0.2]
-   compute 2 all mbar 298 pair lj/cut/soft epsilon 1 1 v_eps tail yes
+   # epsilon scanned in 11 equally spaced states, with tail correction
+   compute 2 all mbar 298 pair lj/cut/soft epsilon 1 1 0.0 0.2 11 tail yes
 
-   variable q vector [-0.8,-0.4,0.0]
-   compute 3 all mbar 300 atom charge 1 v_q
+   # charge grown from 0.0 to -0.8 in 11 equally spaced states
+   compute 3 all mbar 300 atom charge 1 0.0 -0.8 11
+
+   # explicit (here unequally spaced) grid given as a vector-style variable
+   variable lam vector [0.0,0.1,0.2,0.35,0.5,0.7,1.0]
+   compute 4 all mbar 300 pair lj/cut/soft lambda 1 * v_lam
 
 Description
 """""""""""
@@ -84,17 +95,28 @@ passed to an external MBAR solver such as
 `pymbar <https://github.com/choderalab/pymbar>`_ to obtain the free energy
 differences and their uncertainties.
 
-Each perturbed parameter carries its *own* grid, supplied as a
-:doc:`vector-style variable <variable>` referenced as *v_name* and listed
-immediately after the type specification of that perturbation. The grid
-holds the **absolute values** that the parameter takes at each of the
-states, one entry per state. All perturbation grids must have the same
-length, which defines the number of states; this length sets the length of
-the global vector produced by the compute. The variables are evaluated once
-when the compute is defined and their values are copied, so they must
-already be defined and should hold fixed numeric values (e.g.
-``variable lam vector [0.0,0.25,0.5,0.75,1.0]``) rather than quantities that
-could change during the run.
+Each perturbed parameter carries its *own* grid, listed immediately after
+the type specification of that perturbation. The grid holds the **absolute
+values** that the parameter takes at each of the states, one entry per
+state. It is given in one of two forms:
+
+* the compact form ``lo hi n``, three numbers giving the number of states
+  *n* (>= 2) and producing them as *n* values equally spaced from *lo* to
+  *hi* inclusive, e.g. ``... 0.0 1.0 21``. This is the most convenient form
+  for the common case of uniformly spaced states and avoids writing out a
+  long literal vector.
+* a :doc:`vector-style variable <variable>` referenced as *v_name* that lists
+  the value at each state explicitly. Use this form when an unequally spaced
+  (non-uniform) schedule of values is wanted, e.g.
+  ``variable lam vector [0.0,0.1,0.2,0.35,0.5,0.7,1.0]`` followed by
+  ``... v_lam``. The variable is evaluated once when the compute is defined
+  and its values are copied, so it must already be defined and should hold
+  fixed numeric values rather than quantities that could change during the
+  run.
+
+All perturbation grids must have the same length, which defines the number
+of states; this length sets the length of the global vector produced by the
+compute.
 
 At each sampling state of the MBAR method, the perturbed parameter is *set*
 to the corresponding grid value (its original value is saved and restored
@@ -158,7 +180,19 @@ These output results can be used by any command that uses a global vector
 from a compute as input. See the :doc:`Howto output <Howto_output>` page
 for an overview of LAMMPS output options. In a typical workflow the vector
 is written to a file with :doc:`fix ave/time <fix_ave_time>` (using the
-*mode vector* option) for later post-processing with an MBAR solver.
+*mode vector* option, with *Nrepeat* = 1 so the instantaneous reduced
+potentials are dumped without time averaging) for later post-processing with
+an MBAR solver.
+
+The utility scripts ``lmp2ukln.py`` and ``mbar.py`` in the ``tools/fep``
+directory carry out this post-processing: ``lmp2ukln.py`` reshapes the
+:doc:`fix ave/time <fix_ave_time>` *mode vector* file written from this
+compute into the :math:`u_{kn}` matrix (grouping the samples by the state at
+which they were generated), and ``mbar.py`` runs
+`pymbar <https://github.com/choderalab/pymbar>`_ on that matrix (including
+per-state equilibration detection and decorrelation) to obtain the free
+energy differences and their uncertainties. An end-to-end example is provided
+in the ``examples/PACKAGES/fep/CH4hyd/mbar`` directory.
 
 The values calculated by this compute are "extensive".
 

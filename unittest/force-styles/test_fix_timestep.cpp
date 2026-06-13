@@ -424,12 +424,13 @@ TEST(FixTimestep, plain)
 
     // rigid fixes need work to test properly with r-RESPA.
     // fix nve/limit cannot work with r-RESPA
-    // brownian is a stochastic integrator: its RNG draws differ between
-    // verlet and r-RESPA, so the trajectories cannot match
+    // brownian, gjf, and press/langevin are stochastic: their RNG draws differ
+    // between verlet and r-RESPA, so the trajectories cannot match
     ifix = lmp->modify->get_fix_by_id("test");
     if (ifix && !utils::strmatch(ifix->style, "^rigid") &&
         !utils::strmatch(ifix->style, "^nve/limit") && !utils::strmatch(ifix->style, "^recenter") &&
-        !utils::strmatch(ifix->style, "^brownian")) {
+        !utils::strmatch(ifix->style, "^brownian") && !utils::strmatch(ifix->style, "^gjf") &&
+        !utils::strmatch(ifix->style, "^press/langevin")) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         delete lmp;

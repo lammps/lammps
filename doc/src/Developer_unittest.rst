@@ -422,56 +422,132 @@ something like the following (see ``mol-pair-zero.yaml``):
 
    [...]
 
-The following table describes the available keys and their purpose for
-testing pair styles:
+The following table describes the available keys and their purpose.  The
+``Tester`` column lists which test program(s) use each key.  ``all`` means
+every force-style tester (``test_pair_style``, ``test_bond_style``,
+``test_angle_style``, ``test_dihedral_style``, ``test_improper_style``, and
+``test_fix_timestep``), and ``bonded interaction tests`` means the
+``test_bond_style``, ``test_angle_style``, ``test_dihedral_style``, and
+``test_improper_style`` testers:
 
 .. list-table::
    :header-rows: 1
+   :widths: 16 38 46
 
    * - Key:
+     - Tester:
      - Description:
    * - lammps_version
+     - all
      - LAMMPS version used to last update the reference data
    * - date_generated
+     - all
      - date when the file was last updated
    * - epsilon
+     - all
      - base value for the relative precision required for tests to pass
    * - skip_tests
+     - all
      - request to skip the indicated test fixtures
    * - tags
-     - used to classify tests and to adjust behavior of test fixtures (see list below)
+     - all
+     - used to classify tests and to adjust behavior of test fixtures (see table below)
    * - prerequisites
+     - all
      - list of style kind / style name pairs required to run the test
    * - pre_commands
+     - all
      - LAMMPS commands to be executed before the input template file is read
    * - post_commands
+     - all
      - LAMMPS commands to be executed right before the actual tests
    * - input_file
-     - LAMMPS input file template based on pair style zero
+     - all
+     - LAMMPS input file template
+   * - natoms
+     - all
+     - number of atoms in the input file template
    * - pair_style
+     - test_pair_style
      - arguments to the pair_style command to be tested
    * - pair_coeff
+     - test_pair_style
      - list of pair_coeff arguments to set parameters for the input template
-   * - extract
-     - list of keywords supported by ``Pair::extract()`` and their dimension
-   * - natoms
-     - number of atoms in the input file template
    * - init_vdwl
+     - test_pair_style
      - non-Coulomb pair energy after "run 0"
    * - init_coul
+     - test_pair_style
      - Coulomb pair energy after "run 0"
-   * - init_stress
-     - stress tensor after "run 0"
-   * - init_forces
-     - forces on atoms after "run 0"
    * - run_vdwl
+     - test_pair_style
      - non-Coulomb pair energy after "run 4"
    * - run_coul
+     - test_pair_style
      - Coulomb pair energy after "run 4"
+   * - bond_style
+     - test_bond_style
+     - arguments to the bond_style command to be tested
+   * - bond_coeff
+     - test_bond_style
+     - list of bond_coeff arguments to set parameters
+   * - angle_style
+     - test_angle_style
+     - arguments to the angle_style command to be tested
+   * - angle_coeff
+     - test_angle_style
+     - list of angle_coeff arguments to set parameters
+   * - dihedral_style
+     - test_dihedral_style
+     - arguments to the dihedral_style command to be tested
+   * - dihedral_coeff
+     - test_dihedral_style
+     - list of dihedral_coeff arguments to set parameters
+   * - improper_style
+     - test_improper_style
+     - arguments to the improper_style command to be tested
+   * - improper_coeff
+     - test_improper_style
+     - list of improper_coeff arguments to set parameters
+   * - init_energy
+     - bonded interaction tests
+     - bonded interaction energy after "run 0"
+   * - run_energy
+     - bonded interaction tests
+     - bonded interaction energy after "run 4"
+   * - equilibrium
+     - test_bond_style, test_angle_style
+     - equilibrium distance (bond) or equilibrium angle (angle) for each type
+   * - extract
+     - all but test_fix_timestep
+     - list of keywords supported by the style's ``extract()`` method and their dimension
+   * - init_stress
+     - all but test_fix_timestep
+     - stress tensor after "run 0"
+   * - init_forces
+     - all but test_fix_timestep
+     - forces on atoms after "run 0"
    * - run_stress
-     - stress tensor after "run 4"
+     - all
+     - stress tensor after the run
    * - run_forces
+     - all but test_fix_timestep
      - forces on atoms after "run 4"
+   * - run_pos
+     - test_fix_timestep
+     - per-atom positions after the run
+   * - run_vel
+     - test_fix_timestep
+     - per-atom velocities after the run
+   * - run_torque
+     - test_fix_timestep
+     - per-atom torques after the run, where applicable
+   * - global_scalar
+     - test_fix_timestep
+     - the global scalar output of the tested fix, if any
+   * - global_vector
+     - test_fix_timestep
+     - the global vector output of the tested fix, if any
 
 The test program will read all this data from the YAML file and then
 create a LAMMPS instance, apply the settings/commands from the YAML file
@@ -520,6 +596,46 @@ of fixture and precision.  This is used for tests whose reference
 quantities cannot be meaningfully compared in reduced precision, for
 example global force totals that are the cancellation sum of large
 per-atom contributions in a charge-neutral system.
+
+The test fixture names accepted by ``skip_tests`` (each fixture runs the
+corresponding variant or check and self-skips when its package or back end
+is not available) are listed below.  Not every fixture exists for every
+style kind (e.g. ``gpu``, ``intel``, and ``opt`` are used by the pair-style
+tester, while ``numdiff`` is used by the bonded-style testers).
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 78
+
+   * - Fixture
+     - Description
+   * - ``plain``
+     - the unmodified (base class) style, without a suffix
+   * - ``omp``
+     - the ``/omp`` variant from the OPENMP package (run with 4 threads)
+   * - ``intel``
+     - the ``/intel`` variant from the INTEL package
+   * - ``opt``
+     - the ``/opt`` variant from the OPT package
+   * - ``gpu``
+     - the ``/gpu`` variant from the GPU package
+   * - ``kokkos_serial``
+     - the ``/kk`` variant from the KOKKOS package with a Serial-only build
+   * - ``kokkos_omp``
+     - the ``/kk`` variant from the KOKKOS package with the OpenMP back end
+       (run with 4 threads)
+   * - ``kokkos_gpu``
+     - the ``/kk`` variant from the KOKKOS package with a GPU back end
+   * - ``single``
+     - consistency check of the style's ``single()`` method against ``compute()``
+   * - ``extract`` / ``extract_omp``
+     - check of the style's ``extract()`` keywords (base and ``/omp`` variant)
+   * - ``numdiff``
+     - check of the forces against a numerical derivative of the energy
+
+The ``kokkos_omp``, ``kokkos_serial``, and ``kokkos_gpu`` entries may be
+qualified with ``_single`` or ``_mixed`` (e.g. ``kokkos_gpu_single``), as
+noted above.
 
 The ``tags:`` field of a YAML file lists keywords that classify a test or
 request special handling from the test fixtures.  The fixtures query them

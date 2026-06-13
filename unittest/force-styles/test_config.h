@@ -109,7 +109,7 @@ public:
             std::stringstream line;
             line << tags[0];
             for (size_t i = 1; i < tags.size(); i++) {
-                line << ", " << tags[i];
+                line << " " << tags[i];
             }
             return line.str();
         }

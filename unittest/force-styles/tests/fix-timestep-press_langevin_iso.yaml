@@ -1,9 +1,9 @@
 ---
 lammps_version: 30 Mar 2026
-tags: generated
+tags:
 date_generated: Sat Jun 13 17:36:23 2026
 epsilon: 2e-12
-skip_tests:
+skip_tests: plain
 prerequisites: |
   atom full
   fix press/langevin

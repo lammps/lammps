@@ -13,16 +13,15 @@
 
 // Test suite for KOKKOS FFT3d wrapper
 //
-// Supported Backends (CPU only):
+// Supported Backends:
 //   - Kokkos::Serial backend (always available)
 //   - Kokkos::OpenMP backend (if enabled)
 //   - Kokkos::Threads backend (if enabled)
-//
-// GPU Backend Limitations:
-//   Currently, KOKKOS GPU backends (CUDA, HIP, SYCL) are NOT tested because:
-//   1. When a GPU backend is configured, it MUST be used (cannot test threading only)
-//   2. No reliable, non-crashing way exists to detect viable GPU hardware
-//   Therefore, tests are skipped for KOKKOS/CUDA, KOKKOS/HIP, and KOKKOS/SYCL
+//   - Kokkos GPU backends (CUDA, HIP, SYCL): tested when a compatible GPU device
+//     is present, detected via Info::has_kokkos_gpu_device() (a safe, non-aborting
+//     probe of the vendor runtime). When a GPU backend is configured it must be
+//     used, so the tests run with "-k on g 1"; they are skipped when no GPU is
+//     available.
 //
 // Test Categories:
 //   1. Backend detection and configuration
@@ -37,6 +36,7 @@
 #include "KOKKOS/fft3d_kokkos.h"
 #include "info.h"
 #include "lammps.h"
+#include "library.h"
 
 #include "../testing/core.h"
 #include "fft_test_helpers.h"
@@ -49,6 +49,7 @@
 #include <cstring>
 #include <mpi.h>
 #include <random>
+#include <type_traits>
 #include <vector>
 
 using namespace LAMMPS_NS;
@@ -77,18 +78,29 @@ class FFT3DKokkosTest : public LAMMPSTest {
 protected:
     void SetUp() override
     {
+        // null the LAMMPS handles up front so that skipping in SetUp() (before
+        // LAMMPSTest::SetUp() creates them) leaves TearDown()'s delete safe
+        lmp  = nullptr;
+        info = nullptr;
+
         // Check if KOKKOS package is available
         if (!Info::has_package("KOKKOS")) {
             GTEST_SKIP() << "Test requires KOKKOS package";
         }
 
-        // Skip GPU backends (no safe way to detect GPU hardware)
-        if (is_kokkos_gpu_backend()) {
-            GTEST_SKIP() << "KOKKOS GPU backend not testable (no safe GPU detection)";
+        // On a GPU back end, skip only when no compatible GPU device is present.
+        // Info::has_kokkos_gpu_device() probes the vendor runtime without
+        // initializing the KOKKOS package, so it is safe (non-aborting) to call here.
+        if (is_kokkos_gpu_backend() && !Info::has_kokkos_gpu_device()) {
+            GTEST_SKIP() << "KOKKOS GPU back end enabled but no compatible GPU device available";
         }
 
-        // Add -k on to enable KOKKOS in LAMMPS (this creates lmp->kokkos)
-        args = {"-log", "none", "-echo", "screen", "-nocite", "-k", "on"};
+        // Add -k on to enable KOKKOS in LAMMPS (this creates lmp->kokkos). A GPU
+        // back end must be used, so request one GPU there.
+        if (is_kokkos_gpu_backend())
+            args = {"-log", "none", "-echo", "screen", "-nocite", "-k", "on", "g", "1"};
+        else
+            args = {"-log", "none", "-echo", "screen", "-nocite", "-k", "on"};
 
         // Initialize LAMMPS test
         LAMMPSTest::SetUp();
@@ -161,6 +173,12 @@ protected:
     // Helper: Perform round-trip test (forward + backward FFT)
     template <typename DeviceType> void run_roundtrip_test(int nfast_in, int nmid_in, int nslow_in)
     {
+        // the host-side FFT cannot run on a build with a GPU back end enabled
+        // (the host-space teardown triggers a GPU fence that fails); the device
+        // FFT is covered by the GPU-backend tests
+        if (is_kokkos_gpu_backend() && std::is_same<DeviceType, LMPHostType>::value)
+            GTEST_SKIP() << "host FFT not testable with a GPU-enabled KOKKOS build";
+
         create_serial_fft<DeviceType>(nfast_in, nmid_in, nslow_in);
 
         int nsize = nfast * nmid * nslow;
@@ -222,6 +240,12 @@ protected:
     // Helper: Perform known-answer test (delta function)
     template <typename DeviceType> void run_delta_test(int nfast_in, int nmid_in, int nslow_in)
     {
+        // the host-side FFT cannot run on a build with a GPU back end enabled
+        // (the host-space teardown triggers a GPU fence that fails); the device
+        // FFT is covered by the GPU-backend tests
+        if (is_kokkos_gpu_backend() && std::is_same<DeviceType, LMPHostType>::value)
+            GTEST_SKIP() << "host FFT not testable with a GPU-enabled KOKKOS build";
+
         create_serial_fft<DeviceType>(nfast_in, nmid_in, nslow_in);
 
         int nsize = nfast * nmid * nslow;
@@ -442,6 +466,9 @@ TEST_F(FFT3DKokkosTest, KnownAnswer_Kokkos_DeltaFunction)
 
 TEST_F(FFT3DKokkosTest, KnownAnswer_Kokkos_Sine)
 {
+    // the host-side FFT cannot run on a build with a GPU back end enabled
+    if (is_kokkos_gpu_backend())
+        GTEST_SKIP() << "host FFT not testable with a GPU-enabled KOKKOS build";
 
     // Create FFT
     typedef LMPHostType DeviceType;
@@ -1225,6 +1252,13 @@ int main(int argc, char **argv)
     }
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, which on a GPU build abort in a fence
+    // call (e.g. the OpenMP host space cleanup issues a HIP fence on an invalid
+    // device). Same workaround as the force-style test driver.
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

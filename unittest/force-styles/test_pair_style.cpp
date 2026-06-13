@@ -878,6 +878,13 @@ TEST(PairStyle, gpu)
         (!Info::has_fft_single_support()))
         GTEST_SKIP();
 
+    // some GPU pair styles (e.g. born/coul/long/cs/gpu) do not support single
+    // precision GPU mode; tests for those are tagged "gpu_no_single" and skipped
+    // when the GPU package is compiled for single precision
+    if (test_config.has_tag("gpu_no_single") &&
+        Info::has_accelerator_feature("GPU", "precision", "single"))
+        GTEST_SKIP();
+
     LAMMPS::argv args_neigh   = {"PairStyle", "-log",    "none", "-echo",
                                  "screen",    "-nocite", "-sf",  "gpu"};
     LAMMPS::argv args_noneigh = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf",

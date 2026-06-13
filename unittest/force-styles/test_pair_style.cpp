@@ -854,12 +854,13 @@ TEST(PairStyle, kokkos_gpu)
     if (!Info::has_kokkos_gpu_device())
         GTEST_SKIP() << "No compatible GPU device available";
 
-    // use a half neighbor list so the GPU kernels run with the input's default
-    // "newton on"; with the default "neigh full" the KOKKOS package requires
-    // newton off, which the force-style input templates do not use
-    LAMMPS::argv args = {"PairStyle", "-log",  "none",   "-echo", "screen", "-nocite", "-k", "on",
-                         "g",         "1",     "-sf",    "kk",    "-pk",     "kokkos",  "neigh",
-                         "half"};
+    // use a half neighbor list with newton on so the GPU kernels run the way the
+    // input templates expect; the GPU default is "neigh full" + newton off, which
+    // (a) the templates do not use and (b) would make the package set newton off
+    // at startup, so a later "newton on" after the box exists would error out
+    LAMMPS::argv args = {"PairStyle", "-log", "none",   "-echo",  "screen", "-nocite", "-k",
+                         "on",        "g",    "1",      "-sf",    "kk",     "-pk",     "kokkos",
+                         "neigh",     "half", "newton", "on"};
 
     run_kokkos_test(args);
 };

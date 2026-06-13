@@ -742,7 +742,7 @@ TEST(AngleStyle, kokkos_gpu)
     // newton off, which the force-style input templates do not use
     LAMMPS::argv args = {"AngleStyle", "-log", "none",   "-echo", "screen", "-nocite", "-k", "on",
                          "g",          "1",    "-sf",    "kk",    "-pk",     "kokkos",  "neigh",
-                         "half"};
+                         "half", "newton", "on"};
 
     run_kokkos_test(args);
 };

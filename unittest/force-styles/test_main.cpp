@@ -179,6 +179,9 @@ void write_yaml_header(YamlWriter *writer, TestConfig *cfg, const char *version)
 
     // input_file
     writer->emit("input_file", cfg->input_file);
+
+    // input_coeffs (only used by the fix-timestep tester; omitted when unset)
+    if (!cfg->input_coeffs.empty()) writer->emit("input_coeffs", cfg->input_coeffs);
 }
 
 // need to be defined in unit test body

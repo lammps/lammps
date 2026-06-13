@@ -33,6 +33,7 @@ public:
     void date_generated(const yaml_event_t &event);
     void epsilon(const yaml_event_t &event);
     void input_file(const yaml_event_t &event);
+    void input_coeffs(const yaml_event_t &event);
     void extract(const yaml_event_t &event);
     void natoms(const yaml_event_t &event);
     void init_stress(const yaml_event_t &event);

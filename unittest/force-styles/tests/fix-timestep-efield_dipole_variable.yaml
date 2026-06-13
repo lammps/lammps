@@ -20,6 +20,7 @@ post_commands: ! |
   fix test solute efield v_xforce v_yforce v_zforce
   fix_modify test virial yes
 input_file: in.dipole
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |2-
    0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00

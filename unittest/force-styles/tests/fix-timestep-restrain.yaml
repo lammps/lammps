@@ -11,6 +11,7 @@ post_commands: ! |
   fix move all nve
   fix test solute restrain bond 2 4 100 150 2.4 2.4 angle 17 16 9 50.0 50.0 90.0 dihedral 3 8 16 17 50.0 40.0 -20.0 mult 2 lbound 11 14 100 100 2.0 2.5
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 114.55840648737437
 global_vector: ! |-

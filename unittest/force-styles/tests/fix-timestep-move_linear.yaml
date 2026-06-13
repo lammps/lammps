@@ -10,6 +10,7 @@ pre_commands: ! ""
 post_commands: ! |
   fix test solute move linear 1.0 1.0 1.0
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_pos: ! |2
     1  1.7200631633077317e+00  4.4726588069312836e+00  1.8279913975585156e+00

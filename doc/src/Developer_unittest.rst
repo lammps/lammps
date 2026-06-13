@@ -428,128 +428,190 @@ every force-style tester (``test_pair_style``, ``test_bond_style``,
 ``test_angle_style``, ``test_dihedral_style``, ``test_improper_style``, and
 ``test_fix_timestep``), and ``bonded interaction tests`` means the
 ``test_bond_style``, ``test_angle_style``, ``test_dihedral_style``, and
-``test_improper_style`` testers:
+``test_improper_style`` testers.  The ``Required`` column indicates whether
+a valid YAML file (for the listed tester) must contain the key (``yes``) or
+whether it may be omitted (``no``).  The reference generator always writes
+the required keys; the optional keys are either metadata added by hand
+(``skip_tests``, ``tags``) or reference data that is only emitted when the
+tested style actually provides it (e.g. ``global_scalar`` only for a fix
+with scalar output):
 
 .. list-table::
    :header-rows: 1
 
    * - Key:
      - Tester:
+     - Required:
      - Description:
    * - lammps_version
      - all
+     - yes
      - LAMMPS version used to last update the reference data
    * - date_generated
      - all
+     - yes
      - date when the file was last updated
    * - epsilon
      - all
+     - yes
      - base value for the relative precision required for tests to pass
    * - skip_tests
      - all
+     - no
      - request to skip the indicated test fixtures (see table below)
    * - tags
      - all
+     - no
      - used to classify tests and to adjust behavior of test fixtures (see table below)
    * - prerequisites
      - all
+     - yes
      - list of style kind / style name pairs required to run the test
    * - pre_commands
      - all
+     - yes
      - LAMMPS commands to be executed before the input template file is read
    * - post_commands
      - all
+     - yes
      - LAMMPS commands to be executed right before the actual tests
    * - input_file
      - all
+     - yes
      - LAMMPS input file template
+   * - input_coeffs
+     - test_fix_timestep
+     - yes
+     - file with the force-field and group setup commands applied after the input template
    * - natoms
      - all
+     - yes
      - number of atoms in the input file template
    * - pair_style
      - test_pair_style
+     - yes
      - arguments to the pair_style command to be tested
    * - pair_coeff
      - test_pair_style
+     - yes
      - list of pair_coeff arguments to set parameters for the input template
    * - init_vdwl
      - test_pair_style
+     - yes
      - non-Coulomb pair energy after "run 0"
    * - init_coul
      - test_pair_style
+     - yes
      - Coulomb pair energy after "run 0"
    * - run_vdwl
      - test_pair_style
+     - yes
      - non-Coulomb pair energy after "run 4"
    * - run_coul
      - test_pair_style
+     - yes
      - Coulomb pair energy after "run 4"
    * - bond_style
      - test_bond_style
+     - yes
      - arguments to the bond_style command to be tested
    * - bond_coeff
      - test_bond_style
+     - yes
      - list of bond_coeff arguments to set parameters
    * - angle_style
      - test_angle_style
+     - yes
      - arguments to the angle_style command to be tested
    * - angle_coeff
      - test_angle_style
+     - yes
      - list of angle_coeff arguments to set parameters
    * - dihedral_style
      - test_dihedral_style
+     - yes
      - arguments to the dihedral_style command to be tested
    * - dihedral_coeff
      - test_dihedral_style
+     - yes
      - list of dihedral_coeff arguments to set parameters
    * - improper_style
      - test_improper_style
+     - yes
      - arguments to the improper_style command to be tested
    * - improper_coeff
      - test_improper_style
+     - yes
      - list of improper_coeff arguments to set parameters
    * - init_energy
      - bonded interaction tests
+     - yes
      - bonded interaction energy after "run 0"
    * - run_energy
      - bonded interaction tests
+     - yes
      - bonded interaction energy after "run 4"
    * - equilibrium
      - test_bond_style
+     - yes
      - equilibrium distance for each type
    * - equilibrium
      - test_angle_style
-     - equilibrium equilibrium angle for each type
+     - yes
+     - equilibrium angle for each type
    * - extract
      - all but test_fix_timestep
+     - yes
      - list of keywords supported by the style's ``extract()`` method and their dimension
    * - init_stress
      - all but test_fix_timestep
+     - yes
      - stress tensor after "run 0"
    * - init_forces
      - all but test_fix_timestep
+     - yes
      - forces on atoms after "run 0"
    * - run_stress
      - all
-     - stress tensor after the run
+     - no
+     - stress tensor after the run (omitted by ``test_fix_timestep`` when the fix has no virial contribution)
    * - run_forces
      - all but test_fix_timestep
+     - yes
      - forces on atoms after "run 4"
    * - run_pos
      - test_fix_timestep
+     - yes
      - per-atom positions after the run
    * - run_vel
      - test_fix_timestep
+     - yes
      - per-atom velocities after the run
    * - run_torque
      - test_fix_timestep
-     - per-atom torques after the run, where applicable
+     - no
+     - per-atom torques after the run (only when the atom style stores torque)
    * - global_scalar
      - test_fix_timestep
+     - no
      - the global scalar output of the tested fix, if any
    * - global_vector
      - test_fix_timestep
+     - no
      - the global vector output of the tested fix, if any
+
+These reference files can be validated against the JSON schema file
+``tools/json/force-style-test-schema.json`` with the ``check-jsonschema``
+tool, which catches typos in keys, missing required keys, and values of the
+wrong type.  For example, to validate all of them at once:
+
+.. code-block:: sh
+
+   check-jsonschema --schemafile tools/json/force-style-test-schema.json \
+       unittest/force-styles/tests/*.yaml
+
+See the :ref:`JSON support files <json>` section of the :doc:`Tools`
+documentation for how to install ``check-jsonschema``.
 
 The test program will read all this data from the YAML file and then
 create a LAMMPS instance, apply the settings/commands from the YAML file

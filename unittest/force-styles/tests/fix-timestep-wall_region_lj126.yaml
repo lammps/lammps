@@ -14,6 +14,7 @@ post_commands: ! |
   fix test solute wall/region box lj126 1.0 1.0 2.5
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |2-
    0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00

@@ -40,6 +40,7 @@ public:
     std::vector<std::string> post_commands;
     std::vector<std::string> tags;
     std::string input_file;
+    std::string input_coeffs;
     std::string pair_style;
     std::string bond_style;
     std::string angle_style;
@@ -74,7 +75,8 @@ public:
 
     TestConfig() :
         lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), input_file(""),
-        pair_style("zero"), bond_style("zero"), angle_style("zero"), dihedral_style("zero"),
+        input_coeffs(""), pair_style("zero"), bond_style("zero"), angle_style("zero"),
+        dihedral_style("zero"),
         improper_style("zero"), kspace_style("none"), natoms(0), init_energy(0), run_energy(0),
         init_vdwl(0), run_vdwl(0), init_coul(0), run_coul(0), init_stress({0, 0, 0, 0, 0, 0}),
         run_stress({0, 0, 0, 0, 0, 0}), global_scalar(0)

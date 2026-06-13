@@ -482,15 +482,23 @@ compare with the reference and also start from the data file.  A final
 check will use multi-cutoff r-RESPA (if supported by the pair style) at
 a 1:1 split and compare to the Verlet results.  These sets of tests are
 run with multiple test fixtures for accelerated styles: OPT, OPENMP and
-INTEL (the latter two with 4 OpenMP threads enabled), and two mutually
-exclusive KOKKOS fixtures for host back ends: the ``kokkos_omp`` fixture
-requires the KOKKOS package compiled with the OpenMP back end and uses 4 OpenMP
-threads, while the ``kokkos_serial`` fixture only runs when the Serial
-back end is the sole back end of the KOKKOS package (with any other
-back end enabled the host execution space would not be Serial, so this
-configuration must be tested with a separate build).  Both KOKKOS
-fixtures skip when a GPU back end (CUDA, HIP, SYCL) is enabled, since
-KOKKOS then must run on the GPU.  For these tests the relative error
+INTEL (the latter two with 4 OpenMP threads enabled), and three mutually
+exclusive KOKKOS fixtures selected by the active back end: the
+``kokkos_omp`` fixture requires the KOKKOS package compiled with the
+OpenMP back end and uses 4 OpenMP threads, while the ``kokkos_serial``
+fixture only runs when the Serial back end is the sole back end of the
+KOKKOS package (with any other back end enabled the host execution space
+would not be Serial, so this configuration must be tested with a separate
+build).  Both of these host fixtures skip when a GPU back end (CUDA, HIP,
+SYCL) is enabled, since the KOKKOS package then must run on the GPU.  The
+third fixture, ``kokkos_gpu``, is the complement: it runs only when a GPU
+back end is enabled (using ``-k on g 1``) and is skipped on host-only
+builds.  Because enabling the KOKKOS package with a GPU back end aborts
+when no usable device is present, this fixture first probes for a
+compatible GPU at runtime with ``Info::has_kokkos_gpu_device()`` (the
+KOKKOS package analog of ``Info::has_gpu_device()`` for the GPU package)
+and skips transparently when none is available, so the test suite can be
+run unchanged on machines without a GPU.  For these tests the relative error
 (epsilon) is lowered by a common factor due to the additional numerical
 noise, but the tests are still comparing to the same reference data.
 
@@ -501,10 +509,10 @@ tolerance is then relaxed by a large additional factor, similar to what
 is done for the mixed and single precision variants of the GPU package.
 Individual tests can be skipped for a given fixture by listing the
 fixture name in the ``skip_tests:`` field of the YAML file (e.g.
-``skip_tests: kokkos_omp kokkos_serial``).  A skip entry may also be
-qualified by the KOKKOS precision, e.g. ``kokkos_serial_single`` or
-``kokkos_omp_mixed``, which skips the test only for that combination of
-fixture and precision.  This is used for tests whose reference
+``skip_tests: kokkos_omp kokkos_serial kokkos_gpu``).  A skip entry may
+also be qualified by the KOKKOS precision, e.g. ``kokkos_serial_single``
+or ``kokkos_omp_mixed``, which skips the test only for that combination
+of fixture and precision.  This is used for tests whose reference
 quantities cannot be meaningfully compared in reduced precision, for
 example global force totals that are the cancellation sum of large
 per-atom contributions in a charge-neutral system.

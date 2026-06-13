@@ -1095,6 +1095,22 @@ std::string Info::get_gpu_device_info()
 #endif
 
 #if defined(LMP_KOKKOS)
+extern bool lmp_has_compatible_kokkos_gpu();
+
+// report whether the KOKKOS package can access a compatible GPU device.
+// returns false for host-only KOKKOS builds or when no GPU is available.
+bool Info::has_kokkos_gpu_device()
+{
+  return lmp_has_compatible_kokkos_gpu();
+}
+#else
+bool Info::has_kokkos_gpu_device()
+{
+  return false;
+}
+#endif
+
+#if defined(LMP_KOKKOS)
 #include "Kokkos_Macros.hpp"
 #endif
 

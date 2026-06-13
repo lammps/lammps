@@ -727,6 +727,33 @@ TEST(DihedralStyle, kokkos_serial)
     run_kokkos_test(args);
 };
 
+TEST(DihedralStyle, kokkos_gpu)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_gpu_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires a GPU backend of the KOKKOS package
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "cuda") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "hip") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "sycl"))
+        GTEST_SKIP() << "KOKKOS GPU backend not enabled";
+    // transparently skip when no compatible GPU device is present
+    if (!Info::has_kokkos_gpu_device())
+        GTEST_SKIP() << "No compatible GPU device available";
+
+    // use a half neighbor list so the GPU kernels run with the input's default
+    // "newton on"; with the default "neigh full" the KOKKOS package requires
+    // newton off, which the force-style input templates do not use
+    LAMMPS::argv args = {"DihedralStyle", "-log", "none", "-echo",  "screen", "-nocite", "-k", "on",
+                         "g",             "1",    "-sf",  "kk",     "-pk",    "kokkos",  "neigh",
+                         "half"};
+
+    run_kokkos_test(args);
+};
+
 TEST(DihedralStyle, numdiff)
 {
     if (!Info::has_package("EXTRA-FIX")) GTEST_SKIP();

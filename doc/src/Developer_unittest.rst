@@ -436,6 +436,10 @@ testing pair styles:
      - date when the file was last updated
    * - epsilon
      - base value for the relative precision required for tests to pass
+   * - skip_tests
+     - request to skip the indicated test fixtures
+   * - tags
+     - used to classify tests and to adjust behavior of test fixtures (see list below)
    * - prerequisites
      - list of style kind / style name pairs required to run the test
    * - pre_commands
@@ -516,6 +520,52 @@ of fixture and precision.  This is used for tests whose reference
 quantities cannot be meaningfully compared in reduced precision, for
 example global force totals that are the cancellation sum of large
 per-atom contributions in a charge-neutral system.
+
+The ``tags:`` field of a YAML file lists keywords that classify a test or
+request special handling from the test fixtures.  The fixtures query them
+with ``TestConfig::has_tag()`` so that style-specific behavior is selected by
+a descriptive tag instead of by hard-coded style names.  The recognized tags
+are:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Tag
+     - Purpose
+   * - gpu_no_mixed
+     - The GPU package variant of the style does not support mixed
+       precision GPU mode; the ``gpu`` fixture skips the test when the
+       GPU package was compiled for mixed precision.
+   * - gpu_no_single
+     - The GPU package variant of the style does not support single
+       precision GPU mode (e.g. ``born/coul/long/cs/gpu``); the ``gpu``
+       fixture skips the test when the GPU package was compiled for
+       single precision.
+   * - single_thread
+     - The style cannot run correctly with more than one thread in the
+       test (e.g.  ``dpd`` uses multiple per-thread pRNGs; ``snap`` and
+       ``pace`` due to their implementation), so the threaded fixtures
+       (``omp``, ``intel``, ``kokkos_omp``) run it with a single thread.
+   * - ellipsoid
+     - The test includes ellipsoids and thus requires :doc:`fix
+       nve/asphere <fix_nve_asphere>`.
+   * - spica_pair
+     - The test setup uses ``pair_style lj/spica`` instead of the
+       default ``pair_style zero`` (required by the ``spica`` angle
+       style).
+   * - slow
+     - The test runs significantly longer than others and ``ctest -LE
+       slow`` would skip it.
+   * - noWindows
+     - Indicates that this test must be skipped on Windows; use
+       ``ctest -LE noWindows``
+   * - unstable
+     - The test exhibits numerically unstable behavior on some
+       platforms, e.g. ARM64; Until a proper correction is found, tests
+       can be skipped with ``ctest -LE unstable``.
+   * - generated
+     - Indicates that a test input was regenerated. *Remove* after
+       confirming the correctness of the updated YAML file.
 
 Additional tests will check whether all listed extract keywords are
 supported and have the correct dimensionality and the final set of tests

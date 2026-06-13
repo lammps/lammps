@@ -113,6 +113,16 @@ public:
         }
         return "generated";
     }
+
+    // check whether a given keyword is present in the "tags:" list. used by the
+    // test fixtures to special-case tests by a descriptive tag instead of by
+    // hard-coded style names.
+    [[nodiscard]] bool has_tag(const std::string &tag) const
+    {
+        for (const auto &t : tags)
+            if (t == tag) return true;
+        return false;
+    }
 };
 
 #endif

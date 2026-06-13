@@ -520,8 +520,9 @@ TEST(PairStyle, omp)
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
                          "-pk",       "omp",  "4",    "-sf",   "omp"};
 
-    // cannot run dpd styles with more than 1 thread due to using multiple pRNGs
-    if (utils::strmatch(test_config.pair_style, "^dpd")) args[8] = "1";
+    // styles tagged "single_thread" (e.g. dpd, which uses multiple pRNGs) cannot
+    // run with more than one thread in the test
+    if (test_config.has_tag("single_thread")) args[8] = "1";
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
@@ -801,18 +802,10 @@ TEST(PairStyle, kokkos_omp)
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
                          "-k",        "on",   "t",    "4",     "-sf",    "kk"};
 
-    // cannot run dpd styles in plain or hybrid with more than 1 thread due to using multiple pRNGs
-    if (utils::strmatch(test_config.pair_style, "^dpd") ||
-        utils::strmatch(test_config.pair_style, " dpd"))
-        args[9] = "1";
-    // cannot run snap styles in plain or hybrid with more than 1 thread due to implementation
-    if (utils::strmatch(test_config.pair_style, "^snap") ||
-        utils::strmatch(test_config.pair_style, " snap"))
-        args[9] = "1";
-    // cannot run pace styles in plain or hybrid with more than 1 thread due to implementation
-    if (utils::strmatch(test_config.pair_style, "^pace") ||
-        utils::strmatch(test_config.pair_style, " pace"))
-        args[9] = "1";
+    // some styles cannot run with more than one thread in the test (dpd uses
+    // multiple pRNGs, snap and pace due to their implementation); these are
+    // flagged with the "single_thread" tag in their YAML file
+    if (test_config.has_tag("single_thread")) args[9] = "1";
 
     run_kokkos_test(args);
 };
@@ -978,8 +971,9 @@ TEST(PairStyle, intel)
                          "-pk",       "intel", "0",    "mode",  "double", "omp",
                          "4",         "lrt",   "no",   "-sf",   "intel"};
 
-    // cannot use more than 1 thread for dpd styles due to pRNG
-    if (utils::strmatch(test_config.pair_style, "^dpd")) args[12] = "1";
+    // styles tagged "single_thread" (e.g. dpd, due to its pRNG) cannot use more
+    // than one thread in the test
+    if (test_config.has_tag("single_thread")) args[12] = "1";
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;

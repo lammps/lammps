@@ -121,7 +121,7 @@ endif()
 if(PKG_KSPACE AND PKG_KOKKOS)
   # Build test_fft3d_kokkos executable
   add_executable(test_fft3d_kokkos test_fft3d_kokkos.cpp ../force-styles/error_stats.cpp)
-  target_link_libraries(test_fft3d_kokkos PRIVATE lammps GTest::GMockMain Kokkos::kokkos)
+  target_link_libraries(test_fft3d_kokkos PRIVATE lammps GTest::GMock Kokkos::kokkos)
   target_include_directories(test_fft3d_kokkos PRIVATE ${LAMMPS_SOURCE_DIR} ${LAMMPS_SOURCE_DIR}/KSPACE)
 
   # Propagate FFT_SINGLE preprocessor definition

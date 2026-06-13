@@ -422,15 +422,14 @@ TEST(FixTimestep, plain)
         }
     }
 
-    // rigid fixes need work to test properly with r-RESPA.
-    // fix nve/limit cannot work with r-RESPA
-    // brownian, gjf, and press/langevin are stochastic: their RNG draws differ
-    // between verlet and r-RESPA, so the trajectories cannot match
+    // styles tagged "no_respa" are not exercised under r-RESPA: rigid fixes need
+    // work to test properly with r-RESPA, fix nve/limit and fix recenter do not
+    // support it, and stochastic integrators/barostats (brownian, gjf,
+    // press/langevin) draw their random numbers differently under r-RESPA so the
+    // trajectories cannot match.  Adding the tag to a YAML file is all that is
+    // needed for a future case; no change to this driver is required.
     ifix = lmp->modify->get_fix_by_id("test");
-    if (ifix && !utils::strmatch(ifix->style, "^rigid") &&
-        !utils::strmatch(ifix->style, "^nve/limit") && !utils::strmatch(ifix->style, "^recenter") &&
-        !utils::strmatch(ifix->style, "^brownian") && !utils::strmatch(ifix->style, "^gjf") &&
-        !utils::strmatch(ifix->style, "^press/langevin")) {
+    if (ifix && !test_config.has_tag("no_respa")) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         delete lmp;

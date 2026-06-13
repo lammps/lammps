@@ -728,6 +728,14 @@ are:
        test (e.g.  ``dpd`` uses multiple per-thread pRNGs; ``snap`` and
        ``pace`` due to their implementation), so the threaded fixtures
        (``omp``, ``intel``, ``kokkos_omp``) run it with a single thread.
+   * - no_respa
+     - The ``fix_timestep`` tester does not exercise this style under
+       :doc:`run_style respa <run_style>`: rigid fixes need additional
+       work to test correctly with r-RESPA, ``fix nve/limit`` and ``fix
+       recenter`` do not support it, and stochastic integrators and
+       barostats (``brownian``, ``gjf``, ``press/langevin``) draw their
+       random numbers differently under r-RESPA so the trajectories
+       cannot match.
    * - ellipsoid
      - The test includes ellipsoids and thus requires :doc:`fix
        nve/asphere <fix_nve_asphere>`.

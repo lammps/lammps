@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "error_stats.h"
+#include "info.h"
 #include "library.h"
 #include "pointers.h"
 #include "test_config.h"
@@ -279,6 +280,13 @@ int main(int argc, char **argv)
             return 1;
         }
     }
+
+    // the GPU package resets the whole GPU device when its fix is destroyed,
+    // which invalidates the KOKKOS package device context and crashes at
+    // Kokkos::finalize(). when both packages can use the GPU in this process,
+    // defer the GPU package device teardown to process exit so they coexist.
+    if (LAMMPS_NS::Info::has_package("GPU") && LAMMPS_NS::Info::has_kokkos_gpu_device())
+        LAMMPS_NS::Info::gpu_defer_device_clear(1);
 
     int rv = RUN_ALL_TESTS();
 

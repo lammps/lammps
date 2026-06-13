@@ -432,7 +432,6 @@ every force-style tester (``test_pair_style``, ``test_bond_style``,
 
 .. list-table::
    :header-rows: 1
-   :widths: 16 38 46
 
    * - Key:
      - Tester:
@@ -448,7 +447,7 @@ every force-style tester (``test_pair_style``, ``test_bond_style``,
      - base value for the relative precision required for tests to pass
    * - skip_tests
      - all
-     - request to skip the indicated test fixtures
+     - request to skip the indicated test fixtures (see table below)
    * - tags
      - all
      - used to classify tests and to adjust behavior of test fixtures (see table below)
@@ -516,8 +515,11 @@ every force-style tester (``test_pair_style``, ``test_bond_style``,
      - bonded interaction tests
      - bonded interaction energy after "run 4"
    * - equilibrium
-     - test_bond_style, test_angle_style
-     - equilibrium distance (bond) or equilibrium angle (angle) for each type
+     - test_bond_style
+     - equilibrium distance for each type
+   * - equilibrium
+     - test_angle_style
+     - equilibrium equilibrium angle for each type
    * - extract
      - all but test_fix_timestep
      - list of keywords supported by the style's ``extract()`` method and their dimension
@@ -609,28 +611,30 @@ tester, while ``numdiff`` is used by the bonded-style testers).
 
    * - Fixture
      - Description
-   * - ``plain``
+   * - plain
      - the unmodified (base class) style, without a suffix
-   * - ``omp``
+   * - omp
      - the ``/omp`` variant from the OPENMP package (run with 4 threads)
-   * - ``intel``
+   * - intel
      - the ``/intel`` variant from the INTEL package
-   * - ``opt``
+   * - opt
      - the ``/opt`` variant from the OPT package
-   * - ``gpu``
+   * - gpu
      - the ``/gpu`` variant from the GPU package
-   * - ``kokkos_serial``
+   * - kokkos_serial
      - the ``/kk`` variant from the KOKKOS package with a Serial-only build
-   * - ``kokkos_omp``
+   * - kokkos_omp
      - the ``/kk`` variant from the KOKKOS package with the OpenMP back end
        (run with 4 threads)
-   * - ``kokkos_gpu``
+   * - kokkos_gpu
      - the ``/kk`` variant from the KOKKOS package with a GPU back end
-   * - ``single``
+   * - single
      - consistency check of the style's ``single()`` method against ``compute()``
-   * - ``extract`` / ``extract_omp``
-     - check of the style's ``extract()`` keywords (base and ``/omp`` variant)
-   * - ``numdiff``
+   * - extract
+     - check of the style's ``extract()`` keywords (base style)
+   * - extract_omp
+     - check of the style's ``extract()`` keywords (``/omp`` variant)
+   * - numdiff
      - check of the forces against a numerical derivative of the energy
 
 The ``kokkos_omp``, ``kokkos_serial``, and ``kokkos_gpu`` entries may be

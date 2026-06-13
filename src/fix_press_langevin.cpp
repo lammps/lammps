@@ -456,6 +456,13 @@ void FixPressLangevin::init()
 
 void FixPressLangevin::setup(int /*vflag*/)
 {
+  // recompute the dt-dependent GJF piston coefficients here, not in init():
+  // a "timestep" command issued before a run only updates update->dt during
+  // run setup, which happens after Fix::init(), so coefficients computed in
+  // init() can be based on a stale dt.  setup() sees the final dt.
+
+  reset_dt();
+
   // trigger virial computation on next timestep
 
   pressure->addstep(update->ntimestep + 1);

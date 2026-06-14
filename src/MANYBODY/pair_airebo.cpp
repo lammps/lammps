@@ -1332,7 +1332,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3], double rijmag, double 
   PijS = 0.0;
   dN2[0] = 0.0;
   dN2[1] = 0.0;
-  PijS = PijSpline(NijC,NijH,itype,jtype,dN2);
+  PijS = Pij_eval(NijC,NijH,NjiC,NjiH,itype,jtype,dN2);
   pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmp = -0.5*cube(pij);
 
@@ -1477,7 +1477,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3], double rijmag, double 
   PjiS = 0.0;
   dN2[0] = 0.0;
   dN2[1] = 0.0;
-  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2);
+  PjiS = Pij_eval(NjiC,NjiH,NijC,NijH,jtype,itype,dN2);
   pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmp = -0.5*cube(pji);
 
@@ -2198,7 +2198,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double /* rij_mod */[3], double rij
   PijS = 0.0;
   dN2PIJ[0] = 0.0;
   dN2PIJ[1] = 0.0;
-  PijS = PijSpline(NijC,NijH,itype,jtype,dN2PIJ);
+  PijS = Pij_eval(NijC,NijH,NjiC,NjiH,itype,jtype,dN2PIJ);
   pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmppij = -.5*cube(pij);
   tmp3pij = tmp3;
@@ -2239,7 +2239,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double /* rij_mod */[3], double rij
   PjiS = 0.0;
   dN2PJI[0] = 0.0;
   dN2PJI[1] = 0.0;
-  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2PJI);
+  PjiS = Pij_eval(NjiC,NjiH,NijC,NijH,jtype,itype,dN2PJI);
   pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmppji = -.5*cube(pji);
   tmp3pji = tmp3;
@@ -3633,6 +3633,11 @@ void PairAIREBO::read_file(char *filename)
           }
         }
       }
+
+      // hook for derived classes to read any additional parameter sections
+      // that follow the standard AIREBO/REBO data (default: no-op)
+      current_section = "derived-class extra parameters";
+      read_file_extra(reader);
     } catch (TokenizerException &e) {
       error->one(FLERR, "reading {} section in {} file\nREASON: {}\n",
                  current_section, potential_name, e.what());

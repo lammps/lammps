@@ -102,11 +102,36 @@ class PairAIREBO : public Pair {
   double bondorderLJ(int, int, double *, double, double, double *, double, double **);
 
   double gSpline(double, double, int, double *, double *);
-  double PijSpline(double, double, int, int, double *);
+  virtual double PijSpline(double, double, int, int, double *);
+
+  // ----------------------------------------------------------------------
+  // Bond-order P term evaluation hook.
+  //
+  // bondorder() and bondorderLJ() evaluate the P_ij correction through this
+  // wrapper rather than calling PijSpline() directly.  The base class simply
+  // forwards the i-side coordination numbers to PijSpline() (the "other"-side
+  // counts are ignored), reproducing the standard atom-centric AIREBO result
+  // bit-for-bit.  Derived classes (e.g. AIREBO-BC, Hur & Stuart, J. Chem.
+  // Phys. 137, 054102 (2012)) may override this to implement a bond-centric
+  // P_ij that depends on the coordination numbers on both sides of the bond.
+  //   thisC/thisH : coordination numbers on the side whose P is evaluated
+  //   othC/othH   : coordination numbers on the opposite side of the bond
+  // ----------------------------------------------------------------------
+  virtual double Pij_eval(double thisC, double thisH, double /*othC*/, double /*othH*/,
+                          int typei, int typej, double dN2[2])
+  {
+    return PijSpline(thisC, thisH, typei, typej, dN2);
+  }
   double piRCSpline(double, double, double, int, int, double *);
   double TijSpline(double, double, double, double *);
 
   void read_file(char *);
+
+  // hook for derived classes to read additional parameter sections appended
+  // after the standard AIREBO/REBO data in the potential file.  Called on
+  // rank 0 only, with the open reader positioned just past the Tij section.
+  // The base implementation reads nothing.
+  virtual void read_file_extra(class PotentialFileReader &) {}
 
   double Spbicubic(double, double, double *, double *);
   double Sptricubic(double, double, double, double *, double *);

@@ -37,6 +37,9 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+// size of the Marsaglia RNG state vector (see RanMars::get_state())
+static constexpr int PRNGSIZE = 98 + 2 + 3;
+
 /* ----------------------------------------------------------------------
    Parses parameters passed to the method, allocates some memory
 ------------------------------------------------------------------------- */
@@ -51,6 +54,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
 
   time_integrate = 1;
   restart_peratom = 1;
+  restart_global = 1;
 
   // Parse the first set of required input arguments
   // 0 = Fix ID           (e.g., 1)
@@ -590,6 +594,48 @@ int FixGLD::size_restart(int /*nlocal*/)
 int FixGLD::maxsize_restart()
 {
   return 3*prony_terms+1;
+}
+
+/* ----------------------------------------------------------------------
+   pack the per-processor RNG state into the (global) restart file so that a
+   run continued from a restart reproduces the original stochastic trajectory.
+   The extended GLD variables are checkpointed separately as per-atom restart
+   data (pack_restart/unpack_restart).
+------------------------------------------------------------------------- */
+
+void FixGLD::write_restart(FILE *fp)
+{
+  int nsize = PRNGSIZE * comm->nprocs + 1;    // pRNG state per proc + nprocs
+  auto *list = new double[nsize];
+
+  if (comm->me == 0) list[0] = comm->nprocs;
+
+  double state[PRNGSIZE];
+  random->get_state(state);
+  MPI_Gather(state, PRNGSIZE, MPI_DOUBLE, list + 1, PRNGSIZE, MPI_DOUBLE, 0, world);
+
+  if (comm->me == 0) {
+    int size = nsize * sizeof(double);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(list, sizeof(double), nsize, fp);
+  }
+  delete[] list;
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restore the RNG state
+------------------------------------------------------------------------- */
+
+void FixGLD::restart(char *buf)
+{
+  auto *list = (double *) buf;
+
+  int nprocs = (int) list[0];
+  if (nprocs != comm->nprocs) {
+    if (comm->me == 0)
+      error->warning(FLERR, "Different number of procs. Cannot restore RNG state.");
+  } else
+    random->set_state(list + 1 + comm->me * PRNGSIZE);
 }
 
 /* ----------------------------------------------------------------------

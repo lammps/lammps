@@ -136,7 +136,9 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool use_rmass, bool use
         command(post_command);
 
     auto *ifix = lmp->modify->get_fix_by_id("test");
-    if (ifix && !utils::strmatch(ifix->style, "^move")) {
+    // styles tagged "no_reset_dt" reject a timestep change (Fix::reset_dt() raises
+    // an error, e.g. fix move), so do not exercise it for them
+    if (ifix && !test_config.has_tag("no_reset_dt")) {
         // must be set to trigger calling Fix::reset_dt() with timestep
         lmp->update->first_update = 1;
         // test validity of Fix::reset_dt(). With run_style respa there may be segfaults

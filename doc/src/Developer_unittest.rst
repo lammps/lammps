@@ -736,6 +736,11 @@ are:
        barostats (``brownian``, ``gjf``, ``press/langevin``) draw their
        random numbers differently under r-RESPA so the trajectories
        cannot match.
+   * - no_reset_dt
+     - The ``fix_timestep`` tester does not exercise a timestep change
+       for this style.  The fix rejects a timestep reset (its
+       ``Fix::reset_dt()`` raises an error, e.g. :doc:`fix move
+       <fix_move>`), which would otherwise abort the test.
    * - ellipsoid
      - The test includes ellipsoids and thus requires :doc:`fix
        nve/asphere <fix_nve_asphere>`.

@@ -387,8 +387,12 @@ void PPPM_RK::r2k_comm(int &eflag, int &vflag)
       force->kspace->setup();
     }
     //K-processes to receive brick charge densities
-    MPI_Igatherv(nullptr,0,MPI_DOUBLE,&density_brick_buf[nzlo_in][nylo_in][nxlo_in],
-                 density_sizes,density_disps, MPI_DOUBLE,0,block_density_brick,&mpi_requests_density);
+    //this rank is the root of the gather and contributes no data itself:
+    //use MPI_IN_PLACE instead of a null send buffer, which is not standard
+    //conforming and rejected by some MPI implementations.  the data type
+    //must be MPI_FFT_SCALAR to match the senders and single precision FFTs
+    MPI_Igatherv(MPI_IN_PLACE,0,MPI_FFT_SCALAR,&density_brick_buf[nzlo_in][nylo_in][nxlo_in],
+                 density_sizes,density_disps,MPI_FFT_SCALAR,0,block_density_brick,&mpi_requests_density);
     MPI_Wait(&mpi_requests_density,MPI_STATUS_IGNORE);
 
     FFT_SCALAR *buf_loc = &density_brick_buf[nzlo_in][nylo_in][nxlo_in];

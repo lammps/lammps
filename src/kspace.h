@@ -197,7 +197,12 @@ class KSpace : protected Pointers {
   virtual int timing_3d(int, double &) { return 0; }
 
   virtual int modify_param(int, char **) { return 0; }
-  virtual double memory_usage() { return 0.0; }
+  virtual double memory_usage()
+  {
+    double bytes = (double) maxeatom * sizeof(double);
+    bytes += (double) maxvatom * 6 * sizeof(double);
+    return bytes;
+  }
 
   // to be overridden in the *RK subclasses for which rk_flag == 1
   virtual void r2k_comm(int &, int &) {};               //rk_flag == 1

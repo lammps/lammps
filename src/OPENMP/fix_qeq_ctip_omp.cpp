@@ -35,8 +35,6 @@ using namespace LAMMPS_NS;
 using namespace EwaldConst;
 using namespace MathConst;
 
-static constexpr double DANGER_ZONE = 0.95;
-
 /* ---------------------------------------------------------------------- */
 
 FixQEqCTIPOMP::FixQEqCTIPOMP(LAMMPS *lmp, int narg, char **arg) :
@@ -74,7 +72,7 @@ void FixQEqCTIPOMP::pre_force(int /*vflag*/)
   }
 
   for (i = 1; i <= maxrepeat; i++) {
-    init_matvec();
+    init_matvec_thr();
     matvecs = CG(b_s, s);
     matvecs += CG(b_t, t);
     matvecs /= 2;
@@ -91,9 +89,9 @@ void FixQEqCTIPOMP::pre_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqCTIPOMP::init_matvec()
+void FixQEqCTIPOMP::init_matvec_thr()
 {
-  compute_H();
+  compute_H_thr();
 
   int inum, ii, i;
   int *ilist;
@@ -137,7 +135,7 @@ void FixQEqCTIPOMP::init_matvec()
    FixQEqCTIP::compute_H() packed CSR layout.
 ------------------------------------------------------------------------- */
 
-void FixQEqCTIPOMP::compute_H()
+void FixQEqCTIPOMP::compute_H_thr()
 {
   int *ilist, *numneigh, **firstneigh;
   double **x = atom->x;

@@ -732,10 +732,12 @@ are:
      - The ``fix_timestep`` tester does not exercise this style under
        :doc:`run_style respa <run_style>`: rigid fixes need additional
        work to test correctly with r-RESPA, ``fix nve/limit`` and ``fix
-       recenter`` do not support it, and stochastic integrators and
-       barostats (``brownian``, ``gjf``, ``press/langevin``) draw their
-       random numbers differently under r-RESPA so the trajectories
-       cannot match.
+       recenter`` do not support it, stochastic integrators and barostats
+       (``brownian``, ``gjf``, ``press/langevin``) draw their random
+       numbers differently under r-RESPA, and velocity-dependent forcing
+       fixes (``viscous``, ``accelerate/cos``) and the isokinetic ``nvk``
+       integrator follow a different trajectory under r-RESPA — in all of
+       these cases the verlet and r-RESPA runs cannot match.
    * - no_reset_dt
      - The ``fix_timestep`` tester does not exercise a timestep change
        for this style.  The fix rejects a timestep reset (its

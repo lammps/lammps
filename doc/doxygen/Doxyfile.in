@@ -2,7 +2,7 @@
 
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "LAMMPS Programmer's Guide"
-PROJECT_NUMBER         = "10 December 2025"
+PROJECT_NUMBER         = "30 March 2026"
 PROJECT_BRIEF          = "Documentation of the LAMMPS library interface and Python wrapper"
 PROJECT_LOGO           = lammps-logo.png
 CREATE_SUBDIRS         = NO
@@ -442,6 +442,7 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/platform.cpp              \
                          @LAMMPS_SOURCE_DIR@/math_special.h            \
                          @LAMMPS_SOURCE_DIR@/math_special.cpp          \
+                         @LAMMPS_SOURCE_DIR@/safe_pointers.h           \
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

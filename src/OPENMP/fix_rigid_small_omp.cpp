@@ -40,9 +40,11 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
+namespace {
 using dbl3_t = struct {
   double x, y, z;
 };
+}    // namespace
 
 // clang-format off
 /* ---------------------------------------------------------------------- */

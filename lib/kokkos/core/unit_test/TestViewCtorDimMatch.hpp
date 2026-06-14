@@ -88,9 +88,6 @@ struct DynamicRank<0> {
 #define VIEW_CTOR_TEST_UNREACHABLE() static_assert(true)
 #endif
 
-// Skip test execution when KOKKOS_ENABLE_OPENMPTARGET is enabled until
-// Kokkos::abort() aborts properly on that backend
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
 TEST(TEST_CATEGORY_DEATH, view_construction_with_wrong_params_dyn) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
 
@@ -212,7 +209,6 @@ TEST(TEST_CATEGORY_DEATH, view_construction_with_wrong_static_extents) {
 
 #undef CHECK_DEATH
 #undef CHECK_DEATH_UNMANAGED
-#endif  // KOKKOS_ENABLE_OPENMPTARGET
 
 #undef VIEW_CTOR_TEST_UNREACHABLE
 

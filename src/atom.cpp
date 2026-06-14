@@ -174,7 +174,9 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   // CG-DNA package
 
+  id3p = nullptr;
   id5p = nullptr;
+  qeff = nullptr;
 
   // DPD-REACT package
 
@@ -510,7 +512,9 @@ void Atom::peratom_create()
 
   // CG-DNA package
 
+  add_peratom("id3p",&id3p,tagintsize,0);
   add_peratom("id5p",&id5p,tagintsize,0);
+  add_peratom("qeff",&qeff,DOUBLE,0);
 
   // DPD-REACT package
 
@@ -645,7 +649,7 @@ void Atom::set_atomflag_defaults()
   // identical list as 2nd customization in atom.h
 
   labelmapflag = 0;
-  ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+  ellipsoid_flag = line_flag = tri_flag = body_flag = superellipsoid_flag = 0;
   quat_flag = 0;
   peri_flag = electron_flag = sph_flag = 0;
   molecule_flag = molindex_flag = molatom_flag = 0;
@@ -809,18 +813,25 @@ std::string Atom::get_style()
 }
 
 /* ----------------------------------------------------------------------
-   return ptr to AtomVec class if matches style or to matching hybrid sub-class
-   return nullptr if no match
+   return ptr to AtomVec class if it matches the style argument w/o suffix
+     or ptr to the matching hybrid sub-class without regard of the suffix
+   return nullptr if no match.
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::style_match(const char *style)
+AtomVec *Atom::style_match(const std::string &style)
 {
-  if (strcmp(atom_style,style) == 0) return avec;
-  else if (strcmp(atom_style,"hybrid") == 0) {
+  std::string pattern = style;
+  pattern.insert(0,1,'^');
+
+  if (utils::strmatch(atom_style, pattern)) return avec;
+  else if (utils::strmatch(atom_style,"^hybrid")) {
     auto *avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
-    for (int i = 0; i < avec_hybrid->nstyles; i++)
-      if (strcmp(avec_hybrid->keywords[i],style) == 0)
-        return avec_hybrid->styles[i];
+    if (avec_hybrid) {
+      for (int i = 0; i < avec_hybrid->nstyles; i++) {
+        if (utils::strmatch(avec_hybrid->keywords[i], pattern))
+          return avec_hybrid->styles[i];
+      }
+    }
   }
   return nullptr;
 }
@@ -3549,7 +3560,9 @@ int Atom::extract_size(const char *name, int type)
 
     // CG-DNA package
 
+    if (strcmp(name,"id3p") == 0) return nall;
     if (strcmp(name,"id5p") == 0) return nall;
+    if (strcmp(name,"qeff") == 0) return nall;
 
     // RHEO package
 

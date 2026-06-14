@@ -6,6 +6,7 @@ pair_style srp command
 
 pair_style srp/react command
 ============================
+
 Syntax
 """"""
 

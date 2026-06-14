@@ -191,28 +191,6 @@ static_assert_iterators_have_matching_difference_type(IteratorType1 it1,
 }
 
 //
-// not_openmptarget
-//
-template <class ExeSpace>
-struct not_openmptarget {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
-  static constexpr bool value = true;
-#else
-  static constexpr bool value =
-      !std::is_same<std::decay_t<ExeSpace>,
-                    ::Kokkos::Experimental::OpenMPTarget>::value;
-#endif
-};
-
-template <class ExecutionSpaceOrTeamHandleType>
-KOKKOS_INLINE_FUNCTION constexpr void static_assert_is_not_openmptarget(
-    const ExecutionSpaceOrTeamHandleType& /*ex_or_th*/) {
-  static_assert(not_openmptarget<ExecutionSpaceOrTeamHandleType>::value,
-                "Currently, Kokkos standard algorithms do not support custom "
-                "comparators in OpenMPTarget");
-}
-
-//
 // valid range
 //
 template <class IteratorType>

@@ -1,7 +1,11 @@
 .. index:: improper_style distharm
+.. index:: improper_style distharm/kk
+.. index:: improper_style distharm/omp
 
 improper_style distharm command
 ===============================
+
+Accelerator Variants: *distharm/kk*, *distharm/omp*
 
 Syntax
 """"""
@@ -52,6 +56,12 @@ atom of symmetry; all other atoms are considered interchangeable.  This
 convention is relevant for operations that require knowledge of how atoms
 are ordered, such as automatic assignment of new improper types by
 :doc:`fix bond/react <fix_bond_react>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

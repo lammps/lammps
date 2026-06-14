@@ -60,9 +60,7 @@ struct TestFunctorA {
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;
       });
-    }
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
-    else if (m_apiPick == 2) {
+    } else if (m_apiPick == 2) {
       using value_type = typename ViewType::value_type;
       auto it          = KE::is_sorted_until(member, KE::cbegin(myRowView),
                                              KE::cend(myRowView),
@@ -82,7 +80,6 @@ struct TestFunctorA {
         m_distancesView(myRowIndex) = resultDist;
       });
     }
-#endif
 
     // store result of checking if all members have their local
     // values matching the one stored in m_distancesView
@@ -214,11 +211,7 @@ template <class LayoutTag, class ValueType>
 void run_all_scenarios(const std::string& name, const std::vector<int>& cols) {
   for (int numTeams : teamSizesToTest) {
     for (const auto& numCols : cols) {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
       for (int apiId : {0, 1, 2, 3}) {
-#else
-      for (int apiId : {0, 1}) {
-#endif
         test_A<LayoutTag, ValueType>(numTeams, numCols, apiId, name);
       }
     }
@@ -243,10 +236,6 @@ TEST(std_algorithms_is_sorted_until_team_test, test_trivialB) {
 }
 
 TEST(std_algorithms_is_sorted_until_team_test, test_nontrivialA) {
-#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET Failing with clang 17
-  GTEST_SKIP() << "Known to fail with OpenMPTarget and clang 17";
-#endif
-
   const std::string name      = "nontrivialUntilLast";
   const std::vector<int> cols = {13, 101, 1444, 5153};
   run_all_scenarios<DynamicTag, double>(name, cols);
@@ -255,10 +244,6 @@ TEST(std_algorithms_is_sorted_until_team_test, test_nontrivialA) {
 }
 
 TEST(std_algorithms_is_sorted_until_team_test, test_nontrivialB) {
-#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET Failing with clang 17
-  GTEST_SKIP() << "Known to fail with OpenMPTarget and clang 17";
-#endif
-
   const std::string name      = "nontrivialRandom";
   const std::vector<int> cols = {13, 101, 1444, 5153};
   run_all_scenarios<DynamicTag, double>(name, cols);

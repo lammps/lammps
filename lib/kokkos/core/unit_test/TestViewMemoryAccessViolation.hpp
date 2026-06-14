@@ -171,12 +171,6 @@ TEST(TEST_CATEGORY_DEATH, view_memory_access_violations_from_device) {
                     "when NDEBUG is defined";
   }
 #endif
-#if defined(KOKKOS_ENABLE_OPENMPTARGET)  // FIXME_OPENMPTARGET
-  if (std::is_same<ExecutionSpace, Kokkos::Experimental::OpenMPTarget>::value) {
-    GTEST_SKIP() << "skipping because OpenMPTarget backend is currently not "
-                    "able to abort from the device";
-  }
-#endif
 #if defined(KOKKOS_ENABLE_OPENACC)  // FIXME_OPENACC
   if (std::is_same<ExecutionSpace, Kokkos::Experimental::OpenACC>::value) {
     GTEST_SKIP() << "skipping because OpenACC backend is currently not "

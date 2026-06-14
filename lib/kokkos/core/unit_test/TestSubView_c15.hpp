@@ -27,7 +27,7 @@ TEST(TEST_CATEGORY_DEATH, view_subview_constructor_layout_compatibility) {
     (void)Kokkos::View<int*, LS>(a1, Kokkos::ALL, 1);
 
     // FIXME: This doesn't compile for BasicView, but should
-    //(void)Kokkos::View<int*, LR>(a, Kokkos::ALL, 1);
+    // (void)Kokkos::View<int*, LR>(a1, Kokkos::ALL, 1);
   }
   {
     // Using subview dims (1, ALL). For a LayoutLeft,

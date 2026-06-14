@@ -133,8 +133,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
 
   id_temp = utils::strdup(std::string(id) + "_temp");
   modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
-  int icompute = modify->find_compute(id_temp);
-  temperature = modify->compute[icompute];
+  temperature = modify->get_compute_by_id(id_temp);
   if (temperature->tempbias) which = BIAS;
   else                        which = NOBIAS;
 

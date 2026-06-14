@@ -46,11 +46,6 @@ struct LayoutLeft {
 
   enum : bool { is_extent_constructible = true };
 
-  LayoutLeft(LayoutLeft const&)            = default;
-  LayoutLeft(LayoutLeft&&)                 = default;
-  LayoutLeft& operator=(LayoutLeft const&) = default;
-  LayoutLeft& operator=(LayoutLeft&&)      = default;
-
   KOKKOS_INLINE_FUNCTION
   explicit constexpr LayoutLeft(size_t N0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                                 size_t N1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -100,11 +95,6 @@ struct LayoutRight {
 
   enum : bool { is_extent_constructible = true };
 
-  LayoutRight(LayoutRight const&)            = default;
-  LayoutRight(LayoutRight&&)                 = default;
-  LayoutRight& operator=(LayoutRight const&) = default;
-  LayoutRight& operator=(LayoutRight&&)      = default;
-
   KOKKOS_INLINE_FUNCTION
   explicit constexpr LayoutRight(size_t N0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
                                  size_t N1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -140,11 +130,6 @@ struct LayoutStride {
   size_t stride[ARRAY_LAYOUT_MAX_RANK];
 
   enum : bool { is_extent_constructible = false };
-
-  LayoutStride(LayoutStride const&)            = default;
-  LayoutStride(LayoutStride&&)                 = default;
-  LayoutStride& operator=(LayoutStride const&) = default;
-  LayoutStride& operator=(LayoutStride&&)      = default;
 
   /** \brief  Compute strides from ordered dimensions.
    *
@@ -214,11 +199,6 @@ enum class Iterate {
   Right  // Right indices stride fastest
 };
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-template <typename Layout, class Enable = void>
-struct KOKKOS_DEPRECATED is_layouttiled : std::false_type {};
-#endif
-
 namespace Impl {
 // For use with view_copy
 template <typename... Layout>
@@ -249,12 +229,6 @@ struct layout_iterate_type_selector<Kokkos::LayoutStride> {
       Kokkos::Iterate::Default;
 };
 }  // namespace Impl
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-template <typename... Layout>
-using layout_iterate_type_selector KOKKOS_DEPRECATED =
-    Impl::layout_iterate_type_selector<Layout...>;
-#endif
 
 }  // namespace Kokkos
 

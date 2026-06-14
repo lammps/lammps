@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <random>
+#include <thread>
 
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES

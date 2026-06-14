@@ -50,7 +50,7 @@ class PairColloid : public Pair {
   double **lj1, **lj2, **lj3, **lj4;
   int **form;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

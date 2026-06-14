@@ -35,7 +35,7 @@ void test_create_mirror_properties(const View& view) {
   using DeviceMemorySpace = typename DefaultExecutionSpace::memory_space;
 
   // clang-format off
-  
+
   // create_mirror
   // FIXME DynamicView: host_mirror_type is the same type
   if constexpr (!is_dynamic_view<View>::value) {

@@ -213,7 +213,7 @@ If the *dipole* keyword is used, then the dipole moments of the particles
 are updated as described above. Only compatible with *brownian/asphere*
 (as *brownian/sphere* updates dipoles automatically).
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 If the *rotation_style* keyword is used with the *geometric* value, then the
 geometric, rotation-based integration scheme (:ref:`(Hoefling) <Hoefling1>`)
@@ -275,7 +275,7 @@ Related commands
 Default
 """""""
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Feb2026
 
 The default for *rng* is *uniform*. The default for *rotation_style* is *geometric*.
 The default for the rotational and translational friction tensors are the identity

@@ -21,7 +21,7 @@ KSpaceStyle(pppm,PPPM);
 #define LMP_PPPM_H
 
 #include "kspace.h"
-#include "lmpfftsettings.h" // IWYU pragma: export
+#include "lmpfftsettings.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -50,6 +50,7 @@ class PPPM : public KSpace {
   double h_x, h_y, h_z;
   double shift, shiftone, shiftatom_lo, shiftatom_hi;
   int peratom_allocate_flag;
+  int g_ewald_ready;
 
   int nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in;
   int nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out;
@@ -140,6 +141,7 @@ class PPPM : public KSpace {
   void compute_rho_coeff();
   virtual void slabcorr();
 
+ public:
   // grid communication
 
   void pack_forward_grid(int, void *, int, int *) override;
@@ -147,6 +149,7 @@ class PPPM : public KSpace {
   void pack_reverse_grid(int, void *, int, int *) override;
   void unpack_reverse_grid(int, void *, int, int *) override;
 
+ protected:
   // triclinic
 
   int triclinic;    // domain settings, orthog or triclinic

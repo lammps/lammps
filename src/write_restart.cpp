@@ -49,7 +49,6 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Command(lmp)
   MPI_Comm_size(world,&nprocs);
   multiproc = 0;
   noinit = 0;
-  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -268,8 +267,7 @@ void WriteRestart::write(const std::string &file)
     if (me == 0 && fp) {
       magic_string();
       if (ferror(fp)) io_error = 1;
-      fclose(fp);
-      fp = nullptr;
+      fp = nullptr;             // implicitly closes file
     }
 
     std::string multiname = file;
@@ -282,6 +280,12 @@ void WriteRestart::write(const std::string &file)
       write_int(PROCSPERFILE,nclusterprocs);
     }
   }
+
+  // check for I/O error status
+
+  int io_all = 0;
+  MPI_Allreduce(&io_error,&io_all,1,MPI_INT,MPI_MAX,world);
+  if (io_all) error->all(FLERR,"I/O error while writing restart");
 
   // pack my atom data into buf
 
@@ -361,17 +365,16 @@ void WriteRestart::write(const std::string &file)
     }
     magic_string();
     if (ferror(fp)) io_error = 1;
-    fclose(fp);
-    fp = nullptr;
+    fp = nullptr;               // implicitly closes file
 
   } else {
     MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(buf,send_size,MPI_DOUBLE,fileproc,0,world);
   }
 
-  // check for I/O error status
+  // check again for I/O error status
 
-  int io_all = 0;
+  io_all = 0;
   MPI_Allreduce(&io_error,&io_all,1,MPI_INT,MPI_MAX,world);
   if (io_all) error->all(FLERR,"I/O error while writing restart");
 

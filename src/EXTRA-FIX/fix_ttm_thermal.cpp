@@ -293,7 +293,7 @@ void FixTTMThermal::end_of_step()
   double inner_dt = update->dt;
   double voxel_coeff =(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz);
 
-  std::vector<double> grid_fourier(nzgrid * nygrid * nxgrid);
+  std::vector<double> grid_fourier((size_t) nzgrid * nygrid * nxgrid);
   int index = 0;  // Location unimportant, only max value
     for (iz = 0; iz < nzgrid; iz++)
       for (iy = 0; iy < nygrid; iy++)
@@ -377,7 +377,7 @@ void FixTTMThermal::end_of_step()
                (safe_effective_kappa(k_e_grid[zright][iy][ix],k_e_grid[iz][iy][ix]))*
                (T_electron_old[zright][iy][ix]-T_electron_old[iz][iy][ix])/dz/dz*up
 
-               -(net_energy_transfer_all[iz][iy][ix])/(del_vol)
+               -(net_energy_transfer_all[iz][iy][ix])/del_vol
                +(inductive_power*inductive_response_grid[iz][iy][ix]));
           }
         }

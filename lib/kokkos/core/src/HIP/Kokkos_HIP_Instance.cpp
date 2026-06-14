@@ -127,21 +127,6 @@ void HIPInternal::print_configuration(std::ostream &s) const {
 
 //----------------------------------------------------------------------------
 
-HIPInternal::~HIPInternal() {
-  if (m_scratchSpace || m_scratchFlags) {
-    std::cerr << "Kokkos::HIP ERROR: Failed to call "
-                 "Kokkos::HIP::finalize()"
-              << std::endl;
-    std::cerr.flush();
-  }
-
-  m_scratchSpaceCount = 0;
-  m_scratchFlagsCount = 0;
-  m_scratchSpace      = nullptr;
-  m_scratchFlags      = nullptr;
-  m_stream            = nullptr;
-}
-
 int HIPInternal::verify_is_initialized(const char *const label) const {
   if (m_hipDev < 0) {
     Kokkos::abort((std::string("Kokkos::HIP::") + label +
@@ -153,13 +138,6 @@ int HIPInternal::verify_is_initialized(const char *const label) const {
 
 uint32_t HIPInternal::impl_get_instance_id() const noexcept {
   return m_instance_id;
-}
-HIPInternal &HIPInternal::singleton() {
-  static HIPInternal *self = nullptr;
-  if (!self) {
-    self = new HIPInternal();
-  }
-  return *self;
 }
 
 void HIPInternal::fence() const {
@@ -173,17 +151,10 @@ void HIPInternal::fence(const std::string &name) const {
       [&]() { KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamSynchronize(m_stream)); });
 }
 
-void HIPInternal::initialize(hipStream_t stream) {
-  KOKKOS_EXPECTS(!is_initialized());
-
-  if (was_finalized)
-    Kokkos::abort("Calling HIP::initialize after HIP::finalize is illegal\n");
-
-  KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamGetDevice(stream, &m_hipDev));
+HIPInternal::HIPInternal(hipStream_t stream) : m_stream(stream) {
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamGetDevice(m_stream, &m_hipDev));
   KOKKOS_IMPL_HIP_SAFE_CALL(hipSetDevice(m_hipDev));
   hip_devices.insert(m_hipDev);
-
-  m_stream = stream;
 
   // Allocate a staging buffer for constant mem in pinned host memory.
   if (!constantMemHostStaging[m_hipDev]) {
@@ -353,7 +324,7 @@ void HIPInternal::release_team_scratch_space(int scratch_pool_id) {
 
 //----------------------------------------------------------------------------
 
-void HIPInternal::finalize() {
+HIPInternal::~HIPInternal() {
   // First, lock the shared resource locking helper.
   // Then, fence the stream and check if it was involved in the last constant
   // memory launch.
@@ -361,11 +332,9 @@ void HIPInternal::finalize() {
   // thread from launching another kernel in-between the fence
   // and the 'check_if_involved_and_unlock'.
   auto lock = HIPInternal::constantMemReusable[m_hipDev].lock();
-  this->fence("Kokkos::HIPInternal::finalize: fence on finalization");
+  this->fence("Kokkos::HIPInternal::finalize: fence on destruction");
   HIPInternal::constantMemReusable[m_hipDev].check_if_involved_and_unlock(
       std::move(lock), m_stream);
-
-  was_finalized = true;
 
   auto device_mem_space = Kokkos::HIPSpace::impl_create(m_hipDev, m_stream);
   if (nullptr != m_scratchSpace || nullptr != m_scratchFlags) {
@@ -388,19 +357,7 @@ void HIPInternal::finalize() {
                                   m_team_scratch_current_size[i]);
   }
 
-  m_scratchSpaceCount = 0;
-  m_scratchFlagsCount = 0;
-  m_scratchSpace      = nullptr;
-  m_scratchFlags      = nullptr;
-  for (int i = 0; i < m_n_team_scratch; ++i) {
-    m_team_scratch_current_size[i] = 0;
-    m_team_scratch_ptr[i]          = nullptr;
-  }
-
   KOKKOS_IMPL_HIP_SAFE_CALL(hip_free_wrapper(m_scratch_locks));
-  m_scratch_locks     = nullptr;
-  m_num_scratch_locks = 0;
-  m_hipDev            = -1;
 }
 
 int HIPInternal::m_maxThreadsPerSM = 0;
@@ -408,6 +365,8 @@ int HIPInternal::m_maxThreadsPerSM = 0;
 hipDeviceProp_t HIPInternal::m_deviceProp;
 
 std::mutex HIPInternal::scratchFunctorMutex;
+
+HostSharedPtr<HIPInternal> HIPInternal::default_instance;
 
 std::set<int> HIPInternal::hip_devices                             = {};
 std::map<int, unsigned long *> HIPInternal::constantMemHostStaging = {};

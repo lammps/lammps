@@ -329,16 +329,6 @@ void BondBPM::settings(int narg, char **arg)
     }
   }
 
-  // Set up necessary history fix
-  if (!fix_bond_history) {
-    auto *newfix = modify->replace_fix(
-        id_fix_dummy_history,
-        fmt::format("{} all BOND_HISTORY {} {}", id_fix_bond_history, update_flag, nhistory), 1);
-    fix_bond_history = dynamic_cast<FixBondHistory *>(newfix);
-    delete[] id_fix_dummy_history;
-    id_fix_dummy_history = nullptr;
-  }
-
   // If bonds don't break and there's no overlay, can ignore special requirements
   if (break_flag == 0 && overlay_flag == 0)
     ignore_special_flag = 1;

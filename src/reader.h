@@ -17,6 +17,7 @@
 #define LMP_READER_H
 
 #include "pointers.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -40,9 +41,8 @@ class Reader : protected Pointers {
   virtual void close_file();
 
  protected:
-  FILE *fp;           // pointer to opened file or pipe
-  bool compressed;    // flag for dump file compression
-  bool binary;        // flag for (native) binary files
+  SafeFilePtr fp;    // pointer to opened file or pipe
+  bool binary;       // flag for (native) binary files
 };
 
 }    // namespace LAMMPS_NS

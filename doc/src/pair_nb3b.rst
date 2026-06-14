@@ -1,8 +1,11 @@
 .. index:: pair_style nb3b/harmonic
+.. index:: pair_style nb3b/harmonic/omp
 .. index:: pair_style nb3b/screened
 
 pair_style nb3b/harmonic command
 ================================
+
+Accelerator Variants: *nb3b/harmonic/omp*
 
 pair_style nb3b/screened command
 ================================
@@ -113,6 +116,10 @@ If certain combinations are not parameterized the corresponding
 parameters should be set to zero. The potential file can also
 contain entries for additional elements which are not used in
 a particular simulation; LAMMPS ignores those entries.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

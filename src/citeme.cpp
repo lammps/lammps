@@ -79,7 +79,6 @@ CiteMe::CiteMe(LAMMPS *lmp, int _screen, int _logfile, const char *_file) : Poin
 CiteMe::~CiteMe()
 {
   flush();
-  if (fp) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

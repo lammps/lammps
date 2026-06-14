@@ -6,12 +6,26 @@ include(GNUInstallDirs)
 
 message(STATUS "The project name is: ${PROJECT_NAME}")
 
-if(GTest_FOUND)
-  set(KOKKOS_GTEST_LIB GTest::gtest)
-  message(STATUS "Using gtest found in ${GTest_DIR}")
-else() # fallback to internal gtest
-  set(KOKKOS_GTEST_LIB kokkos_gtest)
-  message(STATUS "Using internal gtest for testing")
+if(Kokkos_ENABLE_TESTS OR Kokkos_INSTALL_TESTING)
+  find_package(GTest QUIET)
+  if(GTest_FOUND)
+    message(STATUS "Found external GoogleTest: ${GTest_DIR} (version \"${GTest_VERSION}\")")
+  else()
+    message(STATUS "Using bundled GoogleTest version")
+    include(FetchContent)
+    list(APPEND CMAKE_MESSAGE_INDENT "[googletest] ")
+    FetchContent_Declare(googletest SOURCE_DIR ${Kokkos_SOURCE_DIR}/tpls/gtest)
+    FetchContent_MakeAvailable(googletest)
+    list(POP_BACK CMAKE_MESSAGE_INDENT)
+
+    # Suppress clang-tidy diagnostics on code that we do not have control over
+    if(CMAKE_CXX_CLANG_TIDY)
+      set_target_properties(gtest PROPERTIES CXX_CLANG_TIDY "")
+    endif()
+
+    # Suppress compiler warnings. TODO use SYSTEM within the FetchContent_Declare call when CMake 3.25 is required
+    set_target_properties(gtest PROPERTIES COMPILE_OPTIONS -w)
+  endif()
 endif()
 
 function(VERIFY_EMPTY CONTEXT)
@@ -168,10 +182,17 @@ macro(KOKKOS_ADD_TEST_EXECUTABLE ROOT_NAME)
   cmake_parse_arguments(PARSE "" "" "SOURCES" ${ARGN})
   # Don't do anything if the user disabled the test
   if(NOT ${PACKAGE_NAME}_${ROOT_NAME}_DISABLE)
-    kokkos_add_executable(
-      ${ROOT_NAME} SOURCES ${PARSE_SOURCES} ${PARSE_UNPARSED_ARGUMENTS} TESTONLYLIBS ${KOKKOS_GTEST_LIB}
-    )
+    kokkos_add_executable(${ROOT_NAME} SOURCES ${PARSE_SOURCES} ${PARSE_UNPARSED_ARGUMENTS} TESTONLYLIBS GTest::gtest)
     set(EXE_NAME ${PACKAGE_NAME}_${ROOT_NAME})
+
+    # Suppress compiler warnings when not using an external gtest version.
+    # TODO use SYSTEM within the FetchContent_Declare call when CMake 3.25 is required
+    get_target_property(GTEST_INCLUDES GTest::gtest INCLUDE_DIRECTORIES)
+    if(GTEST_INCLUDES)
+      foreach(dir ${GTEST_INCLUDES})
+        target_include_directories(${EXE_NAME} SYSTEM PRIVATE "${dir}")
+      endforeach()
+    endif()
   endif()
 endmacro()
 
@@ -371,6 +392,10 @@ function(KOKKOS_ADD_LIBRARY LIBRARY_NAME)
 
   # MSVC and other platforms want to have the headers included as source files for better dependency detection
   add_library(${LIBRARY_NAME} ${LINK_TYPE} ${PARSE_HEADERS} ${PARSE_SOURCES})
+  if(PARSE_STATIC)
+    # We want position independent code to be able to link static libraries into shared ones.
+    set_target_properties(${LIBRARY_NAME} PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+  endif()
 
   if(Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES)
     if(PARSE_MODULE_INTERFACE)

@@ -50,6 +50,8 @@ PairMM3Switch3CoulGaussLong::PairMM3Switch3CoulGaussLong(LAMMPS *lmp) : Pair(lmp
 
 PairMM3Switch3CoulGaussLong::~PairMM3Switch3CoulGaussLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -76,7 +78,7 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcecoul2,forcelj,factor_coul,factor_lj,tr,ftr,trx;
-  double grij,expm2,prefactor,prefactor2,t,erfc1,erfc2,rrij,expn2,expb;
+  double grij,expm2,prefactor,prefactor2,t,erfc1,erfc2,rrij,expb;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
 
@@ -163,12 +165,11 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
           // Correction for Gaussian radii
           if (lj2[itype][jtype]==0.0) {
             // This means a point charge is considered, so the correction is zero
-            expn2 = 0.0;
             erfc2 = 0.0;
             prefactor2 = 0.0;
           } else {
             rrij = lj2[itype][jtype]*r;
-            expn2 = exp(-rrij*rrij);
+            double expn2 = exp(-rrij*rrij);
             erfc2 = erfc(rrij);
             prefactor2 = -qqrd2e*qtmp*q[j]/r;
             forcecoul2 = prefactor2*(erfc2+EWALD_F*rrij*expn2);
@@ -575,7 +576,7 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
 {
   double r2inv,r6inv,r,grij,expm2,t,erfc1,prefactor,prefactor2;
   double fraction,table,forcecoul,forcecoul2,forcelj;
-  double expb,rrij,expn2,erfc2,evdwl,ecoul,trx,tr,ftr;
+  double expb,rrij,erfc2,evdwl,ecoul,trx,tr,ftr;
 
   int itable;
 
@@ -615,12 +616,11 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
     forcelj -= 6.0*lj4[itype][jtype]*r6inv;
 
     if (lj2[itype][jtype] == 0.0) {
-      expn2 = 0.0;
       erfc2 = 0.0;
       prefactor2 = 0.0;
     } else {
       rrij = lj2[itype][jtype]*r;
-      expn2 = exp(-rrij*rrij);
+      double expn2 = exp(-rrij*rrij);
       erfc2 = erfc(rrij);
       prefactor2 = -force->qqrd2e * atom->q[i]*atom->q[j]/r;
       forcecoul2 = prefactor2 * (erfc2 + EWALD_F*rrij*expn2);

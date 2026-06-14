@@ -148,6 +148,7 @@ struct to_chars_result {
 template <class Integral>
 KOKKOS_FUNCTION constexpr to_chars_result to_chars_i(char *first, char *last,
                                                      Integral value) {
+  // NOLINTBEGIN(bugprone-invalid-enum-default-initialization)
   using Unsigned = std::conditional_t<sizeof(Integral) <= sizeof(unsigned int),
                                       unsigned int, unsigned long long>;
   Unsigned unsigned_val = value;  // NOLINT(bugprone-signed-char-misuse)
@@ -166,6 +167,7 @@ KOKKOS_FUNCTION constexpr to_chars_result to_chars_i(char *first, char *last,
   }
   to_chars_impl(first, len, unsigned_val);
   return {first + len, {}};
+  // NOLINTEND(bugprone-invalid-enum-default-initialization)
 }
 //</editor-fold>
 

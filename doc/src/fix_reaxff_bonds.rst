@@ -14,7 +14,7 @@ Syntax
    fix ID group-ID reaxff/bonds Nevery filename
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* reax/bonds = style name of this fix command
+* reaxff/bonds = style name of this fix command
 * Nevery = output interval in timesteps
 * filename = name of output file
 
@@ -61,14 +61,14 @@ smaller than the text version, but will also take longer to write.
 .. versionadded:: 2Apr2025
 
 If the filename contains the wildcard character "\*", a new file is
-created on every timestep there bond information is written.  The "\*"
+created on every timestep where bond information is written.  The "\*"
 character is replaced with the timestep value.  Note that the
 :doc:`fix_modify pad <fix_modify>` command can be used so that all
 timestep numbers have the same length by adding leading zeroes
 (e.g. 00010 for a pad value of 5).  The default pad value is 0, i.e. no
 leading zeroes.
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 If the filename is "NULL", then no output is created.  This can be
 useful when using fix *reaxff/bonds* in combination with :doc:`dump
@@ -78,7 +78,7 @@ the ReaxFF force field.
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 Fix *reaxff/bonds* supports the *fix* keyword of :doc:`dump image
 <dump_image>`.  The fix will pass geometry information about the bonds

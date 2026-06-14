@@ -38,6 +38,11 @@ message(STATUS "Using " ${KOKKOS_LAYOUT_LOWER} " view layout for KOKKOS package"
 
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
+
+# temporarily enable Kokkos legacy view implementation to prevent integer overflows when indexing neighborlist views
+option(Kokkos_ENABLE_IMPL_VIEW_LEGACY "Enable legacy Kokkos view implementation" ON)
+mark_as_advanced(Kokkos_ENABLE_IMPL_VIEW_LEGACY)
+
 if(Kokkos_ENABLE_HIP)
   option(Kokkos_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS "Enable multiple kernel instantiations with HIP" ON)
   mark_as_advanced(Kokkos_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS)
@@ -88,15 +93,15 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
-  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/5.0.0.tar.gz" CACHE STRING "URL for KOKKOS tarball")
-  set(KOKKOS_MD5 "968754bce9cddd26f31b2439bc0d338f" CACHE STRING "MD5 checksum of KOKKOS tarball")
+  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/5.1.0.tar.gz" CACHE STRING "URL for KOKKOS tarball")
+  set(KOKKOS_SHA256 "66b2526569a70a21b2aeaed8dbb1cbe8b475f3c33719eac13bc7eed02e8c6590" CACHE STRING "SHA256 checksum of KOKKOS tarball")
   mark_as_advanced(KOKKOS_URL)
-  mark_as_advanced(KOKKOS_MD5)
+  mark_as_advanced(KOKKOS_SHA256)
   GetFallbackURL(KOKKOS_URL KOKKOS_FALLBACK)
 
   ExternalProject_Add(kokkos_build
     URL     ${KOKKOS_URL} ${KOKKOS_FALLBACK}
-    URL_MD5 ${KOKKOS_MD5}
+    URL_HASH SHA256=${KOKKOS_SHA256}
     CMAKE_ARGS ${KOKKOS_LIB_BUILD_ARGS}
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a <INSTALL_DIR>/lib/libkokkoscontainers.a
   )
@@ -114,7 +119,7 @@ if(DOWNLOAD_KOKKOS)
   add_dependencies(LAMMPS::KOKKOSCORE kokkos_build)
   add_dependencies(LAMMPS::KOKKOSCONTAINERS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 5.0.0 REQUIRED CONFIG)
+  find_package(Kokkos 5.1.0 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
@@ -154,11 +159,13 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/neigh_list_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/neigh_bond_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_sphere_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
-                       ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
+                       ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/rand_pool_wrap_kokkos.cpp)
 
 # fix wall/gran has been refactored in an incompatible way. Use old version of base class for now
 if(PKG_GRANULAR)
@@ -208,6 +215,11 @@ if(PKG_KSPACE)
       target_link_libraries(lammps PRIVATE nvpl::fftw)
   endif()
   target_compile_definitions(lammps PRIVATE -DFFT_KOKKOS_${FFT_KOKKOS})
+  if((FFT_KOKKOS STREQUAL "FFTW3") OR (FFT_KOKKOS STREQUAL "NVPL"))
+    if(FFT_FFTW_THREADS)
+      target_compile_definitions(lammps PRIVATE -DFFT_KOKKOS_FFTW_THREADS)
+    endif()
+  endif()
 endif()
 
 if(PKG_ML-IAP)

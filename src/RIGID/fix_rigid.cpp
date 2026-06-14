@@ -31,6 +31,7 @@
 #include "random_mars.h"
 #include "respa.h"
 #include "rigid_const.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
@@ -755,6 +756,10 @@ void FixRigid::init()
     int tmp;
     gvec = (double *) ifix->extract("gvec", tmp);
   }
+
+  // error for not supported superellipsoids
+
+  if (atom->superellipsoid_flag) error->all(FLERR,"Superellipsoids not supported in fix rigid");
 
   // timestep info
 
@@ -2385,7 +2390,7 @@ void FixRigid::write_restart_file(const char *file)
   if (comm->me) return;
 
   auto outfile = std::string(file) + ".rigid";
-  FILE *fp = fopen(outfile.c_str(),"w");
+  SafeFilePtr fp = fopen(outfile.c_str(),"w");
   if (fp == nullptr)
     error->one(FLERR,"Cannot open fix rigid restart file {}: {}",outfile,utils::getsyserror());
 
@@ -2419,7 +2424,6 @@ void FixRigid::write_restart_file(const char *file)
             angmom[i][0],angmom[i][1],angmom[i][2],xbox,ybox,zbox);
   }
 
-  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -2435,8 +2439,8 @@ double FixRigid::memory_usage()
   bytes += (double)maxvatom*6 * sizeof(double);    // vatom
   if (extended) {
     bytes += (double)nmax * sizeof(int);
-    if (orientflag) bytes = (double)nmax*orientflag * sizeof(double);
-    if (dorientflag) bytes = (double)nmax*3 * sizeof(double);
+    if (orientflag) bytes += (double)nmax*orientflag * sizeof(double);
+    if (dorientflag) bytes += (double)nmax*3 * sizeof(double);
   }
   return bytes;
 }

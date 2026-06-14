@@ -32,12 +32,12 @@ class PairSWMODOMP : public PairSWOMP {
 
  public:
   PairSWMODOMP(class LAMMPS *);
+  void settings(int, char **) override;
 
  protected:
   double delta1;
   double delta2;
 
-  void settings(int, char **) override;
   void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
                  int, double &) override;
 };

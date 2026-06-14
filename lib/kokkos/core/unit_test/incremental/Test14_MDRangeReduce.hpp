@@ -28,16 +28,6 @@ struct MyComplex {
   MyComplex(value_type re, value_type im) : _re(re), _im(im) {}
 
   KOKKOS_INLINE_FUNCTION
-  MyComplex(const MyComplex& src) : _re(src._re), _im(src._im) {}
-
-  KOKKOS_INLINE_FUNCTION
-  MyComplex& operator=(const MyComplex& src) {
-    _re = src._re;
-    _im = src._im;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void operator+=(const MyComplex& src) {
     _re += src._re;
     _im += src._im;
@@ -151,14 +141,10 @@ struct TestMDRangeReduce {
 TEST(TEST_CATEGORY, incr_14_MDrangeReduce) {
   TestMDRangeReduce<TEST_EXECSPACE> test;
   test.reduce_MDRange();
-// FIXME_OPENMPTARGET: custom reductions are not yet supported in the
-// OpenMPTarget backend.
 // FIXME_OPENACC: custom reductions are not yet supported in the
 // OpenACC backend.
-#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
 #if !defined(KOKKOS_ENABLE_OPENACC)
   test.reduce_custom();
-#endif
 #endif
 }
 

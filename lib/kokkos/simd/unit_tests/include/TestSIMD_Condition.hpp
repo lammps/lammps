@@ -95,8 +95,8 @@ TEST(simd, host_condition) {
 }
 
 TEST(simd, device_condition) {
-  Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::IndexType<int>>(0, 1),
-                       simd_device_condition_functor());
+  Kokkos::parallel_for(1, simd_device_condition_functor());
+  Kokkos::fence();
 }
 
 #endif

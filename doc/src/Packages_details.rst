@@ -80,6 +80,7 @@ gives those details.
    * :ref:`MGPT <PKG-MGPT>`
    * :ref:`MISC <PKG-MISC>`
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
+   * :ref:`ML-RUNNER <PKG-ML-RUNNER>`
    * :ref:`ML-IAP <PKG-ML-IAP>`
    * :ref:`ML-PACE <PKG-ML-PACE>`
    * :ref:`ML-POD <PKG-ML-POD>`
@@ -200,6 +201,10 @@ D. Immel, R. Drautz and G. Sutmann, "Adaptive-precision potentials for
 large-scale atomistic simulations", J. Chem. Phys. 162, 114119 (2025)
 `link <immel2025_doi_>`_
 
+D. Immel, R. Drautz and G. Sutmann, "Conservative adaptive-precision
+interatomic potentials", arXiv:2512.07693
+`link <immel2026_doi_>`_
+
 Adaptive-precision means, that a fast interatomic potential, such as EAM,
 is coupled to a precise interatomic potential, such as ACE.
 This package provides the required pair_styles and fixes to run an efficient,
@@ -209,6 +214,7 @@ In the context of this package, precision refers to the accuracy of an interatom
 potential.
 
 .. _immel2025_doi: https://doi.org/10.1063/5.0245877
+.. _immel2026_doi: https://doi.org/10.48550/arXiv.2512.07693
 
 **Authors:**
 
@@ -232,6 +238,7 @@ The APIP package requires also the installation of ML-PACE, which has
 * ``examples/PACKAGES/apip``
 * :doc:`fix atom_weight/apip <fix_atom_weight_apip>`
 * :doc:`fix lambda/apip <fix_lambda_apip>`
+* :doc:`fix lambda/la/csp/apip <fix_lambda_la_csp_apip>`
 * :doc:`fix lambda_thermostat/apip <fix_lambda_thermostat_apip>`
 * :doc:`pair_style eam/apip <pair_eam_apip>`
 * :doc:`pair_style lambda/zone/apip <pair_lambda_zone_apip>`
@@ -247,8 +254,8 @@ ASPHERE package
 
 **Contents:**
 
-Computes, time-integration fixes, and pair styles for aspherical
-particle models including ellipsoids, 2d lines, and 3d triangles.
+Computes, time-integration fixes, and pair styles for aspherical particle models
+including ellipsoids, granular superellipsoids, 2d lines, and 3d triangles.
 
 **Supporting info:**
 
@@ -257,6 +264,9 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
 * :doc:`pair_style ylz <pair_ylz>`
+* :doc:`pair_style line/lj <pair_line_lj>`
+* :doc:`pair_style tri/lj <pair_tri_lj>`
+* :doc:`pair_style granular/superellipsoid <pair_granular_superellipsoid>`
 * `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
 * `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * ``examples/ASPHERE``
@@ -281,12 +291,46 @@ N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
 molecular liquids", J. Chem. Phys. 143, 243148 (2015).
 
-**Authors:** Nicholas J. H. Dunn and Michael R. DeLyser (The
-Pennsylvania State University)
+The package also includes a pair_style that flexibly defines interactions
+as a function of the local density and/or gradient of the local density
+around a central particle.  Its per-atom local-density data can be written
+out with :doc:`fix pair <fix_pair>` in a form that is compatible with the
+Bottom-up Open-source Coarse-graining Software (BOCS), an external
+coarse-graining package that can be used to parameterize such potentials
+from atomistic simulation data (see link below).
+
+The package is compatible with molecular topologies, allows the user to
+specify the length-scale and weighting functions for multiple types of
+local densities, and distinguishes asymmetric local density potentials.
+(e.g. distinct potentials can govern 1.) solute density around solvent
+molecules and 2.) solvent density around solute molecules)
+
+The local density potentials implemented define "local density" flexibly
+with different choices of indicator weighting functions and asymmetry in
+interactions as generically described in: Michael R. DeLyser
+and W. G. Noid (2019). "Analysis of local density potentials" The
+Journal of Chemical Physics 151, : 224106 DOI: 10.1063/1.5128665
+
+The square gradient potential implementation is described in:
+Michael R. DeLyser and W. G. Noid (2021) "Coarse-grained models for
+local density gradients" The Journal of Chemical Physics, 156, 034106
+DOI: 10.1063/5.0075291
+
+
+**Authors:**
+- Nicholas J. H. Dunn and Michael R. DeLyser (The Pennsylvania State University) for :doc:`fix bocs <fix_bocs>`
+-  Michael R. DeLyser, Maria Lesniewski and Will Noid (The Pennsylvania State University) for :doc:`pair_style ldd <pair_ldd>`
 
 **Supporting info:**
 
-The BOCS package for LAMMPS is part of the BOCS software package:
+* ``src/BOCS``: filenames -> commands
+* ``src/BOCS/README``
+* ``examples/PACKAGES/bocs``
+*  :doc:`fix bocs <fix_bocs>`
+* :doc:`Howto_ldd <Howto_ldd>`
+* :doc:`pair_style ldd <pair_ldd>`
+
+The BOCS package in LAMMPS is part of the BOCS software package:
 `https://github.com/noid-group/BOCS <https://github.com/noid-group/BOCS>`_
 
 See the following reference for information about the entire package:
@@ -359,14 +403,15 @@ BROWNIAN package
 
 **Contents:**
 
-This package provides :doc:`fix brownian, fix brownian/sphere, and
-fix brownian/asphere <fix_brownian>` as well as
-:doc:`fix propel/self <fix_propel_self>` which allow to do Brownian
-Dynamics time integration of point, spherical and aspherical particles
-and also support self-propelled particles.
+This package provides :doc:`fix brownian, fix brownian/sphere, and fix
+brownian/asphere <fix_brownian>` as well as :doc:`fix propel/self
+<fix_propel_self>` which allow performing Brownian Dynamics time
+integration of point, spherical and aspherical particles and also
+support self-propelled particles.
 
-**Authors:** Sam Cameron (University of Bristol), Arthur Straube (Zuse Institute Berlin),
-Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
+**Authors:** Sam Cameron (University of Bristol), Arthur Straube (Zuse
+Institute Berlin), Stefan Paquay (while at Brandeis University) (initial
+version of fix propel/self)
 
 .. versionadded:: 14May2021
 
@@ -399,9 +444,11 @@ and :ref:`ASPHERE <PKG-ASPHERE>` packages are installed.
 * ``src/CG-DNA/README``
 * :doc:`pair_style oxdna/\* <pair_oxdna>`
 * :doc:`pair_style oxdna2/\* <pair_oxdna2>`
+* :doc:`pair_style oxdna3/\* <pair_oxdna3>`
 * :doc:`pair_style oxrna2/\* <pair_oxrna2>`
 * :doc:`bond_style oxdna/\* <bond_oxdna>`
 * :doc:`bond_style oxdna2/\* <bond_oxdna>`
+* :doc:`bond_style oxdna3/\* <bond_oxdna>`
 * :doc:`bond_style oxrna2/\* <bond_oxdna>`
 * :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 * ``examples/PACKAGES/cgdna``
@@ -512,6 +559,7 @@ the :doc:`Build extras <Build_extras>` page.
 **Supporting info:**
 
 * ``src/COLVARS``: filenames -> commands
+* https://colvars.github.io/master/colvars-refman-lammps.html
 * `doc/PDF/colvars-refman-lammps.pdf <PDF/colvars-refman-lammps.pdf>`_
 * ``src/COLVARS/README``
 * ``lib/colvars/README``
@@ -1016,6 +1064,8 @@ package in ``tools/fep``; see its ``README`` file.
 * :doc:`fix adapt/fep <fix_adapt_fep>`
 * :doc:`compute fep <compute_fep>`
 * :doc:`pair_style \*/soft <pair_fep_soft>`
+* :doc:`pair_style coul/cut/soft/gapsys <pair_fep_soft>`
+* :doc:`pair_style lj/cut/soft/gapsys <pair_fep_soft>`
 * ``examples/PACKAGES/fep``
 * tools/fep/README
 * tools/fep
@@ -1075,7 +1125,7 @@ GRAPHICS package
 Dump styles :doc:`image and movie <dump_image>`, supporting classes for
 rendering images and fonts, several fixes for adding graphics objects to
 visualizations, and the region2vmd command for exporting visualizations
-of regions scripted graphics in VMD.
+of regions as scripted graphics in VMD.
 
 **Supporting info:**
 
@@ -1086,9 +1136,15 @@ of regions scripted graphics in VMD.
 * :doc:`fix graphics/arrows <fix_graphics_arrows>`
 * :doc:`fix graphics/isosurface <fix_graphics_isosurface>`
 * :doc:`fix graphics/labels <fix_graphics_labels>`,
+* :doc:`fix graphics/lines <fix_graphics_lines>`,
 * :doc:`fix graphics/objects <fix_graphics_objects>`,
 * :doc:`fix graphics/periodic <fix_graphics_periodic>`,
 * :doc:`region2vmd <region2vmd>`
+* https://www.youtube.com/watch?v=9HEsGaOsdik
+* https://www.youtube.com/watch?v=f4hfPs7aCmI
+* https://www.youtube.com/shorts/1QEjIITapwQ
+* https://www.youtube.com/shorts/OYn_VVodnIg
+* https://www.youtube.com/shorts/4Cm5p0SfgNU
 
 ----------
 
@@ -1164,7 +1220,7 @@ INTEL package
 **Contents:**
 
 Dozens of pair, fix, bond, angle, dihedral, improper, and kspace styles
-which are optimized for Intel CPUs and KNLs (Knights Landing).  All of
+which are optimized for Intel CPUs.  All of
 them have an "intel" in their style name.  The :doc:`INTEL package
 <Speed_intel>` page gives details of what hardware and compilers are
 required on your system, and how to build and use this package.  Its
@@ -1306,12 +1362,12 @@ Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`, :ref:`INTEL
 <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which have styles
 optimized for CPUs, KNLs, and GPUs.
 
-You must have a C++17 compatible compiler to use this package.
-KOKKOS makes extensive use of advanced C++ features, which can
-expose compiler bugs, especially when compiling for maximum
-performance at high optimization levels. Please see the file
-``lib/kokkos/README`` for a list of compilers and their respective
-platforms, that are known to work.
+You must have a C++20 compatible compiler to use this package.  KOKKOS
+makes extensive use of advanced C++ features, which can expose compiler
+bugs, especially when compiling for maximum performance at high
+optimization levels.  Please see the file ``lib/kokkos/README`` for a
+list of compilers and their respective platforms, that are known to
+work.
 
 **Authors:** The KOKKOS package was created primarily by Christian Trott
 and Stan Moore (Sandia), with contributions from other folks as well.
@@ -1393,7 +1449,8 @@ Ontario).
 
 **Install:**
 
-The LATBOLTZ package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
+The LATBOLTZ package requires that LAMMPS is built in :ref:`MPI parallel
+mode <serial>`.
 
 **Supporting info:**
 
@@ -1545,17 +1602,18 @@ MBX Package
 
 **Contents**
 
-The pair_style mbx command implements the MBX library for
-MB-pol and MB-nrg data-driven many-body potential energy functions. MBX
-is called using :doc:`pair_style mbx <pair_mbx>` command, which
-allow for MB-nrg potentials such as MB-pol to be used in LAMMPS.
-For more information on MBX, see the `MBX library <https://mbxsimulations.com>`_ website.
+The pair_style mbx command implements the MBX library for MB-pol and
+MB-nrg data-driven many-body potential energy functions. MBX is called
+using :doc:`pair_style mbx <pair_mbx>` command, which allows for MB-nrg
+potentials such as MB-pol to be used in LAMMPS.  For more information on
+MBX, see the `MBX library <https://mbxsimulations.com>`_ website.
 
-**Authors:** The `MBX library <https://mbxsimulations.com>`_ is developed
-by the Paesani group at the University of California, San Diego. Major contributors
-include: Marc Riera, Christopher Knight, Ethan Bull-Vulpe, and Henry Agnew.
+**Authors:** The `MBX library <https://mbxsimulations.com>`_ is
+developed by the Paesani group at the University of California, San
+Diego. Major contributors include: Marc Riera, Christopher Knight, Ethan
+Bull-Vulpe, and Henry Agnew.
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 **Install:**
 
@@ -1580,8 +1638,8 @@ MC package
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand canonical
-MC (GCMC), semi-grand canonical MC (SGCMC), or similar processes in
-conjunction with molecular dynamics (MD).
+MC (GCMC), semi-grand canonical MC (SGCMC), Gibbs ensemble MC (GEMC)
+or similar processes in conjunction with molecular dynamics (MD).
 
 **Supporting info:**
 
@@ -1593,6 +1651,10 @@ conjunction with molecular dynamics (MD).
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix gemc <fix_gemc>`
+* :doc:`fix hmc <fix_hmc>`
+* :doc:`fix mol/swap <fix_mol_swap>`
+* :doc:`fix neighbor/swap <fix_neighbor_swap>`
 * :doc:`fix sgcmc <fix_sgcmc>`
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`
@@ -1779,10 +1841,10 @@ ML-HDNNP package
 
 **Contents:**
 
-A :doc:`pair_style hdnnp <pair_hdnnp>` command which allows to use
-high-dimensional neural network potentials (HDNNPs), a form of machine learning
-potentials. HDNNPs must be carefully trained prior to their application in a
-molecular dynamics simulation.
+A :doc:`pair_style hdnnp <pair_hdnnp>` command which allows the use of
+high-dimensional neural network potentials (HDNNPs), a form of machine
+learning potentials.  HDNNPs must be carefully trained prior to their
+application in a molecular dynamics simulation.
 
 .. _n2p2: https://github.com/CompPhysVienna/n2p2
 
@@ -1805,6 +1867,38 @@ This package has :ref:`specific installation instructions <ml-hdnnp>` on the
 * ``lib/hdnnp/README``
 * :doc:`pair_style hdnnp <pair_hdnnp>`
 * ``examples/PACKAGES/hdnnp``
+
+----------
+
+.. _PKG-ML-RUNNER:
+
+ML-RUNNER package
+------------------
+**Contents:**
+A :doc:`pair_style runner <pair_runner>` command for the efficient evaluation of
+second-, third-, and fourth-generation high-dimensional neural network
+potentials (HDNNPs).
+
+.. _runner: https://www.theochem2.ruhr-uni-bochum.de/tc/software/runner.html.en
+
+To use this package you must have the `RuNNer <runner_>`_ library compiled on
+your system.
+
+**Authors:** K. Nikolas Lausch, Alexander L. M. Knoll, Moritz R. Schaefer,
+             Gunnar Schmitz, Joerg Behler (Ruhr-University Bochum)
+
+**Install:**
+
+This package has :ref:`specific installation instructions <ml-runner>` on the
+:doc:`Build extras <Build_extras>` page.
+
+.. versionadded:: TBD
+
+**Supporting info:**
+
+* ``src/ML-RUNNER``: filenames -> commands
+* :doc:`pair_style runner <pair_runner>`
+* ``examples/PACKAGES/ml-runner`` (see README.txt)
 
 ----------
 
@@ -2727,24 +2821,26 @@ SCAFACOS package
 
 **Contents:**
 
-A KSpace style which wraps the `ScaFaCoS Coulomb solver library <http://www.scafacos.de/>`_ to compute long-range Coulombic
+A KSpace style which wraps the `ScaFaCoS Coulomb solver library
+<http://www.scafacos.de/>`_ to compute long-range Coulombic
 interactions.
 
-To use this package you must have the ScaFaCoS library available on
-your system.
+To use this package you must have the ScaFaCoS library available on your
+system.
 
 **Author:** Rene Halver (JSC) wrote the scafacos LAMMPS command.
 
 ScaFaCoS itself was developed by a consortium of German research
-facilities with a BMBF (German Ministry of Science and Education)
-funded project in 2009-2012. Participants of the consortium were the
-Universities of Bonn, Chemnitz, Stuttgart, and Wuppertal as well as
-the Forschungszentrum Juelich.
+facilities with a BMBF (German Ministry of Science and Education) funded
+project in 2009-2012. Participants of the consortium were the
+Universities of Bonn, Chemnitz, Stuttgart, and Wuppertal as well as the
+Forschungszentrum Juelich.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <scafacos>` on the :doc:`Build extras <Build_extras>` page.
-The SCAFACOS package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
+This package has :ref:`specific installation instructions <scafacos>` on
+the :doc:`Build extras <Build_extras>` page.  The SCAFACOS package
+requires that LAMMPS is built in :ref:`MPI parallel mode <serial>`.
 
 **Supporting info:**
 
@@ -2963,7 +3059,7 @@ VORONOI package
 A compute command which calculates the Voronoi tesselation of a
 collection of atoms by wrapping the `Voro++ library
 <https://math.lbl.gov/voro++/>`_.  This can be used to calculate the
-local volume or each atoms or its near neighbors.
+local volume of atoms or their near neighbors.
 
 To use this package you must have the Voro++ library available on your
 system.

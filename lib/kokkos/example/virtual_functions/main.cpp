@@ -3,6 +3,8 @@
 
 #include <classes.hpp>
 
+#include <new>
+
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
 

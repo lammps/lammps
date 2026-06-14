@@ -695,7 +695,11 @@ class TestDynViewAPI {
   }
 
   static void run_operator_test_rank67() {
+    // FIXME_CLANG 22 The test triggers an internal compiler error in clang 22.
+#if !defined(KOKKOS_COMPILER_CLANG) || (KOKKOS_COMPILER_CLANG < 2200) || \
+    (KOKKOS_COMPILER_CLANG > 2210)
     TestViewOperator_LeftAndRight<int, device, 7>::testit(2, 3, 4, 2, 3, 4, 2);
+#endif
     TestViewOperator_LeftAndRight<int, device, 6>::testit(2, 3, 4, 2, 3, 4);
   }
 
@@ -1686,8 +1690,8 @@ class TestDynViewAPI {
     ASSERT_EQ(ds5.extent(4), ds5plus.extent(4));
     ASSERT_EQ(ds5.extent(5), ds5plus.extent(5));
 
-#if (!defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_CUDA_UVM)) && \
-    !defined(KOKKOS_ENABLE_HIP) && !defined(KOKKOS_ENABLE_SYCL)
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
+    !defined(KOKKOS_ENABLE_SYCL)
     ASSERT_EQ(&ds5(1, 1, 1, 1, 0) - &ds5plus(1, 1, 1, 1, 0), 0);
     ASSERT_EQ(&ds5(1, 1, 1, 1, 0, 0) - &ds5plus(1, 1, 1, 1, 0, 0),
               0);  // passing argument to rank beyond the view's rank is allowed

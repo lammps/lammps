@@ -22,8 +22,10 @@ struct HierarchicalBasics {
   using team_t   = typename policy_t::member_type;
 
   void run(const int nP, int nT) {
-    int const concurrency = ExecSpace().concurrency();
-    if (nT > concurrency) nT = concurrency;
+    int const max_team_size = policy_t(1, Kokkos::AUTO)
+                                  .team_size_max(KOKKOS_LAMBDA(const team_t){},
+                                                 Kokkos::ParallelForTag{});
+    if (nT > max_team_size) nT = max_team_size;
 
     policy_t pol(nP, nT);
 
@@ -60,16 +62,9 @@ struct HierarchicalBasics {
 TEST(TEST_CATEGORY, IncrTest_10_Hierarchical_Basics) {
   HierarchicalBasics<TEST_EXECSPACE> test;
 
-  // OpenMPTarget backend only accepts >= 32 threads per team
-#if defined(KOKKOS_ENABLE_OPENMPTARGET)
-  test.run(1, 32);
-  test.run(8, 64);
-  test.run(11, 128);
-#else
   test.run(1, 4);
   test.run(8, 16);
   test.run(11, 13);
-#endif
 }
 
 }  // namespace Test

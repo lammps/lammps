@@ -100,7 +100,7 @@ previously used to define the lattice spacings.
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 This wall fix supports the *fix* keyword of :doc:`dump image
 <dump_image>`.  The fix will pass geometry information about the walls

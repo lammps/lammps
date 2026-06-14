@@ -93,20 +93,20 @@ certain whether they are an indication of an error.
 
 Some warning messages are printed during a run (or immediately before)
 each time a specific MPI rank encounters the issue (e.g., bonds that are
-stretched too far or dihedrals in extreme configurations). These number
+stretched too far or dihedrals in extreme configurations).  The number
 of these can quickly blow up the size of the log file and screen output.
-Thus, a limit of 100 warning messages is applied by default.  The warning
-count is applied to the entire input unless reset with a ``thermo_modify
-warn reset`` command.  If there are more warnings than the limit, LAMMPS
-will print one final warning that it will not print any additional
-warning messages.
+A limit of 100 warning messages is therefore applied by default.  The
+warning count is applied to the entire input file, unless it is reset
+with a ``thermo_modify warn reset`` command.  If there are more warnings
+than the limit, LAMMPS will print one final warning that it will not
+print any additional warning messages.
 
 .. note::
 
    The warning limit is enforced on either the per-processor count or
-   the total count across all processors. For efficiency reasons,
+   the total count across all MPI processes.  For efficiency reasons,
    however, the total count is only updated at steps with thermodynamic
-   output. Thus when running on a large number of processors in
+   output.  Thus when running on a large number of MPI processes in
    parallel, the total number of warnings printed can be significantly
    larger than the given limit.
 

@@ -29,8 +29,6 @@ TEST(TEST_CATEGORY, view_remap) {
 #define EXECSPACE                                                  \
   std::conditional_t<std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>, \
                      Kokkos::SYCLHostUSMSpace, TEST_EXECSPACE>
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-#define EXECSPACE Kokkos::HostSpace
 #else
 #define EXECSPACE TEST_EXECSPACE
 #endif

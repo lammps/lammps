@@ -108,9 +108,19 @@ class TeamPolicyInternal<Kokkos::Cuda, Properties...>
     return internal_team_size_max<closure_type>(f);
   }
 
-  template <class FunctorType, class ReducerType>
-  inline int team_size_max(const FunctorType& f, const ReducerType& /*r*/,
-                           const ParallelReduceTag&) const {
+  template <typename FunctorType, typename ReducerType>
+  inline int team_size_max(const FunctorType& f, const ReducerType& reducer,
+                           const ParallelReduceTag& tag) const {
+    using functor_analysis_type =
+        Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
+                              TeamPolicyInternal, ReducerType, void>;
+    return team_size_max_internal(
+        f, typename functor_analysis_type::Reducer{reducer}, tag);
+  }
+
+  template <typename FunctorType, typename ReducerType>
+  inline int team_size_max_internal(const FunctorType& f, const ReducerType&,
+                                    const ParallelReduceTag&) const {
     using closure_type =
         Impl::ParallelReduce<CombinedFunctorReducer<FunctorType, ReducerType>,
                              TeamPolicy<Properties...>, Kokkos::Cuda>;
@@ -147,9 +157,19 @@ class TeamPolicyInternal<Kokkos::Cuda, Properties...>
     return internal_team_size_recommended<closure_type>(f);
   }
 
-  template <class FunctorType, class ReducerType>
-  int team_size_recommended(const FunctorType& f, const ReducerType&,
-                            const ParallelReduceTag&) const {
+  template <typename FunctorType, typename ReducerType>
+  int team_size_recommended(const FunctorType& f, const ReducerType& reducer,
+                            const ParallelReduceTag& tag) const {
+    using functor_analysis_type =
+        Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
+                              TeamPolicyInternal, ReducerType, void>;
+    return team_size_recommended_internal(
+        f, typename functor_analysis_type::Reducer{reducer}, tag);
+  }
+
+  template <typename FunctorType, typename ReducerType>
+  int team_size_recommended_internal(const FunctorType& f, const ReducerType&,
+                                     const ParallelReduceTag&) const {
     using closure_type =
         Impl::ParallelReduce<CombinedFunctorReducer<FunctorType, ReducerType>,
                              TeamPolicy<Properties...>, Kokkos::Cuda>;
@@ -241,10 +261,13 @@ class TeamPolicyInternal<Kokkos::Cuda, Properties...>
 
     // Make sure total block size is permissible
     if (m_team_size * m_vector_length >
-        int(Impl::CudaTraits::MaxHierarchicalParallelism)) {
-      Impl::throw_runtime_exception(
-          std::string("Kokkos::TeamPolicy< Cuda > the team size is too large. "
-                      "Team size x vector length must be smaller than 1024."));
+        static_cast<int>(Impl::CudaTraits::MaxHierarchicalParallelism)) {
+      std::stringstream error;
+      error << "Kokkos::TeamPolicy<Cuda>: Requested too large team size. "
+               "Requested: "
+            << m_team_size << ", Maximum: "
+            << Impl::CudaTraits::MaxHierarchicalParallelism / m_vector_length;
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
   }
 
@@ -510,6 +533,12 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         *this, grid, block, shmem_size_total,
         m_policy.space()
             .impl_internal_space_instance());  // copy to device and execute
+
+    if (m_scratch_pool_id >= 0) {
+      m_policy.space()
+          .impl_internal_space_instance()
+          ->release_team_scratch_space(m_scratch_pool_id);
+    }
   }
 
   ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)
@@ -557,22 +586,30 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_policy.space().cuda_device_prop().sharedMemPerBlock;
     const int shmem_size_total = m_shmem_begin + m_shmem_size;
     if (maxShmemPerBlock < shmem_size_total) {
-      printf("%i %i\n", maxShmemPerBlock, shmem_size_total);
-      Kokkos::Impl::throw_runtime_exception(std::string(
-          "Kokkos::Impl::ParallelFor< Cuda > insufficient shared memory"));
+      std::stringstream error;
+      error << "Kokkos::parallel_for<Cuda>: Requested too much scratch memory "
+               "on level 0. Requested: "
+            << m_shmem_size
+            << ", Maximum: " << maxShmemPerBlock - m_shmem_begin;
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
+
+    if (m_scratch_size[1] > static_cast<size_t>(m_policy.scratch_size_max(1))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<Cuda>: Requested too much scratch memory "
+               "on level 1. Requested: "
+            << m_scratch_size[1]
+            << ", Maximum: " << m_policy.scratch_size_max(1);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
 
     if (m_team_size > arg_policy.team_size_max(arg_functor, ParallelForTag())) {
-      Kokkos::Impl::throw_runtime_exception(std::string(
-          "Kokkos::Impl::ParallelFor< Cuda > requested too large team size."));
-    }
-  }
-
-  ~ParallelFor() {
-    if (m_scratch_pool_id >= 0) {
-      m_policy.space()
-          .impl_internal_space_instance()
-          ->release_team_scratch_space(m_scratch_pool_id);
+      std::stringstream error;
+      error << "Kokkos::parallel_for<Cuda>: Requested too large team size. "
+               "Requested: "
+            << m_team_size << ", Maximum: "
+            << arg_policy.team_size_max(arg_functor, ParallelForTag());
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
   }
 };
@@ -855,6 +892,12 @@ class ParallelReduce<CombinedFunctorReducerType,
         m_functor_reducer.get_reducer().init(m_result_ptr);
       }
     }
+
+    if (m_scratch_pool_id >= 0) {
+      m_policy.space()
+          .impl_internal_space_instance()
+          ->release_team_scratch_space(m_scratch_pool_id);
+    }
   }
 
   template <class ViewType>
@@ -883,7 +926,7 @@ class ParallelReduce<CombinedFunctorReducerType,
         m_policy.space().impl_internal_space_instance();
 
     if (m_team_size < 0) {
-      m_team_size = arg_policy.team_size_recommended(
+      m_team_size = arg_policy.team_size_recommended_internal(
           arg_functor_reducer.get_functor(), arg_functor_reducer.get_reducer(),
           ParallelReduceTag());
       if (m_team_size <= 0)
@@ -946,26 +989,36 @@ class ParallelReduce<CombinedFunctorReducerType,
     }
 
     if (maxShmemPerBlock < shmem_size_total) {
-      Kokkos::Impl::throw_runtime_exception(
-          std::string("Kokkos::Impl::ParallelReduce< Cuda > requested too much "
-                      "L0 scratch memory"));
+      std::stringstream error;
+      error
+          << "Kokkos::parallel_reduce<Cuda>: Requested too much scratch memory "
+             "on level 0. Requested: "
+          << m_shmem_size
+          << ", Maximum: " << maxShmemPerBlock - m_shmem_begin - m_team_begin;
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
 
-    if (int(m_team_size) >
-        arg_policy.team_size_max(m_functor_reducer.get_functor(),
-                                 m_functor_reducer.get_reducer(),
-                                 ParallelReduceTag())) {
-      Kokkos::Impl::throw_runtime_exception(
-          std::string("Kokkos::Impl::ParallelReduce< Cuda > requested too "
-                      "large team size."));
+    if (m_scratch_size[1] > static_cast<size_t>(m_policy.scratch_size_max(1))) {
+      std::stringstream error;
+      error
+          << "Kokkos::parallel_reduce<Cuda>: Requested too much scratch memory "
+             "on level 1. Requested: "
+          << m_scratch_size[1] << ", Maximum: " << m_policy.scratch_size_max(1);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
-  }
 
-  ~ParallelReduce() {
-    if (m_scratch_pool_id >= 0) {
-      m_policy.space()
-          .impl_internal_space_instance()
-          ->release_team_scratch_space(m_scratch_pool_id);
+    if (m_team_size >
+        arg_policy.team_size_max_internal(m_functor_reducer.get_functor(),
+                                          m_functor_reducer.get_reducer(),
+                                          ParallelReduceTag())) {
+      std::stringstream error;
+      error << "Kokkos::parallel_reduce<Cuda>: Requested too large team size. "
+               "Requested: "
+            << m_team_size << ", Maximum: "
+            << arg_policy.team_size_max_internal(
+                   m_functor_reducer.get_functor(),
+                   m_functor_reducer.get_reducer(), ParallelReduceTag());
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
   }
 };

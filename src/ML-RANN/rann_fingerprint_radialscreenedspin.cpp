@@ -68,29 +68,23 @@ Fingerprint_radialscreenedspin::~Fingerprint_radialscreenedspin()
 bool Fingerprint_radialscreenedspin::parse_values(std::string constant,std::vector<std::string> line1) {
   int l;
   int nwords=line1.size();
-  if (constant.compare("re")==0) {
+  if (constant == "re") {
     re = strtod(line1[0].c_str(),nullptr);
-  }
-  else if (constant.compare("rc")==0) {
+  } else if (constant == "rc") {
     rc = strtod(line1[0].c_str(),nullptr);
-  }
-  else if (constant.compare("alpha")==0) {
+  } else if (constant == "alpha") {
     delete[] alpha;
     alpha = new double[nwords];
     for (l=0;l<nwords;l++) {
       alpha[l]=strtod(line1[l].c_str(),nullptr);
     }
-  }
-  else if (constant.compare("dr")==0) {
+  } else if (constant == "dr") {
     dr = strtod(line1[0].c_str(),nullptr);
-  }
-  else if (constant.compare("n")==0) {
+  } else if (constant == "n") {
     nmax = strtol(line1[0].c_str(),nullptr,10);
-  }
-  else if (constant.compare("o")==0) {
+  } else if (constant == "o") {
     omin = strtol(line1[0].c_str(),nullptr,10);
-  }
-  else pair->errorf(FLERR,"Undefined value for radial power");
+  } else pair->errorf(FLERR,"Undefined value for radial power");
   //code will run with default o=0 if o is never specified. All other values must be defined in potential file.
   if (re!=0 && rc!=0 && alpha!=nullptr && dr!=0 && nmax!=0)return true;
   return false;

@@ -62,7 +62,7 @@ inline constexpr bool use_shuffle_based_algorithm = false;
 template <typename ValueType, typename ReducerType, int dim>
 std::enable_if_t<!use_shuffle_based_algorithm<ReducerType>> workgroup_reduction(
     sycl::nd_item<dim>& item, sycl::local_accessor<ValueType> local_mem,
-    sycl_device_ptr<ValueType> results_ptr,
+    sycl::global_ptr<ValueType> results_ptr,
     sycl::global_ptr<ValueType> device_accessible_result_ptr,
     const unsigned int value_count_, const ReducerType& final_reducer,
     bool final, unsigned int max_size) {
@@ -133,7 +133,7 @@ std::enable_if_t<!use_shuffle_based_algorithm<ReducerType>> workgroup_reduction(
 template <typename ValueType, typename ReducerType, int dim>
 std::enable_if_t<use_shuffle_based_algorithm<ReducerType>> workgroup_reduction(
     sycl::nd_item<dim>& item, sycl::local_accessor<ValueType> local_mem,
-    ValueType local_value, sycl_device_ptr<ValueType> results_ptr,
+    ValueType local_value, sycl::global_ptr<ValueType> results_ptr,
     sycl::global_ptr<ValueType> device_accessible_result_ptr,
     const ReducerType& final_reducer, bool final, unsigned int max_size) {
   const auto local_id = item.get_local_linear_id();

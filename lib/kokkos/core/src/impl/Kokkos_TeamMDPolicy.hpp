@@ -103,7 +103,7 @@ KOKKOS_INLINE_FUNCTION auto nested_policy(
     TeamMDRangeMode<TeamMDRangeLastNestLevel::NotLastNestLevel,
                     TeamMDRangeParThread::ParThread,
                     TeamMDRangeParVector::NotParVector>,
-    TeamHandle const team, int count) {
+    TeamHandle const& team, int count) {
   return TeamThreadRange(team, count);
 }
 
@@ -112,7 +112,7 @@ KOKKOS_INLINE_FUNCTION auto nested_policy(
     TeamMDRangeMode<TeamMDRangeLastNestLevel::NotLastNestLevel,
                     TeamMDRangeParThread::NotParThread,
                     TeamMDRangeParVector::ParVector>,
-    TeamHandle const team, int count) {
+    TeamHandle const& team, int count) {
   return ThreadVectorRange(team, count);
 }
 
@@ -121,7 +121,7 @@ KOKKOS_INLINE_FUNCTION auto nested_policy(
     TeamMDRangeMode<TeamMDRangeLastNestLevel::NotLastNestLevel,
                     TeamMDRangeParThread::ParThread,
                     TeamMDRangeParVector::ParVector>,
-    TeamHandle const team, int count) {
+    TeamHandle const& team, int count) {
   return TeamVectorRange(team, count);
 }
 

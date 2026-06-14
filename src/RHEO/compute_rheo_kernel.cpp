@@ -714,7 +714,7 @@ void ComputeRHEOKernel::compute_peratom()
       if (coordination[i] < zmin) continue;
 
       // Use LAPACK to get Minv, use Cholesky decomposition since the
-      // polynomials are independent, M is symmetrix & positive-definite
+      // polynomials are independent, M is symmetric & positive-definite
       const char uplo = 'U';
       dpotrf_(&uplo, &Mdim, M, &Mdim, &lapack_error);
 
@@ -742,7 +742,7 @@ void ComputeRHEOKernel::compute_peratom()
       }
 
       // Correction coefficients are columns of M^-1 multiplied by an appropriate coefficient
-      // Solve the linear system several times to get coefficientns
+      // Solve the linear system several times to get coefficients
       // M:    1   x   y  (z)  x^2  y^2 (z^2) xy   (xz)   (yz)
       // ----------------------------------------------------------
       //       0   1   2       3     4        5                 || 2D indexing
@@ -764,7 +764,7 @@ void ComputeRHEOKernel::compute_peratom()
         for (b = 0; b < dim; b++) {
           //First derivatives
           C[i][1 + b][a] = -M[a * Mdim + b + 1] * cutinv;
-          // columns 1-2 (2D)  or 1-3 (3D)
+          // columns 1-2 (2D) or 1-3 (3D)
 
           //Second derivatives
           if (kernel_style == RK2) C[i][1 + dim + b][a] = M[a * Mdim + b + 1 + dim] * cutsqinv;

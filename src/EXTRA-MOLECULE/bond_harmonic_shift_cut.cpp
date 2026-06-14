@@ -41,6 +41,7 @@ BondHarmonicShiftCut::BondHarmonicShiftCut(LAMMPS *lmp) : Bond(lmp)
 
 BondHarmonicShiftCut::~BondHarmonicShiftCut()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

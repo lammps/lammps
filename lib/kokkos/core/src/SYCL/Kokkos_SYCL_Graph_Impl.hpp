@@ -19,6 +19,9 @@ namespace Kokkos {
 namespace Impl {
 template <>
 class GraphImpl<Kokkos::SYCL> {
+ private:
+  using device_handle_t = Kokkos::Impl::DeviceHandle<Kokkos::SYCL>;
+
  public:
   using node_details_t = GraphNodeBackendSpecificDetails<Kokkos::SYCL>;
   using root_node_impl_t =
@@ -42,9 +45,9 @@ class GraphImpl<Kokkos::SYCL> {
 
   ~GraphImpl();
 
-  explicit GraphImpl(Kokkos::SYCL instance);
+  explicit GraphImpl(const device_handle_t& device_handle);
 
-  GraphImpl(Kokkos::SYCL instance, native_graph_t native_graph);
+  GraphImpl(const device_handle_t& device_handle, native_graph_t native_graph);
 
   void add_node(std::shared_ptr<aggregate_node_impl_t> const& arg_node_ptr);
 
@@ -68,7 +71,7 @@ class GraphImpl<Kokkos::SYCL> {
 
   void submit(const Kokkos::SYCL& exec);
 
-  Kokkos::SYCL const& get_execution_space() const noexcept;
+  auto get_device_handle() const noexcept -> device_handle_t const&;
 
   auto create_root_node_ptr();
 
@@ -84,7 +87,7 @@ class GraphImpl<Kokkos::SYCL> {
   auto& sycl_graph_exec() { return m_graph_exec; }
 
  private:
-  Kokkos::SYCL m_execution_space;
+  device_handle_t m_device_handle;
   native_graph_t m_graph;
   std::optional<sycl::ext::oneapi::experimental::command_graph<
       sycl::ext::oneapi::experimental::graph_state::executable>>
@@ -94,18 +97,18 @@ class GraphImpl<Kokkos::SYCL> {
 };
 
 inline GraphImpl<Kokkos::SYCL>::~GraphImpl() {
-  m_execution_space.fence("Kokkos::GraphImpl::~GraphImpl: Graph Destruction");
+  m_device_handle.m_exec.fence(
+      "Kokkos::GraphImpl::~GraphImpl: Graph Destruction");
 }
 
-inline GraphImpl<Kokkos::SYCL>::GraphImpl(Kokkos::SYCL instance)
-    : m_execution_space(std::move(instance)),
-      m_graph(m_execution_space.sycl_queue().get_context(),
-              m_execution_space.sycl_queue().get_device()) {}
+inline GraphImpl<Kokkos::SYCL>::GraphImpl(const device_handle_t& device_handle)
+    : m_device_handle(device_handle),
+      m_graph(m_device_handle.m_exec.sycl_queue().get_context(),
+              m_device_handle.m_exec.sycl_queue().get_device()) {}
 
-inline GraphImpl<Kokkos::SYCL>::GraphImpl(Kokkos::SYCL instance,
+inline GraphImpl<Kokkos::SYCL>::GraphImpl(const device_handle_t& device_handle,
                                           native_graph_t native_graph)
-    : m_execution_space(std::move(instance)),
-      m_graph(std::move(native_graph)) {}
+    : m_device_handle(device_handle), m_graph(std::move(native_graph)) {}
 
 inline void GraphImpl<Kokkos::SYCL>::add_node(
     std::shared_ptr<aggregate_node_impl_t> const& arg_node_ptr) {
@@ -190,14 +193,14 @@ inline void GraphImpl<Kokkos::SYCL>::submit(const Kokkos::SYCL& exec) {
   exec.sycl_queue().ext_oneapi_graph(*m_graph_exec);
 }
 
-inline Kokkos::SYCL const& GraphImpl<Kokkos::SYCL>::get_execution_space()
-    const noexcept {
-  return m_execution_space;
+inline auto GraphImpl<Kokkos::SYCL>::get_device_handle() const noexcept
+    -> device_handle_t const& {
+  return m_device_handle;
 }
 
 inline auto GraphImpl<Kokkos::SYCL>::create_root_node_ptr() {
   KOKKOS_EXPECTS(!m_graph_exec);
-  auto rv = std::make_shared<root_node_impl_t>(get_execution_space(),
+  auto rv                  = std::make_shared<root_node_impl_t>(m_device_handle,
                                                _graph_node_is_root_ctor_tag{});
   rv->node_details_t::node = m_graph.add();
   return rv;
@@ -211,7 +214,7 @@ inline auto GraphImpl<Kokkos::SYCL>::create_aggregate_ptr(
   // each predecessor ref, so all we need to do here is create the (trivial)
   // aggregate node.
   return std::make_shared<aggregate_node_impl_t>(
-      m_execution_space, _graph_node_kernel_ctor_tag{}, aggregate_impl_t{});
+      m_device_handle, _graph_node_kernel_ctor_tag{}, aggregate_impl_t{});
 }
 }  // namespace Impl
 }  // namespace Kokkos

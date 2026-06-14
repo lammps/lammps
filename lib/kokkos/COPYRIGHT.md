@@ -203,4 +203,3 @@ Date Range: 2022-09-20 -- 2019-06-24
 - Scott Kruger; OTHER; scott.e.kruger@gmail.com
 - Christoph Junghans; OTHER; junghans@votca.org
 - Daniel Holladay; OTHER; dholladay00@lanl.gov
-

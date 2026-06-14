@@ -768,6 +768,11 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/, 
   svector[7] = vt1;
   svector[8] = vt2;
   svector[9] = vt3;
+  // TODO to LAMMPS:
+  // doc says The last 3 (8-10) the components of the relative velocity in the tangential direction
+  // `vt` is the relative translational velocity only, i.e., it ignores the angular velocity.
+  // the total relative tangent velocity should be `vtr`.
+  // Should that be corrected? That would break backward compatibility, and this is "legacy code" anyway
 
   return 0.0;
 }

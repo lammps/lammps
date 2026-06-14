@@ -79,10 +79,11 @@ About once a year, we release a *stable release* version of LAMMPS.
 This is done after a "stabilization period" where we apply only bug
 fixes and small, non-intrusive changes to the *develop* branch but no
 new features to the core code.  At the same time, the code is subjected
-to more detailed and thorough manual testing than the default automated
-testing.  After such a *stable release*, both the *release* and the
-*stable* branches are updated and two tags are applied, a
-``patch_1May2014`` format and a ``stable_1May2014`` format tag.
+to more detailed and thorough manual testing that goes beyond the
+automated testing done by default.  After such a *stable release*, both
+the *release* and the *stable* branches are updated and two tags are
+applied, a ``patch_1May2014`` format and a ``stable_1May2014`` format
+tag.
 
 Stable Release Updates
 """"""""""""""""""""""
@@ -92,4 +93,5 @@ back-ported from the *develop* branch in a branch called *maintenance*.
 From the *maintenance* branch we make occasional *stable update
 releases* and update the *stable* branch accordingly.  The first update
 to the ``stable_1May2014`` release would be tagged as
-``stable_1May2014_update1``.  These updates contain no new features.
+``stable_1May2014_update1``.  These updates contain no new features
+and are intended to be fully backward compatible.

@@ -138,7 +138,6 @@ void run_single_scenario(const InfoType& scenario_info) {
                                 [=](bool v) { return v == gold; });
   EXPECT_TRUE(allA) << name << ", " << view_tag_to_string(Tag{});
 
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
   CustomLessThanComparator<ValueType, ValueType> comp;
   std::vector<bool> resultsB(4);
   resultsB[0] =
@@ -150,7 +149,6 @@ void run_single_scenario(const InfoType& scenario_info) {
   const auto allB = std::all_of(resultsB.cbegin(), resultsB.cend(),
                                 [=](bool v) { return v == gold; });
   EXPECT_TRUE(allB) << name << ", " << view_tag_to_string(Tag{});
-#endif
 
   Kokkos::fence();
 }

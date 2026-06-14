@@ -48,7 +48,7 @@ Syntax
              gain = proportional gain constant (1/(time * pressure) or 1/time units)
 
        *xy*, *xz*, *yz* args = style value
-         style = *final* or *delta* or *vel* or *erate* or *trate* or *wiggle* or *variable* or *pressure* or *erate/rescale*
+         style = *final* or *delta* or *vel* or *erate* or *erate/rescale* or *trate* or *wiggle* or *variable* or *pressure*
            *final* value = tilt
              tilt = tilt factor at end of run (distance units)
            *delta* value = dtilt
@@ -71,8 +71,6 @@ Syntax
            *pressure* values = target gain
              target = target pressure (pressure units)
              gain = proportional gain constant (1/(time * pressure) or 1/time units)
-           *erate/rescale* value = R
-             R = engineering shear strain rate (1/time units)
 
        *box* = style value
          style = *volume* or *pressure*
@@ -221,21 +219,6 @@ appropriate value of :math:`k` as it will depend on the specific
 details of a simulation and testing different values is
 recommended. One can also apply a maximum limit to the magnitude of
 the applied strain using the :ref:`max/rate <deform_max_rate>` option.
-
-The *erate/rescale* style operates similarly to the *erate* style with
-a specified strain rate in units of 1/time. The difference is that
-the change in the tilt factor will depend on the current length of
-the box perpendicular to the shear direction, *L*, instead of the
-original length, *L0*. The tilt factor T as a function of time will
-change as
-
-.. math::
-
-   T(t) = T(t-1) + L \cdot \mathrm{erate} \cdot \Delta t
-
-where T(t-1) is the tilt factor on the previous timestep and
-:math:`\Delta t` is the timestep size. This option may be useful
-in scenarios where *L* changes in time.
 
 ----------
 

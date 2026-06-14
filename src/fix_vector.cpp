@@ -159,7 +159,8 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
 
   vector = nullptr;
   array = nullptr;
-  ncount = ncountmax = nindex = 0;
+  ncount = nindex = 0;
+  ncountmax = 1;
   if (values.size() == 1)
     size_vector = 0;
   else
@@ -226,6 +227,7 @@ void FixVector::init()
   bigint finalstep = update->endstep / nevery * nevery;
   if (finalstep > update->endstep) finalstep -= nevery;
   ncountmax = (finalstep - initialstep) / nevery + 1;
+  if (ncountmax <= 0) ncountmax = 1;
   if (ncountmax > nmaxval) ncountmax = nmaxval;
   if (values.size() == 1)
     memory->grow(vector, ncountmax, "vector:vector");

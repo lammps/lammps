@@ -25,6 +25,7 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 
 #include <cmath>
@@ -1009,7 +1010,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   }
 
   int unit_convert = auto_convert;
-  FILE *fp = utils::open_potential(filename, lmp, &unit_convert);
+  SafeFilePtr fp = utils::open_potential(filename, lmp, &unit_convert);
   conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
 
   if (fp == nullptr) {
@@ -1017,8 +1018,6 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   }
 
   parse(fp);
-
-  fclose(fp);
 }
 
 std::pair<std::string, std::string> EIMPotentialFileReader::get_pair(const std::string &a, const std::string &b) {

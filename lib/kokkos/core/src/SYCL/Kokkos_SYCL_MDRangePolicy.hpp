@@ -29,11 +29,8 @@ inline TileSizeProperties get_tile_size_properties<Kokkos::SYCL>(
   TileSizeProperties properties;
   properties.max_threads =
       space.impl_internal_space_instance()->m_maxWorkgroupSize;
-  properties.default_largest_tile_size = 16;
-  properties.default_tile_size         = 2;
-  properties.max_total_tile_size       = properties.max_threads;
-
-  auto device = space.sycl_queue().get_device();
+  properties.max_total_tile_size = properties.max_threads;
+  auto device                    = space.sycl_queue().get_device();
   auto max_work_item_sizes =
       device.get_info<sycl::info::device::max_work_item_sizes<3>>();
   properties.max_threads_dimensions[0] = max_work_item_sizes[0];
@@ -41,6 +38,55 @@ inline TileSizeProperties get_tile_size_properties<Kokkos::SYCL>(
   properties.max_threads_dimensions[2] = max_work_item_sizes[2];
   return properties;
 }
+
+template <>
+struct TileSizeRecommended<Kokkos::SYCL> {
+  template <typename Policy>
+  static auto get(Policy const&) {
+    constexpr auto InnerDirection = Policy::inner_direction;
+    constexpr int Rank            = Policy::rank;
+
+    using tile_type = typename Policy::tile_type;
+
+    if constexpr (InnerDirection == Iterate::Left) {
+      if constexpr (Rank == 2) {
+        return tile_type{32, 8};
+      } else if constexpr (Rank == 3) {
+        return tile_type{32, 2, 4};
+      } else if constexpr (Rank == 4) {
+        return tile_type{16, 2, 2, 2};
+      } else if constexpr (Rank == 5) {
+        return tile_type{16, 2, 2, 2, 2};
+      } else if constexpr (Rank == 6) {
+        return tile_type{16, 2, 2, 2, 2, 1};
+      }
+      tile_type tile_sizes{};
+      for (int i = 0; i < Rank; ++i) {
+        tile_sizes[i] = 2;
+      }
+      tile_sizes[0] = 16;
+      return tile_sizes;
+    } else {
+      if constexpr (Rank == 2) {
+        return tile_type{8, 32};
+      } else if constexpr (Rank == 3) {
+        return tile_type{4, 2, 32};
+      } else if constexpr (Rank == 4) {
+        return tile_type{2, 2, 2, 16};
+      } else if constexpr (Rank == 5) {
+        return tile_type{2, 2, 2, 2, 16};
+      } else if constexpr (Rank == 6) {
+        return tile_type{1, 2, 2, 2, 2, 16};
+      }
+      tile_type tile_sizes{};
+      for (int i = 0; i < Rank; ++i) {
+        tile_sizes[i] = 2;
+      }
+      tile_sizes[Rank - 1] = 16;
+      return tile_sizes;
+    }
+  }
+};
 
 // Settings for TeamMDRangePolicy
 template <typename Rank, TeamMDRangeThreadAndVector ThreadAndVector>

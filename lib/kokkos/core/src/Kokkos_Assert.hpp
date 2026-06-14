@@ -45,9 +45,7 @@
 #else  // not debug mode
 #define KOKKOS_EXPECTS(...)
 #define KOKKOS_ENSURES(...)
-#ifndef KOKKOS_ASSERT
 #define KOKKOS_ASSERT(...)
-#endif  // ifndef KOKKOS_ASSERT
 #endif  // end debug mode ifdefs
 
 #endif /* #ifndef KOKKOS_ASSERT_HPP */

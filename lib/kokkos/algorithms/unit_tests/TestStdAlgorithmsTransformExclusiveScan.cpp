@@ -299,14 +299,12 @@ void run_all_scenarios() {
   }
 }
 
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
 TEST(std_algorithms_numeric_ops_test, transform_exclusive_scan) {
   run_all_scenarios<DynamicTag, double>();
   run_all_scenarios<StridedThreeTag, double>();
   run_all_scenarios<DynamicTag, int>();
   run_all_scenarios<StridedThreeTag, int>();
 }
-#endif
 
 template <class ValueType>
 struct MultiplyFunctor {

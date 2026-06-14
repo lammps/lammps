@@ -6,7 +6,7 @@ kokkos_include_directories(${KOKKOS_SOURCE_DIR}/core/unit_test/category_files)
 
 set(ALGORITHM UnitTestMain.cpp)
 
-foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
+foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL)
   string(TOUPPER ${Tag} DEVICE)
   string(TOLOWER ${Tag} dir)
 
@@ -150,11 +150,6 @@ set(STDALGO_TEAM_SOURCES_P)
 foreach(Name StdAlgorithmsCommon StdAlgorithmsTeamExclusiveScan StdAlgorithmsTeamTransformExclusiveScan)
   list(APPEND STDALGO_TEAM_SOURCES_P Test${Name}.cpp)
 endforeach()
-if(KOKKOS_ENABLE_OPENMPTARGET) # FIXME_OPENMPTARGET
-  list(REMOVE_ITEM STDALGO_TEAM_SOURCES_P TestStdAlgorithmsTeamExclusiveScan.cpp
-       TestStdAlgorithmsTeamTransformExclusiveScan.cpp
-  )
-endif()
 
 # ------------------------------------------
 # std team M
@@ -205,12 +200,6 @@ foreach(
 )
   list(APPEND STDALGO_TEAM_SOURCES_H Test${Name}.cpp)
 endforeach()
-
-if(KOKKOS_ENABLE_OPENMPTARGET) # FIXME_OPENMPTARGET
-  list(REMOVE_ITEM STDALGO_TEAM_SOURCES_H TestStdAlgorithmsTeamCopyIf.cpp TestStdAlgorithmsTeamUniqueCopy.cpp
-       TestStdAlgorithmsTeamRemoveCopy.cpp TestStdAlgorithmsTeamRemoveCopyIf.cpp
-  )
-endif()
 
 # ------------------------------------------
 # std team G
@@ -303,60 +292,9 @@ foreach(
   list(APPEND STDALGO_TEAM_SOURCES_A Test${Name}.cpp)
 endforeach()
 
-# FIXME_OPENMPTARGET - remove sort test as it leads to ICE with clang/16 and above at compile time.
-if(KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL "Clang" AND KOKKOS_CXX_COMPILER_VERSION
-                                                                              VERSION_GREATER_EQUAL 16.0.0
-)
-  list(REMOVE_ITEM ALGO_SORT_SOURCES TestSort.cpp)
-endif()
-
-# FIXME_OPENMPTARGET remove tests for OpenMPTarget because in these cases
-# the impl needs to use either Kokkos or tailored reducers
-# which results in runtime memory errors.
-if(KOKKOS_ENABLE_OPENMPTARGET)
-  list(REMOVE_ITEM STDALGO_TEAM_SOURCES_L TestStdAlgorithmsTeamIsPartitioned.cpp
-       TestStdAlgorithmsTeamPartitionPoint.cpp TestStdAlgorithmsTeamPartitionCopy.cpp
-  )
-endif()
-
-# FIXME_OPENMPTARGET need to remove tests for OpenMPTarget because
-# in these cases the impl needs to use either Kokkos or
-# tailored reducers which results in runtime memory errors.
-if(KOKKOS_ENABLE_OPENMPTARGET)
-  list(
-    REMOVE_ITEM
-    STDALGO_TEAM_SOURCES_C
-    TestStdAlgorithmsTeamFind.cpp
-    TestStdAlgorithmsTeamFindIf.cpp
-    TestStdAlgorithmsTeamFindIfNot.cpp
-    TestStdAlgorithmsTeamAllOf.cpp
-    TestStdAlgorithmsTeamAnyOf.cpp
-    TestStdAlgorithmsTeamNoneOf.cpp
-    TestStdAlgorithmsTeamSearchN.cpp
-  )
-endif()
-
 kokkos_add_executable_and_test(UnitTest_Sort SOURCES UnitTestMain.cpp TestStdAlgorithmsCommon.cpp ${ALGO_SORT_SOURCES})
 
 kokkos_add_executable_and_test(UnitTest_Random SOURCES UnitTestMain.cpp ${ALGO_RANDOM_SOURCES})
-
-# FIXME_OPENMPTARGET remove tests for OpenMPTarget
-# causing failures for various reasons
-if(KOKKOS_ENABLE_OPENMPTARGET)
-  # the following use either Kokkos or tailored reducers
-  # which results in runtime memory errors.
-  list(REMOVE_ITEM STDALGO_TEAM_SOURCES_B TestStdAlgorithmsTeamFindEnd.cpp TestStdAlgorithmsTeamFindFirstOf.cpp
-       TestStdAlgorithmsTeamSearch.cpp
-  )
-
-  list(REMOVE_ITEM STDALGO_TEAM_SOURCES_A TestStdAlgorithmsTeamAdjacentFind.cpp
-       TestStdAlgorithmsTeamLexicographicalCompare.cpp TestStdAlgorithmsTeamMismatch.cpp
-  )
-
-  # this causes an illegal memory access if team_members_have_matching_result
-  # is called
-  list(REMOVE_ITEM STDALGO_TEAM_SOURCES_M TestStdAlgorithmsTeamTransformBinaryOp.cpp)
-endif()
 
 foreach(ID A;B;C;D;E)
   kokkos_add_executable_and_test(AlgorithmsUnitTest_StdSet_${ID} SOURCES UnitTestMain.cpp ${STDALGO_SOURCES_${ID}})

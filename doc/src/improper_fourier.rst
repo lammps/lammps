@@ -1,10 +1,11 @@
 .. index:: improper_style fourier
+.. index:: improper_style fourier/kk
 .. index:: improper_style fourier/omp
 
 improper_style fourier command
 ==============================
 
-Accelerator Variants: *fourier/omp*
+Accelerator Variants: *fourier/kk*, *fourier/omp*
 
 Syntax
 """"""

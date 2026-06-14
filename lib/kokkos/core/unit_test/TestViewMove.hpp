@@ -148,11 +148,35 @@ TEST(TEST_CATEGORY, view_moved_from) {
   test_moved_from_view(Kokkos::View<int, ExecutionSpace>("v0"));
   test_moved_from_view(Kokkos::View<float*, ExecutionSpace>("v1", 1));
   Kokkos::View<double**, ExecutionSpace> v2("v2", 1, 2);
+  // FIXME_HIP ROCm 7.1 on MI300 triggers an internal compiler error in the
+  // CHECK macro
+#if !(                                                    \
+    defined(KOKKOS_ENABLE_HIP) &&                         \
+    (HIP_VERSION_MAJOR == 7 && HIP_VERSION_MINOR == 1) && \
+    (defined(KOKKOS_ARCH_AMD_GFX942) || defined(KOKKOS_ARCH_AMD_GFX942_APU)))
   test_moved_from_view(Kokkos::View<double**, ExecutionSpace>(
       v2.data(), v2.extent(0), v2.extent(1)));
+#endif
   test_moved_from_view(Kokkos::View<double**, ExecutionSpace,
                                     Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
       v2.data(), v2.extent(0), v2.extent(1)));
 }
+
+#if !(defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_COMPILER_NVHPC) || \
+      (defined(KOKKOS_COMPILER_CLANG) && defined(KOKKOS_ENABLE_CUDA)))
+constexpr bool test_view_is_nothrow_move_constructible() {
+  static_assert(
+      std::is_nothrow_move_constructible_v<Kokkos::View<int*, TEST_EXECSPACE>>);
+  static_assert(
+      std::is_nothrow_move_constructible_v<Kokkos::View<
+          int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Unmanaged>>>);
+  static_assert(
+      std::is_nothrow_move_constructible_v<Kokkos::View<
+          int*, TEST_EXECSPACE, Kokkos::MemoryTraits<Kokkos::Atomic>>>);
+
+  return true;
+}
+static_assert(test_view_is_nothrow_move_constructible());
+#endif
 
 }  // namespace

@@ -105,9 +105,9 @@ void PairMBX::compute(int eflag, int vflag)
   bblock::System *ptr_mbx_local =
       fix_MBX->mbx_impl->ptr_mbx_local;    // compute PME terms in parallel w/ sub-domains
 
-  double mbx_e2b_local, mbx_e2b_ghost;
-  double mbx_e3b_local, mbx_e3b_ghost;
-  double mbx_e4b_local, mbx_e4b_ghost;
+  double mbx_e2b_ghost;
+  double mbx_e3b_ghost;
+  double mbx_e4b_ghost;
   double mbx_disp_real, mbx_disp_pme;
 
   // compute energy
@@ -117,11 +117,8 @@ void PairMBX::compute(int eflag, int vflag)
   mbx_e3b = 0.0;
   mbx_e4b = 0.0;
 
-  mbx_e2b_local = 0.0;
   mbx_e2b_ghost = 0.0;
-  mbx_e3b_local = 0.0;
   mbx_e3b_ghost = 0.0;
-  mbx_e4b_local = 0.0;
   mbx_e4b_ghost = 0.0;
 
   mbx_disp_real = 0.0;
@@ -269,11 +266,11 @@ void PairMBX::coeff(int narg, char **arg)
   }
   if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 
-  std::string fix_args = "";
-  for (int i = 2; i < narg; ++i) { fix_args += std::string(arg[i]) + " "; }
-
-  fix_args = fmt::format("_FIX_MBX_INTERNAL all MBX {}", fix_args);
-
+  std::string fix_args = "_FIX_MBX_INTERNAL all MBX";
+  for (int i = 2; i < narg; ++i) {
+    fix_args += " ";
+    fix_args += arg[i];
+  }
   fix_MBX = dynamic_cast<FixMBX *>(modify->add_fix(fix_args));
 }
 
@@ -281,7 +278,7 @@ void PairMBX::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairMBX::init_one(int i, int j)
+double PairMBX::init_one(int /*i*/, int /*j*/)
 {
   return cut_global;
 }

@@ -14,7 +14,10 @@ class Foo {
   KOKKOS_FUNCTION Foo();
 
   KOKKOS_FUNCTION virtual int value() { return 0; }
-
+  KOKKOS_DEFAULTED_FUNCTION Foo(const Foo&)            = delete;
+  KOKKOS_DEFAULTED_FUNCTION Foo(Foo&&)                 = delete;
+  KOKKOS_DEFAULTED_FUNCTION Foo& operator=(const Foo&) = delete;
+  KOKKOS_DEFAULTED_FUNCTION Foo& operator=(Foo&&)      = delete;
   KOKKOS_FUNCTION virtual ~Foo() {}
 };
 

@@ -51,10 +51,10 @@ Syntax
           val1,val2,... = custom OpenCL accelerator configuration parameters (see below for details)
         *ocl_args* value = args
           args = List of additional OpenCL compiler arguments delimited by colons
-    *intel* args = NPhi keyword value ...
-      Nphi = # of co-processors per node
+    *intel* args = Narg keyword value ...
+      Narg = accepted for backward compatibility and ignored
       zero or more keyword/value pairs may be appended
-      keywords = *mode* or *omp* or *lrt* or *balance* or *ghost* or *tpc* or *tptask* or *pppm_table* or *no_affinity*
+      keywords = *mode* or *omp* or *lrt* or *pppm_table*
         *mode* value = *single* or *mixed* or *double*
           single = perform force calculations in single precision
           mixed = perform force calculations in mixed precision
@@ -64,22 +64,12 @@ Syntax
         *lrt* value = *yes* or *no*
           *yes* = use additional thread dedicated for some PPPM calculations
           *no* = do not dedicate an extra thread for some PPPM calculations
-        *balance* value = split
-          split = fraction of work to offload to co-processor, -1 for dynamic
-        *ghost* value = *yes* or *no*
-          *yes* = include ghost atoms for offload
-          *no* = do not include ghost atoms for offload
-        *tpc* value = Ntpc
-          Ntpc = max number of co-processor threads per co-processor core (default = 4)
-        *tptask* value = Ntptask
-          Ntptask = max number of co-processor threads per MPI task (default = 240)
         *pppm_table* value = *yes* or *no*
           *yes* = Precompute pppm values in table (doesn't change accuracy)
           *no* = Compute pppm values on the fly
-        *no_affinity* values = none
     *kokkos* args = keyword value ...
       zero or more keyword/value pairs may be appended
-      keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/reverse* or *comm/pair/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
+      keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/compute/forward* or *comm/reverse* or *comm/pair/reverse* or *comm/fix/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
         *neigh* value = *full* or *half*
           full = full neighbor list
           half = half neighbor list built in thread-safe manner
@@ -98,17 +88,22 @@ Syntax
         *binsize* value = size
           size = bin size for neighbor list construction (distance units)
         *comm* value = *no* or *host* or *device*
-          use value for comm/exchange and comm/forward and comm/pair/forward and comm/fix/forward and comm/reverse
+          use value for comm/exchange and comm/forward and comm/pair/forward and comm/fix/forward and comm/compute/forward and comm/reverse and comm/fix/reverse
         *comm/exchange* value = *no* or *host* or *device*
         *comm/forward* value = *no* or *host* or *device*
         *comm/pair/forward* value = *no* or *device*
         *comm/fix/forward* value = *no* or *device*
+        *comm/compute/forward* value = *no* or *device*
         *comm/reverse* value = *no* or *host* or *device*
           *no* = perform communication pack/unpack in non-KOKKOS mode
           *host* = perform pack/unpack on host (e.g. with OpenMP threading)
           *device* = perform pack/unpack on device (e.g. on GPU)
         *comm/pair/reverse* value = *no* or *device*
           *no* = perform communication pack/unpack in non-KOKKOS mode
+          *device* = perform pack/unpack on device (e.g. on GPU)
+        *comm/fix/reverse* value = *no* or *host* or *device*
+          *no* = perform communication pack/unpack in non-KOKKOS mode
+          *host* = perform pack/unpack on host (e.g. with OpenMP threading)
           *device* = perform pack/unpack on device (e.g. on GPU)
         *sort* value = *no* or *device*
           *no* = perform atom sorting in non-KOKKOS mode
@@ -153,7 +148,7 @@ Examples
    package omp 0 neigh no
    package omp 4
    package intel 1
-   package intel 2 omp 4 mode mixed balance 0.5
+   package intel 2 omp 4 mode mixed
 
 Description
 """""""""""
@@ -375,13 +370,13 @@ INTEL package settings
 ^^^^^^^^^^^^^^^^^^^^^^
 
 The *intel* style invokes settings associated with the use of the INTEL
-package.  The keywords *balance*, *ghost*, *tpc*, and *tptask* are
-**only** applicable if LAMMPS was built with Xeon Phi co-processor
-support and are otherwise ignored.
+package.
 
-The *Nphi* argument sets the number of co-processors per node.
-This can be set to any value, including 0, if LAMMPS was not
-built with co-processor support.
+.. deprecated:: TBD
+
+Support for offloading to Intel(R) Xeon Phi(TM) co-processors was
+removed.  The leading numeric argument (formerly the number of
+co-processors per node) is ignored.
 
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
@@ -395,7 +390,7 @@ The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *mode* keyword determines the precision mode to use for
-computing pair style forces, either on the CPU or on the co-processor,
+computing pair style forces on the CPU
 when using a INTEL supported :doc:`pair style <pair_style>`.  It
 can take a value of *single*, *mixed* which is the default, or
 *double*\ .  *Single* means single precision is used for the entire
@@ -423,57 +418,12 @@ is identical to the default *verlet* style aside from supporting the
 LRT feature. This feature requires setting the pre-processor flag
 -DLMP_INTEL_USELRT in the makefile when compiling LAMMPS.
 
-The *balance* keyword sets the fraction of :doc:`pair style <pair_style>` work
-offloaded to the co-processor for split values between 0.0 and 1.0 inclusive.
-While this fraction of work is running on the co-processor, other calculations
-will run on the host, including neighbor and pair calculations that are not
-offloaded, as well as angle, bond, dihedral, kspace, and some MPI
-communications.  If *split* is set to -1, the fraction of work is dynamically
-adjusted automatically throughout the run.  This typically give performance
-within 5 to 10 percent of the optimal fixed fraction.
-
-The *ghost* keyword determines whether or not ghost atoms, i.e. atoms
-at the boundaries of processor subdomains, are offloaded for neighbor
-and force calculations.  When the value = "no", ghost atoms are not
-offloaded.  This option can reduce the amount of data transfer with
-the co-processor and can also overlap MPI communication of forces with
-computation on the co-processor when the :doc:`newton pair <newton>`
-setting is "on".  When the value = "yes", ghost atoms are offloaded.
-In some cases this can provide better performance, especially if the
-*balance* fraction is high.
-
-The *tpc* keyword sets the max # of co-processor threads *Ntpc* that
-will run on each core of the co-processor.  The default value = 4,
-which is the number of hardware threads per core supported by the
-current generation Xeon Phi chips.
-
-The *tptask* keyword sets the max # of co-processor threads (Ntptask*
-assigned to each MPI task.  The default value = 240, which is the
-total # of threads an entire current generation Xeon Phi chip can run
-(240 = 60 cores \* 4 threads/core).  This means each MPI task assigned
-to the Phi will enough threads for the chip to run the max allowed,
-even if only 1 MPI task is assigned.  If 8 MPI tasks are assigned to
-the Phi, each will run with 30 threads.  If you wish to limit the
-number of threads per MPI task, set *tptask* to a smaller value.
-E.g. for *tptask* = 16, if 8 MPI tasks are assigned, each will run
-with 16 threads, for a total of 128.
-
-Note that the default settings for *tpc* and *tptask* are fine for
-most problems, regardless of how many MPI tasks you assign to a Phi.
-
 .. versionadded:: 15Jun2023
 
 The *pppm_table* keyword with the argument yes allows to use a
 pre-computed table to efficiently spread the charge to the PPPM grid.
 This feature is enabled by default but can be turned off using the
 keyword with the argument *no*.
-
-The *no_affinity* keyword will turn off automatic setting of core
-affinity for MPI tasks and OpenMP threads on the host when using
-offload to a co-processor. Affinity settings are used when possible
-to prevent MPI tasks and OpenMP threads from being on separate NUMA
-domains and to prevent offload threads from interfering with other
-processes/threads used for LAMMPS.
 
 KOKKOS package settings
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -544,8 +494,9 @@ because the GPU is faster at performing pairwise interactions, then this
 rule of thumb may give too large a binsize and the default should be
 overridden with a smaller value.
 
-The *comm* and *comm/exchange* and *comm/forward* and *comm/pair/forward*
-and *comm/fix/forward* and *comm/reverse* and *comm/pair/reverse*
+The *comm* and *comm/exchange* and *comm/forward* and
+*comm/pair/forward* and *comm/fix/forward* and *comm/compute/forward*
+and *comm/reverse* and *comm/pair/reverse* and *comm/fix/reverse*
 keywords determine whether the host or device performs the packing and
 unpacking of data when communicating per-atom data between processors.
 "Exchange" communication happens only on timesteps that neighbor lists
@@ -553,14 +504,15 @@ are rebuilt. The data is only for atoms that migrate to new processors.
 "Forward" communication happens every timestep. "Reverse" communication
 happens every timestep if the *newton* option is on. The data is for
 atom coordinates and any other atom properties that needs to be updated
-for ghost atoms owned by each processor. "Pair/comm" controls additional
-communication in pair styles, such as pair_style EAM. "Fix/comm" controls
-additional communication in fixes, such as fix SHAKE.
+for ghost atoms owned by each processor. "Comm/pair" controls additional
+communication in pair styles, such as pair_style EAM. "Comm/fix" controls
+additional communication in fixes, such as fix SHAKE. Similarly,
+"comm/compute" controls additional communication in computes.
 
 The *comm* keyword is simply a short-cut to set the same value for all
 the comm keywords.
 
-The value options for the keywords are *no* or *host* or *device*\ . A
+The value options for the keywords are *no* or *host* or *device*. A
 value of *no* means to use the standard non-KOKKOS method of
 packing/unpacking data for the communication. A value of *host* means to
 use the host, typically a multicore CPU, and perform the
@@ -568,21 +520,22 @@ packing/unpacking in parallel with threads. A value of *device* means to
 use the device, typically a GPU, to perform the packing/unpacking
 operation.
 
-For the *comm/pair/forward* or *comm/fix/forward* or *comm/pair/reverse*
-keywords, if a value of *host* is used it will be automatically
-be changed to *no* since these keywords don't support *host* mode. The
-value of *no* will also always be used when running on the CPU, i.e. setting
-the value to *device* will have no effect if the pair/fix style is
-running on the CPU. For the *comm/fix/forward* or *comm/pair/reverse*
-keywords, not all styles support *device* mode and in that case will run
-in *no* mode instead.
+For the *comm/pair/forward* or *comm/fix/forward* or
+*comm/compute/forward* or *comm/pair/reverse* keywords, if a value of
+*host* is used it will be automatically be changed to *no* since these
+keywords don't support *host* mode. The value of *no* will also always
+be used when running on the CPU, i.e. setting the value to *device*
+will have no effect if the pair/fix style is running on the CPU. For
+the *comm/fix/forward* or *comm/compute/forward* or
+*comm/pair/reverse* or *comm/fix/reverse* keywords, not all styles
+support *device* mode and in that case will run in *no* mode instead.
 
 The optimal choice for these keywords depends on the input script and
 the hardware used. The *no* value is useful for verifying that the
 Kokkos-based *host* and *device* values are working correctly. It is the
 default when running on CPUs since it is usually the fastest.
 
-When running on CPUs or Xeon Phi, the *host* and *device* values work
+When running on CPUs, the *host* and *device* values work
 identically. When using GPUs, the *device* value is the default since it
 will typically be optimal if all of your styles used in your input
 script are supported by the KOKKOS package. In this case data can stay
@@ -790,15 +743,12 @@ For the INTEL package, the default parameters and settings are:
 
 .. parsed-literal::
 
-   Nphi = 1, omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4, tptask = 240, pppm_table = yes
+   omp = 0, mode = mixed, lrt = no, pppm_table = yes
 
-The default ghost option is determined by the pair style being used.
-This value is output to the screen in the offload report at the end of each
-run.  Note that all of these settings, except "omp" and "mode", are ignored if
-LAMMPS was not built with Xeon Phi co-processor support.  These settings are
-made automatically if the "-sf intel" :doc:`command-line switch <Run_options>`
-is used.  If it is not used, you must invoke the package intel command in your
-input script or via the "-pk intel" :doc:`command-line switch <Run_options>`.
+These settings are made automatically if the "-sf intel"
+:doc:`command-line switch <Run_options>` is used.  If it is not used, you
+must invoke the package intel command in your input script or via the
+"-pk intel" :doc:`command-line switch <Run_options>`.
 
 For the KOKKOS package when using GPUs, the option defaults are:
 
@@ -811,7 +761,7 @@ an MPI rank, otherwise it is "off". When LAMMPS can safely detect that
 GPU-aware MPI is not available, the default value of gpu/aware becomes
 "off".
 
-For the KOKKOS package when using CPUs or Xeon Phis, the option defaults are:
+For the KOKKOS package when using CPUs, the option defaults are:
 
 .. parsed-literal::
 

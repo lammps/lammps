@@ -204,7 +204,7 @@ contains *xlat*, *ylat*, *zlat* keywords of the :doc:`thermo_style
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 Fix indent supports the *fix* keyword of :doc:`dump image <dump_image>`.
 The fix will pass geometry information about the indenter to *dump

@@ -674,21 +674,7 @@ struct ViewOffset<
 
   //----------------------------------------
 
-  // MSVC (16.5.5) + CUDA (10.2) did not generate the defaulted functions
-  // correct and errors out during compilation. Same for the other places where
-  // I changed this.
-#ifdef KOKKOS_IMPL_WINDOWS_CUDA
-  KOKKOS_FUNCTION ViewOffset() : m_dim(dimension_type()) {}
-  KOKKOS_FUNCTION ViewOffset(const ViewOffset& src) { m_dim = src.m_dim; }
-  KOKKOS_FUNCTION ViewOffset& operator=(const ViewOffset& src) {
-    m_dim = src.m_dim;
-    return *this;
-  }
-#else
-  ViewOffset()                             = default;
-  ViewOffset(const ViewOffset&)            = default;
-  ViewOffset& operator=(const ViewOffset&) = default;
-#endif
+  ViewOffset() = default;
 
   template <unsigned TrivialScalarSize>
   KOKKOS_INLINE_FUNCTION constexpr ViewOffset(
@@ -1025,26 +1011,7 @@ struct ViewOffset<
   };
 
  public:
-  // MSVC (16.5.5) + CUDA (10.2) did not generate the defaulted functions
-  // correct and errors out during compilation. Same for the other places where
-  // I changed this.
-#ifdef KOKKOS_IMPL_WINDOWS_CUDA
-  KOKKOS_FUNCTION ViewOffset() : m_dim(dimension_type()), m_stride(0) {}
-  KOKKOS_FUNCTION ViewOffset(const ViewOffset& src) {
-    m_dim    = src.m_dim;
-    m_stride = src.m_stride;
-  }
-  KOKKOS_FUNCTION ViewOffset& operator=(const ViewOffset& src) {
-    m_dim    = src.m_dim;
-    m_stride = src.m_stride;
-    return *this;
-  }
-#else
-
-  ViewOffset()                             = default;
-  ViewOffset(const ViewOffset&)            = default;
-  ViewOffset& operator=(const ViewOffset&) = default;
-#endif
+  ViewOffset() = default;
 
   /* Enable padding for trivial scalar types with non-zero trivial scalar size
    */
@@ -1367,24 +1334,7 @@ struct ViewOffset<
     s[dimension_type::rank] = stride_fill(s);
   }
 
-  //----------------------------------------
-  // MSVC (16.5.5) + CUDA (10.2) did not generate the defaulted functions
-  // correct and errors out during compilation. Same for the other places where
-  // I changed this.
-
-#ifdef KOKKOS_IMPL_WINDOWS_CUDA
-  KOKKOS_FUNCTION ViewOffset() : m_dim(dimension_type()) {}
-  KOKKOS_FUNCTION ViewOffset(const ViewOffset& src) { m_dim = src.m_dim; }
-  KOKKOS_FUNCTION ViewOffset& operator=(const ViewOffset& src) {
-    m_dim = src.m_dim;
-    return *this;
-  }
-#else
-
-  ViewOffset()                             = default;
-  ViewOffset(const ViewOffset&)            = default;
-  ViewOffset& operator=(const ViewOffset&) = default;
-#endif
+  ViewOffset() = default;
 
   template <unsigned TrivialScalarSize>
   KOKKOS_INLINE_FUNCTION constexpr ViewOffset(
@@ -1711,27 +1661,7 @@ struct ViewOffset<
   };
 
  public:
-  // MSVC (16.5.5) + CUDA (10.2) did not generate the defaulted functions
-  // correct and errors out during compilation. Same for the other places where
-  // I changed this.
-
-#ifdef KOKKOS_IMPL_WINDOWS_CUDA
-  KOKKOS_FUNCTION ViewOffset() : m_dim(dimension_type()), m_stride(0) {}
-  KOKKOS_FUNCTION ViewOffset(const ViewOffset& src) {
-    m_dim    = src.m_dim;
-    m_stride = src.m_stride;
-  }
-  KOKKOS_FUNCTION ViewOffset& operator=(const ViewOffset& src) {
-    m_dim    = src.m_dim;
-    m_stride = src.m_stride;
-    return *this;
-  }
-#else
-
-  ViewOffset()                             = default;
-  ViewOffset(const ViewOffset&)            = default;
-  ViewOffset& operator=(const ViewOffset&) = default;
-#endif
+  ViewOffset() = default;
 
   /* Enable padding for trivial scalar types with non-zero trivial scalar size.
    */
@@ -1853,9 +1783,7 @@ struct ViewStride<0> {
   static constexpr size_t S0 = 0, S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0,
                           S6 = 0, S7 = 0;
 
-  ViewStride()                             = default;
-  ViewStride(const ViewStride&)            = default;
-  ViewStride& operator=(const ViewStride&) = default;
+  ViewStride() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr ViewStride(size_t, size_t, size_t, size_t, size_t, size_t, size_t,
@@ -1868,9 +1796,7 @@ struct ViewStride<1> {
   static constexpr size_t S1 = 0, S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0,
                           S7 = 0;
 
-  ViewStride()                             = default;
-  ViewStride(const ViewStride&)            = default;
-  ViewStride& operator=(const ViewStride&) = default;
+  ViewStride() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr ViewStride(size_t aS0, size_t, size_t, size_t, size_t, size_t,
@@ -1883,9 +1809,7 @@ struct ViewStride<2> {
   size_t S0, S1;
   static constexpr size_t S2 = 0, S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0;
 
-  ViewStride()                             = default;
-  ViewStride(const ViewStride&)            = default;
-  ViewStride& operator=(const ViewStride&) = default;
+  ViewStride() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr ViewStride(size_t aS0, size_t aS1, size_t, size_t, size_t, size_t,
@@ -1898,9 +1822,7 @@ struct ViewStride<3> {
   size_t S0, S1, S2;
   static constexpr size_t S3 = 0, S4 = 0, S5 = 0, S6 = 0, S7 = 0;
 
-  ViewStride()                             = default;
-  ViewStride(const ViewStride&)            = default;
-  ViewStride& operator=(const ViewStride&) = default;
+  ViewStride() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr ViewStride(size_t aS0, size_t aS1, size_t aS2, size_t, size_t,
@@ -1913,9 +1835,7 @@ struct ViewStride<4> {
   size_t S0, S1, S2, S3;
   static constexpr size_t S4 = 0, S5 = 0, S6 = 0, S7 = 0;
 
-  ViewStride()                             = default;
-  ViewStride(const ViewStride&)            = default;
-  ViewStride& operator=(const ViewStride&) = default;
+  ViewStride() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr ViewStride(size_t aS0, size_t aS1, size_t aS2, size_t aS3, size_t,
@@ -1928,9 +1848,7 @@ struct ViewStride<5> {
   size_t S0, S1, S2, S3, S4;
   static constexpr size_t S5 = 0, S6 = 0, S7 = 0;
 
-  ViewStride()                             = default;
-  ViewStride(const ViewStride&)            = default;
-  ViewStride& operator=(const ViewStride&) = default;
+  ViewStride() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr ViewStride(size_t aS0, size_t aS1, size_t aS2, size_t aS3,
@@ -1943,9 +1861,7 @@ struct ViewStride<6> {
   size_t S0, S1, S2, S3, S4, S5;
   static constexpr size_t S6 = 0, S7 = 0;
 
-  ViewStride()                             = default;
-  ViewStride(const ViewStride&)            = default;
-  ViewStride& operator=(const ViewStride&) = default;
+  ViewStride() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr ViewStride(size_t aS0, size_t aS1, size_t aS2, size_t aS3,
@@ -1958,9 +1874,7 @@ struct ViewStride<7> {
   size_t S0, S1, S2, S3, S4, S5, S6;
   static constexpr size_t S7 = 0;
 
-  ViewStride()                             = default;
-  ViewStride(const ViewStride&)            = default;
-  ViewStride& operator=(const ViewStride&) = default;
+  ViewStride() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr ViewStride(size_t aS0, size_t aS1, size_t aS2, size_t aS3,
@@ -1972,9 +1886,7 @@ template <>
 struct ViewStride<8> {
   size_t S0, S1, S2, S3, S4, S5, S6, S7;
 
-  ViewStride()                             = default;
-  ViewStride(const ViewStride&)            = default;
-  ViewStride& operator=(const ViewStride&) = default;
+  ViewStride() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr ViewStride(size_t aS0, size_t aS1, size_t aS2, size_t aS3,
@@ -2231,29 +2143,7 @@ struct ViewOffset<Dimension, Kokkos::LayoutStride, void> {
     s[dimension_type::rank] = stride_fill(s);
   }
 
-  //----------------------------------------
-  // MSVC (16.5.5) + CUDA (10.2) did not generate the defaulted functions
-  // correct and errors out during compilation. Same for the other places where
-  // I changed this.
-
-#ifdef KOKKOS_IMPL_WINDOWS_CUDA
-  KOKKOS_FUNCTION ViewOffset()
-      : m_dim(dimension_type()), m_stride(stride_type()) {}
-  KOKKOS_FUNCTION ViewOffset(const ViewOffset& src) {
-    m_dim    = src.m_dim;
-    m_stride = src.m_stride;
-  }
-  KOKKOS_FUNCTION ViewOffset& operator=(const ViewOffset& src) {
-    m_dim    = src.m_dim;
-    m_stride = src.m_stride;
-    return *this;
-  }
-#else
-
-  ViewOffset()                             = default;
-  ViewOffset(const ViewOffset&)            = default;
-  ViewOffset& operator=(const ViewOffset&) = default;
-#endif
+  ViewOffset() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr ViewOffset(std::integral_constant<unsigned, 0> const&,
@@ -2732,15 +2622,7 @@ class ViewMapping<
 
   //----------------------------------------
 
-  KOKKOS_DEFAULTED_FUNCTION ~ViewMapping() = default;
   KOKKOS_INLINE_FUNCTION ViewMapping() : m_impl_handle(), m_impl_offset() {}
-
-  KOKKOS_DEFAULTED_FUNCTION ViewMapping(const ViewMapping&) = default;
-  KOKKOS_DEFAULTED_FUNCTION ViewMapping& operator=(const ViewMapping&) =
-      default;
-
-  KOKKOS_DEFAULTED_FUNCTION ViewMapping(ViewMapping&&)            = default;
-  KOKKOS_DEFAULTED_FUNCTION ViewMapping& operator=(ViewMapping&&) = default;
 
   //----------------------------------------
 

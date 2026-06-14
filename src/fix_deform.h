@@ -40,6 +40,8 @@ class FixDeform : public Fix {
   void end_of_step() override;
   void write_restart(FILE *) override;
   void restart(char *buf) override;
+  void post_integrate() override;
+  void post_integrate_respa(int,int) override;
   double memory_usage() override;
 
  protected:
@@ -48,8 +50,16 @@ class FixDeform : public Fix {
   double *h_rate, *h_ratelo;
   int varflag;                   // 1 if VARIABLE option is used, 0 if not
   int kspace_flag;               // 1 if KSpace invoked, 0 if not
+  int end_flag;                  // 1 = box update at end of step, 0 = post integrate
+  int need_flip_change;          // 1 if box needs to be flipped
+  int allow_flip_change;         // 1 if box flip is allowed (prevent flip mid respa step)
   std::vector<Fix *> rfix;       // pointers to rigid fixes
   class Irregular *irregular;    // for migrating atoms after box flips
+
+  int nlevels_respa, nloop0_respa, kspace_level_respa;
+  double *step_respa;
+  bigint nsteps, nsteps_total;
+  double dt;
 
   struct Set {
     int style, substyle;
@@ -62,6 +72,7 @@ class FixDeform : public Fix {
     double tilt_initial, tilt_start, tilt_stop, tilt_target, tilt_flip;
     double tilt_min, tilt_max;
     double vol_initial, vol_start;
+    double cumulative_shift;
     int fixed, dynamic1, dynamic2;
     char *hstr, *hratestr;
     int hvar, hratevar;
@@ -72,6 +83,7 @@ class FixDeform : public Fix {
   int iarg_options_start;
 
   void options(int, char **);
+  void virtual update_box();
   void virtual apply_volume();
   void apply_strain();
   void update_domain();

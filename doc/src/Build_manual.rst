@@ -34,7 +34,7 @@ the rest the build process will attempt to download and install them into
 a python virtual environment and local folders.
 
 A current version of the manual (latest feature release, that is the state
-of the *release* branch) is is available online at:
+of the *release* branch) is available online at:
 `https://docs.lammps.org/ <https://docs.lammps.org/>`_.
 A version of the manual corresponding to the ongoing development (that is
 the state of the *develop* branch) is available online at:
@@ -87,6 +87,7 @@ folder.  The following ``make`` commands are available:
    make clean-all     # remove entire build folder and any cached data
    make upgrade       # upgrade the python packages in the virtual environment
 
+   make check         # run all checks listed in this block
    make anchor_check  # check for duplicate anchor labels
    make style_check   # check for complete and consistent style lists
    make package_check # check for complete and consistent package lists

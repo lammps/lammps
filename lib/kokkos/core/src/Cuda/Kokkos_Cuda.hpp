@@ -80,13 +80,8 @@ class Cuda {
   //! Tag this class as a kokkos execution space
   using execution_space = Cuda;
 
-#if defined(KOKKOS_ENABLE_CUDA_UVM)
-  //! This execution space's preferred memory space.
-  using memory_space = CudaUVMSpace;
-#else
   //! This execution space's preferred memory space.
   using memory_space = CudaSpace;
-#endif
 
   //! This execution space preferred device_type
   using device_type = Kokkos::Device<execution_space, memory_space>;
@@ -105,19 +100,6 @@ class Cuda {
   //! \name Functions that all Kokkos devices must implement.
   //@{
 
-  /// \brief True if and only if this method is being called in a
-  ///   thread-parallel function.
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION static int in_parallel() {
-#if defined(__CUDA_ARCH__)
-    return true;
-#else
-    return false;
-#endif
-  }
-#endif
-
   /// \brief Wait until all dispatched functors complete.
   ///
   /// The parallel_for or parallel_reduce dispatch of a functor may
@@ -130,11 +112,7 @@ class Cuda {
                  "Kokkos::Cuda::fence(): Unnamed Instance Fence") const;
 
   /** \brief  Return the maximum amount of concurrency.  */
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  static int concurrency();
-#else
   int concurrency() const;
-#endif
 
   //! Print configuration information to the given output stream.
   void print_configuration(std::ostream& os, bool verbose = false) const;
@@ -143,21 +121,19 @@ class Cuda {
   //--------------------------------------------------
   //! \name  Cuda space instances
 
+  KOKKOS_DEFAULTED_FUNCTION Cuda(const Cuda&) = default;
+  KOKKOS_FUNCTION Cuda(Cuda&& other) noexcept
+      : Cuda(static_cast<const Cuda&>(other)) {}
+  KOKKOS_DEFAULTED_FUNCTION Cuda& operator=(const Cuda&) = default;
+  KOKKOS_FUNCTION Cuda& operator=(Cuda&& other) noexcept {
+    return *this = static_cast<const Cuda&>(other);
+  }
+  ~Cuda();
   Cuda();
 
   explicit Cuda(cudaStream_t stream) : Cuda(stream, Impl::ManageStream::no) {}
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  template <typename T = void>
-  KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Cuda execution space should be constructed explicitly.")
-  Cuda(cudaStream_t stream)
-      : Cuda(stream) {}
-#endif
-
   Cuda(cudaStream_t stream, Impl::ManageStream manage_stream);
-
-  KOKKOS_DEPRECATED Cuda(cudaStream_t stream, bool manage_stream);
 
   //--------------------------------------------------------------------------
   //! Free any resources being consumed by the device.
@@ -165,38 +141,6 @@ class Cuda {
 
   //! Initialize, telling the CUDA run-time library which device to use.
   static void impl_initialize(InitializationSettings const&);
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  /// \brief Cuda device architecture of the selected device.
-  ///
-  /// This matches the __CUDA_ARCH__ specification.
-  KOKKOS_DEPRECATED static size_type device_arch() {
-    const cudaDeviceProp cudaProp = Cuda().cuda_device_prop();
-    return cudaProp.major * 100 + cudaProp.minor;
-  }
-
-  //! Query device count.
-  KOKKOS_DEPRECATED static size_type detect_device_count() {
-    int count;
-    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceCount(&count));
-    return count;
-  }
-
-  /** \brief  Detect the available devices and their architecture
-   *          as defined by the __CUDA_ARCH__ specification.
-   */
-  KOKKOS_DEPRECATED static std::vector<unsigned> detect_device_arch() {
-    int count;
-    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceCount(&count));
-    std::vector<unsigned> out;
-    for (int i = 0; i < count; ++i) {
-      cudaDeviceProp prop;
-      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceProperties(&prop, i));
-      out.push_back(prop.major * 100 + prop.minor);
-    }
-    return out;
-  }
-#endif
 
   cudaStream_t cuda_stream() const;
   int cuda_device() const;
@@ -248,24 +192,6 @@ struct MemorySpaceAccess<Kokkos::CudaSpace,
   enum : bool { accessible = true };
   enum : bool { deepcopy = false };
 };
-
-#if defined(KOKKOS_ENABLE_CUDA_UVM)
-
-// If forcing use of UVM everywhere
-// then must assume that CudaUVMSpace
-// can be a stand-in for CudaSpace.
-// This will fail when a strange host-side execution space
-// that defines CudaUVMSpace as its preferredmemory space.
-
-template <>
-struct MemorySpaceAccess<Kokkos::CudaUVMSpace,
-                         Kokkos::Cuda::scratch_memory_space> {
-  enum : bool { assignable = false };
-  enum : bool { accessible = true };
-  enum : bool { deepcopy = false };
-};
-
-#endif
 
 }  // namespace Impl
 }  // namespace Kokkos

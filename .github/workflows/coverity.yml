@@ -25,26 +25,40 @@ jobs:
 
     - name: Cache Coverity
       id: cache-coverity
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ./download/
         key: ${{ runner.os }}-download-${{ hashFiles('**/coverity_tool.*') }}
 
     - name: Download Coverity if necessary
+      id: download-coverity
       if: steps.cache-coverity.outputs.cache-hit != 'true'
       working-directory: download
       run: |
-        wget -nv https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=LAMMPS" -O coverity_tool.tgz
+        if ! wget -nv --server-response \
+             --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=LAMMPS" \
+             -O coverity_tool.tgz \
+             https://scan.coverity.com/download/linux64 2> wget.log; then
+          cat wget.log
+          if grep -q "ERROR 404" wget.log; then
+            echo "::warning::Coverity Scan endpoint returned 404 (service likely offline); skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          exit 1
+        fi
         wget -nv https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=LAMMPS&md5=1" -O coverity_tool.md5
         echo " coverity_tool.tgz" >> coverity_tool.md5
         md5sum -c coverity_tool.md5
 
     - name: Setup Coverity
+      if: steps.download-coverity.outputs.skip != 'true'
       run: |
         tar xzf download/coverity_tool.tgz
         ln -s cov-analysis-linux64-* coverity
 
     - name: Configure LAMMPS via CMake
+      if: steps.download-coverity.outputs.skip != 'true'
       shell: bash
       working-directory: build
       run: |
@@ -74,6 +88,7 @@ jobs:
         ../cmake
 
     - name: Run Coverity Scan
+      if: steps.download-coverity.outputs.skip != 'true'
       shell: bash
       working-directory: build
       run: |
@@ -81,11 +96,13 @@ jobs:
         cov-build --dir cov-int cmake --build . --parallel 2
 
     - name: Create tarball with scan results
+      if: steps.download-coverity.outputs.skip != 'true'
       shell: bash
       working-directory: build
       run: tar czf lammps.tgz cov-int
 
     - name: Upload scan result to Coverity
+      if: steps.download-coverity.outputs.skip != 'true'
       shell: bash
       run: |
         curl --form token=${{ secrets.COVERITY_TOKEN }} \

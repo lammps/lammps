@@ -193,10 +193,6 @@ auto create_deep_copyable_compatible_view_with_same_extent(ViewType view) {
 
   // this is needed for intel to avoid
   // error #1011: missing return statement at end of non-void function
-#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-    !defined(KOKKOS_COMPILER_MSVC)
-  __builtin_unreachable();
-#endif
 }
 
 template <class ViewType>
@@ -441,9 +437,6 @@ struct CustomValueType {
   CustomValueType(value_type val) : value(val) {}
 
   KOKKOS_INLINE_FUNCTION
-  CustomValueType(const CustomValueType& other) { this->value = other.value; }
-
-  KOKKOS_INLINE_FUNCTION
   explicit operator value_type() const { return value; }
 
   KOKKOS_INLINE_FUNCTION
@@ -455,12 +448,6 @@ struct CustomValueType {
   KOKKOS_INLINE_FUNCTION
   CustomValueType& operator+=(const CustomValueType& other) {
     this->value += other.value;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  CustomValueType& operator=(const CustomValueType& other) {
-    this->value = other.value;
     return *this;
   }
 

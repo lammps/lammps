@@ -37,6 +37,10 @@ struct ViewTracker {
       : m_tracker(vt.m_tracker, !view_traits::memory_traits::is_unmanaged) {}
 
   KOKKOS_INLINE_FUNCTION
+  ViewTracker(ViewTracker&& vt) noexcept
+      : m_tracker(vt.m_tracker, !view_traits::memory_traits::is_unmanaged) {}
+
+  KOKKOS_INLINE_FUNCTION
   explicit ViewTracker(const ParentView& vt) noexcept : m_tracker() {
     assign(vt);
   }
@@ -47,6 +51,8 @@ struct ViewTracker {
       : m_tracker() {
     assign(vt);
   }
+
+  ~ViewTracker() = default;
 
   template <class RT, class... RP>
   KOKKOS_INLINE_FUNCTION void assign(const View<RT, RP...>& vt) {
@@ -72,6 +78,11 @@ struct ViewTracker {
 
     KOKKOS_IF_ON_DEVICE((m_tracker.assign_force_disable(rhs.m_tracker);))
     return *this;
+  }
+
+  // NOLINTNEXTLINE(bugprone-exception-escape)
+  KOKKOS_INLINE_FUNCTION ViewTracker& operator=(ViewTracker&& rhs) {
+    return *this = static_cast<const ViewTracker&>(rhs);
   }
 
   KOKKOS_INLINE_FUNCTION

@@ -58,13 +58,19 @@ void FixNVEAsphere::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAsphere::initial_integrate(int /*vflag*/)
+template <bool is_super>
+void FixNVEAsphere::initial_integrate_templated()
 {
   double dtfm;
-  double inertia[3],omega[3];
-  double *shape,*quat;
+  double omega[3];
+  double *inertia,*quat, *shape;
+  double inertia_to_compute[3];
 
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  AtomVecEllipsoid::Bonus *bonus = nullptr;
+  AtomVecEllipsoid::BonusSuper *bonus_super = nullptr;
+  if (is_super) bonus_super = avec->bonus_super;
+  else bonus = avec->bonus;
+
   int *ellipsoid = atom->ellipsoid;
   double **x = atom->x;
   double **v = atom->v;
@@ -97,13 +103,19 @@ void FixNVEAsphere::initial_integrate(int /*vflag*/)
       angmom[i][2] += dtf * torque[i][2];
 
       // principal moments of inertia
+      int j = ellipsoid[i];
+      if (is_super) {
+        inertia = bonus_super[j].inertia;
+        quat = bonus_super[j].quat;
+      } else {
+        quat = bonus[j].quat;
+        shape = bonus[j].shape;
+        inertia = inertia_to_compute;
 
-      shape = bonus[ellipsoid[i]].shape;
-      quat = bonus[ellipsoid[i]].quat;
-
-      inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-      inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-      inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+        inertia[0] = INERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
+        inertia[1] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
+        inertia[2] = INERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+      }
 
       // compute omega at 1/2 step from angmom at 1/2 step and current q
       // update quaternion a full step via Richardson iteration
@@ -112,6 +124,16 @@ void FixNVEAsphere::initial_integrate(int /*vflag*/)
       MathExtra::mq_to_omega(angmom[i],quat,inertia,omega);
       MathExtra::richardson(quat,angmom[i],omega,inertia,dtq);
     }
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVEAsphere::initial_integrate(int /*vflag*/)
+{
+  if (atom->superellipsoid_flag) initial_integrate_templated<true>();
+  else initial_integrate_templated<false>();
 }
 
 /* ---------------------------------------------------------------------- */

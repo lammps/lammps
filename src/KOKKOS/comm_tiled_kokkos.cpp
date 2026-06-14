@@ -154,7 +154,7 @@ void CommTiledKokkos::forward_comm_device()
       }
       if (sendself[iswap]) {
         auto k_sendlist_small = Kokkos::subview(k_sendlist,iswap,nsend,Kokkos::ALL);
-        atomKK->avecKK->pack_comm_self(sendnum[iswap][nsend],k_sendlist_small,
+        atomKK->avecKK->pack_comm_self_kokkos(sendnum[iswap][nsend],k_sendlist_small,
                         firstrecv[iswap][nrecv],pbc_flag[iswap][nsend],pbc[iswap][nsend]);
       }
       if (recvother[iswap]) {
@@ -298,7 +298,7 @@ void CommTiledKokkos::reverse_comm_device()
       }
       if (sendself[iswap]) {
         auto k_sendlist_small = Kokkos::subview(k_sendlist,iswap,nsend,Kokkos::ALL);
-        atomKK->avecKK->pack_reverse_self(sendnum[iswap][nsend],k_sendlist_small,
+        atomKK->avecKK->pack_reverse_self_kokkos(sendnum[iswap][nsend],k_sendlist_small,
                              firstrecv[iswap][nrecv]);
       }
       if (sendother[iswap]) {
@@ -618,7 +618,6 @@ void CommTiledKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
                         atomKK->avecKK->size_border + atomKK->avecKK->size_velocity);
     else
       k_buf_send.resize(maxsend_border,atomKK->avecKK->size_border);
-    buf_send = k_buf_send.view_host().data();
   } else {
     if (ghost_velocity)
       MemoryKokkos::realloc_kokkos(k_buf_send,"comm:k_buf_send",maxsend_border,
@@ -626,8 +625,8 @@ void CommTiledKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
     else
       MemoryKokkos::realloc_kokkos(k_buf_send,"comm:k_buf_send",maxsend_border,
                         atomKK->avecKK->size_border);
-    buf_send = k_buf_send.view_host().data();
   }
+  buf_send = k_buf_send.view_host().data();
 }
 
 /* ----------------------------------------------------------------------

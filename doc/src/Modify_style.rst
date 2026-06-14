@@ -39,8 +39,9 @@ Include files (varied)
   derived from it), certain headers will *always* be included and thus
   do not need to be explicitly specified.  These are: `mpi.h`,
   `cstddef`, `cstdio`, `cstdlib`, `string`, `utils.h`, `vector`,
-  `fmt/format.h`, `climits`, `cinttypes`.  This also means any such file
-  can assume that `FILE`, `NULL`, and `INT_MAX` are defined.
+  `fmt/format.h` (or `format` when using C++20 and later), `climits`,
+  `cinttypes`.  This also means any such file can assume that `FILE`,
+  `NULL`, and `INT_MAX` are defined.
 
 - Class members variables should not be initialized in the header file,
   but instead should be initialized either in the initializer list of

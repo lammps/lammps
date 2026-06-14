@@ -79,7 +79,11 @@ double ComputeERotateAsphere::compute_scalar()
   invoked_scalar = update->ntimestep;
 
   AtomVecEllipsoid::Bonus *ebonus = nullptr;
-  if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
+  AtomVecEllipsoid::BonusSuper *ebonus_super = nullptr;
+  if (avec_ellipsoid) {
+    if (atom->superellipsoid_flag) ebonus_super = avec_ellipsoid->bonus_super;
+    else ebonus = avec_ellipsoid->bonus;
+  }
   AtomVecLine::Bonus *lbonus = nullptr;
   if (avec_line) lbonus = avec_line->bonus;
   AtomVecTri::Bonus *tbonus = nullptr;
@@ -98,22 +102,29 @@ double ComputeERotateAsphere::compute_scalar()
   // no point particles since divide by inertia
 
   double length;
-  double *shape, *quat;
+  double *quat;
   double wbody[3], inertia[3];
   double rot[3][3];
   double erotate = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (ellipsoid && ebonus && (ellipsoid[i] >= 0)) {
-        shape = ebonus[ellipsoid[i]].shape;
-        quat = ebonus[ellipsoid[i]].quat;
+      if (ellipsoid && (ebonus || ebonus_super) && (ellipsoid[i] >= 0)) {
 
-        // principal moments of inertia
-
-        inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
-        inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
-        inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
+        if (atom->superellipsoid_flag) {
+          quat = ebonus_super[ellipsoid[i]].quat;
+          // principal moments of inertia are pre-computed
+          inertia[0] = ebonus_super[ellipsoid[i]].inertia[0];
+          inertia[1] = ebonus_super[ellipsoid[i]].inertia[1];
+          inertia[2] = ebonus_super[ellipsoid[i]].inertia[2];
+        } else {
+          auto *shape = ebonus[ellipsoid[i]].shape;
+          quat = ebonus[ellipsoid[i]].quat;
+          // principal moments of inertia
+          inertia[0] = rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]) / 5.0;
+          inertia[1] = rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]) / 5.0;
+          inertia[2] = rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]) / 5.0;
+        }
 
         // wbody = angular velocity in body frame
 

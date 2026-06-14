@@ -43,6 +43,7 @@ class DumpImage : public DumpCustom {
   ~DumpImage() override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
+  void write() override;
 
   void *extract(const char *, int &) override;
 
@@ -114,25 +115,25 @@ class DumpImage : public DumpCustom {
   AtomVecEllipsoid *avec_ellipsoid;
   AtomVecBody *avec_body;
 
-  struct FixInfo {
-    FixInfo() = delete;
-    FixInfo(const std::string &_id, Fix *_ptr, int _colorstyle, double _flag1, double _flag2,
-            double *_rgb, double _opacity = 1.0) :
-        id(_id), ptr(_ptr), colorstyle(_colorstyle), flag1(_flag1), flag2(_flag2), rgb(_rgb),
-        opacity(_opacity)
+  struct ObjInfo {
+    ObjInfo() = delete;
+    ObjInfo(const std::string &_id, Compute *_cptr, Fix *_fptr, int _colorstyle, double _flag1,
+            double _flag2, double *_rgb, double _opacity = 1.0) :
+        id(_id), cptr(_cptr), fptr(_fptr), colorstyle(_colorstyle), flag1(_flag1), flag2(_flag2),
+        rgb(_rgb), opacity(_opacity)
     {
     }
 
     std::string id;
-    Fix *ptr;
+    Compute *cptr;
+    Fix *fptr;
     int colorstyle;
     double flag1;
     double flag2;
     double *rgb;
     double opacity;
   };
-
-  std::vector<FixInfo> fixes;
+  std::vector<ObjInfo> objects;
 
   Image *image;    // class that renders each image
 
@@ -162,7 +163,6 @@ class DumpImage : public DumpCustom {
 
   void init_style() override;
   int modify_param(int, char **) override;
-  void write() override;
 
   void box_center();
   void view_params();

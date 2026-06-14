@@ -4,7 +4,7 @@
 pair_style ilp/graphene/hbn command
 ===================================
 
-Accelerator Variant: *ilp/graphene/hbn/opt*
+Accelerator Variants: *ilp/graphene/hbn/opt*
 
 Syntax
 """"""

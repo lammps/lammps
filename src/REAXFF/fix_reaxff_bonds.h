@@ -32,6 +32,8 @@ class FixReaxFFBonds : public Fix {
   void init() override;
   void setup(int) override;
   void end_of_step() override;
+  int modify_param(int, char **) override;
+  double memory_usage() override;
 
   int image(int *&, double **&) override;
 
@@ -50,8 +52,6 @@ class FixReaxFFBonds : public Fix {
   int FindBond();
   void PassBuffer(double *, int &);
   void RecvBuffer(double *, int, int, int, int);
-  int modify_param(int, char **) override;
-  double memory_usage() override;
 
   struct _reax_list *lists;
   class PairReaxFF *reaxff;

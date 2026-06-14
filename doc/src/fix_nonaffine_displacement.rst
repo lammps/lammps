@@ -112,14 +112,16 @@ The reference state is saved to :doc:`binary restart files <restart>`.
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
-This fix computes a peratom array with 3 columns, which can be accessed
-by indices 1-3 using any command that uses per-atom values from a fix
-as input.
+This fix computes a peratom array with either 3 or 9 columns, which can
+be accessed by indices 1-9 using any command that uses per-atom values
+from a fix as input.
 
 For the *integrated* style, the three columns are the nonaffine
 displacements in the x, y, and z directions. For the *d2min* style,
-the three columns are the calculated :math:`\sqrt{D^2_\mathrm{min}}`, the
-volumetric strain, and the deviatoric strain.
+the first three columns are the calculated :math:`\sqrt{D^2_\mathrm{min}}`,
+the volumetric strain, and the deviatoric strain. The following 6
+columns are the xx, yy, zz, xy, xz, and yz components of the calculated
+strain tensor.
 
 Restrictions
 """"""""""""

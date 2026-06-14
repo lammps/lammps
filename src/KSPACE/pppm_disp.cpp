@@ -3900,7 +3900,7 @@ void PPPMDisp::compute_gf_6()
   inv2ew = 1/inv2ew;
   double rtpi = sqrt(MY_PI);
 
-  numerator = -MY_PI*rtpi*g_ewald_6*g_ewald_6*g_ewald_6/(3.0);
+  numerator = -MY_PI*rtpi*g_ewald_6*g_ewald_6*g_ewald_6/3.0;
 
   n = 0;
   for (m = nzlo_fft_6; m <= nzhi_fft_6; m++) {

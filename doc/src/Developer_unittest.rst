@@ -55,7 +55,7 @@ available:
      - Tests for ``ArgInfo`` class used by LAMMPS
    * - ``test_fmtlib.cpp``
      - FmtLib
-     - Tests for ``fmtlib::`` functions used by LAMMPS
+     - Tests for ``{fmt}`` or ``std::format`` functions used by LAMMPS
    * - ``test_math_eigen_impl.cpp``
      - MathEigen
      - Tests for ``MathEigen::`` classes and functions

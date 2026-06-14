@@ -24,8 +24,6 @@ int get_num_devices() {
   KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceCount(&num_devices));
 #elif defined(KOKKOS_ENABLE_HIP)
   KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDeviceCount(&num_devices));
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  num_devices = omp_get_num_devices();
 #elif defined(KOKKOS_ENABLE_OPENACC)
   num_devices = acc_get_num_devices(acc_get_device_type());
 #elif defined(KOKKOS_ENABLE_SYCL)
@@ -43,8 +41,6 @@ int get_device_id() {
   KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDevice(&device_id));
 #elif defined(KOKKOS_ENABLE_HIP)
   KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDevice(&device_id));
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  device_id   = omp_get_default_device();
 #elif defined(KOKKOS_ENABLE_OPENACC)
   device_id   = acc_get_device_num(acc_get_device_type());
 #elif defined(KOKKOS_ENABLE_SYCL)

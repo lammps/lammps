@@ -55,8 +55,8 @@ during CMake configuration.
    -D ENABLE_IWYU=value    # value = no (default) or yes
 
 This will check if the required binary (include-what-you-use or iwyu)
-and python script script (iwyu-tool or iwyu_tool or iwyu_tool.py) can
-be found in the path.  The analysis can then be started with:
+and python script (iwyu-tool or iwyu_tool or iwyu_tool.py) can be found
+in the path.  The analysis can then be started with:
 
 .. code-block:: bash
 
@@ -662,14 +662,6 @@ commands like the following:
 .. code-block:: bash
 
    clang-format -i some_file.cpp
-
-
-The following target are available for both, GNU make and CMake:
-
-.. code-block:: bash
-
-   make format-src       # apply clang-format to all files in src and the package folders
-   make format-tests     # apply clang-format to all files in the unittest tree
 
 ----------
 

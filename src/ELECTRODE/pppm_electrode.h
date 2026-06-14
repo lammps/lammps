@@ -61,31 +61,6 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void compute_gf_ik() override;
   void compute_gf_ad() override;
 
-  /* ----------------------------------------------------------------------
-     denominator for Hockney-Eastwood Green's function
-       of x,y,z = sin(kx*deltax/2), etc
-
-              inf                 n-1
-     S(n,k) = Sum  W(k+pi*j)**2 = Sum b(l)*(z*z)**l
-             j=-inf               l=0
-
-            = -(z*z)**n /(2n-1)! * (d/dx)**(2n-1) cot(x)  at z = sin(x)
-     gf_b = denominator expansion coeffs
-  ------------------------------------------------------------------------- */
-
-  [[nodiscard]] double gf_denom(const double &x, const double &y, const double &z) const
-  {
-    double sx, sy, sz;
-    sz = sy = sx = 0.0;
-    for (int l = order - 1; l >= 0; l--) {
-      sx = gf_b[l] + sx * x;
-      sy = gf_b[l] + sy * y;
-      sz = gf_b[l] + sz * z;
-    }
-    double s = sx * sy * sz;
-    return s * s;
-  };
-
  private:
   int compute_step;
   int last_source_grpbit;

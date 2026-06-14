@@ -156,7 +156,7 @@ pair of walls in a dimension.  Wall positions are given by *lo* and
 *hi*\ .  Either of the values can be specified as NULL if a single wall
 is desired.
 
-.. deprecated:: TBD
+.. deprecated:: 11Feb2026
 
 The *zcylinder* wallstyle has been removed.  Pleas use :doc:`fix
 wall/gran/region <fix_wall_gran_region>` instead.
@@ -267,7 +267,7 @@ minimization <minimize>`.
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 This fix supports the *fix* keyword of :doc:`dump image <dump_image>`.
 The fix will pass geometry information about *xplane*\, *yplane*\, and

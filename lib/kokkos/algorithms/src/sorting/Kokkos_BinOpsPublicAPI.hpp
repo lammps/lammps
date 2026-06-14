@@ -15,11 +15,7 @@ struct BinOp1D {
   double mul_   = {};
   double min_   = {};
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED BinOp1D() = default;
-#else
   BinOp1D() = delete;
-#endif
 
   // Construct BinOp with number of bins, minimum value and maximum value
   BinOp1D(int max_bins, typename KeyViewType::const_value_type min,
@@ -63,11 +59,7 @@ struct BinOp3D {
   double mul_[3]   = {};
   double min_[3]   = {};
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED BinOp3D() = default;
-#else
   BinOp3D() = delete;
-#endif
 
   BinOp3D(int max_bins[], typename KeyViewType::const_value_type min[],
           typename KeyViewType::const_value_type max[]) {

@@ -50,6 +50,8 @@ PairLJSwitch3CoulGaussLong::PairLJSwitch3CoulGaussLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJSwitch3CoulGaussLong::~PairLJSwitch3CoulGaussLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -76,7 +78,7 @@ void PairLJSwitch3CoulGaussLong::compute(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcecoul2,forcelj,factor_coul,factor_lj,tr,ftr,trx;
-  double grij,expm2,prefactor,prefactor2,t,erfc1,erfc2,rrij,expn2;
+  double grij,expm2,prefactor,prefactor2,t,erfc1,erfc2,rrij;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
 
@@ -164,7 +166,7 @@ void PairLJSwitch3CoulGaussLong::compute(int eflag, int vflag)
             prefactor2 = 0.0;
           } else {
             rrij = lj2[itype][jtype]*r;
-            expn2 = exp(-rrij*rrij);
+            double expn2 = exp(-rrij*rrij);
             erfc2 = erfc(rrij);
             prefactor2 = -qqrd2e*qtmp*q[j]/r;
             forcecoul2 = prefactor2*(erfc2+EWALD_F*rrij*expn2);
@@ -574,7 +576,7 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
 {
   double r2inv,r6inv,r,grij,expm2,t,erfc1,prefactor,prefactor2;
   double fraction,table,forcecoul,forcecoul2,forcelj;
-  double rrij,expn2,erfc2,ecoul,evdwl,trx,tr,ftr;
+  double rrij,erfc2,ecoul,evdwl,trx,tr,ftr;
 
   int itable;
 
@@ -615,7 +617,7 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
       prefactor2 = 0.0;
     } else {
       rrij = lj2[itype][jtype]*r;
-      expn2 = exp(-rrij*rrij);
+      double expn2 = exp(-rrij*rrij);
       erfc2 = erfc(rrij);
       prefactor2 = -force->qqrd2e*atom->q[i]*atom->q[j]/r;
       forcecoul2 = prefactor2*(erfc2+EWALD_F*rrij*expn2);

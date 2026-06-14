@@ -25,6 +25,7 @@
 #include <string>
 
 using LAMMPS_NS::utils::split_words;
+using ::testing::ContainsRegex;
 using ::testing::StrEq;
 
 bool verbose = false;
@@ -76,7 +77,8 @@ TEST_F(LeptonUtilsTest, substitute)
     try {
         LeptonUtils::substitute("v_none", lmp);
     } catch (std::exception &e) {
-        ASSERT_THAT(e.what(), StrEq("Variable none in expression v_none does not exist"));
+        ASSERT_THAT(e.what(),
+                    ContainsRegex(".*Variable none in expression v_none does not exist.*"));
         caught = true;
     }
     ASSERT_TRUE(caught);

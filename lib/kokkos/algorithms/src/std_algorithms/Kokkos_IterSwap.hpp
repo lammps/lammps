@@ -50,16 +50,6 @@ void iter_swap(IteratorType1 a, IteratorType2 b) {
   Impl::iter_swap_impl(a, b);
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-template <class T>
-KOKKOS_DEPRECATED_WITH_COMMENT("Use Kokkos::kokkos_swap instead!")
-KOKKOS_FUNCTION
-    void swap(T& a, T& b) noexcept(::Kokkos::kokkos_swap(std::declval<T&>(),
-                                                         std::declval<T&>())) {
-  ::Kokkos::kokkos_swap(a, b);
-}
-#endif
-
 }  // namespace Experimental
 }  // namespace Kokkos
 

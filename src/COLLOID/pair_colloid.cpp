@@ -42,6 +42,8 @@ PairColloid::PairColloid(LAMMPS *lmp) : Pair(lmp)
 
 PairColloid::~PairColloid()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

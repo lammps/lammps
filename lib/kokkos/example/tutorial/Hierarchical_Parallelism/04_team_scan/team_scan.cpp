@@ -86,11 +86,12 @@ int main(int narg, char* args[]) {
 
     Kokkos::Timer timer;
     // threads/team is automatically limited to maximum supported by the device.
-    int const concurrency = Device::execution_space().concurrency();
-    int team_size         = TEAM_SIZE;
-    if (team_size > concurrency) team_size = concurrency;
-    Kokkos::parallel_for(team_policy(nchunks, team_size),
-                         find_2_tuples(chunk_size, data, histogram));
+    int team_size = TEAM_SIZE;
+    find_2_tuples functor(chunk_size, data, histogram);
+    int const max_team_size =
+        team_policy(1, 1).team_size_max(functor, Kokkos::ParallelForTag{});
+    if (team_size > max_team_size) team_size = max_team_size;
+    Kokkos::parallel_for(team_policy(nchunks, team_size), functor);
     Kokkos::fence();
     double time = timer.seconds();
 

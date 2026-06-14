@@ -38,11 +38,15 @@ Syntax
        *intersect* args = two or more group IDs
        *dynamic* args = parent-ID keyword value ...
          one or more keyword/value pairs may be appended
-         keyword = *region* or *var* or *property* or *every*
+         keyword = *region* or *var* or *property* or *every* or *exclude* or *include* or *within*
            *region* value = region-ID
            *var* value = name of variable
            *property* value = name of custom integer or floating point vector
            *every* value = N = update group every this many timesteps
+           *exclude* value = group-ID = exclude atoms in this group from dynamic group
+           *include* args = molecule
+             molecule = add atoms to the dynamic group with same molecule ID as atoms already selected for the dynamic group
+           *within* value = cutoff = add atoms to the dynamic group that are within the given cutoff distance of the atoms already selected for the dynamic group
        *static* = no args
 
 Examples
@@ -65,6 +69,7 @@ Examples
    group boundary intersect upper flow
    group boundary delete
    group mine dynamic all region myRegion every 100
+   group solvation dynamic peptide within 3.5 include molecule every 100 exclude peptide
 
 Description
 """""""""""
@@ -111,7 +116,7 @@ to a group.
 
 The *region* style puts all atoms in the region volume into the group.
 Note that this is a static one-time assignment.  The atoms remain
-assigned (or not assigned) to the group even in they later move out of
+assigned (or not assigned) to the group even if they later move out of
 the region volume.
 
 The *type*, *id*, and *molecule* styles put all atoms with the
@@ -127,7 +132,7 @@ with an optional increment.  The first example with ``500:1000`` has the
 default increment of 1 and would add all atom IDs from 500 to 1000
 (inclusive) to the group sub, along with 10, 25, and 50 since they also
 appear in the list of values.  The second example with ``100:10000:10``
-uses an increment of 10 and would thus would add atoms IDs
+uses an increment of 10 and would thus add atoms IDs
 :math:`100, 110, 120, \dots, 9990, 10000` to the group sub.
 
 The second format is a *logical* followed by one or two values (type
@@ -225,10 +230,12 @@ added to the specified group.
 The *dynamic* style flags an existing or new group as dynamic.  This
 means atoms will be (re)assigned to the group periodically as a
 simulation runs.  This is in contrast to static groups where atoms are
-permanently assigned to the group.  The way the assignment occurs is
-as follows.  Only atoms in the group specified as the parent group via
-the parent-ID are assigned to the dynamic group before the following
-conditions are applied.
+permanently assigned to the group.  The way the assignment occurs is as
+follows.  Only atoms in the group specified as the parent group via the
+parent-ID are initially assigned to the dynamic group before the
+following selection conditions are applied.  The *include* and *within*
+keywords can then trigger including additional atoms which may be
+outside the parent group.
 
 If the *region* keyword is used, atoms not in the specified region are
 removed from the dynamic group.
@@ -241,34 +248,69 @@ If the *property* keyword is used, the name refers to a custom integer
 or floating point per-atom vector defined via the :doc:`fix
 property/atom <fix_property_atom>` command.  This means the values in
 the vector can be read as part of a data file with the :doc:`read_data
-<read_data>` command or specified with the :doc:`set <set>` command.
-Or accessed and changed via the :doc:`library interface to LAMMPS
+<read_data>` command or specified with the :doc:`set <set>` command.  Or
+accessed and changed via the :doc:`library interface to LAMMPS
 <Howto_library>`, or by styles you add to LAMMPS (pair, fix, compute,
-etc) which access the custom vector and modify its values.  Which
-means the values can be modified between or during simulations.  Atoms
-whose values in the custom vector are zero are removed from the
-dynamic group.  Note that the name of the custom per-atom vector is
-specified just as *name*, not as *i_name* or *d_name* as it is for
-other commands that use different kinds of custom atom vectors or
-arrays as arguments.
+etc) which access the custom vector and modify its values.  Which means
+the values can be modified between or during simulations.  Atoms whose
+values in the custom vector are zero are removed from the dynamic group.
+Note that the name of the custom per-atom vector is specified just as
+*name*, not as *i_name* or *d_name* as it is for other commands that use
+different kinds of custom atom vectors or arrays as arguments.
 
 The assignment of atoms to a dynamic group is done at the beginning of
-each run and on every timestep that is a multiple of *N*\ , which is
-the argument for the *every* keyword (:math:`N = 1` is the default).  For an
+each run and on every timestep that is a multiple of *N*\ , which is the
+argument for the *every* keyword (:math:`N = 1` is the default).  For an
 energy minimization, via the :doc:`minimize <minimize>` command, an
-assignment is made at the beginning of the minimization, but not
-during the iterations of the minimizer.
+assignment is made at the beginning of the minimization, but not during
+the iterations of the minimizer.
 
-The point in the timestep at which atoms are assigned to a dynamic
-group is after interatomic forces have been computed, but before any
+.. versionadded:: 30Mar2026
+
+The optional *exclude* keyword has a group ID as argument and after all
+other atom selections for the dynamic group have been performed, it
+removes selected atoms that are in the specified group from the dynamic
+group.  This can for example be used to first select additional solvent
+atoms up to a given distance from a group using the *within* keyword
+(see below), but then exclude the non-solvent atoms.
+
+.. versionadded:: 11Feb2026
+
+The optional *include* keyword with its argument *molecule* adds atoms
+to a dynamic group that have the same molecule ID as atoms already in
+the group.  Atoms with the molecule ID = 0 are ignored in this
+operation, since that ID is generally assumed to flag isolated atoms
+that are not part of molecules.  An example of where this operation is
+useful is if the dynamic group is defined using a *region*.  If
+molecules straddle the region boundary, then atoms outside the region
+that are part of molecules with atoms inside the region will be added to
+the group (see above).
+
+.. versionadded:: 30Mar2026
+
+The optional *within* keyword with its *cutoff* argument adds atoms to a
+dynamic group that are within the given cutoff distance from any of the
+atoms selected for the dynamic group.  Since this requires processing a
+neighbor list and computing distances for potentially many pairs of
+atoms plus and additional forward communication step, this can be an
+expensive operation that should be used in combination with the *every*
+option and a value of (e.g. 10 or larger) to reduce the overhead for
+updating the selection.  Outside of flow simulations and similar, atoms
+will mostly oscillate around their positions and diffuse on a much
+larger timescale, so infrequent group updates will not be a problem.
+Also when selecting atoms for output to a :doc:`dump file <dump>` it is
+not necessary to update the selection more often than the dump interval.
+
+The point in the timestep at which atoms are assigned to a dynamic group
+is **after** interatomic forces have been computed, but **before** any
 fixes which alter forces or otherwise update the system have been
 invoked.  This means that atom positions have been updated, neighbor
 lists and ghost atoms are current, and both intermolecular and
-intramolecular forces have been calculated based on the new
-coordinates.  Thus the region criterion, if applied, should be
-accurate.  Also, any computes invoked by an atom-style variable should
-use updated information for that timestep (e.g., potential energy/atom
-or coordination number/atom).  Similarly, fixes or computes which are
+intramolecular forces have been calculated based on the new coordinates.
+Thus the region criterion, if applied, should be accurate.  Also, any
+computes invoked by an atom-style variable should use updated
+information for that timestep (e.g., potential energy/atom or
+coordination number/atom).  Similarly, fixes or computes which are
 invoked after that point in the timestep, should operate on the new
 group of atoms.
 

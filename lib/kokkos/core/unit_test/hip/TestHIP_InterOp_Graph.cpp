@@ -60,7 +60,8 @@ TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
 
   view_t data(Kokkos::view_alloc(exec, "witness"));
 
-  Kokkos::Experimental::Graph graph{exec};
+  Kokkos::Experimental::Graph graph{
+      Kokkos::Experimental::get_device_handle(exec)};
 
   graph.root_node().then_parallel_for(1, Increment<view_t>{data});
 
@@ -104,7 +105,8 @@ TEST(TEST_CATEGORY, graph_construct_from_native) {
 
   const Kokkos::HIP exec{};
 
-  Kokkos::Experimental::Graph graph_from_native(exec, native_graph);
+  Kokkos::Experimental::Graph graph_from_native(
+      Kokkos::Experimental::get_device_handle(exec), native_graph);
 
   ASSERT_EQ(native_graph, graph_from_native.native_graph());
 

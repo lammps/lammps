@@ -47,9 +47,6 @@ export {
 #ifdef KOKKOS_ENABLE_HPX
   using ::Kokkos::Experimental::HPX;
 #endif
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  using ::Kokkos::Experimental::OpenMPTarget;
-#endif
 #ifdef KOKKOS_ENABLE_OPENACC
   using ::Kokkos::Experimental::OpenACC;
 #endif
@@ -62,6 +59,7 @@ export {
   using ::Kokkos::DefaultHostExecutionSpace;
   using ::Kokkos::Device;
   using ::Kokkos::device_id;
+  using ::Kokkos::ExecutionSpace;
   using ::Kokkos::has_shared_host_pinned_space;
   using ::Kokkos::has_shared_space;
   using ::Kokkos::HostSpace;
@@ -72,6 +70,7 @@ export {
   using ::Kokkos::is_memory_space;
   using ::Kokkos::is_memory_space_v;
   using ::Kokkos::is_space;
+  using ::Kokkos::MemorySpace;
   using ::Kokkos::ScratchMemorySpace;
   using ::Kokkos::ScratchRequest;
 #ifdef KOKKOS_HAS_SHARED_SPACE
@@ -146,6 +145,7 @@ export {
   using ::Kokkos::default_inner_direction;
   using ::Kokkos::default_outer_direction;
   using ::Kokkos::Dynamic;
+  using ::Kokkos::ExecutionPolicy;
   using ::Kokkos::IndexType;
   using ::Kokkos::is_execution_policy;
   using ::Kokkos::is_execution_policy_v;
@@ -166,7 +166,7 @@ export {
   using ::Kokkos::Schedule;
   using ::Kokkos::single;
   using ::Kokkos::Static;
-  using ::Kokkos::team_policy_check_valid_storage_level_argument;
+  using ::Kokkos::TeamHandle;
   using ::Kokkos::TeamPolicy;
   using ::Kokkos::TeamThreadMDRange;
   using ::Kokkos::TeamThreadRange;
@@ -264,6 +264,7 @@ export {
   using ::Kokkos::MinMaxLocScalar;
   using ::Kokkos::MinMaxScalar;
   using ::Kokkos::Prod;
+  using ::Kokkos::Reducer;
   using ::Kokkos::reduction_identity;
   using ::Kokkos::StdIsPartitioned;    // FIXME Move to algorithms
   using ::Kokkos::StdIsPartScalar;     // FIXME Move to algorithms
@@ -483,15 +484,38 @@ export {
   using ::Kokkos::fmod;
   using ::Kokkos::fmodf;
   using ::Kokkos::fmodl;
+  using ::Kokkos::fpclassify;
+  using ::Kokkos::frexp;
+  using ::Kokkos::frexpf;
+  using ::Kokkos::frexpl;
   using ::Kokkos::hypot;
   using ::Kokkos::hypotf;
   using ::Kokkos::hypotl;
+  using ::Kokkos::ilogb;
+  using ::Kokkos::ilogbf;
+  using ::Kokkos::ilogbl;
   using ::Kokkos::isfinite;
+  using ::Kokkos::isgreater;
+  using ::Kokkos::isgreaterequal;
   using ::Kokkos::isinf;
+  using ::Kokkos::isless;
+  using ::Kokkos::islessequal;
+  using ::Kokkos::islessgreater;
   using ::Kokkos::isnan;
+  using ::Kokkos::isnormal;
+  using ::Kokkos::isunordered;
+  using ::Kokkos::ldexp;
+  using ::Kokkos::ldexpf;
+  using ::Kokkos::ldexpl;
   using ::Kokkos::lgamma;
   using ::Kokkos::lgammaf;
   using ::Kokkos::lgammal;
+  using ::Kokkos::llrint;
+  using ::Kokkos::llrintf;
+  using ::Kokkos::llrintl;
+  using ::Kokkos::llround;
+  using ::Kokkos::llroundf;
+  using ::Kokkos::llroundl;
   using ::Kokkos::log;
   using ::Kokkos::log10;
   using ::Kokkos::log10f;
@@ -507,6 +531,15 @@ export {
   using ::Kokkos::logbl;
   using ::Kokkos::logf;
   using ::Kokkos::logl;
+  using ::Kokkos::lrint;
+  using ::Kokkos::lrintf;
+  using ::Kokkos::lrintl;
+  using ::Kokkos::lround;
+  using ::Kokkos::lroundf;
+  using ::Kokkos::lroundl;
+  using ::Kokkos::modf;
+  using ::Kokkos::modff;
+  using ::Kokkos::modfl;
   using ::Kokkos::nan;
   using ::Kokkos::nanf;
   using ::Kokkos::nanl;
@@ -516,18 +549,37 @@ export {
   using ::Kokkos::nextafter;
   using ::Kokkos::nextafterf;
   using ::Kokkos::nextafterl;
+  using ::Kokkos::nexttoward;
+  using ::Kokkos::nexttowardf;
+  using ::Kokkos::nexttowardl;
+  using ::Kokkos::norm;
   using ::Kokkos::pow;
   using ::Kokkos::powf;
   using ::Kokkos::powl;
+  using ::Kokkos::rcp;
+  using ::Kokkos::rcpf;
+  using ::Kokkos::rcpl;
   using ::Kokkos::remainder;
   using ::Kokkos::remainderf;
   using ::Kokkos::remainderl;
+  using ::Kokkos::remquo;
+  using ::Kokkos::remquof;
+  using ::Kokkos::remquol;
+  using ::Kokkos::rint;
+  using ::Kokkos::rintf;
+  using ::Kokkos::rintl;
   using ::Kokkos::round;
   using ::Kokkos::roundf;
   using ::Kokkos::roundl;
   using ::Kokkos::rsqrt;
   using ::Kokkos::rsqrtf;
   using ::Kokkos::rsqrtl;
+  using ::Kokkos::scalbln;
+  using ::Kokkos::scalblnf;
+  using ::Kokkos::scalblnl;
+  using ::Kokkos::scalbn;
+  using ::Kokkos::scalbnf;
+  using ::Kokkos::scalbnl;
   using ::Kokkos::signbit;
   using ::Kokkos::sin;
   using ::Kokkos::sinf;

@@ -6,12 +6,7 @@
 
 #include <Kokkos_Macros.hpp>
 
-// FIXME_SYCL
-#if __has_include(<sycl/sycl.hpp>)
 #include <sycl/sycl.hpp>
-#else
-#include <CL/sycl.hpp>
-#endif
 
 // Make sure no one else tries to define half_t
 #ifndef KOKKOS_IMPL_HALF_TYPE_DEFINED

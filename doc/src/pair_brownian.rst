@@ -64,6 +64,21 @@ numbers for the thermostatting procedure.
 The *flagHI* and *flagVF* settings are optional.  Neither should be
 used, or both must be defined.
 
+.. versionchanged:: TBD
+
+For *brownian/poly* the pairwise random Brownian force is now generated
+once per pair from a deterministic random number stream (keyed on the
+pair of atom IDs and the timestep) and applied equal and opposite to
+both particles, so that linear momentum is conserved exactly and the
+system is no longer heated spuriously.  In addition the near-field
+resistance functions now use the symmetric Jeffrey & Onishi gap so the
+force magnitude is independent of which particle is taken as the
+reference, consistent with :doc:`pair_style lubricate/poly
+<pair_lubricate>`.  Previously the random force on the two members of a
+pair was drawn independently (violating Newton's third law) and the
+resistance was evaluated with one particle's radius as the reference
+length, both of which were incorrect for polydisperse systems.
+
 ----------
 
 The following coefficients must be defined for each pair of atoms
@@ -122,10 +137,11 @@ LAMMPS was built with that package.  See the :doc:`Build package
 Only spherical monodisperse particles are allowed for pair_style
 brownian.
 
-Only spherical particles are allowed for pair_style brownian/poly.
+Only spherical particles are allowed for pair_style brownian/poly.  The
+volume fraction correction is not supported by pair_style brownian/poly.
 
 These pair styles are only compatible with the following wall fixes:
-doc:`fix wall/lj93, fix wall/lj126, fix wall/lj1043, fix wall/colloid,
+:doc:`fix wall/lj93, fix wall/lj126, fix wall/lj1043, fix wall/colloid,
 fix wall/harmonic, fix wall/lepton, fix wall/morse, fix wall/table
 <fix_wall>`.
 

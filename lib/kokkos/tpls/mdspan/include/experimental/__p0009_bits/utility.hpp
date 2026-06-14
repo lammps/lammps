@@ -4,6 +4,11 @@
 #include <type_traits>
 #include <array>
 #include <utility>
+#if defined(MDSPAN_IMPL_HAS_CUDA) && defined(__NVCC__) && (__CUDACC_VER_MAJOR__ * 100 + __CUDACC_VER_MINOR__ * 10 >= 1260)
+#include <cuda/std/limits>
+#else
+#include <limits>
+#endif
 #include "macros.hpp"
 
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
@@ -198,8 +203,13 @@ MDSPAN_INLINE_FUNCTION constexpr bool cmp_greater_equal(T t, U u) noexcept {
 
 template <class R, class T>
 MDSPAN_INLINE_FUNCTION constexpr bool in_range(T t) noexcept {
-  return cmp_greater_equal(t, std::numeric_limits<R>::min()) &&
-          cmp_less_equal(t, std::numeric_limits<R>::max());
+#if defined(MDSPAN_IMPL_HAS_CUDA) && defined(__NVCC__) && (__CUDACC_VER_MAJOR__ * 100 + __CUDACC_VER_MINOR__ * 10 >= 1260)
+  using cuda::std::numeric_limits;
+#else
+  using std::numeric_limits;
+#endif
+  return cmp_greater_equal(t, numeric_limits<R>::min()) &&
+          cmp_less_equal(t, numeric_limits<R>::max());
 }
 
 template <typename T >
@@ -216,7 +226,12 @@ check_mul_result_is_nonnegative_and_representable(T a, T b) {
   if constexpr (std::is_signed_v<T>) {
     if ( a < 0 || b < 0 ) return false;
   }
-  return a <= std::numeric_limits<T>::max() / b;
+#if defined(MDSPAN_IMPL_HAS_CUDA) && defined(__NVCC__) && (__CUDACC_VER_MAJOR__ * 100 + __CUDACC_VER_MINOR__ * 10 >= 1260)
+  using cuda::std::numeric_limits;
+#else
+  using std::numeric_limits;
+#endif
+  return a <= numeric_limits<T>::max() / b;
 #endif
 }
 #endif

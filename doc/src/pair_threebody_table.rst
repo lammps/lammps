@@ -1,7 +1,10 @@
 .. index:: pair_style threebody/table
+.. index:: pair_style threebody/table/omp
 
 pair_style threebody/table command
 ==================================
+
+Accelerator Variants: *threebody/table/omp*
 
 Syntax
 """"""
@@ -240,6 +243,10 @@ https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-tutorials/ml
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -280,4 +287,3 @@ Related commands
 .. _Scherer2:
 
 **(Scherer2)** C. Scherer, R. Scheid, D. Andrienko, and T. Bereau, J. Chem. Theor. Comp. 16, 3194-3204 (2020).
-

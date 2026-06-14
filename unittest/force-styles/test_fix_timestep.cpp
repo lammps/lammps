@@ -737,10 +737,10 @@ TEST(FixTimestep, omp)
         }
     }
 
-    // rigid fixes need work to test properly with r-RESPA,
-    // also, torque is not supported by respa/omp
+    // skip the r-RESPA leg for styles tagged "no_respa" (same set as the plain
+    // fixture); also, torque is not supported by respa/omp
     ifix = lmp->modify->get_fix_by_id("test");
-    if (ifix && !utils::strmatch(ifix->style, "^rigid") && !lmp->atom->torque) {
+    if (ifix && !test_config.has_tag("no_respa") && !lmp->atom->torque) {
 
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);

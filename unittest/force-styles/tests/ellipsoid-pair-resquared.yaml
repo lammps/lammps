@@ -1,14 +1,13 @@
 ---
 lammps_version: 30 Mar 2026
 tags: ellipsoid
-date_generated: Sat Jun 13 22:41:59 2026
+date_generated: Sat Jun 13 22:48:21 2026
 epsilon: 1e-12
 skip_tests:
 prerequisites: |
   pair resquared
   atom ellipsoid
-pre_commands: |
-  variable data_file index ${input_dir}/data.ellipsoid-sparse
+pre_commands: ""
 post_commands: |
   velocity all create 1.0 5234 loop geom
 input_file: in.ellipsoid

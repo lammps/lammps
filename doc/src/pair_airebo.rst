@@ -74,6 +74,8 @@ increases. This allows AIREBO-M to retain accuracy to much higher pressures
 than AIREBO (up to 40 GPa for Polyethylene). Details for this potential
 and its parameterization are given in :ref:`(O'Conner) <OConnor>`.
 
+.. versionadded:: TBD
+
 The *airebo/bc* pair style computes the bond-centric modification of
 AIREBO described in :ref:`(Hur) <Hur>`.  It is equivalent to AIREBO except
 that the :math:`P_{ij}` coordination correction to the bond order is made

@@ -26,6 +26,7 @@ OPT.
    * :doc:`aip/water/2dm (t) <pair_aip_water_2dm>`
    * :doc:`airebo (io) <pair_airebo>`
    * :doc:`airebo/morse (io) <pair_airebo>`
+   * :doc:`airebo/bc <pair_airebo>`
    * :doc:`amoeba (g) <pair_amoeba>`
    * :doc:`atm <pair_atm>`
    * :doc:`beck (go) <pair_beck>`

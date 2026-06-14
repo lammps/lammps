@@ -141,6 +141,8 @@ void PairAIREBObc::read_file_extra(PotentialFileReader &reader)
     for (int j = 0; j < 7; j++) PCCf_bc[i][j] = 0.0;
 
   int nbc = reader.next_int();
+  if (nbc < 0 || nbc > 49)
+    error->one(FLERR, "AIREBO-BC pCC knot count out of range: {}", nbc);
   std::vector<double> bcvals(3 * nbc);
   reader.next_dvector(bcvals.data(), 3 * nbc);
   for (int n = 0; n < nbc; n++) {

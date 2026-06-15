@@ -25,6 +25,7 @@ FixStyle(rigid/small/host,FixRigidSmallKokkos<LMPHostType>);
 #include "fix_rigid_small.h"
 #include "kokkos_base.h"
 #include "comm_kokkos.h"
+#include "Kokkos_Random.hpp"
 #include <map>
 
 struct TagInitialIntegrate{};
@@ -173,6 +174,10 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 
   typename AT::t_kkfloat_1d d_rmass, d_mass;
   IntView1D d_type;
+
+  // RNG pool for the on-device Langevin thermostat
+  Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+  typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
 };
 
 KOKKOS_INLINE_FUNCTION

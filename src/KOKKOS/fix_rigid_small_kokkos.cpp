@@ -50,7 +50,8 @@ using namespace RigidConst;
 
 template<class DeviceType>
 FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixRigidSmall(lmp, narg, arg)
+  FixRigidSmall(lmp, narg, arg),
+  rand_pool(12345 + comm->me)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -100,11 +101,15 @@ void FixRigidSmallKokkos<DeviceType>::init()
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot yet use respa with Kokkos");
 
+  // seed the device Langevin RNG from the host RNG (which carries the user's
+  // langevin seed) so results are reproducible for a given input
+  if (langflag && random) {
+    int s = (int)(random->uniform() * 900000000.0) + 1;
+    rand_pool = Kokkos::Random_XorShift64_Pool<DeviceType>(s + comm->me);
+  }
+
   // warn about functionality that has not been thoroughly validated on device
   if (comm->me == 0) {
-    if (langflag)
-      error->warning(FLERR,"fix rigid/small/kk: langevin thermostat support is "
-                     "experimental and is computed partly on the host");
     if (inpfile)
       error->warning(FLERR,"fix rigid/small/kk: reading body properties from a "
                      "file (infile) is experimental with Kokkos");
@@ -186,6 +191,15 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
   k_body.sync_host();
   k_body.resize(nmax_body);
   copy_body_device();
+
+  // size the per-body Langevin buffer to match (grow_body does this during the
+  // run, but it is not necessarily called before the first post_force)
+  if (langflag) {
+    k_langextra.sync_host();
+    k_langextra.resize(nmax_body, 6);
+    k_langextra.modify_host();
+    d_langextra = k_langextra.template view<DeviceType>();
+  }
 
   // Before this, the non-Kokkos (host) setup routines populated the host
   // arrays; from now on the run uses device communication and sorting.
@@ -379,20 +393,56 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagInitialIntegrate, const int 
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
 {
-  // langevin still runs on the host (see grow_body for k_langextra sizing)
-  copy_body_host();
-  FixRigidSmall::apply_langevin_thermostat();
-  if ((int)k_langextra.view_host().extent(0) < nlocal_body) {
-    k_langextra.resize(nlocal_body, 6);
-  }
-  for(int i = 0; i < nlocal_body; i++){
-    for(int j = 0; j < 6; j++){
-      k_langextra.view_host()(i,j) = langextra[i][j];
-    }
-  }
-  k_langextra.modify_host();
-  k_langextra.template sync<DeviceType>();
-  d_langextra = k_langextra.template view<DeviceType>();
+  // Langevin forces/torques are computed per-body on the device.  k_langextra
+  // is sized to nmax_body by grow_body(), so it always covers nlocal_body.
+
+  double delta = update->ntimestep - update->beginstep;
+  delta /= update->endstep - update->beginstep;
+  const double t_target = t_start + delta * (t_stop - t_start);
+  const double tsqrt = sqrt(t_target);
+  const double boltz = force->boltz;
+  const double dt = update->dt;
+  const double mvv2e = force->mvv2e;
+  const double ftm2v = force->ftm2v;
+  const double tp = t_period;
+
+  auto d_body = this->d_body;
+  auto l_d_langextra = d_langextra;
+  auto l_rand_pool = rand_pool;
+
+  Kokkos::parallel_for("fix rigid/small langevin",
+    Range1D(0, nlocal_body),
+    KOKKOS_LAMBDA(const int ibody) {
+      rand_type rand_gen = l_rand_pool.get_state();
+      Body &b = d_body(ibody);
+
+      double gamma1 = -b.mass / tp / ftm2v;
+      double gamma2 = sqrt(b.mass) * tsqrt * sqrt(24.0*boltz/tp/dt/mvv2e) / ftm2v;
+      l_d_langextra(ibody,0) = gamma1*b.vcm[0] + gamma2*(rand_gen.drand()-0.5);
+      l_d_langextra(ibody,1) = gamma1*b.vcm[1] + gamma2*(rand_gen.drand()-0.5);
+      l_d_langextra(ibody,2) = gamma1*b.vcm[2] + gamma2*(rand_gen.drand()-0.5);
+
+      gamma1 = -1.0 / tp / ftm2v;
+      gamma2 = tsqrt * sqrt(24.0*boltz/tp/dt/mvv2e) / ftm2v;
+
+      // convert omega from space frame to body frame, compute body-frame torque
+
+      double wbody[3], tbody[3], lang[3];
+      MathExtraKokkos::transpose_matvec(b.ex_space,b.ey_space,b.ez_space,b.omega,wbody);
+      tbody[0] = b.inertia[0]*gamma1*wbody[0] + sqrt(b.inertia[0])*gamma2*(rand_gen.drand()-0.5);
+      tbody[1] = b.inertia[1]*gamma1*wbody[1] + sqrt(b.inertia[1])*gamma2*(rand_gen.drand()-0.5);
+      tbody[2] = b.inertia[2]*gamma1*wbody[2] + sqrt(b.inertia[2])*gamma2*(rand_gen.drand()-0.5);
+
+      // convert langevin torque from body frame back to space frame
+
+      MathExtraKokkos::matvec(b.ex_space,b.ey_space,b.ez_space,tbody,lang);
+      l_d_langextra(ibody,3) = lang[0];
+      l_d_langextra(ibody,4) = lang[1];
+      l_d_langextra(ibody,5) = lang[2];
+
+      l_rand_pool.free_state(rand_gen);
+    });
+  k_langextra.modify_device();
 }
 
 /* ----------------------------------------------------------------------
@@ -508,24 +558,25 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
   commKK->reverse_comm_device<DeviceType>(this,6);
   Kokkos::Profiling::popRegion();
 
-  // include Langevin thermostat forces and torques
+  // include Langevin thermostat forces and torques (computed on the device)
 
-  // TODO: GPU langevin
   if (langflag) {
     Kokkos::Profiling::pushRegion("rigid/small langevin");
-    copy_body_host();
-    k_langextra.sync_host();
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      double *fcm = body[ibody].fcm;
-      fcm[0] += k_langextra.view_host()(ibody,0);
-      fcm[1] += k_langextra.view_host()(ibody,1);
-      fcm[2] += k_langextra.view_host()(ibody,2);
-      double *tcm = body[ibody].torque;
-      tcm[0] += k_langextra.view_host()(ibody,3);
-      tcm[1] += k_langextra.view_host()(ibody,4);
-      tcm[2] += k_langextra.view_host()(ibody,5);
-    }
-    copy_body_device();
+    k_langextra.template sync<DeviceType>();
+    auto l_d_langextra = d_langextra;
+    Kokkos::parallel_for(
+      "fix rigid/small add langevin",
+      Range1D(0, nlocal_body),
+      KOKKOS_LAMBDA (const int ibody) {
+        Body &b = d_body(ibody);
+        b.fcm[0] += l_d_langextra(ibody,0);
+        b.fcm[1] += l_d_langextra(ibody,1);
+        b.fcm[2] += l_d_langextra(ibody,2);
+        b.torque[0] += l_d_langextra(ibody,3);
+        b.torque[1] += l_d_langextra(ibody,4);
+        b.torque[2] += l_d_langextra(ibody,5);
+      }
+    );
     Kokkos::Profiling::popRegion();
   }
 

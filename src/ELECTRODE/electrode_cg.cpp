@@ -32,15 +32,10 @@
 using namespace LAMMPS_NS;
 using namespace ElectrodeMath;
 
-ElectrodeCG::ElectrodeCG(LAMMPS *lmp, FixElectrodeConp *fix) :
-    Fix(lmp, 0,
-        std::vector<char *>{(char *) "fix_electrode_cg", (char *) "all", (char *) "electrode/cg"}
-            .data()),
-    ChargeSolver()
+ElectrodeCG::ElectrodeCG(LAMMPS *lmp, FixElectrodeConp *fix) : Pointers(lmp), ChargeSolver()
 {
   setup = a_cached_flag = false;
   nstep = ncall = 0;
-  comm_forward = 1;
   nmax = 0;
   memory->create(potential_i, nmax, "ElectrodeCG:potential_i");
   elyt_step = -1;
@@ -69,13 +64,6 @@ double ElectrodeCG::memory_use()
   bytes += bvec.capacity() * sizeof(double);
   bytes += a_cached.capacity() * sizeof(double);
   return bytes;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int ElectrodeCG::setmask()
-{
-  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -326,26 +314,6 @@ std::vector<double> ElectrodeCG::constraint_projection(std::vector<double> x, bo
     default:
       error->all(FLERR, "Constraint not implemented");
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int ElectrodeCG::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
-{
-  int m = 0;
-  for (int i = 0; i < n; i++) {
-    const int j = list[i];
-    buf[m++] = atom->q[j];
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ElectrodeCG::unpack_forward_comm(int n, int first, double *buf)
-{
-  const int last = first + n;
-  for (int i = first, m = 0; i < last; i++) atom->q[i] = buf[m++];
 }
 
 /* ---------------------------------------------------------------------- */

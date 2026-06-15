@@ -16,11 +16,8 @@
 ------------------------------------------------------------------------- */
 
 #include "electrode_mat_cg.h"
-#include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
-#include "memory.h"
 
 #include <cassert>
 

@@ -355,10 +355,8 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   assert(groups.size() == group_psi_const.size());
   assert(groups.size() == group_psi_var_styles.size());
   assert(groups.size() == group_psi_var_names.size());
-  // assert(igroup == elyt_vector->igroup);
   if (predictor_set && algo != Algo::CG && algo != Algo::MATRIX_CG)
     error->all(FLERR, "Selected algorithm does not support predictor keyword");
-  // if (need_elec_vector) assert(igroup == elec_vector->igroup);
   if (algo != Algo::MATRIX_INV) {
     if (read_inv || write_inv)
       error->all(
@@ -408,8 +406,10 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
 
   if (!intelflag) {    // so /intel makes ElectrodeVectorIntel instead
     elyt_vector = new ElectrodeVector(lmp, 0, arg, igroup, igroup, eta, true);
+    assert(igroup == elyt_vector->igroup);
     if (need_elec_vector) {
       elec_vector = new ElectrodeVector(lmp, 0, arg, igroup, igroup, eta, false);
+      assert(igroup == elec_vector->igroup);
     }
   }
 }
@@ -731,7 +731,9 @@ void FixElectrodeConp::setup_pre_exchange()
 /* ---------------------------------------------------------------------- */
 
 void FixElectrodeConp::pre_force(int)
-{ update_charges(); }
+{
+  update_charges();
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -804,6 +806,8 @@ void FixElectrodeConp::set_charges(std::vector<double> q_local)
   intel_pack_buffers();
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixElectrodeConp::update_psi_set_constraint()
 {
   for (int g = 0; g < num_of_groups; g++) {
@@ -821,12 +825,16 @@ void FixElectrodeConp::update_psi_set_constraint()
 /* ---------------------------------------------------------------------- */
 
 double FixElectrodeConp::compute_scalar()
-{ return potential_energy(); }
+{
+  return potential_energy();
+}
 
 /* ---------------------------------------------------------------------- */
 
 double FixElectrodeConp::compute_vector(int i)
-{ return charge_solver->get_potential(i); }
+{
+  return charge_solver->get_potential(i);
+}
 
 /* ---------------------------------------------------------------------- */
 

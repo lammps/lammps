@@ -25,9 +25,9 @@
 
 namespace LAMMPS_NS {
 
-class FixElectrodeConp; // forward decl
+class FixElectrodeConp;    // forward decl
 
-class ElectrodeCG : public Fix, public ChargeSolver {
+class ElectrodeCG : public Pointers, public ChargeSolver {
  public:
   // ChargeSolver methods
   ElectrodeCG(class LAMMPS *, class FixElectrodeConp * = nullptr);
@@ -48,11 +48,6 @@ class ElectrodeCG : public Fix, public ChargeSolver {
 
   //setup
   void setup_solver(double, ElectrodeVector *, int);
-
-  // fix methods
-  int setmask() override;
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
 
  protected:
   int nele, nele_world;

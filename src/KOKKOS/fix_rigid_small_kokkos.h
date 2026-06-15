@@ -61,23 +61,23 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   void grow_body() override;
   void set_molecule(int, tagint, int, double *, double *, double *) override;
 
-  int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_double_2d_lr &buf,
                            DAT::tdual_int_1d k_sendlist,
                            DAT::tdual_int_1d k_copylist,
                            ExecutionSpace space) override;
 
-  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+  void unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
                               int, int,
                               ExecutionSpace space) override;
   int pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
-                               DAT::tdual_xfloat_1d &k_buf,
+                               DAT::tdual_double_1d &k_buf,
                                int pbc_flag, int* pbc) override;
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
 
-  int pack_reverse_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) override;
+  int pack_reverse_comm_kokkos(int, int, DAT::tdual_double_1d &) override;
   void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d,
-                                          DAT::tdual_xfloat_1d &) override;
+                                          DAT::tdual_double_1d &) override;
   // reverse comm handled by host,
   // only happens when body and bodyown
   // are already on host
@@ -117,28 +117,36 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   void set_xv_kokkos(int);
   void apply_langevin_thermostat_kokkos();
 
-  // TODO: Use AT stuff
-  using ImageIntView1D = Kokkos::View<imageint*, Kokkos::LayoutRight, DeviceType>;
-  using TagIntView1D = Kokkos::View<tagint*, Kokkos::LayoutRight, DeviceType>;
-  using IntView1D = Kokkos::View<int*, Kokkos::LayoutRight, DeviceType>;
-  using IntView2D = Kokkos::View<int**, Kokkos::LayoutRight, DeviceType>;
-  using View1D = Kokkos::View<F_FLOAT*, Kokkos::LayoutRight, DeviceType>;
-  using View2D = Kokkos::View<F_FLOAT**, Kokkos::LayoutRight, DeviceType>;
+  using ImageIntView1D = typename AT::t_imageint_1d;
+  using TagIntView1D = typename AT::t_tagint_1d;
+  using IntView1D = typename AT::t_int_1d;
+  using View2D = typename AT::t_double_2d_lr;
 
   using Range1D = Kokkos::RangePolicy<DeviceType>;
 
   void copy_body_host();
   void copy_body_device();
+  void refresh_atom_views();
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT&, int, double[6], double[3], double[3], double[3]) const;
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT&, int, double[6]) const;
+
+  // per-atom DualViews, tied to the FixRigidSmall host pointers via grow_kokkos
+  DAT::tdual_int_1d k_bodyown;
+  DAT::tdual_tagint_1d k_bodytag;
+  DAT::tdual_int_1d k_atom2body;
+  DAT::tdual_imageint_1d k_xcmimage;
+  DAT::tdual_double_2d_lr k_displace, k_vatom, k_langextra;
 
   IntView1D d_bodyown;
   TagIntView1D d_bodytag;
   IntView1D d_atom2body;
   ImageIntView1D d_xcmimage;
   View2D d_displace, d_vatom, d_langextra;
+
+  // 1 once grow_kokkos owns the base per-atom pointers
+  bool tied_initialized = false;
 
   int max_body_sent=0;
   std::map<int,int> n_body_recv, first_body;
@@ -147,19 +155,22 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 
 
   IntView1D d_sendlist;
-  View1D d_buf;
+  typename AT::t_double_1d_um d_buf;
   int first;
 
   CommKokkos *commKK;
 
-  Kokkos::View<Body*, DeviceType> d_body;
+  // body DualView (struct array); not tied to base `body` (different allocator),
+  // bridged by copy_body_host()/copy_body_device()
+  Kokkos::DualView<Body*, DeviceType> k_body;
+  typename Kokkos::DualView<Body*, DeviceType>::t_dev d_body;
 
   double xbox, ybox, zbox, xprd, yprd, zprd, xy, xz, yz;
-  typename AT::t_x_array d_x;
-  typename AT::t_v_array d_v;
-  typename AT::t_f_array d_f;
+  typename AT::t_kkfloat_1d_3_lr d_x;
+  typename AT::t_kkfloat_1d_3 d_v;
+  typename AT::t_kkacc_1d_3 d_f;
 
-  View1D d_rmass, d_mass;
+  typename AT::t_kkfloat_1d d_rmass, d_mass;
   IntView1D d_type;
 };
 

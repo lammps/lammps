@@ -37,6 +37,7 @@ class Neighbor : protected Pointers {
 
   double skin;                    // skin distance
   double cutneighmin;             // min neighbor cutoff for all type pairs
+  double cutneighmin_pair;        // min per-type-pair cutoff of default master list
   double cutneighmax;             // max neighbor cutoff for all type pairs
   double cutneighmaxsq;           // cutneighmax squared
   double **cutneighsq;            // neighbor cutneigh sq for each type pair

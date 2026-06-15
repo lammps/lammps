@@ -991,3 +991,10 @@ int FixWallBodyPolyhedron::image(int *&objs, double **&parms)
   if (domain->dimension == 2) return numwalls;
   return 2*numwalls;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixWallBodyPolyhedron::memory_usage()
+{
+  return (double) nmax * 6 * sizeof(int);    // dnum+dfirst+ednum+edfirst+facnum+facfirst [nmax]
+}

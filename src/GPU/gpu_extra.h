@@ -106,8 +106,7 @@ inline void check_flag(int error_flag, Error *error, MPI_Comm &world)
 
 inline void gpu_ready(LAMMPS_NS::Modify *modify, LAMMPS_NS::Error *error)
 {
-  int ifix = modify->find_fix("package_gpu");
-  if (ifix < 0)
+  if (!modify->get_fix_by_id("package_gpu"))
     error->all(FLERR, Error::NOLASTLINE, "The package gpu command is required for gpu styles");
 }
 }    // namespace GPU_EXTRA

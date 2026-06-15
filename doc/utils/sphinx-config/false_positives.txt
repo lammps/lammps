@@ -384,6 +384,7 @@ bondscreened
 bondscreenedspin
 bondspin
 bondtype
+bondval
 Bonet
 Bonomi
 boolean
@@ -498,6 +499,7 @@ ceil
 Ceil
 cekk
 centerline
+CentOS
 centro
 centroid
 Centroid
@@ -2336,6 +2338,7 @@ Mattson
 maxangle
 maxbond
 maxchunk
+maxdlogvolratio
 maxelt
 maxeval
 maxfiles
@@ -2926,6 +2929,7 @@ nzlo
 obabo
 ochre
 ocl
+octahedra
 octahedral
 octahedron
 octants
@@ -2991,6 +2995,7 @@ ornl
 Ornstein
 Orsi
 ortho
+orthogonally
 orthonormal
 orthorhombic
 Ortner
@@ -3105,6 +3110,7 @@ Peridynamics
 Periole
 perl
 permittivity
+perovskite
 perp
 Perram
 persp
@@ -3973,6 +3979,7 @@ Tainter
 Tait
 taitwater
 Tajkhorshid
+Takenaka
 Tamaskovics
 Tanaka
 tanh
@@ -4290,6 +4297,7 @@ Valone
 Valuev
 Vanden
 Vandenbrande
+Vandierendonck
 Vanduyfhuys
 varargs
 varavg

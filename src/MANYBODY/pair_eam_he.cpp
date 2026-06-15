@@ -235,3 +235,12 @@ void PairEAMHE::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairEAMHE::memory_usage()
+{
+  double bytes = PairEAMFS::memory_usage();
+  bytes += (double) nmax * sizeof(int);    // numforce[nmax]
+  return bytes;
+}

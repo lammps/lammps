@@ -45,6 +45,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`oxdna3/fene <bond_oxdna>`
    * :doc:`oxrna2/fene <bond_oxdna>`
    * :doc:`quartic (ko) <bond_quartic>`
+   * :doc:`quartic/exp (k) <bond_quartic_exp>`
    * :doc:`rheo/shell <bond_rheo_shell>`
    * :doc:`special <bond_special>`
    * :doc:`table (o) <bond_table>`

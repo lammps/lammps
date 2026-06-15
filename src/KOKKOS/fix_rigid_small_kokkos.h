@@ -115,6 +115,7 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
  protected:
 
   void set_xv_kokkos(int);
+  void setup_device_push();
   void apply_langevin_thermostat_kokkos();
 
   using ImageIntView1D = typename AT::t_imageint_1d;

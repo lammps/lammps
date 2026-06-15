@@ -153,6 +153,19 @@ void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
 
   atomKK->modified(Host, datamask_modify);
 
+  setup_device_push();
+}
+
+/* ----------------------------------------------------------------------
+   push the host body/per-atom state populated by the (host) setup routines
+   to the device, then enable device comm/sort for the run and seed the
+   ghost-body sendlists.  Shared by the base setup() and the Nose-Hoover
+   subclass setup() (which inserts its own scalar setup before this call).
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::setup_device_push()
+{
   // FixRigidSmall::setup() populated the host per-atom arrays, which are the
   // host mirrors of the tied DualViews -> mark host-modified and push to device
   k_bodyown.modify_host();

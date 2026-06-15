@@ -1208,7 +1208,7 @@ void Neighbor::morph_unique()
       if (!irq->occasional)
         irq->cutoff += skin;
 
-      if ((irq->cutoff > cutneighmin) && !irq->skip) {
+      if ((irq->cutoff != cutneighmax || irq->occasional) && !irq->skip) {
         irq->unique = 1;
       } else {
         irq->cut = 0;
@@ -1527,7 +1527,7 @@ void Neighbor::morph_copy_trim()
 
       // cannot copy or trim if some pair-wise cutoffs are too small
 
-      if (irq->cut && !jrq->cut && (irq->cutoff > cutneighmin)) continue;
+      if (irq->occasional && irq->cut && !jrq->cut && (irq->cutoff > cutneighmin)) continue;
 
       // trim a list with longer cutoff
 

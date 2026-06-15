@@ -560,8 +560,6 @@ TEST_F(NeighborListsBin, one_hybrid_half_list_nonewton)
     }
 }
 
-#if 0
-// FIXME: currently trim is not detected and this test will thus fail
 TEST_F(NeighborListsBin, one_trim_half_list_newton)
 {
     create_system("charge", "real", "on");
@@ -615,7 +613,6 @@ TEST_F(NeighborListsBin, one_trim_half_list_newton)
     }
 }
 
-// FIXME: currently trim is not detected and this test will thus fail
 TEST_F(NeighborListsBin, one_trim_half_list_nonewton)
 {
     create_system("charge", "real", "off");
@@ -668,7 +665,6 @@ TEST_F(NeighborListsBin, one_trim_half_list_nonewton)
         GTEST_FAIL() << "No suitable neighbor list info found";
     }
 }
-#endif
 
 TEST_F(NeighborListsBin, one_atomic_full)
 {

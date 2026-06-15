@@ -135,7 +135,7 @@ to ``1.0`` (fully coupled), but the sequence of values is to be adapted for
 each specific parameter.
 
 Electrostatic charges are coupled in the same way using the *atom charge*
-attribute. Although the electrostatic charges can also be coupled through a 
+attribute. Although the electrostatic charges can also be coupled through a
 soft-core Coulomb pair style, in many applications the van der Waals
 interactions are coupled first and the charges are activated afterwards, so
 it is convenient to be able to set the charges directly. The grid then

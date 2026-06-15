@@ -22,6 +22,10 @@ out = sys.argv[2] if len(sys.argv) > 2 else "data.rigid.cubes"
 h = edge / 2.0
 corners = [(sx*h, sy*h, sz*h) for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1)]
 
+# optional free (non-rigid) atoms with molecule ID 0, placed at the grid cell
+# corners (a half-cell from every cube center) for a partial-rigid test
+free = "--partial" in sys.argv
+
 box = n * spacing
 atoms = []
 mol = 0
@@ -34,6 +38,12 @@ for i in range(n):
             cz = (k + 0.5) * spacing
             for (ox, oy, oz) in corners:
                 atoms.append((mol, 1, cx+ox, cy+oy, cz+oz))
+
+if free:
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                atoms.append((0, 1, i*spacing, j*spacing, k*spacing))
 
 with open(out, "w") as f:
     f.write("LAMMPS data file: %d rigid 8-atom cubes\n\n" % (n*n*n))

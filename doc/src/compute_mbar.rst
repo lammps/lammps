@@ -66,6 +66,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 This compute is the multistate analogue of :doc:`compute fep <compute_fep>`.
 It applies perturbations to parameters of the interaction potential and
 recalculates the potential energy *without* changing the atomic

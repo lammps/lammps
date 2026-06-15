@@ -23,9 +23,11 @@ u_kln = np.load(args.datafile)  # shape (nstates, nstates, nsamples)
 N_k = np.zeros([nstates], np.int32) # number of uncorrelated samples
 for k in range(nstates):
     [nequil, g, Neff_max] = pymbar.timeseries.detect_equilibration(u_kln[k,k,:])
-    indices = pymbar.timeseries.subsample_correlated_data(u_kln[k,k,:], g=g)
+    # discard the initial non-equilibrium part, then subsample the remainder
+    u_kln_equil = u_kln[k,:,nequil:]
+    indices = pymbar.timeseries.subsample_correlated_data(u_kln[k,k,nequil:], g=g)
     N_k[k] = len(indices)
-    u_kln[k,:,0:N_k[k]] = u_kln[k,:,indices].T
+    u_kln[k,:,0:N_k[k]] = u_kln_equil[:,indices]
 
 # Compute free energy differences
 mbar = pymbar.MBAR(u_kln, N_k)
@@ -50,6 +52,6 @@ lambdas = np.linspace(0.0, 1.0, nstates)
 fig, ax = plt.subplots()
 
 ax.plot(lambdas[:nstates-1], deltafs * kT, marker='o')
-ax.set(xlabel='λ', ylabel='ΔG [kJ/mol]')
+ax.set(xlabel=r'$\lambda$', ylabel=r'$\Delta G$ [kJ/mol]')
 fig.savefig('deltaG_vs_lambda.png')
 print('Plot saved to deltaG_vs_lambda.png')

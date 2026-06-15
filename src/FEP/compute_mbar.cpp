@@ -158,14 +158,12 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
       memory->create(perturb[m].array_orig, ntypes + 1, ntypes + 1, "mbar:array_orig");
   }
 
-  // allocate space for charge, force, energy, virial arrays
+  // charge, force, energy, virial per-atom arrays are allocated in init()
 
   f_orig = nullptr;
   q_orig = nullptr;
   peatom_orig = keatom_orig = nullptr;
   pvatom_orig = kvatom_orig = nullptr;
-
-  allocate_storage();
 
   fixgpu = nullptr;
 }
@@ -309,6 +307,10 @@ void ComputeMBAR::init()
                  "Compute mbar tail when pair style does not "
                  "compute tail corrections");
   }
+
+  // allocate per-atom storage now that force->kspace is non-null
+
+  allocate_storage();
 
   // detect if package gpu is present
 

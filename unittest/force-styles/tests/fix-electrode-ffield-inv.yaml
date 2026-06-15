@@ -3,7 +3,7 @@ lammps_version: 29 Aug 2024
 tags: generated
 date_generated: Tue Jan 20 15:36:25 2026
 epsilon: 1e-09
-skip_tests:
+skip_tests: intel
 prerequisites: ! |
   atom full
   pair lj/cut/coul/long

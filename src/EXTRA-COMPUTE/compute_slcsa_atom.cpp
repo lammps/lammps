@@ -404,3 +404,10 @@ int ComputeSLCSAAtom::argmax(double arr[], int size)
 
   return maxIndex;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeSLCSAAtom::memory_usage()
+{
+  return (double) nmax * ncols * sizeof(double);    // classification[nmax][ncols]
+}

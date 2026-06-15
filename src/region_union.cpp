@@ -24,7 +24,8 @@ static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 
-RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), contact_indx(nullptr), idsub(nullptr)
+RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) :
+    Region(lmp, narg, arg), idsub(nullptr), contact_indx(nullptr)
 {
   nregion = 0;
 
@@ -133,8 +134,7 @@ void RegUnion::init()
 void RegUnion::prematch()
 {
   int ilist;
-  for (ilist = 0; ilist < nregion; ilist++)
-    reglist[ilist]->prematch();
+  for (ilist = 0; ilist < nregion; ilist++) reglist[ilist]->prematch();
 }
 
 /* ----------------------------------------------------------------------

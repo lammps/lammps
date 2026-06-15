@@ -33,7 +33,7 @@ General features
 * modular code with most functionality in optional packages
 * only depends on MPI library for basic parallel functionality, MPI stub for serial compilation
 * other libraries are optional and only required for specific packages
-* GPU (CUDA, OpenCL, HIP, SYCL), Intel Xeon Phi, and OpenMP support for many code features
+* GPU (CUDA, OpenCL, HIP, SYCL) and OpenMP support for many code features
 * easy to extend with new features and functionality
 * runs from an input script
 * syntax for defining and using variables and formulas

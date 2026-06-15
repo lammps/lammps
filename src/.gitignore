@@ -689,6 +689,8 @@
 /bond_oxrna2_fene.h
 /bond_quartic.cpp
 /bond_quartic.h
+/bond_quarticexp.cpp
+/bond_quarticexp.h
 /bond_special.cpp
 /bond_special.h
 /bond_table.cpp
@@ -984,6 +986,8 @@
 /fix_freeze.h
 /fix_gcmc.cpp
 /fix_gcmc.h
+/fix_gemc.cpp
+/fix_gemc.h
 /fix_gjf.cpp
 /fix_gjf.h
 /fix_gld.cpp
@@ -1492,6 +1496,8 @@
 /pair_lj_cut_sphere.h
 /pair_lj_cut_soft.cpp
 /pair_lj_cut_soft.h
+/pair_lj_cut_soft_gapsys.cpp
+/pair_lj_cut_soft_gapsys.h
 /pair_lj_cut_tip4p_long.cpp
 /pair_lj_cut_tip4p_long.h
 /pair_lj_cut_tip4p_long_soft.cpp
@@ -1644,6 +1650,8 @@
 /pppm_old.h
 /pppm_proxy.cpp
 /pppm_proxy.h
+/pppm_rk.cpp
+/pppm_rk.h
 /pppm_stagger.cpp
 /pppm_stagger.h
 /pppm_tip4p.cpp
@@ -1722,6 +1730,8 @@
 /thr_data.h
 /verlet_split.cpp
 /verlet_split.h
+/verlet_split_rk.cpp
+/verlet_split_rk.h
 /xdr_compat.cpp
 /xdr_compat.h
 /zstd_file_writer.cpp
@@ -1797,6 +1807,9 @@
 /fix_drude.h
 /fix_drude_transform.cpp
 /fix_drude_transform.h
+/fix_gemc.cpp
+/fix_gemc_mcmoves.cpp
+/fix_gemc.h
 /fix_graphics_replica.cpp
 /fix_graphics_replica.h
 /fix_langevin_drude.cpp
@@ -1947,4 +1960,8 @@
 /pair_vashishta*.h
 /pair_lj_pirani.cpp
 /pair_lj_pirani.h
+/pair_bondval.cpp
+/pair_bondval.h
+/pair_bondval_vec.cpp
+/pair_bondval_vec.h
 

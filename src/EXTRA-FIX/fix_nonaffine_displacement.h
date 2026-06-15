@@ -41,6 +41,7 @@ class FixNonaffineDisplacement : public Fix {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   void grow_arrays(int) override;
+  double memory_usage() override;
 
  private:
   double dtv;

@@ -78,6 +78,11 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp),
                                       fractionalWeighting(true)
 {
   writedata = 1;
+  nmax_exp6 = 0;
+  exp6_epsilon1 = exp6_alpha1 = exp6_rm1 = exp6_mixWtSite1 = nullptr;
+  exp6_epsilon2 = exp6_alpha2 = exp6_rm2 = exp6_mixWtSite2 = nullptr;
+  exp6_epsilonOld1 = exp6_alphaOld1 = exp6_rmOld1 = exp6_mixWtSite1old = nullptr;
+  exp6_epsilonOld2 = exp6_alphaOld2 = exp6_rmOld2 = exp6_mixWtSite2old = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -102,6 +107,23 @@ PairExp6rx::~PairExp6rx()
     memory->destroy(coeffEps);
     memory->destroy(coeffRm);
   }
+
+  memory->destroy(exp6_epsilon1);
+  memory->destroy(exp6_alpha1);
+  memory->destroy(exp6_rm1);
+  memory->destroy(exp6_mixWtSite1);
+  memory->destroy(exp6_epsilon2);
+  memory->destroy(exp6_alpha2);
+  memory->destroy(exp6_rm2);
+  memory->destroy(exp6_mixWtSite2);
+  memory->destroy(exp6_epsilonOld1);
+  memory->destroy(exp6_alphaOld1);
+  memory->destroy(exp6_rmOld1);
+  memory->destroy(exp6_mixWtSite1old);
+  memory->destroy(exp6_epsilonOld2);
+  memory->destroy(exp6_alphaOld2);
+  memory->destroy(exp6_rmOld2);
+  memory->destroy(exp6_mixWtSite2old);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -153,31 +175,48 @@ void PairExp6rx::compute(int eflag, int vflag)
   const double shift = 1.05;
   double rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
 
-  // Initialize the Exp6 parameter data for both the local
-  // and ghost atoms. Make the parameter data persistent
-  // and exchange like any other atom property later.
+  // Grow per-atom Exp6 parameter arrays if needed; wrap in local struct for access.
+
+  if (atom->nmax > nmax_exp6) {
+     memory->grow(exp6_epsilon1,     atom->nmax, "pair:exp6_epsilon1");
+     memory->grow(exp6_alpha1,       atom->nmax, "pair:exp6_alpha1");
+     memory->grow(exp6_rm1,          atom->nmax, "pair:exp6_rm1");
+     memory->grow(exp6_mixWtSite1,   atom->nmax, "pair:exp6_mixWtSite1");
+     memory->grow(exp6_epsilon2,     atom->nmax, "pair:exp6_epsilon2");
+     memory->grow(exp6_alpha2,       atom->nmax, "pair:exp6_alpha2");
+     memory->grow(exp6_rm2,          atom->nmax, "pair:exp6_rm2");
+     memory->grow(exp6_mixWtSite2,   atom->nmax, "pair:exp6_mixWtSite2");
+     memory->grow(exp6_epsilonOld1,  atom->nmax, "pair:exp6_epsilonOld1");
+     memory->grow(exp6_alphaOld1,    atom->nmax, "pair:exp6_alphaOld1");
+     memory->grow(exp6_rmOld1,       atom->nmax, "pair:exp6_rmOld1");
+     memory->grow(exp6_mixWtSite1old,atom->nmax, "pair:exp6_mixWtSite1old");
+     memory->grow(exp6_epsilonOld2,  atom->nmax, "pair:exp6_epsilonOld2");
+     memory->grow(exp6_alphaOld2,    atom->nmax, "pair:exp6_alphaOld2");
+     memory->grow(exp6_rmOld2,       atom->nmax, "pair:exp6_rmOld2");
+     memory->grow(exp6_mixWtSite2old,atom->nmax, "pair:exp6_mixWtSite2old");
+     nmax_exp6 = atom->nmax;
+  }
 
   PairExp6ParamDataType PairExp6ParamData;
+  PairExp6ParamData.epsilon1      = exp6_epsilon1;
+  PairExp6ParamData.alpha1        = exp6_alpha1;
+  PairExp6ParamData.rm1           = exp6_rm1;
+  PairExp6ParamData.mixWtSite1    = exp6_mixWtSite1;
+  PairExp6ParamData.epsilon2      = exp6_epsilon2;
+  PairExp6ParamData.alpha2        = exp6_alpha2;
+  PairExp6ParamData.rm2           = exp6_rm2;
+  PairExp6ParamData.mixWtSite2    = exp6_mixWtSite2;
+  PairExp6ParamData.epsilonOld1   = exp6_epsilonOld1;
+  PairExp6ParamData.alphaOld1     = exp6_alphaOld1;
+  PairExp6ParamData.rmOld1        = exp6_rmOld1;
+  PairExp6ParamData.mixWtSite1old = exp6_mixWtSite1old;
+  PairExp6ParamData.epsilonOld2   = exp6_epsilonOld2;
+  PairExp6ParamData.alphaOld2     = exp6_alphaOld2;
+  PairExp6ParamData.rmOld2        = exp6_rmOld2;
+  PairExp6ParamData.mixWtSite2old = exp6_mixWtSite2old;
 
   {
      const int np_total = nlocal + atom->nghost;
-
-     memory->create( PairExp6ParamData.epsilon1     , np_total, "PairExp6ParamData.epsilon1");
-     memory->create( PairExp6ParamData.alpha1       , np_total, "PairExp6ParamData.alpha1");
-     memory->create( PairExp6ParamData.rm1          , np_total, "PairExp6ParamData.rm1");
-     memory->create( PairExp6ParamData.mixWtSite1    , np_total, "PairExp6ParamData.mixWtSite1");
-     memory->create( PairExp6ParamData.epsilon2     , np_total, "PairExp6ParamData.epsilon2");
-     memory->create( PairExp6ParamData.alpha2       , np_total, "PairExp6ParamData.alpha2");
-     memory->create( PairExp6ParamData.rm2          , np_total, "PairExp6ParamData.rm2");
-     memory->create( PairExp6ParamData.mixWtSite2    , np_total, "PairExp6ParamData.mixWtSite2");
-     memory->create( PairExp6ParamData.epsilonOld1  , np_total, "PairExp6ParamData.epsilonOld1");
-     memory->create( PairExp6ParamData.alphaOld1    , np_total, "PairExp6ParamData.alphaOld1");
-     memory->create( PairExp6ParamData.rmOld1       , np_total, "PairExp6ParamData.rmOld1");
-     memory->create( PairExp6ParamData.mixWtSite1old , np_total, "PairExp6ParamData.mixWtSite1old");
-     memory->create( PairExp6ParamData.epsilonOld2  , np_total, "PairExp6ParamData.epsilonOld2");
-     memory->create( PairExp6ParamData.alphaOld2    , np_total, "PairExp6ParamData.alphaOld2");
-     memory->create( PairExp6ParamData.rmOld2       , np_total, "PairExp6ParamData.rmOld2");
-     memory->create( PairExp6ParamData.mixWtSite2old , np_total, "PairExp6ParamData.mixWtSite2old");
 
      for (i = 0; i < np_total; ++i)
      {
@@ -497,27 +536,6 @@ void PairExp6rx::compute(int eflag, int vflag)
     }
   }
   if (vflag_fdotr) virial_fdotr_compute();
-
-  // Release the local parameter data.
-  {
-     if (PairExp6ParamData.epsilon1    ) memory->destroy(PairExp6ParamData.epsilon1);
-     if (PairExp6ParamData.alpha1      ) memory->destroy(PairExp6ParamData.alpha1);
-     if (PairExp6ParamData.rm1         ) memory->destroy(PairExp6ParamData.rm1);
-     if (PairExp6ParamData.mixWtSite1   ) memory->destroy(PairExp6ParamData.mixWtSite1);
-     if (PairExp6ParamData.epsilon2    ) memory->destroy(PairExp6ParamData.epsilon2);
-     if (PairExp6ParamData.alpha2      ) memory->destroy(PairExp6ParamData.alpha2);
-     if (PairExp6ParamData.rm2         ) memory->destroy(PairExp6ParamData.rm2);
-     if (PairExp6ParamData.mixWtSite2   ) memory->destroy(PairExp6ParamData.mixWtSite2);
-     if (PairExp6ParamData.epsilonOld1 ) memory->destroy(PairExp6ParamData.epsilonOld1);
-     if (PairExp6ParamData.alphaOld1   ) memory->destroy(PairExp6ParamData.alphaOld1);
-     if (PairExp6ParamData.rmOld1      ) memory->destroy(PairExp6ParamData.rmOld1);
-     if (PairExp6ParamData.mixWtSite1old) memory->destroy(PairExp6ParamData.mixWtSite1old);
-     if (PairExp6ParamData.epsilonOld2 ) memory->destroy(PairExp6ParamData.epsilonOld2);
-     if (PairExp6ParamData.alphaOld2   ) memory->destroy(PairExp6ParamData.alphaOld2);
-     if (PairExp6ParamData.rmOld2      ) memory->destroy(PairExp6ParamData.rmOld2);
-     if (PairExp6ParamData.mixWtSite2old) memory->destroy(PairExp6ParamData.mixWtSite2old);
-  }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1266,4 +1284,13 @@ inline double PairExp6rx::expValue(double value) const
   else returnValue = exp(value);
 
   return returnValue;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairExp6rx::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  if (exp6_epsilon1) bytes += (double) nmax_exp6 * 16 * sizeof(double);    // 16 per-atom param arrays
+  return bytes;
 }

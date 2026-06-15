@@ -83,13 +83,6 @@ void PPPMIntel::init()
   fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  _use_base = 0;
-  if (fix->offload_balance() != 0.0) {
-    _use_base = 1;
-    return;
-  }
-  #endif
 
   fix->kspace_init_check();
 
@@ -129,12 +122,6 @@ void PPPMIntel::init()
 
 void PPPMIntel::compute(int eflag, int vflag)
 {
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_use_base) {
-    PPPM::compute(eflag, vflag);
-    return;
-  }
-  #endif
   compute_first(eflag,vflag);
   compute_second(eflag,vflag);
 }
@@ -346,7 +333,7 @@ void PPPMIntel::compute_second(int /*eflag*/, int /*vflag*/)
 template<class flt_t, class acc_t>
 void PPPMIntel::particle_map(IntelBuffers<flt_t,acc_t> *buffers)
 {
-  ATOM_T * _noalias const x = buffers->get_x(0);
+  ATOM_T * _noalias const x = buffers->get_x();
   int nlocal = atom->nlocal;
   int nthr;
   if (_use_lrt)
@@ -427,8 +414,8 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
 
-  ATOM_T * _noalias const x = buffers->get_x(0);
-  flt_t * _noalias const q = buffers->get_q(0);
+  ATOM_T * _noalias const x = buffers->get_x();
+  flt_t * _noalias const q = buffers->get_q();
   int nlocal = atom->nlocal;
   int nthr;
   if (_use_lrt)
@@ -587,8 +574,8 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
 
-  ATOM_T * _noalias const x = buffers->get_x(0);
-  flt_t * _noalias const q = buffers->get_q(0);
+  ATOM_T * _noalias const x = buffers->get_x();
+  flt_t * _noalias const q = buffers->get_q();
   FORCE_T * _noalias const f = buffers->get_f();
   int nlocal = atom->nlocal;
   int nthr;
@@ -744,8 +731,8 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
 
-  ATOM_T * _noalias const x = buffers->get_x(0);
-  const flt_t * _noalias const q = buffers->get_q(0);
+  ATOM_T * _noalias const x = buffers->get_x();
+  const flt_t * _noalias const q = buffers->get_q();
   FORCE_T * _noalias const f = buffers->get_f();
   int nlocal = atom->nlocal;
   int nthr;
@@ -1124,16 +1111,6 @@ FFT_SCALAR *** PPPMIntel::create3d_offset(FFT_SCALAR ***&array, int n1lo,
   array -= n1lo;
   return array;
 }
-
-/* ----------------------------------------------------------------------
-   Returns 0 if Intel optimizations for PPPM ignored due to offload
-------------------------------------------------------------------------- */
-
-#ifdef _LMP_INTEL_OFFLOAD
-int PPPMIntel::use_base() {
-  return _use_base;
-}
-#endif
 
 /* ----------------------------------------------------------------------
    allows usage in derived classes (pppm/electrode/intel)

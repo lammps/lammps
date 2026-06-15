@@ -1065,6 +1065,7 @@ package in ``tools/fep``; see its ``README`` file.
 * :doc:`compute fep <compute_fep>`
 * :doc:`pair_style \*/soft <pair_fep_soft>`
 * :doc:`pair_style coul/cut/soft/gapsys <pair_fep_soft>`
+* :doc:`pair_style lj/cut/soft/gapsys <pair_fep_soft>`
 * ``examples/PACKAGES/fep``
 * tools/fep/README
 * tools/fep
@@ -1219,7 +1220,7 @@ INTEL package
 **Contents:**
 
 Dozens of pair, fix, bond, angle, dihedral, improper, and kspace styles
-which are optimized for Intel CPUs and KNLs (Knights Landing).  All of
+which are optimized for Intel CPUs.  All of
 them have an "intel" in their style name.  The :doc:`INTEL package
 <Speed_intel>` page gives details of what hardware and compilers are
 required on your system, and how to build and use this package.  Its
@@ -1637,8 +1638,8 @@ MC package
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand canonical
-MC (GCMC), semi-grand canonical MC (SGCMC), or similar processes in
-conjunction with molecular dynamics (MD).
+MC (GCMC), semi-grand canonical MC (SGCMC), Gibbs ensemble MC (GEMC)
+or similar processes in conjunction with molecular dynamics (MD).
 
 **Supporting info:**
 
@@ -1650,9 +1651,10 @@ conjunction with molecular dynamics (MD).
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix gemc <fix_gemc>`
 * :doc:`fix hmc <fix_hmc>`
 * :doc:`fix mol/swap <fix_mol_swap>`
-* :doc:`fix neighbo/swap <fix_neighbor_swap>`
+* :doc:`fix neighbor/swap <fix_neighbor_swap>`
 * :doc:`fix sgcmc <fix_sgcmc>`
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`

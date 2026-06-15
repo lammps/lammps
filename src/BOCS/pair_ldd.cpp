@@ -776,7 +776,7 @@ void PairLdd::LDD_calculate_energies()
 
 /* ---------------------------------------------------------------------- */
 
-int PairLdd::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairLdd::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, j, k, m;
   double **ld = local_density;

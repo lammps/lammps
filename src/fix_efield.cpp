@@ -265,7 +265,7 @@ void FixEfield::init()
 void FixEfield::setup(int vflag)
 {
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     respa->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag, ilevel_respa, 0);
     respa->copy_f_flevel(ilevel_respa);

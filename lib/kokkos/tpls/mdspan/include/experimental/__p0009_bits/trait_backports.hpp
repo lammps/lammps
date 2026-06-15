@@ -30,19 +30,19 @@
 #if MDSPAN_IMPL_USE_VARIABLE_TEMPLATES
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
 
-#define _MDSPAN_BACKPORT_TRAIT(TRAIT) \
+#define MDSPAN_IMPL_BACKPORT_TRAIT(TRAIT) \
   template <class... Args> MDSPAN_IMPL_INLINE_VARIABLE constexpr auto TRAIT##_v = TRAIT<Args...>::value;
 
-_MDSPAN_BACKPORT_TRAIT(is_assignable)
-_MDSPAN_BACKPORT_TRAIT(is_constructible)
-_MDSPAN_BACKPORT_TRAIT(is_convertible)
-_MDSPAN_BACKPORT_TRAIT(is_default_constructible)
-_MDSPAN_BACKPORT_TRAIT(is_trivially_destructible)
-_MDSPAN_BACKPORT_TRAIT(is_same)
-_MDSPAN_BACKPORT_TRAIT(is_empty)
-_MDSPAN_BACKPORT_TRAIT(is_void)
+MDSPAN_IMPL_BACKPORT_TRAIT(is_assignable)
+MDSPAN_IMPL_BACKPORT_TRAIT(is_constructible)
+MDSPAN_IMPL_BACKPORT_TRAIT(is_convertible)
+MDSPAN_IMPL_BACKPORT_TRAIT(is_default_constructible)
+MDSPAN_IMPL_BACKPORT_TRAIT(is_trivially_destructible)
+MDSPAN_IMPL_BACKPORT_TRAIT(is_same)
+MDSPAN_IMPL_BACKPORT_TRAIT(is_empty)
+MDSPAN_IMPL_BACKPORT_TRAIT(is_void)
 
-#undef _MDSPAN_BACKPORT_TRAIT
+#undef MDSPAN_IMPL_BACKPORT_TRAIT
 
 } // end namespace MDSPAN_IMPL_STANDARD_NAMESPACE
 
@@ -111,16 +111,16 @@ using index_sequence_for = make_index_sequence<sizeof...(T)>;
 
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
 
-#define _MDSPAN_BACKPORT_TRAIT_ALIAS(TRAIT) \
+#define MDSPAN_IMPL_BACKPORT_TRAIT_ALIAS(TRAIT) \
   template <class... Args> using TRAIT##_t = typename TRAIT<Args...>::type;
 
-_MDSPAN_BACKPORT_TRAIT_ALIAS(remove_cv)
-_MDSPAN_BACKPORT_TRAIT_ALIAS(remove_reference)
+MDSPAN_IMPL_BACKPORT_TRAIT_ALIAS(remove_cv)
+MDSPAN_IMPL_BACKPORT_TRAIT_ALIAS(remove_reference)
 
-template <bool _B, class _T=void>
-using enable_if_t = typename enable_if<_B, _T>::type;
+template <bool _B, class T=void>
+using enable_if_t = typename enable_if<_B, T>::type;
 
-#undef _MDSPAN_BACKPORT_TRAIT_ALIAS
+#undef MDSPAN_IMPL_BACKPORT_TRAIT_ALIAS
 
 } // end namespace MDSPAN_IMPL_STANDARD_NAMESPACE
 

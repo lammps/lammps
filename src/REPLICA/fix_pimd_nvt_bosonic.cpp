@@ -28,7 +28,6 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
 #include "universe.h"
 
 using namespace LAMMPS_NS;

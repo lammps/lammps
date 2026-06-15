@@ -1,0 +1,193 @@
+LAMMPS (2 Apr 2025 - Development - )
+Reading data file ...
+  orthogonal box = (0 0 0) to (28.92 28.92 28.92)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  2047 atoms
+  reading velocities ...
+  2047 velocities
+  read_data CPU = 0.009 seconds
+ACE version: 2023.11.25
+Recursive evaluator is used by ACE
+Loading ../../../potentials/Cu-PBE-core-rep.ace
+Total number of basis functions
+	Cu: 16 (r=1) 726 (r>1)
+Mapping LAMMPS atom type #1(Cu) -> ACE species type #0
+atomic load lambda:
+	fast potential: extract eam/apip:time_per_atom
+	precise potential: extract pace/apip:time_per_atom
+	lambda_input: extract lambda/input/apip:time_per_atom
+	lambda: extract lambda/zone/apip:time_per_atom
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- fix lambda command: doi.org/10.1063/5.0245877
+The log file lists these citations in BibTeX format.
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+WARNING: The energy is not conserved when lambda changes as fix lambda_thermostat/apip is not used. (../fix_lambda_apip.cpp:248)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 9.4
+  ghost atom cutoff = 9.4
+  binsize = 4.7, bins = 7 7 7
+  4 neighbor lists, perpetual/occasional/extra = 4 0 0
+  (1) pair eam/fs/apip, perpetual, trim from (3)
+      attributes: full, newton on, cut 7.50679
+      pair build: trim
+      stencil: none
+      bin: none
+  (2) pair pace/apip, perpetual
+      attributes: full, newton on, cut 9.4
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (3) pair lambda/input/csp/apip, perpetual, trim from (2)
+      attributes: full, newton on, cut 8
+      pair build: trim
+      stencil: none
+      bin: none
+  (4) pair lambda/zone/apip, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 0
+  Time step     : 0.001
+Per MPI rank memory allocation (min/avg/max) = 49.37 | 49.37 | 49.37 Mbytes
+   Step         TotEng     c_lambda_types[1] c_lambda_types[2] c_lambda_types[3]
+         0  -7408.7649      1993           42             12           
+         1  -7408.7649      1993           42             12           
+         2  -7408.7649      1993           42             12           
+         3  -7408.765       1993           42             12           
+         4  -7408.7657      1993           42             12           
+         5  -7408.7785      1993           42             12           
+         6  -7408.7769      1993           42             12           
+         7  -7408.778       1993           42             12           
+         8  -7408.7862      1993           42             12           
+         9  -7408.79        1993           42             12           
+        10  -7408.7912      1993           42             12           
+        11  -7408.8005      1993           42             12           
+        12  -7408.8012      1993           42             12           
+        13  -7408.8016      1993           42             12           
+        14  -7408.8123      1993           42             12           
+        15  -7408.8154      1993           42             12           
+        16  -7408.8144      1993           42             12           
+        17  -7408.8271      1993           42             12           
+        18  -7408.8277      1993           42             12           
+        19  -7408.8289      1993           42             12           
+        20  -7408.8352      1993           42             12           
+        21  -7408.8376      1993           42             12           
+        22  -7408.841       1993           42             12           
+        23  -7408.8507      1993           42             12           
+        24  -7408.8496      1993           42             12           
+        25  -7408.8544      1993           42             12           
+        26  -7408.8645      1993           42             12           
+        27  -7408.8665      1993           42             12           
+        28  -7408.8713      1993           42             12           
+        29  -7408.8763      1993           42             12           
+        30  -7408.8812      1993           42             12           
+        31  -7408.8842      1993           42             12           
+        32  -7408.8905      1993           42             12           
+        33  -7408.8947      1993           42             12           
+        34  -7408.9048      1993           42             12           
+        35  -7408.9099      1993           42             12           
+        36  -7408.9101      1993           42             12           
+        37  -7408.9159      1993           42             12           
+        38  -7408.9256      1993           42             12           
+        39  -7408.9241      1993           42             12           
+        40  -7408.9342      1993           42             12           
+        41  -7408.9423      1993           42             12           
+        42  -7408.9402      1993           42             12           
+        43  -7408.9452      1993           42             12           
+        44  -7408.9548      1993           42             12           
+        45  -7408.9543      1993           42             12           
+        46  -7408.9607      1993           42             12           
+        47  -7408.9699      1993           42             12           
+        48  -7408.9751      1993           42             12           
+        49  -7408.978       1993           42             12           
+        50  -7408.9797      1993           42             12           
+        51  -7408.9851      1993           42             12           
+        52  -7408.9937      1993           42             12           
+        53  -7408.9977      1993           42             12           
+        54  -7408.9961      1993           42             12           
+        55  -7409.0011      1993           42             12           
+        56  -7409.0098      1993           42             12           
+        57  -7409.0132      1993           42             12           
+        58  -7409.0173      1993           42             12           
+        59  -7409.0174      1993           42             12           
+        60  -7409.0204      1993           42             12           
+        61  -7409.0259      1993           42             12           
+        62  -7409.0324      1993           42             12           
+        63  -7409.0365      1993           42             12           
+        64  -7409.0407      1993           42             12           
+        65  -7409.0407      1993           42             12           
+        66  -7409.0428      1993           42             12           
+        67  -7409.0437      1993           42             12           
+        68  -7409.0437      1993           42             12           
+        69  -7409.0502      1993           42             12           
+        70  -7409.0558      1993           42             12           
+        71  -7409.0572      1993           42             12           
+        72  -7409.0624      1993           42             12           
+        73  -7409.0686      1993           42             12           
+        74  -7409.0721      1993           42             12           
+        75  -7409.075       1993           42             12           
+        76  -7409.0751      1993           42             12           
+        77  -7409.0728      1993           42             12           
+        78  -7409.0732      1993           42             12           
+        79  -7409.0764      1993           42             12           
+        80  -7409.077       1993           42             12           
+        81  -7409.0879      1993           42             12           
+        82  -7409.0898      1993           42             12           
+        83  -7409.0922      1993           42             12           
+        84  -7409.0916      1993           42             12           
+        85  -7409.0928      1993           42             12           
+        86  -7409.0944      1993           42             12           
+        87  -7409.1058      1993           42             12           
+        88  -7409.1084      1993           42             12           
+        89  -7409.1103      1993           42             12           
+        90  -7409.1121      1993           42             12           
+        91  -7409.1145      1993           42             12           
+        92  -7409.1133      1993           42             12           
+        93  -7409.1166      1993           42             12           
+        94  -7409.12        1993           42             12           
+        95  -7409.119       1993           42             12           
+        96  -7409.1208      1993           42             12           
+        97  -7409.1217      1993           42             12           
+        98  -7409.1229      1993           42             12           
+        99  -7409.1235      1993           42             12           
+       100  -7409.1206      1993           42             12           
+Loop time of 2.01276 on 1 procs for 100 steps with 2047 atoms
+
+Performance: 4.293 ns/day, 5.591 hours/ns, 49.683 timesteps/s, 101.701 katom-step/s
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.985      | 1.985      | 1.985      |   0.0 | 98.62
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.012367   | 0.012367   | 0.012367   |   0.0 |  0.61
+Output  | 0.0080612  | 0.0080612  | 0.0080612  |   0.0 |  0.40
+Modify  | 0.0053111  | 0.0053111  | 0.0053111  |   0.0 |  0.26
+Other   |            | 0.002      |            |       |  0.10
+
+Nlocal:           2047 ave        2047 max        2047 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           7790 ave        7790 max        7790 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       291196 ave      291196 max      291196 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 291196
+Ave neighs/atom = 142.25501
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:02

@@ -27,7 +27,6 @@
 #include "force.h"
 #include "gran_sub_mod.h"
 #include "math_extra.h"
-#include "memory.h"
 
 #include "style_gran_sub_mod.h"    // IWYU pragma: keep
 
@@ -526,7 +525,7 @@ void GranularModel::calculate_forces()
     // omega_T (eq 29 of Marshall)
     magtwist = dot3(relrot, nx);
 
-    twisting_model->calculate_forces();
+    magtortwist = twisting_model->calculate_forces();
 
     double tortwist[3];
     scale3(magtortwist, nx, tortwist);

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -33,6 +20,9 @@ static_assert(false,
 #include <impl/Kokkos_HostSharedPtr.hpp>
 
 #include <openacc.h>
+#ifdef KOKKOS_COMPILER_CLANG
+#include <omp.h>
+#endif
 
 #include <iosfwd>
 #include <string>
@@ -72,13 +62,20 @@ class OpenACC {
 
   using scratch_memory_space = ScratchMemorySpace<OpenACC>;
 
+  OpenACC(const OpenACC&) = default;
+  OpenACC(OpenACC&& other) noexcept
+      : OpenACC(static_cast<const OpenACC&>(other)) {}
+  OpenACC& operator=(const OpenACC&) = default;
+  OpenACC& operator=(OpenACC&& other) noexcept {
+    return *this = static_cast<const OpenACC&>(other);
+  }
+  ~OpenACC();
   OpenACC();
 
   explicit OpenACC(int async_arg);
 
   static void impl_initialize(InitializationSettings const& settings);
   static void impl_finalize();
-  static bool impl_is_initialized();
 
   void print_configuration(std::ostream& os, bool verbose = false) const;
 
@@ -87,16 +84,7 @@ class OpenACC {
   static void impl_static_fence(std::string const& name);
 
   static char const* name() { return "OpenACC"; }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  static int concurrency();
-#else
   int concurrency() const;
-#endif
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED static bool in_parallel() {
-    return acc_on_device(acc_device_not_host);
-  }
-#endif
   uint32_t impl_instance_id() const noexcept;
   Impl::OpenACCInternal* impl_internal_space_instance() const {
     return m_space_instance.get();

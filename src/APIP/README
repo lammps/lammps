@@ -1,0 +1,10 @@
+The APIP package is based on the papers:
+
+David Immel, Ralf Drautz, Godehard Sutmann; Adaptive-precision potentials for large-scale atomistic simulations. J. Chem. Phys. 14 March 2025; 162 (11): 114119. https://doi.org/10.1063/5.0245877
+
+David Immel, Ralf Drautz, Godehard Sutmann; Conservative adaptive-precision interatomic potentials. arXiv:2512.07693. https://doi.org/10.48550/arXiv.2512.07693
+
+Examples of how to use an adaptive-precision potential are provided in examples/PACKAGES/APIP .
+
+The pair_style pace/apip requires the installation of lib/pace of the ML-PACE package.
+The installation of lib/pace is described in the LAMMPS manual

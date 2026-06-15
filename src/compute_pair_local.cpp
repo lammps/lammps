@@ -66,7 +66,7 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
       pstyle[nvalues++] = DY;
     else if (strcmp(arg[iarg], "dz") == 0)
       pstyle[nvalues++] = DZ;
-    else if (utils::strmatch(arg[iarg], "^p\\d+$")) {    // p1, p2, p3, ... pN
+    else if (utils::strmatch(arg[iarg], R"(^p\d+$)")) {    // p1, p2, p3, ... pN
       int n = std::stoi(&arg[iarg][1]);
       if (n <= 0) error->all(FLERR, "Invalid keyword {} in compute pair/local command", arg[iarg]);
       pstyle[nvalues] = PN;
@@ -143,7 +143,7 @@ void ComputePairLocal::init()
   // this should enable it to always be a copy list (e.g. for granular pstyle)
 
   int neighflags = NeighConst::REQ_OCCASIONAL;
-  auto pairrequest = neighbor->find_request(force->pair);
+  auto *pairrequest = neighbor->find_request(force->pair);
   if (pairrequest && pairrequest->get_size()) neighflags |= NeighConst::REQ_SIZE;
   neighbor->add_request(this, neighflags);
 }

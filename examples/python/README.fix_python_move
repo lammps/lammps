@@ -11,6 +11,11 @@ access to memory owned by the C++ code, allows easy manipulation through numpy
 operations and avoids unnecessary copies.
 
 in.fix_python_move_nve_melt_opt:
-This version of melt example uses NVE_Opt instead of NVE. While this Python
+This version of the melt example uses NVE_Opt instead of NVE. While this Python
 implementation is still much slower than the native version, it shows that
 simple code transformations can lead to speedups.
+
+in.fix_python_move_nve_melt_group:
+This version of the melt example uses NVE_Group instead of NVE. In this case
+the nve time integration is supposed to be only applied to a subset of the
+system determined by the group "half".

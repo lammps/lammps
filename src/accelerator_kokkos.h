@@ -54,9 +54,10 @@ class KokkosLMP {
   int kokkos_exists;
   int nthreads;
   int ngpus;
+  int kk_fp32;
 
   KokkosLMP(class LAMMPS *, int, char **) { kokkos_exists = 0; }
-  ~KokkosLMP() {}
+  ~KokkosLMP() = default;
   static void finalize() {}
   void accelerator(int, char **) {}
   int neigh_list_kokkos(int) { return 0; }
@@ -109,6 +110,7 @@ class ModifyKokkos : public Modify {
   ModifyKokkos(class LAMMPS *lmp) : Modify(lmp) {}
 };
 
+// NOLINTBEGIN
 class DAT {
  public:
   typedef double tdual_xfloat_1d;
@@ -116,6 +118,7 @@ class DAT {
   typedef int tdual_int_1d;
   typedef int tdual_int_2d;
 };
+// NOLINTEND
 
 }    // namespace LAMMPS_NS
 

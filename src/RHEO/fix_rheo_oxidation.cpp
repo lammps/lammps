@@ -38,7 +38,7 @@ using namespace FixConst;
 enum { NONE, CONSTANT };
 
 static const char cite_rheo_oxide[] =
-    "RHEO oxidation: doi:10.1016/j.apm.2024.02.027\n\n"
+    "RHEO oxidation: https://doi.org/10.1016/j.apm.2024.02.027\n\n"
     "@article{ApplMathModel.130.310,\n"
     " title = {A hybrid smoothed-particle hydrodynamics model of oxide skins on molten aluminum},\n"
     " journal = {Applied Mathematical Modelling},\n"
@@ -79,10 +79,6 @@ FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixRHEOOxidation::~FixRHEOOxidation() {}
-
-/* ---------------------------------------------------------------------- */
-
 int FixRHEOOxidation::setmask()
 {
   int mask = 0;
@@ -112,7 +108,7 @@ void FixRHEOOxidation::init()
   if (index_nb == -1) error->all(FLERR, "Must use bond style rheo/shell to use fix rheo/oxidation");
 
   // need a half neighbor list
-  auto req = neighbor->add_request(this, NeighConst::REQ_FULL);
+  auto *req = neighbor->add_request(this, NeighConst::REQ_FULL);
   req->set_cutoff(cut);
 }
 
@@ -240,6 +236,7 @@ void FixRHEOOxidation::post_integrate()
 
   int added_bonds_all;
   MPI_Allreduce(&added_bonds, &added_bonds_all, 1, MPI_INT, MPI_SUM, world);
+  atom->nbonds += added_bonds_all;
 
   if (added_bonds_all > 0) next_reneighbor = update->ntimestep;
 }

@@ -718,7 +718,7 @@ public:
     _subArch = subArch;
   }
 
-  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { memset((void *)this, 0, sizeof(*this)); }
 
   //! \}
 

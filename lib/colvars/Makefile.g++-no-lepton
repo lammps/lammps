@@ -1,5 +1,0 @@
-# -*- makefile -*- to build Colvars module with GNU compiler
-
-COLVARS_LEPTON = no
-
-include Makefile.g++

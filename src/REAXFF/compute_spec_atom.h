@@ -39,7 +39,7 @@ class ComputeSpecAtom : public Compute {
   double *buf;
   double *vbuf;
 
-  typedef void (ComputeSpecAtom::*FnPtrPack)(int);
+  using FnPtrPack = void (ComputeSpecAtom::*)(int);
   FnPtrPack *pack_choice;
 
   void pack_q(int);

@@ -25,14 +25,17 @@ ComputeStyle(ave/sphere/atom/kk/host,ComputeAveSphereAtomKokkos<LMPHostType>);
 
 #include "compute_ave_sphere_atom.h"
 #include "kokkos_type.h"
+#include "kokkos_base.h"
 
 namespace LAMMPS_NS {
 
 // clang-format off
 struct TagComputeAveSphereAtom {};
+struct TagComputeAveSphereAtomPackForwardComm{};
+struct TagComputeAveSphereAtomUnpackForwardComm{};
 // clang-format on
 
-template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAveSphereAtom {
+template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAveSphereAtom, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -42,25 +45,45 @@ template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAve
   void init() override;
   void compute_peratom() override;
 
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&,
+                       int, int *) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeAveSphereAtom, const int &) const;
 
- private:
-  double adof, mvv2e, mv2d, boltz;
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagComputeAveSphereAtomPackForwardComm, const int&) const;
 
-  typename AT::t_x_array x;
-  typename AT::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_float_1d rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d mass;
-  typename ArrayTypes<DeviceType>::t_int_1d type;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagComputeAveSphereAtomUnpackForwardComm, const int&) const;
+
+ private:
+  KK_FLOAT adof, mvv2e, mv2d, boltz;
+
+  typename AT::t_kkfloat_1d_3_lr x;
+  typename AT::t_kkfloat_1d_3 v;
+  typename AT::t_kkfloat_1d rmass;
+  typename AT::t_kkfloat_1d mass;
+  typename AT::t_int_1d type;
+  typename AT::t_int_1d mask;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;
   typename AT::t_int_1d d_numneigh;
 
-  DAT::tdual_float_2d k_result;
-  typename AT::t_float_2d d_result;
+  DAT::ttransform_kkfloat_2d k_result;
+  typename AT::t_kkfloat_2d d_result;
+
+  int first,nsend;
+
+  typename AT::t_int_1d d_sendlist;
+  typename AT::t_double_1d_um d_buf;
 };
 
 }    // namespace LAMMPS_NS

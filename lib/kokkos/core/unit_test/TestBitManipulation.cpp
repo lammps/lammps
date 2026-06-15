@@ -1,20 +1,8 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <Kokkos_BitManipulation.hpp>
+#include <cstdint>
 
 struct X {
   constexpr bool did_not_match() { return true; }
@@ -404,7 +392,7 @@ constexpr auto test_bit_width(UInt x) -> decltype(Kokkos::bit_width(x)) {
   using Kokkos::bit_width;
 
   static_assert(noexcept(bit_width(x)));
-  static_assert(std::is_same_v<decltype(bit_width(x)), UInt>);
+  static_assert(std::is_same_v<decltype(bit_width(x)), int>);
 
   constexpr auto dig = Kokkos::Experimental::digits_v<UInt>;
   constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
@@ -500,8 +488,6 @@ constexpr X test_bit_cast(...) {
   return {};
 }
 
-#if !defined(KOKKOS_ENABLE_SYCL) || \
-    (defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER >= 20240000)
 namespace TypesNotTheSameSize {
 struct To {
   char a;
@@ -514,6 +500,7 @@ static_assert(test_bit_cast<To, From>().did_not_match());
 }  // namespace TypesNotTheSameSize
 
 namespace ToNotTriviallyCopyable {
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 struct To {
   char a;
   To(To const &);
@@ -528,13 +515,13 @@ namespace FromNotTriviallyCopyable {
 struct To {
   char a;
 };
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 struct From {
   char b;
   From(From const &);
 };
 static_assert(test_bit_cast<To, From>().did_not_match());
 }  // namespace FromNotTriviallyCopyable
-#endif
 
 namespace ReturnTypeIllFormed {
 struct From {

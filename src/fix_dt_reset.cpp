@@ -195,7 +195,7 @@ void FixDtReset::end_of_step()
   update->dt_default = 0;
   if (respaflag) update->integrate->reset_dt();
   if (force->pair) force->pair->reset_dt();
-  for (auto &ifix : modify->get_fix_list()) ifix->reset_dt();
+  for (const auto &ifix : modify->get_fix_list()) ifix->reset_dt();
   output->reset_dt();
 }
 

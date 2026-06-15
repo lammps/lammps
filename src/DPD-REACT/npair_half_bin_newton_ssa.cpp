@@ -98,12 +98,12 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
 
-  auto ns_ssa = dynamic_cast<NStencilSSA*>(ns);
+  auto *ns_ssa = dynamic_cast<NStencilSSA*>(ns);
   if (!ns_ssa) error->one(FLERR, Error::NOLASTLINE, "NStencil wasn't a NStencilSSA object");
   int *nstencil_ssa = &(ns_ssa->nstencil_ssa[0]);
   int nstencil_full = ns_ssa->nstencil;
 
-  auto nb_ssa = dynamic_cast<NBinSSA*>(nb);
+  auto *nb_ssa = dynamic_cast<NBinSSA*>(nb);
   if (!nb_ssa) error->one(FLERR, Error::NOLASTLINE, "NBin wasn't a NBinSSA object");
   int *bins = nb_ssa->bins;
   int *binhead = nb_ssa->binhead;

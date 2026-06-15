@@ -39,7 +39,7 @@ static constexpr double TILTMAX = 1.5;
 enum{NOBIAS,BIAS};
 enum{ISO,ANISO,TRICLINIC};
 
-typedef struct { double x,y,z; } dbl3_t;
+using dbl3_t = struct { double x,y,z; };
 
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion

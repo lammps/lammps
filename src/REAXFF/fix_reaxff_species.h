@@ -23,13 +23,13 @@ FixStyle(reaxff/species,FixReaxFFSpecies);
 
 #include "fix.h"
 
-#define BUFLEN 1000
-
 namespace LAMMPS_NS {
 
+// NOLINTBEGIN
 typedef struct {
   double x, y, z;
 } AtomCoord;
+// NOLINTEND
 
 class FixReaxFFSpecies : public Fix {
  public:
@@ -40,6 +40,11 @@ class FixReaxFFSpecies : public Fix {
   void init_list(int, class NeighList *) override;
   void setup(int) override;
   void post_integrate() override;
+
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+
+  double memory_usage() override;
   double compute_vector(int) override;
 
  protected:
@@ -57,12 +62,16 @@ class FixReaxFFSpecies : public Fix {
   FILE *fp, *pos, *fdel;
   int eleflag, posflag, multipos, padflag, setupflag;
   int delflag, specieslistflag, masslimitflag;
+  int deljson_init;
   int delete_Nlimit, delete_Nlimit_varid;
+  bool delete_subgroup;
+  int deligroupbit;
   std::string delete_Nlimit_varname;
   int delete_Nsteps, *delete_Tcount;
   double massmin, massmax;
   int singlepos_opened, multipos_opened, del_opened;
-  char *filepos, *filedel;
+  char *filepos;
+  std::string filedel;
   std::vector<int> ele2uele;            // for element eletype[i], ele2uele[i] stores index of unique element
   std::vector<std::string> eletype;     // list of ReaxFF elements of length ntypes
   std::vector<std::string> ueletype;    // list of unique elements, of quantity nutypes
@@ -77,18 +86,15 @@ class FixReaxFFSpecies : public Fix {
   int CheckExistence(int, int);
   void GetUniqueElements();
 
-  int nint(const double &);
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
   void OpenPos();
   void WritePos(int, int);
-  double memory_usage() override;
 
   bigint nvalid;
 
   class NeighList *list;
   class FixAveAtom *f_SPECBOND;
   class FixPropertyAtom *f_clusterID;
+  std::string clusterID_propname;
   class PairReaxFF *reaxff;
 };
 }    // namespace LAMMPS_NS

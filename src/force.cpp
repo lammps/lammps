@@ -20,6 +20,7 @@
 #include "style_kspace.h"      // IWYU pragma: keep
 #include "style_pair.h"        // IWYU pragma: keep
 
+#include "accelerator_kokkos.h"
 #include "angle_hybrid.h"
 #include "bond_hybrid.h"
 #include "dihedral_hybrid.h"
@@ -236,6 +237,9 @@ void Force::create_pair(const std::string &style, int trysuffix)
   int sflag;
   pair = new_pair(style, trysuffix, sflag);
   pair_style = store_style(style, sflag);
+
+  if (pair && pair->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
 }
 
 /* ----------------------------------------------------------------------
@@ -294,7 +298,7 @@ Pair *Force::pair_match(const std::string &word, int exact, int nsub)
   else if (!exact && utils::strmatch(pair_style, word))
     return pair;
   else if (utils::strmatch(pair_style, "^hybrid")) {
-    auto hybrid = dynamic_cast<PairHybrid *>(pair);
+    auto *hybrid = dynamic_cast<PairHybrid *>(pair);
     count = 0;
     for (int i = 0; i < hybrid->nstyles; i++)
       if ((exact && (word == hybrid->keywords[i])) ||
@@ -320,7 +324,7 @@ char *Force::pair_match_ptr(Pair *ptr)
   if (ptr == pair) return pair_style;
 
   if (utils::strmatch(pair_style, "^hybrid")) {
-    auto hybrid = dynamic_cast<PairHybrid *>(pair);
+    auto *hybrid = dynamic_cast<PairHybrid *>(pair);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (ptr == hybrid->styles[i]) return hybrid->keywords[i];
   }
@@ -342,6 +346,9 @@ void Force::create_bond(const std::string &style, int trysuffix)
   int sflag;
   bond = new_bond(style, trysuffix, sflag);
   bond_style = store_style(style, sflag);
+
+  if (bond && bond->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
 }
 
 /* ----------------------------------------------------------------------
@@ -391,7 +398,7 @@ Bond *Force::bond_match(const std::string &style)
   if (style == bond_style)
     return bond;
   else if (strcmp(bond_style, "hybrid") == 0) {
-    auto hybrid = dynamic_cast<BondHybrid *>(bond);
+    auto *hybrid = dynamic_cast<BondHybrid *>(bond);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
@@ -412,6 +419,9 @@ void Force::create_angle(const std::string &style, int trysuffix)
   int sflag;
   angle = new_angle(style, trysuffix, sflag);
   angle_style = store_style(style, sflag);
+
+  if (angle && angle->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
 }
 
 /* ----------------------------------------------------------------------
@@ -461,7 +471,7 @@ Angle *Force::angle_match(const std::string &style)
   if (style == angle_style)
     return angle;
   else if (utils::strmatch(angle_style, "^hybrid")) {
-    auto hybrid = dynamic_cast<AngleHybrid *>(angle);
+    auto *hybrid = dynamic_cast<AngleHybrid *>(angle);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
@@ -482,6 +492,9 @@ void Force::create_dihedral(const std::string &style, int trysuffix)
   int sflag;
   dihedral = new_dihedral(style, trysuffix, sflag);
   dihedral_style = store_style(style, sflag);
+
+  if (dihedral && dihedral->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
 }
 
 /* ----------------------------------------------------------------------
@@ -531,7 +544,7 @@ Dihedral *Force::dihedral_match(const std::string &style)
   if (style == dihedral_style)
     return dihedral;
   else if (utils::strmatch(dihedral_style, "^hybrid")) {
-    auto hybrid = dynamic_cast<DihedralHybrid *>(dihedral);
+    auto *hybrid = dynamic_cast<DihedralHybrid *>(dihedral);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
@@ -552,6 +565,9 @@ void Force::create_improper(const std::string &style, int trysuffix)
   int sflag;
   improper = new_improper(style, trysuffix, sflag);
   improper_style = store_style(style, sflag);
+
+  if (improper && improper->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
 }
 
 /* ----------------------------------------------------------------------
@@ -601,7 +617,7 @@ Improper *Force::improper_match(const std::string &style)
   if (style == improper_style)
     return improper;
   else if (utils::strmatch(improper_style, "^hybrid")) {
-    auto hybrid = dynamic_cast<ImproperHybrid *>(improper);
+    auto *hybrid = dynamic_cast<ImproperHybrid *>(improper);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }

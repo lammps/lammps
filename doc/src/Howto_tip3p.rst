@@ -5,16 +5,23 @@ The TIP3P water model as implemented in CHARMM :ref:`(MacKerell)
 <howto-tip3p>` specifies a 3-site rigid water molecule with charges and
 Lennard-Jones parameters assigned to each of the three atoms.
 
-A suitable pair style with cutoff Coulomb would be:
+One suitable pair style with cutoff Coulomb would for instance be:
 
 * :doc:`pair_style lj/cut/coul/cut <pair_lj_cut_coul>`
 
-or these commands for a long-range Coulomb model:
+These commands are examples for a long-range Coulomb model:
 
 * :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`
 * :doc:`pair_style lj/cut/coul/long/soft <pair_fep_soft>`
 * :doc:`kspace_style pppm <kspace_style>`
+* :doc:`pair_style lj/long/coul/long <pair_lj_long>`
 * :doc:`kspace_style pppm/disp <kspace_style>`
+
+And these pair styles are compatible with the CHARMM force field:
+
+* :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`
+* :doc:`pair_style lj/charmm/coul/long <pair_charmm>`
+* :doc:`pair_style lj/charmmfsw/coul/long <pair_charmm>`
 
 In LAMMPS the :doc:`fix shake or fix rattle <fix_shake>` command can be
 used to hold the two O-H bonds and the H-O-H angle rigid.  A bond style
@@ -100,7 +107,9 @@ ignored.
 Below is the code for a LAMMPS input file and a molecule file
 (``tip3p.mol``) of TIP3P water for use with the :doc:`molecule command
 <molecule>` demonstrating how to set up a small bulk water system for
-TIP3P with rigid bonds.
+TIP3P with rigid bonds.  For simplicity and speed the example uses a
+cutoff Coulomb.  Most production simulations require long-range Coulomb
+instead.
 
 .. code-block:: LAMMPS
 

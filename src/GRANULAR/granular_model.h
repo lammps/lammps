@@ -16,8 +16,8 @@
 
 #include "pointers.h"    // IWYU pragma: export
 
-namespace LAMMPS_NS {
-namespace Granular_NS {
+
+namespace LAMMPS_NS::Granular_NS {
 
 enum SubModelType {
   NORMAL = 0,
@@ -107,13 +107,13 @@ class GranularModel : protected Pointers {
 
   int nclass;
 
-  typedef class GranSubMod *(*GranSubModCreator)(class GranularModel *, class LAMMPS *);
+  using GranSubModCreator = GranSubMod *(*)(GranularModel *, LAMMPS *);
   GranSubModCreator *gran_sub_mod_class;
   char **gran_sub_mod_names;
   int *gran_sub_mod_types;
 };
 
-}    // namespace Granular_NS
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::Granular_NS
+
 
 #endif

@@ -72,7 +72,7 @@ void EwaldDipole::init()
   dipoleflag = atom->mu?1:0;
   qsum_qsq(0); // q[i] might not be declared ?
 
-  if (dipoleflag && q2)
+  if (dipoleflag && (q2 != 0.0))
     error->all(FLERR,"Cannot (yet) use charges with Kspace style EwaldDipole");
 
   // no triclinic ewald dipole (yet)
@@ -112,7 +112,7 @@ void EwaldDipole::init()
   pair_check();
 
   int itmp;
-  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
@@ -432,7 +432,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
       // taking im of struct_fact x exp(i*k*ri) (for force calc.)
 
-      partial = (mudotk)*(expim*sfacrl_all[k] - exprl*sfacim_all[k]);
+      partial = mudotk*(expim*sfacrl_all[k] - exprl*sfacim_all[k]);
       ek[i][0] += partial * eg[k][0];
       ek[i][1] += partial * eg[k][1];
       ek[i][2] += partial * eg[k][2];

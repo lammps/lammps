@@ -867,7 +867,7 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
 
   // gridpre = my portion of 4d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ****gridpre = (FFT_SCALAR ****) ic_kspace->zero();
+  auto ****gridpre = (FFT_SCALAR ****) ic_kspace->zero();
 
   // map 2 values to grid
 
@@ -912,7 +912,7 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
   // post-convolution operations including backward FFT
   // gridppost = my portion of 4d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ****gridpost = (FFT_SCALAR ****) ic_kspace->post_convolution();
+  auto ****gridpost = (FFT_SCALAR ****) ic_kspace->post_convolution();
 
   // get potential
 
@@ -1090,7 +1090,7 @@ void PairAmoeba::udirect1(double **field)
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
   // zeroed by setup()
 
-  FFT_SCALAR ***gridpre = (FFT_SCALAR ***) i_kspace->zero();
+  auto ***gridpre = (FFT_SCALAR ***) i_kspace->zero();
 
   // map multipole moments to grid
 
@@ -1144,7 +1144,7 @@ void PairAmoeba::udirect1(double **field)
   // post-convolution operations including backward FFT
   // gridppost = my portion of 3d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ***gridpost = (FFT_SCALAR ***) i_kspace->post_convolution();
+  auto ***gridpost = (FFT_SCALAR ***) i_kspace->post_convolution();
 
   // get potential
 

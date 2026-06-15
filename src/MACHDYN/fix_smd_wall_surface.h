@@ -37,12 +37,19 @@ class FixSMDWallSurface : public Fix {
 
   void read_triangles(int pass);
 
+  int image(int *&, double **&) override;
+
  private:
   int first;                    // flag for first time initialization
   double sublo[3], subhi[3];    // epsilon-extended proc sub-box for adding atoms;
   char *filename;
   int wall_particle_type;
   int wall_molecule_id;
+
+  // arrays for dump image rendering
+
+  int *imgobjs;
+  double **imgparms;
 };
 }    // namespace LAMMPS_NS
 

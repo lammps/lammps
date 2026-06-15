@@ -43,6 +43,7 @@ PairGaussCut::PairGaussCut(LAMMPS *lmp) : Pair(lmp)
 
 PairGaussCut::~PairGaussCut()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

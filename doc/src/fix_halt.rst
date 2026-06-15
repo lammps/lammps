@@ -183,6 +183,48 @@ requesting to stop the run on this partition as well.  Consequently, if
 fix halt determines to halt the simulation, the fix will send messages
 to all other partitions so they stop their runs, too.
 
+----------
+
+.. admonition:: Checking for 'inf' or 'nan'
+   :class: Hint
+
+   It is also possible to have fix halt stop when some properties become
+   'inf' or 'nan', provided this property is represented by a
+   :doc:`thermo keyword <thermo_style>`.  Below is a minimal example with
+   three loop iterations where the second iteration is stopped because its
+   potential energy becomes infinity ('inf').  It will also work for 'nan',
+   i.e. when replacing "pe" with "press".  Both will be larger than the
+   largest representable floating point number.
+
+   .. code-block:: LAMMPS
+
+      label newrun
+      variable i loop 3
+
+      clear
+      region box block 0 1 0 1 0 1
+      create_box 1 box
+
+      create_atoms 1 single 0.5 0.5 0.5
+      create_atoms 1 single 0.5 $(0.3+0.1*v_i) 0.5
+
+      mass 1 1.0
+      pair_style lj/cut 0.9
+      pair_coeff 1 1 1.0 1.0
+
+      variable pe equal pe
+      fix 1 all halt 10 v_pe > 1.7e308 error soft
+      thermo 10
+      run 30 post no
+
+      # fix halt soft stops a run by forcing a timeout
+      if $(is_timeout()) then "print 'run was terminated due to invalid energy'"
+      # reset timeout state
+      timer timeout off
+
+      next i
+      jump SELF newrun
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

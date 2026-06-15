@@ -206,7 +206,7 @@ void PairEAM::compute(int eflag, int vflag)
       if (rsq < cutforcesq) {
         jtype = type[j];
         p = sqrt(rsq)*rdr + 1.0;
-        m = static_cast<int> (p);
+        m = static_cast<int>(p);
         m = MIN(m,nr-1);
         p -= m;
         p = MIN(p,1.0);
@@ -232,7 +232,7 @@ void PairEAM::compute(int eflag, int vflag)
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     p = rho[i]*rdrho + 1.0;
-    m = static_cast<int> (p);
+    m = static_cast<int>(p);
     m = MAX(1,MIN(m,nrho-1));
     p -= m;
     p = MIN(p,1.0);
@@ -283,7 +283,7 @@ void PairEAM::compute(int eflag, int vflag)
         jtype = type[j];
         r = sqrt(rsq);
         p = r*rdr + 1.0;
-        m = static_cast<int> (p);
+        m = static_cast<int>(p);
         m = MIN(m,nr-1);
         p -= m;
         p = MIN(p,1.0);
@@ -636,10 +636,9 @@ void PairEAM::file2array()
   }
 
   // set nr,nrho from cutoff and spacings
-  // 0.5 is for round-off in divide
 
-  nr = static_cast<int> (rmax/dr + 0.5);
-  nrho = static_cast<int> (rhomax/drho + 0.5);
+  nr = std::lround(rmax/dr);
+  nrho = std::lround(rhomax/drho);
 
   // ------------------------------------------------------------------
   // setup frho arrays
@@ -662,7 +661,7 @@ void PairEAM::file2array()
     for (m = 1; m <= nrho; m++) {
       r = (m-1)*drho;
       p = r/file->drho + 1.0;
-      k = static_cast<int> (p);
+      k = static_cast<int>(p);
       k = MIN(k,file->nrho-2);
       k = MAX(k,2);
       p -= k;
@@ -709,7 +708,7 @@ void PairEAM::file2array()
     for (m = 1; m <= nr; m++) {
       r = (m-1)*dr;
       p = r/file->dr + 1.0;
-      k = static_cast<int> (p);
+      k = static_cast<int>(p);
       k = MIN(k,file->nr-2);
       k = MAX(k,2);
       p -= k;
@@ -759,7 +758,7 @@ void PairEAM::file2array()
         r = (m-1)*dr;
 
         p = r/ifile->dr + 1.0;
-        k = static_cast<int> (p);
+        k = static_cast<int>(p);
         k = MIN(k,ifile->nr-2);
         k = MAX(k,2);
         p -= k;
@@ -772,7 +771,7 @@ void PairEAM::file2array()
           cof3*ifile->zr[k+1] + cof4*ifile->zr[k+2];
 
         p = r/jfile->dr + 1.0;
-        k = static_cast<int> (p);
+        k = static_cast<int>(p);
         k = MIN(k,jfile->nr-2);
         k = MAX(k,2);
         p -= k;
@@ -896,7 +895,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
 
   if (numforce[i] > 0) {
     p = rho[i]*rdrho + 1.0;
-    m = static_cast<int> (p);
+    m = static_cast<int>(p);
     m = MAX(1,MIN(m,nrho-1));
     p -= m;
     p = MIN(p,1.0);
@@ -908,7 +907,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
 
   r = sqrt(rsq);
   p = r*rdr + 1.0;
-  m = static_cast<int> (p);
+  m = static_cast<int>(p);
   m = MIN(m,nr-1);
   p -= m;
   p = MIN(p,1.0);

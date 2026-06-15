@@ -36,6 +36,7 @@ class PairExTeP : public Pair {
   void coeff(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
+  void setup() override;
 
  protected:
   struct Param {
@@ -70,7 +71,6 @@ class PairExTeP : public Pair {
   void allocate();
   void spline_init();
   virtual void read_file(char *);
-  void setup() override;
   virtual void repulsive(Param *, double, double &, int, double &);
   virtual double zeta(Param *, double, double, double *, double *);
   virtual void force_zeta(Param *, double, double, double &, double &, int, double &);

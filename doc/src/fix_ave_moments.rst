@@ -50,7 +50,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 12Jun2025
 
 Using one or more values as input, calculate the moments of the underlying
 (population) distributions based on samples collected every few time

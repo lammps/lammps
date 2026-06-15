@@ -34,10 +34,10 @@ Syntax
          optional args = *exclude/type* or *scale/cross/type*
            *exclude/type* values = *types*
              *types* = list of types
-           *scale/cross/type* values = *shiftscale* *cmin* *wmin*
+           *scale/cross/type* values = *shiftscale* *cmin* *rmin*
              *shiftscale* = fraction of shifting in normal direction to preserve (unitless)
              *cmin* = minimum color function value required for scaling (unitless)
-             *wmin* = minimum local same-type support required for any shifting (unitless)
+             *rmin* = minimum local same-type weighted distance required for any shifting (unitless)
        *rho/sum* density evolution performed by a kernel summation
          values = none
          optional args = *self/mass*
@@ -123,14 +123,14 @@ zero implies there is no shifting in the normal direction and a value of
 *scaleshift* of one implies no change in behavior. This scaling is only applied
 to atoms with a color function value greater than *cmin*. To handle scenarios
 of a small inclusion of one fluid type (e.g. a single atom) inside another,
-the degree of same-type support is calculated
+a weighted distance of same-type support is calculated
 
 .. math::
-   W_{i,\mathrm{same}} = \sum_{j} W_{ij} \delta_{ij}
+   R_{i,\mathrm{same}} = \sum_{j} r_{ij} W_{ij} \delta_{ij}
 
 where :math:`\delta_{ij}` is zero if atoms :math:`i` and :math:`j` have different
-types but unity otherwise. If :math:`W_{i,\mathrm{same}}` is ever less than the
-specified value of *wmin*, shifting is turned off for particle :math:`i`
+types but unity otherwise. If :math:`R_{i,\mathrm{same}}` is ever less than the
+specified value of *rmin*, shifting is turned off for particle :math:`i`
 
 In systems with free surfaces (atom-vacuum), the *surface/detection* keyword
 can classify the location of particles as being within the bulk fluid, on a

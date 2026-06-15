@@ -33,6 +33,14 @@
 #
 #---------------------------------------------
 
+# restore previously saved environment variables, if available
+if [ -n "${OLDPATH}" ]
+then
+    PATH="${OLDPATH}"
+    LD_LIBRARY_PATH="${OLDLDLIB}"
+    export PATH LD_LIBRARY_PATH
+fi
+
 NEW_LIBRARY_PATH="/usr/local/lib64"
 for s in $(echo $LD_LIBRARY_PATH | sed -e 's/:/ /g')
 do \

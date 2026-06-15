@@ -37,13 +37,16 @@ AngleGaussian::AngleGaussian(LAMMPS *lmp) :
     Angle(lmp), nterms(nullptr), angle_temperature(nullptr), alpha(nullptr), width(nullptr),
     theta0(nullptr)
 {
+  nterms_max = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 AngleGaussian::~AngleGaussian()
 {
-  if (allocated && !copymode) {
+  if (copymode) return;
+
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(nterms);
     memory->destroy(angle_temperature);
@@ -207,6 +210,7 @@ void AngleGaussian::coeff(int narg, char **arg)
 
   double angle_temperature_one = utils::numeric(FLERR, arg[1], false, lmp);
   int n = utils::inumeric(FLERR, arg[2], false, lmp);
+  nterms_max = MAX(nterms_max, n);
   if (n < 1) error->all(FLERR, "Invalid angle style gaussian value for n: {}", n);
 
   if (narg != 3 * n + 3) utils::missing_cmd_args(FLERR, "angle_coeff", error);
@@ -252,6 +256,7 @@ double AngleGaussian::equilibrium_angle(int i)
 
 void AngleGaussian::write_restart(FILE *fp)
 {
+  fwrite(&nterms_max, sizeof(int), 1, fp);
   fwrite(&angle_temperature[1], sizeof(double), atom->nangletypes, fp);
   fwrite(&nterms[1], sizeof(int), atom->nangletypes, fp);
   for (int i = 1; i <= atom->nangletypes; i++) {
@@ -270,10 +275,12 @@ void AngleGaussian::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
+    utils::sfread(FLERR, &nterms_max, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &angle_temperature[1], sizeof(double), atom->nangletypes, fp, nullptr,
                   error);
     utils::sfread(FLERR, &nterms[1], sizeof(int), atom->nangletypes, fp, nullptr, error);
   }
+  MPI_Bcast(&nterms_max, 1, MPI_INT, 0, world);
   MPI_Bcast(&angle_temperature[1], atom->nangletypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&nterms[1], atom->nangletypes, MPI_INT, 0, world);
 
@@ -325,13 +332,13 @@ double AngleGaussian::single(int type, int i1, int i2, int i3)
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1, dely1, delz1);
+  domain->minimum_image(FLERR, delx1, dely1, delz1);
   double r1 = sqrt(delx1 * delx1 + dely1 * dely1 + delz1 * delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2, dely2, delz2);
+  domain->minimum_image(FLERR, delx2, dely2, delz2);
   double r2 = sqrt(delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
 
   double c = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
@@ -358,8 +365,8 @@ double AngleGaussian::single(int type, int i1, int i2, int i3)
 void *AngleGaussian::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"alpha") == 0) return (void *) alpha;
-  if (strcmp(str,"width") == 0) return (void *) width;
-  if (strcmp(str,"theta0") == 0) return (void *) theta0;
+  if (strcmp(str, "alpha") == 0) return (void *) alpha;
+  if (strcmp(str, "width") == 0) return (void *) width;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
   return nullptr;
 }

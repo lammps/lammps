@@ -133,7 +133,7 @@ void FixAlchemy::check_consistency_atoms()
   // check that owned atom ordering is same for each pair of replica procs
   // re-use communication buffer for positions and forces
 
-  tagint *tagbuf = (tagint *) commbuf;
+  auto *tagbuf = (tagint *) commbuf;
   tagint *tag = atom->tag;
   if (universe->iworld == 0) {
     for (int i = 0; i < nlocal; ++i) tagbuf[i] = tag[i];

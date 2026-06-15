@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -64,7 +51,7 @@ class SYCLDeviceUSMSpace {
                   const size_t arg_alloc_size,
                   const size_t arg_logical_size = 0) const;
 
-  static constexpr const char* name() { return "SYCLDeviceUSM"; };
+  static constexpr const char* name() { return "SYCLDeviceUSM"; }
 
  private:
   sycl::queue m_queue;
@@ -105,7 +92,7 @@ class SYCLSharedUSMSpace {
                   const size_t arg_alloc_size,
                   const size_t arg_logical_size = 0) const;
 
-  static constexpr const char* name() { return "SYCLSharedUSM"; };
+  static constexpr const char* name() { return "SYCLSharedUSM"; }
 
  private:
   sycl::queue m_queue;
@@ -146,7 +133,7 @@ class SYCLHostUSMSpace {
                   const size_t arg_alloc_size,
                   const size_t arg_logical_size = 0) const;
 
-  static constexpr const char* name() { return "SYCLHostUSM"; };
+  static constexpr const char* name() { return "SYCLHostUSM"; }
 
  private:
   sycl::queue m_queue;

@@ -23,6 +23,8 @@
 #define COLVARS_BOUNDED_INV_TRIGONOMETRIC_FUNC
 #endif
 
+#define COLVARS_USE_SOA
+
 /*! \mainpage Main page
 This is the Developer's documentation for the Collective Variables module (Colvars).
 
@@ -44,6 +46,18 @@ Please note that this documentation is only supported for the master branch, and
 #include <iosfwd>
 #include <string>
 #include <vector>
+
+#if defined(COLVARS_CUDA)
+#include <cuda_runtime.h>
+#endif
+
+#if defined(COLVARS_HIP)
+#include <hip/hip_runtime.h>
+#define cudaHostAllocMapped hipHostMallocMapped
+#define cudaHostAlloc hipHostMalloc
+#define cudaFreeHost hipHostFree
+#define cudaSuccess hipSuccess
+#endif
 
 class colvarparse;
 class colvar;
@@ -82,6 +96,42 @@ public:
   {
     return patch_version_int;
   }
+
+#if ( defined(COLVARS_CUDA) || defined(COLVARS_HIP) )
+  template <typename T>
+  class CudaHostAllocator {
+  public:
+    using value_type = T;
+
+    CudaHostAllocator() = default;
+
+    template<typename U>
+    constexpr CudaHostAllocator(const CudaHostAllocator<U>&) noexcept {}
+
+    friend bool operator==(const CudaHostAllocator&, const CudaHostAllocator&) { return true; }
+    friend bool operator!=(const CudaHostAllocator&, const CudaHostAllocator&) { return false; }
+
+    T* allocate(size_t n) {
+      T* ptr;
+      if (cudaHostAlloc(&ptr, n * sizeof(T), cudaHostAllocMapped) != cudaSuccess) {
+        throw std::bad_alloc();
+      }
+      return ptr;
+    }
+    void deallocate(T* ptr, size_t n) noexcept {
+      cudaFreeHost(ptr);
+    }
+    template<typename U, typename... Args>
+    void construct(U* p, Args&&... args) {
+        new(p) U(std::forward<Args>(args)...);
+    }
+
+    template<typename U>
+    void destroy(U* p) noexcept {
+        p->~U();
+    }
+  };
+#endif
 
 private:
 
@@ -309,13 +359,12 @@ private:
   std::vector<int> colvars_smp_items;
 
   /// Array of named atom groups
-  std::vector<atom_group *> named_atom_groups;
-public:
-  /// Register a named atom group into named_atom_groups
-  void register_named_atom_group(atom_group *ag);
+  std::vector<atom_group *> named_atom_groups_soa;
 
-  /// Remove a named atom group from named_atom_groups
-  void unregister_named_atom_group(atom_group *ag);
+public:
+
+  void register_named_atom_group_soa(atom_group *ag);
+  void unregister_named_atom_group_soa(atom_group *ag);
 
   /// Array of collective variables
   std::vector<colvar *> *variables();
@@ -569,7 +618,7 @@ public:
   static colvar * colvar_by_name(std::string const &name);
 
   /// Look up a named atom group by name; returns NULL if not found
-  static atom_group * atom_group_by_name(std::string const &name);
+  static atom_group * atom_group_soa_by_name(std::string const& name);
 
   /// Load new configuration for the given bias -
   /// currently works for harmonic (force constant and/or centers)
@@ -687,6 +736,13 @@ public:
   /// Convert to string for output purposes
   static std::string to_str(std::vector<std::string> const &x,
                             size_t width = 0, size_t prec = 0);
+
+#if ( defined(COLVARS_CUDA) || defined(COLVARS_HIP) )
+  static std::string to_str(std::vector<rvector, CudaHostAllocator<rvector>> const &x,
+                            size_t width = 0, size_t prec = 0);
+  static std::string to_str(std::vector<real, CudaHostAllocator<real>> const &x,
+                            size_t width = 0, size_t prec = 0);
+#endif
 
 
   /// Reduce the number of characters in a string
@@ -852,6 +908,10 @@ protected:
   /// Track usage of Colvars features
   usage *usage_;
 
+  /// Records the maximum gradient discrepancy evaluated by debugGradients
+  /// see cvc::debug_gradients()
+  real max_gradient_error = 0.;
+
 public:
 
   /// Version of the most recent state file read
@@ -888,6 +948,17 @@ public:
 
   /// Calculate the energy and forces of scripted biases
   int calc_scripted_forces();
+
+  /// Update the maximum gradient discrepancy evaluated by debugGradients
+  /// in this instance of colvarmodule
+  /// see cvc::debug_gradients()
+  void record_gradient_error(real error) {
+    if (error > max_gradient_error) max_gradient_error = error;
+  }
+
+  real get_max_gradient_error() {
+    return max_gradient_error;
+  }
 
   /// \brief Pointer to the proxy object, used to retrieve atomic data
   /// from the hosting program; it is static in order to be accessible

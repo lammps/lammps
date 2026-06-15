@@ -59,16 +59,16 @@ void FixReaxFFBondsKokkos::Output_ReaxFF_Bonds()
   int nbuf_local;
   int nlocal_max, numbonds, numbonds_max;
   double *buf;
-  DAT::tdual_ffloat_1d k_buf;
+  DAT::tdual_double_1d k_buf;
 
   int nlocal = atom->nlocal;
   int nlocal_tot = static_cast<int> (atom->natoms);
 
   numbonds = 0;
   if (reaxff->execution_space == Device)
-    ((PairReaxFFKokkos<LMPDeviceType>*) reaxff)->FindBond(numbonds);
+    ((PairReaxFFKokkos<LMPDeviceType>*) reaxff)->FindBond_kokkos(numbonds);
   else
-    ((PairReaxFFKokkos<LMPHostType>*) reaxff)->FindBond(numbonds);
+    ((PairReaxFFKokkos<LMPHostType>*) reaxff)->FindBond_kokkos(numbonds);
 
   // allocate a temporary buffer for the snapshot info
   MPI_Allreduce(&numbonds,&numbonds_max,1,MPI_INT,MPI_MAX,world);

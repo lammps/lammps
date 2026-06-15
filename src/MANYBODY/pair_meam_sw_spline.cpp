@@ -545,7 +545,7 @@ void PairMEAMSWSpline::SplineFunction::prepareSpline()
   h = (xmax-xmin)/((double)(N-1));
   hsq = h*h;
 
-  auto  u = new double[N];
+  auto *  u = new double[N];
   Y2[0] = -0.5;
   u[0] = (3.0/(X[1]-X[0])) * ((Y[1]-Y[0])/(X[1]-X[0]) - deriv0);
   for (int i = 1; i <= N-2; i++) {
@@ -613,31 +613,6 @@ void PairMEAMSWSpline::SplineFunction::communicate(MPI_Comm& world, int me)
   MPI_Bcast(Y, N, MPI_DOUBLE, 0, world);
   MPI_Bcast(Y2, N, MPI_DOUBLE, 0, world);
   MPI_Bcast(Ydelta, N, MPI_DOUBLE, 0, world);
-}
-
-/// Writes a Gnuplot script that plots the spline function.
-///
-/// This function is for debugging only!
-void PairMEAMSWSpline::SplineFunction::writeGnuplot(const char* filename, const char* title) const
-{
-  FILE* fp = fopen(filename, "w");
-  fprintf(fp, "#!/usr/bin/env gnuplot\n");
-  if (title) fprintf(fp, "set title \"%s\"\n", title);
-  double tmin = X[0] - (X[N-1] - X[0]) * 0.05;
-  double tmax = X[N-1] + (X[N-1] - X[0]) * 0.05;
-  double delta = (tmax - tmin) / (N*200);
-  fprintf(fp, "set xrange [%f:%f]\n", tmin, tmax);
-  fprintf(fp, "plot '-' with lines notitle, '-' with points notitle pt 3 lc 3\n");
-  for (double x = tmin; x <= tmax+1e-8; x += delta) {
-    double y = eval(x);
-    fprintf(fp, "%f %f\n", x, y);
-  }
-  fprintf(fp, "e\n");
-  for (int i = 0; i < N; i++) {
-    fprintf(fp, "%f %f\n", X[i], Y[i]);
-  }
-  fprintf(fp, "e\n");
-  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

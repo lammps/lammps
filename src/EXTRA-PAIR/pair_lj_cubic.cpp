@@ -25,6 +25,7 @@
 #include "neigh_list.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "pair_lj_cubic_const.h"
 
@@ -39,6 +40,8 @@ PairLJCubic::PairLJCubic(LAMMPS *_lmp) : Pair(_lmp) {}
 
 PairLJCubic::~PairLJCubic()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

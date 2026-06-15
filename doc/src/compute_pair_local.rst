@@ -56,7 +56,7 @@ force cutoff distance for that interaction, as defined by the
 :doc:`pair_style <pair_style>` and :doc:`pair_coeff <pair_coeff>`
 commands.
 
-.. versionchanged:: TBD
+.. versionchanged:: 12Jun2025
 
    The sign of *dx*, *dy*, *dz* is no longer determined by the value of
    their atom-IDs but by their order in the neighbor list to be
@@ -180,7 +180,7 @@ The output for *pN* will be in whatever units the pair style defines.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

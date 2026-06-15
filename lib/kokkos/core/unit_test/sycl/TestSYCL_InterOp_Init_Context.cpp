@@ -1,20 +1,12 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <TestSYCL_Category.hpp>
 
 #include <array>
@@ -87,6 +79,25 @@ TEST(sycl, raw_sycl_interop_context_2) {
   }
 
   ASSERT_EQ(sum, sum_expect);
+}
+
+TEST(sycl_DeathTest, explicit_out_of_order_queue) {
+  Kokkos::SYCL default_space;
+  sycl::context default_context = default_space.sycl_queue().get_context();
+  sycl::queue queue(default_context, sycl::default_selector_v);
+#ifdef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  ASSERT_DEATH(Kokkos::SYCL{queue},
+               "User provided sycl::queues must be in-order!");
+#else
+  Kokkos::SYCL space{queue};
+  const int N = 1000;
+  int result;
+  Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<Kokkos::SYCL>(space, 0, N),
+      KOKKOS_LAMBDA(const int i, int& sum) { sum += i; }, result);
+  ASSERT_EQ(result, N * (N - 1) / 2);
+#endif
 }
 
 }  // namespace Test

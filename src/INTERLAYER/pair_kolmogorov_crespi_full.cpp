@@ -45,7 +45,7 @@ static constexpr int DELTA = 4;
 static constexpr int PGDELTA = 1;
 
 static const char cite_kc[] =
-    "kolmogorov/crespi/full potential doi:10.1021/acs.nanolett.8b02848\n"
+    "kolmogorov/crespi/full potential: https://doi.org/10.1021/acs.nanolett.8b02848\n\n"
     "@Article{Ouyang2018\n"
     " author = {W. Ouyang and D. Mandelli and M. Urbakh and O. Hod},\n"
     " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
@@ -145,7 +145,7 @@ void PairKolmogorovCrespiFull::settings(int narg, char **arg)
                "Pair style kolmogorov/crespi/full must be used as sub-style with hybrid/overlay");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-  if (narg == 2) tap_flag = utils::numeric(FLERR, arg[1], false, lmp);
+  if (narg == 2) tap_flag = utils::inumeric(FLERR, arg[1], false, lmp);
 }
 
 /* ----------------------------------------------------------------------

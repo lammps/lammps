@@ -686,14 +686,12 @@ void PairLJLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             s *= g_ewald*exp(-x*x);
             force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s;
             if (EFLAG) ecoul = t;
-          }
-          else {                                        // special case
+          } else {                                        // special case
             r = s*(1.0-special_coul[ni])/r; s *= g_ewald*exp(-x*x);
             force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-r;
             if (EFLAG) ecoul = t-r;
           }
-        }                                                // table real space
-        else {
+        } else {                                             // table real space
           union_int_float_t t;
           t.f = rsq;
           const int k = (t.i & ncoulmask)>>ncoulshiftbits;
@@ -701,15 +699,13 @@ void PairLJLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (ni == 0) {
             force_coul = qiqj*(ftable[k]+f*dftable[k]);
             if (EFLAG) ecoul = qiqj*(etable[k]+f*detable[k]);
-          }
-          else {                                        // special case
+          } else {                                        // special case
             t.f = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
-            force_coul = qiqj*(ftable[k]+f*dftable[k]-t.f);
-            if (EFLAG) ecoul = qiqj*(etable[k]+f*detable[k]-t.f);
+            force_coul = qiqj*(ftable[k]+f*dftable[k]-(double)t.f);
+            if (EFLAG) ecoul = qiqj*(etable[k]+f*detable[k]-(double)t.f);
           }
         }
-      }
-      else force_coul = ecoul = 0.0;
+      } else force_coul = ecoul = 0.0;
 
       if (rsq < cut_ljsqi[typej]) {                        // lj
         if (ORDER6) {                                        // long-range lj
@@ -722,16 +718,14 @@ void PairLJLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
                 (rn*=rn)*lj1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
               if (EFLAG)
                 evdwl = rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2;
-            }
-            else {                                        // special case
+            } else {                                        // special case
               double f = special_lj[ni], t = rn*(1.0-f);
               force_lj = f*(rn *= rn)*lj1i[typej]-
                 g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej];
               if (EFLAG)
                 evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
             }
-          }
-          else {                                        // table real space
+          } else {                                        // table real space
             union_int_float_t disp_t;
             disp_t.f = rsq;
             const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
@@ -740,29 +734,25 @@ void PairLJLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             if (ni == 0) {
               force_lj = (rn*=rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej];
               if (EFLAG) evdwl = rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej];
-            }
-            else {                                      // special case
+            } else {                                      // special case
               double f = special_lj[ni], t = rn*(1.0-f);
               force_lj = f*(rn *= rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]+t*lj2i[typej];
               if (EFLAG) evdwl = f*rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej]+t*lj4i[typej];
             }
           }
-        }
-        else {                                                // cut lj
+        } else {                                                // cut lj
           double rn = r2inv*r2inv*r2inv;
           if (ni == 0) {
             force_lj = rn*(rn*lj1i[typej]-lj2i[typej]);
             if (EFLAG) evdwl = rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej];
-          }
-          else {                                        // special case
+          } else {                                        // special case
             double f = special_lj[ni];
             force_lj = f*rn*(rn*lj1i[typej]-lj2i[typej]);
             if (EFLAG)
               evdwl = f * (rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
           }
         }
-      }
-      else force_lj = evdwl = 0.0;
+      } else force_lj = evdwl = 0.0;
 
       fpair = (force_coul+force_lj)*r2inv;
 
@@ -771,8 +761,7 @@ void PairLJLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
         fi[0] += f = d[0]*fpair; fj[0] -= f;
         fi[1] += f = d[1]*fpair; fj[1] -= f;
         fi[2] += f = d[2]*fpair; fj[2] -= f;
-      }
-      else {
+      } else {
         fi[0] += d[0]*fpair;
         fi[1] += d[1]*fpair;
         fi[2] += d[2]*fpair;
@@ -850,8 +839,7 @@ void PairLJLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const thr
         force_lj = ni == 0 ?
           rn*(rn*lj1i[typej]-lj2i[typej]) :
           rn*(rn*lj1i[typej]-lj2i[typej])*special_lj[ni];
-      }
-      else force_lj = 0.0;
+      } else force_lj = 0.0;
 
       fpair = (force_coul + force_lj) * r2inv;
 
@@ -865,8 +853,7 @@ void PairLJLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const thr
         fi[0] += f = d[0]*fpair; fj[0] -= f;
         fi[1] += f = d[1]*fpair; fj[1] -= f;
         fi[2] += f = d[2]*fpair; fj[2] -= f;
-      }
-      else {
+      } else {
         fi[0] += d[0]*fpair;
         fi[1] += d[1]*fpair;
         fi[2] += d[2]*fpair;
@@ -946,8 +933,7 @@ void PairLJLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const th
         force_lj = ni == 0 ?
           rn*(rn*lj1i[typej]-lj2i[typej]) :
           rn*(rn*lj1i[typej]-lj2i[typej])*special_lj[ni];
-      }
-      else force_lj = 0.0;
+      } else force_lj = 0.0;
 
       fpair = (force_coul + force_lj) * r2inv;
 
@@ -965,8 +951,7 @@ void PairLJLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const th
         fi[0] += f = d[0]*fpair; fj[0] -= f;
         fi[1] += f = d[1]*fpair; fj[1] -= f;
         fi[2] += f = d[2]*fpair; fj[2] -= f;
-      }
-      else {
+      } else {
         fi[0] += d[0]*fpair;
         fi[1] += d[1]*fpair;
         fi[2] += d[2]*fpair;
@@ -1057,14 +1042,12 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
             s *= g_ewald*exp(-x*x);
             force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-respa_coul;
             if (EFLAG) ecoul = t;
-          }
-          else {                                        // correct for special
+          } else {                                        // correct for special
             r = s*(1.0-special_coul[ni])/r; s *= g_ewald*exp(-x*x);
             force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-r-respa_coul;
             if (EFLAG) ecoul = t-r;
           }
-        }                                                // table real space
-        else {
+        } else {                                              // table real space
           if (respa_flag) {
             double r = sqrt(rsq), s = qri*q[j];
             respa_coul = ni == 0 ? frespa*s/r : frespa*s/r*special_coul[ni];
@@ -1076,19 +1059,16 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
           if (ni == 0) {
             force_coul = qiqj*(ftable[k]+f*dftable[k]);
             if (EFLAG) ecoul = qiqj*(etable[k]+f*detable[k]);
-          }
-          else {                                        // correct for special
+          } else {                                        // correct for special
             t.f = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
-            force_coul = qiqj*(ftable[k]+f*dftable[k]-t.f);
+            force_coul = qiqj*(ftable[k]+f*dftable[k]-(double)t.f);
             if (EFLAG) {
               t.f = (1.0-special_coul[ni])*(ptable[k]+f*dptable[k]);
-              ecoul = qiqj*(etable[k]+f*detable[k]-t.f);
+              ecoul = qiqj*(etable[k]+f*detable[k]-(double)t.f);
             }
           }
         }
-      }
-
-      else force_coul = respa_coul = ecoul = 0.0;
+      } else force_coul = respa_coul = ecoul = 0.0;
 
       if (rsq < cut_ljsqi[typej]) {                        // lennard-jones
         double rn = r2inv*r2inv*r2inv;
@@ -1103,16 +1083,14 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
               force_lj =
                 (rn*=rn)*lj1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq-respa_lj;
               if (EFLAG) evdwl = rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2;
-            }
-            else {                                        // correct for special
+            } else {                                        // correct for special
               double f = special_lj[ni], t = rn*(1.0-f);
               force_lj = f*(rn *= rn)*lj1i[typej]-
                 g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej]-respa_lj;
               if (EFLAG)
                 evdwl = f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
             }
-          }
-          else {                                                // table real space
+          } else {                                                // table real space
             union_int_float_t disp_t;
             disp_t.f = rsq;
             const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
@@ -1121,28 +1099,24 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
             if (ni == 0) {
               force_lj = (rn*=rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]-respa_lj;
               if (EFLAG) evdwl = rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej];
-            }
-            else {                                      // special case
+            } else {                                      // special case
               double f = special_lj[ni], t = rn*(1.0-f);
               force_lj = f*(rn *= rn)*lj1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[typej]+t*lj2i[typej]-respa_lj;
               if (EFLAG) evdwl = f*rn*lj3i[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[typej]+t*lj4i[typej];
             }
           }
-        }
-        else {                                                // cut form
+        } else {                                                // cut form
           if (ni == 0) {
             force_lj = rn*(rn*lj1i[typej]-lj2i[typej])-respa_lj;
             if (EFLAG) evdwl = rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej];
-          }
-          else {                                        // correct for special
+          } else {                                        // correct for special
             double f = special_lj[ni];
             force_lj = f*rn*(rn*lj1i[typej]-lj2i[typej])-respa_lj;
             if (EFLAG)
               evdwl = f*(rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
           }
         }
-      }
-      else force_lj = respa_lj = evdwl = 0.0;
+      } else force_lj = respa_lj = evdwl = 0.0;
 
       fpair = (force_coul+force_lj)*r2inv;
 
@@ -1151,8 +1125,7 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
         fi[0] += f = d[0]*fpair; fj[0] -= f;
         fi[1] += f = d[1]*fpair; fj[1] -= f;
         fi[2] += f = d[2]*fpair; fj[2] -= f;
-      }
-      else {
+      } else {
         fi[0] += d[0]*fpair;
         fi[1] += d[1]*fpair;
         fi[2] += d[2]*fpair;

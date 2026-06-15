@@ -46,7 +46,7 @@ class AngleHybridKokkos : public AngleHybrid {
 
   DAT::tdual_int_1d k_map;       // which style each angle type points to
   DAT::tdual_int_1d k_nanglelist; // # of angles in sub-style anglelists
-  DAT::tdual_int_3d k_anglelist;  // anglelist for each sub-style
+  DAT::tdual_int_3d_lr k_anglelist;  // anglelist for each sub-style
 
   void allocate() override;
   void deallocate() override;

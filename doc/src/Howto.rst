@@ -68,6 +68,7 @@ Force fields howto
 
    Howto_FFgeneral
    Howto_bioFF
+   Howto_amber2lammps
    Howto_amoeba
    Howto_tip3p
    Howto_tip4p
@@ -93,6 +94,8 @@ Packages howto
    Howto_manifold
    Howto_rheo
    Howto_spins
+   Howto_apip
+   Howto_ldd
 
 Tutorials howto
 ===============
@@ -106,6 +109,4 @@ Tutorials howto
    Howto_lammps_gui
    Howto_moltemplate
    Howto_python
-   Howto_pylammps
    Howto_wsl
-

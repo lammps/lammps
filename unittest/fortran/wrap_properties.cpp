@@ -1,7 +1,5 @@
 // unit tests for getting LAMMPS properties through the Fortran wrapper
 
-#include "info.h"
-#include "lammps.h"
 #include "library.h"
 
 #include <cstdint>
@@ -26,6 +24,7 @@ void f_lammps_decode_image_flags_bigbig(int64_t, int *);
 }
 
 namespace LAMMPS_NS {
+class LAMMPS;
 
 using ::testing::ContainsRegex;
 

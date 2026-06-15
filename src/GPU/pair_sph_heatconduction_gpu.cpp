@@ -26,7 +26,6 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "update.h"
 
 #include <cmath>
 
@@ -133,13 +132,13 @@ void PairSPHHeatConductionGPU::compute(int eflag, int vflag)
 
   int nlocal = atom->nlocal;
   if (acc_float) {
-    auto dE_ptr = (float *)dE_pinned;
+    auto *dE_ptr = (float *)dE_pinned;
     for (int i = 0; i < nlocal; i++) {
       desph[i] = dE_ptr[i];
     }
 
   } else {
-    auto dE_ptr = (double *)dE_pinned;
+    auto *dE_ptr = (double *)dE_pinned;
     for (int i = 0; i < nlocal; i++) {
       desph[i] = dE_ptr[i];
     }

@@ -21,7 +21,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "gpu_extra.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -45,7 +44,8 @@ int **eam_gpu_compute_n(const int ago, const int inum_full, const int nall, doub
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, int &inum, void **fp_ptr);
+                        const double cpu_time, bool &success, int &inum, void **fp_ptr,
+                        double *prd, int *periodicity);
 void eam_gpu_compute(const int ago, const int inum_full, const int nlocal, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj, int **firstneigh,
                      const bool eflag, const bool vflag, const bool eatom, const bool vatom,
@@ -112,7 +112,8 @@ void PairEAMGPU::compute(int eflag, int vflag)
     firstneigh =
         eam_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
                           atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
-                          host_start, &ilist, &numneigh, cpu_time, success, inum_dev, &fp_pinned);
+                          host_start, &ilist, &numneigh, cpu_time, success, inum_dev, &fp_pinned,
+                          domain->prd, domain->periodicity);
   } else {    // gpu_mode == GPU_FORCE
     inum = list->inum;
     ilist = list->ilist;
@@ -232,13 +233,13 @@ int PairEAMGPU::pack_forward_comm(int n, int *list, double *buf, int /* pbc_flag
   m = 0;
 
   if (fp_single) {
-    auto fp_ptr = (float *) fp_pinned;
+    auto *fp_ptr = (float *) fp_pinned;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = static_cast<double>(fp_ptr[j]);
     }
   } else {
-    auto fp_ptr = (double *) fp_pinned;
+    auto *fp_ptr = (double *) fp_pinned;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = fp_ptr[j];
@@ -257,10 +258,10 @@ void PairEAMGPU::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   if (fp_single) {
-    auto fp_ptr = (float *) fp_pinned;
+    auto *fp_ptr = (float *) fp_pinned;
     for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
   } else {
-    auto fp_ptr = (double *) fp_pinned;
+    auto *fp_ptr = (double *) fp_pinned;
     for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
   }
 }

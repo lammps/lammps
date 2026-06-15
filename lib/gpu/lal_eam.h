@@ -80,9 +80,9 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
                 tagint **special, const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **numj, const double cpu_time, bool &success,
-                int &inum, void **fp_ptr);
+                int &inum, void **fp_ptr, double *prd, int *periodicity);
 
-  /// Pair loop with host neighboring
+  /// Compute forces and energies after fp are ready
   void compute2(int *ilist, const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom);
 

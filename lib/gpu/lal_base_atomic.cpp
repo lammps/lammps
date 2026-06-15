@@ -182,6 +182,30 @@ inline void BaseAtomicT::build_nbor_list(const int inum, const int host_inum,
     _max_an_bytes=bytes;
 }
 
+template <class numtyp, class acctyp>
+inline void BaseAtomicT::build_nbor_list(const int inum, const int host_inum,
+                                         const int nall, double **host_x,
+                                         int *host_type, double *sublo,
+                                         double *subhi, tagint *tag,
+                                         int **nspecial, tagint **special,
+                                         double* prd, int* periodicity, bool &success) {
+  success=true;
+  resize_atom(inum,nall,success);
+  resize_local(inum,host_inum,nbor->max_nbors(),success);
+  if (!success)
+    return;
+  atom->cast_copy_x(host_x,host_type);
+
+  int mn;
+  nbor->build_nbor_list(host_x, inum, host_inum, nall, *atom, sublo, subhi,
+                        tag, nspecial, special, success, mn, prd, periodicity,
+                        ans->error_flag);
+
+  double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
+  if (bytes>_max_an_bytes)
+    _max_an_bytes=bytes;
+}
+
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
@@ -248,7 +272,8 @@ int **BaseAtomicT::compute(const int ago, const int inum_full,
                            const bool eflag_in, const bool vflag_in,
                            const bool eatom, const bool vatom,
                            int &host_start, int **ilist, int **jnum,
-                           const double cpu_time, bool &success) {
+                           const double cpu_time, bool &success, double *prd,
+                           int *periodicity) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -280,7 +305,9 @@ int **BaseAtomicT::compute(const int ago, const int inum_full,
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
-                    sublo, subhi, tag, nspecial, special, success);
+                    sublo, subhi, tag, nspecial, special,
+                    prd, periodicity, success);
+
     if (!success)
       return nullptr;
     hd_balancer.start_timer();

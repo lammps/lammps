@@ -46,7 +46,7 @@ namespace LAMMPS_NS {
 
 // enum used for KOKKOS host/device flags
 
-enum ExecutionSpace{ Host, Device };
+enum ExecutionSpace{ Host, HostKK, Device };
 
 // global forward declarations
 
@@ -92,15 +92,18 @@ class Pointers {
     atomKK(ptr->atomKK),
     memoryKK(ptr->memoryKK),
     python(ptr->python) {}
-  virtual ~Pointers() noexcept(false) {}
+  // clang-format off
+  // cannot use = default here due to broken GCC on RHEL 8
+  virtual ~Pointers() noexcept(false) {}  // NOLINT
+  // clang-format on
 
-  // remove other default members
+  // remove other default members where possible
 
   Pointers() = delete;
   Pointers(const Pointers &) = default;
   Pointers(Pointers &&) = delete;
-  Pointers & operator=(const Pointers&) = delete;
-  Pointers & operator=(Pointers&&) = delete;
+  Pointers &operator=(const Pointers &) = delete;
+  Pointers &operator=(Pointers &&) = delete;
 
  protected:
   LAMMPS *lmp;
@@ -130,6 +133,6 @@ class Pointers {
   class Python *&python;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif

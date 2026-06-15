@@ -106,7 +106,7 @@ function(check_git_setup)
   )
 
   add_library(impl_git_version ${CMAKE_CURRENT_BINARY_DIR}/generated/Kokkos_Version_Info.cpp)
-  target_include_directories(impl_git_version PUBLIC ${CMAKE_BINARY_DIR}/generated)
+  target_include_directories(impl_git_version PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/generated)
   target_compile_features(impl_git_version PRIVATE cxx_raw_string_literals)
   add_dependencies(impl_git_version AlwaysCheckGit)
 

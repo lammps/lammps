@@ -15,7 +15,6 @@
 #include "atom.h"
 #include "force.h"
 #include "info.h"
-#include "input.h"
 #include "output.h"
 #include "pair.h"
 #include "thermo.h"
@@ -24,7 +23,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <vector>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;

@@ -22,6 +22,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
@@ -43,6 +44,7 @@ DihedralCosineSquaredRestricted::DihedralCosineSquaredRestricted(LAMMPS *_lmp) :
 
 DihedralCosineSquaredRestricted::~DihedralCosineSquaredRestricted()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

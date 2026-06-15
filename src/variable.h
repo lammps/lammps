@@ -15,12 +15,12 @@
 #define LMP_VARIABLE_H
 
 #include "pointers.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 class Region;
 
 class Variable : protected Pointers {
-  friend class Info;
 
  public:
   Variable(class LAMMPS *);
@@ -37,6 +37,11 @@ class Variable : protected Pointers {
   void purge_atomfile();
   void clear_in_progress();
 
+  [[nodiscard]] int get_nvar() const { return variables.size(); }
+  [[nodiscard]] const char *get_name(int i) const;
+  [[nodiscard]] const char *get_style(int i) const;
+  [[nodiscard]] std::string get_info(int i) const;
+
   int equalstyle(int);
   int atomstyle(int);
   int vectorstyle(int);
@@ -49,58 +54,46 @@ class Variable : protected Pointers {
   void compute_atom(int, int, double *, int, int);
   int compute_vector(int, double **);
   void internal_set(int, double);
+  int internal_create(char *, double);
 
   tagint int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
 
- public:
-  int nvar;        // # of defined variables
-  char **names;    // name of each variable
-
-  // must match "varstyles" array in variables.cpp, UNKNOWN must be last.
-  enum {
-    INDEX,
-    LOOP,
-    WORLD,
-    UNIVERSE,
-    ULOOP,
-    STRING,
-    GETENV,
-    SCALARFILE,
-    ATOMFILE,
-    FORMAT,
-    EQUAL,
-    ATOM,
-    VECTOR,
-    PYTHON,
-    TIMER,
-    INTERNAL,
-    UNKNOWN
-  };
   static constexpr int VALUELENGTH = 64;
-  static const std::vector<std::string> varstyles;
 
- private:
-  int me;
-  int maxvar;                  // max # of variables following lists can hold
-  int *style;                  // style of each variable
-  int *num;                    // # of values for each variable
-  int *which;                  // next available value for each variable
-  int *pad;                    // 1 = pad loop/uloop variables with 0s, 0 = no pad
-  class VarReader **reader;    // variable that reads from file
-  char ***data;                // str value of each variable's values
-  double *dvalue;              // single numeric value for internal variables
-
+ protected:
   struct VecVar {
     int n, nmax;
     int dynamic;
     bigint currentstep;
     double *values;
   };
-  VecVar *vecs;
 
-  int *eval_in_progress;    // flag if evaluation of variable is in progress
-  int treetype;             // ATOM or VECTOR flag for formula evaluation
+  struct VarInfo {
+    std::string name;
+    int style;
+    int num;
+    int which;
+    int pad;
+    int pyindex;
+    int eval_in_progress;
+    class VarReader *reader;
+    char **data;
+    double dvalue;
+    VecVar vec;
+
+    VarInfo();
+    VarInfo(const VarInfo &) = delete;
+    ~VarInfo();
+
+    VarInfo(VarInfo &&) noexcept;
+    VarInfo &operator=(VarInfo &&) noexcept;
+    void clear();
+  };
+  std::vector<VarInfo> variables;
+
+ private:
+  int treetype;    // ATOM or VECTOR flag for formula evaluation
 
   class RanMars *randomequal;    // random number generator for equal-style vars
   class RanMars *randomatom;     // random number generator for atom-style vars
@@ -123,16 +116,21 @@ class Variable : protected Pointers {
     Tree *first, *second;    // ptrs further down tree for first 2 args
     Tree **extra;            // ptrs further down tree for nextra args
 
+    int pyvar;       // index of Python variable invoked as py_name()
+    int argcount;    // # of args to associated Python function
+    int *argvars;    // indices of internal variables for each arg
+
     Tree() :
         array(nullptr), iarray(nullptr), barray(nullptr), selfalloc(0), ivalue(0), nextra(0),
-        region(nullptr), first(nullptr), second(nullptr), extra(nullptr)
+        region(nullptr), first(nullptr), second(nullptr), extra(nullptr), argvars(nullptr)
     {
     }
   };
 
   int compute_python(int);
   void remove(int);
-  void grow();
+  int recycle();
+
   void copy(int, char **, char **);
   double evaluate(char *, Tree **, int);
   double collapse_tree(Tree *);
@@ -170,7 +168,7 @@ class VarReader : protected Pointers {
 
  private:
   int me, style;
-  FILE *fp;
+  SafeFilePtr fp;
   char *buffer;
 };
 

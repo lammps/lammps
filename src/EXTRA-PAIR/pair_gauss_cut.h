@@ -53,7 +53,7 @@ class PairGaussCut : public Pair {
   double **hgauss, **sigmah, **rmh;
   double **pgauss, **offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

@@ -17,7 +17,6 @@
 
 #include "gz_file_writer.h"
 #include "fmt/format.h"
-#include <cstdio>
 
 using namespace LAMMPS_NS;
 

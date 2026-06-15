@@ -55,7 +55,7 @@ class PairSRP : public Pair {
   int bptype;
   int btype;
   class Fix *f_srp;
-  char *fix_id;
+  std::string fix_id;
   int exclude, maxcount;
   int **segment;
 };

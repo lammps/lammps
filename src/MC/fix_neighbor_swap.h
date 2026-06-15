@@ -17,43 +17,50 @@ FixStyle(neighbor/swap,FixNeighborSwap);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_NEIGH_SWAP_H
-#define LMP_FIX_NEIGH_SWAP_H
+#ifndef LMP_FIX_NEIGHBOR_SWAP_H
+#define LMP_FIX_NEIGHBOR_SWAP_H
 
 #include "fix.h"
+
+#include <unordered_map>
+#include <utility>
 
 namespace LAMMPS_NS {
 
 class FixNeighborSwap : public Fix {
  public:
   FixNeighborSwap(class LAMMPS *, int, char **);
-  ~FixNeighborSwap();
-  int setmask();
-  void init();
-  void pre_exchange();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double compute_vector(int);
-  double memory_usage();
-  void write_restart(FILE *);
-  void restart(char *);
+  ~FixNeighborSwap() override;
+
+  int setmask() override;
+  void init() override;
+  void pre_exchange() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double compute_vector(int) override;
+  double memory_usage() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  int modify_param(int, char **) override;
+
+  int image(int *&, double **&) override;
 
  private:
   int nevery, seed;
   int ke_flag;       // yes = conserve ke, no = do not conserve ke
   int diff_flag;     // yes = simulate diffusion of central atom, no = swap only to certain types
-  int rates_flag;    // yes = use modified type rates, no = swap rates are equivilent across types
+  int rates_flag;    // yes = use modified type rates, no = swap rates are equivalent across types
   int ncycles;
   int niswap, njswap;                  // # of i,j swap atoms on all procs
   int niswap_local, njswap_local;      // # of swap atoms on this proc
   int niswap_before, njswap_before;    // # of swap atoms on procs < this proc
-  // int global_i_ID;                     // global id of selected i atom
+
   class Region *region;    // swap region
   char *idregion;          // swap region id
 
   int nswaptypes;
   int jtype_selected;
-  int id_center;
+  tagint id_center;
   double x_center;
   double y_center;
   double z_center;
@@ -66,11 +73,11 @@ class FixNeighborSwap : public Fix {
   bool unequal_cutoffs;
 
   int atom_swap_nmax;
-  double beta, r_0;
+  double beta, inv_r_0;
   double local_probability;     // Total swap probability stored on this proc
   double global_probability;    // Total swap probability across all proc
   double prev_probability;      // Swap probability on proc < this proc
-  double *qtype;
+  double *qtype, *mtype;
   double energy_stored;
   double **sqrt_mass_ratio;
   double **voro_neighbor_list;
@@ -81,15 +88,22 @@ class FixNeighborSwap : public Fix {
 
   class RanPark *random_equal;
 
-  class Compute *c_voro;
-  class Compute *c_pe;
+  char *id_voro;
+  class Compute *c_voro, *c_pe;
+
+  // arrays for dump image rendering
+
+  int *imgobjs;
+  double **imgparms;
+  // maps atom IDs to number of steps they have been highlighted
+  std::unordered_map<tagint, std::pair<int,int>> vizatoms;
+  int vizsteps;    // number of steps to highlight atoms in reactions
 
   void options(int, char **);
   int attempt_swap();
   double energy_full();
   int pick_i_swap_atom();
-  int pick_j_swap_neighbor(int);
-  double get_distance(double[3], double[3]);
+  int pick_j_swap_neighbor();
   void build_i_neighbor_list(int);
   void update_iswap_atoms_list();
 };

@@ -116,6 +116,7 @@ extern void   lammps_mpi_init();
 extern void   lammps_mpi_finalize();
 extern void   lammps_kokkos_finalize();
 extern void   lammps_python_finalize();
+extern void   lammps_plugin_finalize();
 extern void   lammps_error(void *handle, int error_type, const char *error_text);
 extern char  *lammps_expand(void *handle, const char *line);
 
@@ -175,8 +176,10 @@ extern void   lammps_scatter(void *, const char *, int, int, void *);
 extern void   lammps_scatter_subset(void *, const char *, int, int, int, int *, void *);
 extern int    lammps_create_atoms(void *handle, int n, const int *id, const int *type,
                                   const double *x, const double *v, const int *image, int bexpand);
-/*
- extern int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type, */
+/* extern int lammps_create_atoms(void *handle, int n, const int64_t *id, int *type,
+  const double *x, const double *v, const int64_t *image, int bexpand); */
+extern void   lammps_create_molecule(void *handle, const char *id, const char *json);
+
 extern int    lammps_find_pair_neighlist(void *, const char *, int, int, int);
 extern int    lammps_find_fix_neighlist(void *, const char *, int);
 extern int    lammps_find_compute_neighlist(void *, const char *, int);
@@ -187,6 +190,7 @@ extern void   lammps_neighlist_element_neighbors(void *, int, int, int *, int *,
 extern int    lammps_version(void *handle);
 extern void   lammps_get_os_info(char *buffer, int buf_size);
 extern int    lammps_config_has_mpi_support();
+extern int    lammps_config_has_omp_support();
 extern int    lammps_config_has_gzip_support();
 extern int    lammps_config_has_png_support();
 extern int    lammps_config_has_jpeg_support();
@@ -315,6 +319,7 @@ extern void   lammps_mpi_init();
 extern void   lammps_mpi_finalize();
 extern void   lammps_kokkos_finalize();
 extern void   lammps_python_finalize();
+extern void   lammps_plugin_finalize();
 extern void   lammps_error(void *handle, int error_type, const char *error_text);
 extern char  *lammps_expand(void *handle, const char *line);
 
@@ -373,8 +378,10 @@ extern void   lammps_scatter(void *, const char *, int, int, void *);
 extern void   lammps_scatter_subset(void *, const char *, int, int, int, int *, void *);
 extern int    lammps_create_atoms(void *handle, int n, const int *id, const int *type,
                                   const double *x, const double *v, const int *image, int bexpand);
-/*
- extern int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type, */
+/* extern int lammps_create_atoms(void *handle, int n, const int64_t *id, int *type,
+  const double *x, const double *v, const int64_t *image, int bexpand); */
+extern void   lammps_create_molecule(void *handle, const char *id, const char *json);
+
 extern int    lammps_find_pair_neighlist(void*, const char *, int, int, int);
 extern int    lammps_find_fix_neighlist(void*, const char *, int);
 extern int    lammps_find_compute_neighlist(void*, const char *, int);
@@ -385,6 +392,7 @@ extern void   lammps_neighlist_element_neighbors(void *, int, int, int *, int *,
 extern int    lammps_version(void *handle);
 extern void   lammps_get_os_info(char *buffer, int buf_size);
 extern int    lammps_config_has_mpi_support();
+extern int    lammps_config_has_omp_support();
 extern int    lammps_config_has_gzip_support();
 extern int    lammps_config_has_png_support();
 extern int    lammps_config_has_jpeg_support();

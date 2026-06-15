@@ -24,6 +24,7 @@
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
+#include "pair.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 
@@ -173,7 +174,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction * dftable[itable];
             forcecoul = qtmp * q[j] * table;
             efield_i = q[j] * table;
@@ -289,7 +290,7 @@ double PairLJCutCoulMSMDielectric::single(int i, int j, int itype, int jtype, do
       rsq_lookup_single.f = rsq;
       itable = rsq_lookup_single.i & ncoulmask;
       itable >>= ncoulshiftbits;
-      fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
+      fraction = ((double) rsq_lookup_single.f - rtable[itable]) * drtable[itable];
       table = ftable[itable] + fraction * dftable[itable];
       forcecoul = q[i] * q[j] * table;
       if (factor_coul < 1.0) {

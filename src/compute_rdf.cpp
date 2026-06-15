@@ -68,7 +68,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute rdf cutoff", error);
-      if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+      if (neighbor->style == Neighbor::MULTI)
         error->all(FLERR, iarg, "Compute rdf with custom cutoff requires neighbor style 'bin' or 'nsq'");
       cutoff_user = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff_user <= 0.0) cutflag = 0;
@@ -190,7 +190,7 @@ void ComputeRDF::init()
                  "range {} - use comm_modify cutoff command to increase it", mycutneigh, cutghost);
 
     delr = cutoff_user / nbin;
-  } delr = force->pair->cutforce / nbin;
+  } else delr = force->pair->cutforce / nbin;
 
   delrinv = 1.0/delr;
 
@@ -214,9 +214,9 @@ void ComputeRDF::init()
   //   (until next reneighbor), so it needs to contain atoms further
   //   than cutoff_user apart, just like a normal neighbor list does
 
-  auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+  auto *req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
   if (cutflag) {
-    if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+    if (neighbor->style == Neighbor::MULTI)
       error->all(FLERR, Error::NOLASTLINE,
                  "Compute rdf with custom cutoff requires neighbor style 'bin' or 'nsq'");
     req->set_cutoff(mycutneigh);

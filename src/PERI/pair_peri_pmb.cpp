@@ -110,7 +110,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       delx0 = xtmp0 - x0[j][0];
       dely0 = ytmp0 - x0[j][1];
       delz0 = ztmp0 - x0[j][2];
-      if (periodic) domain->minimum_image(delx0,dely0,delz0);
+      if (periodic) domain->minimum_image(FLERR, delx0,dely0,delz0);
       rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
       jtype = type[j];
 
@@ -189,7 +189,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      if (periodic) domain->minimum_image(delx,dely,delz);
+      if (periodic) domain->minimum_image(FLERR, delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
       delta = cut[itype][jtype];
@@ -361,7 +361,7 @@ double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
   dely0 = x0[i][1] - x0[j][1];
   delz0 = x0[i][2] - x0[j][2];
   int periodic = domain->xperiodic || domain->yperiodic || domain->zperiodic;
-  if (periodic) domain->minimum_image(delx0,dely0,delz0);
+  if (periodic) domain->minimum_image(FLERR, delx0,dely0,delz0);
   rsq0 = delx0*delx0 + dely0*dely0 + delz0*delz0;
 
   d_ij = MIN(0.9*sqrt(rsq0),1.35*lc);

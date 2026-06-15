@@ -48,7 +48,7 @@ int **crml_gpu_compute_n(const int ago, const int inum, const int nall, double *
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
                          const bool vatom, int &host_start, int **ilist, int **jnum,
                          const double cpu_time, bool &success, double *host_q, double *boxlo,
-                         double *prd);
+                         double *prd, int* periodicity);
 void crml_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
@@ -101,18 +101,20 @@ void PairLJCharmmCoulLongGPU::compute(int eflag, int vflag)
       domain->bbox(domain->sublo_lamda, domain->subhi_lamda, sublo, subhi);
     }
     inum = atom->nlocal;
-    firstneigh = crml_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
-                                    atom->tag, atom->nspecial, atom->special, eflag, vflag,
-                                    eflag_atom, vflag_atom, host_start, &ilist, &numneigh, cpu_time,
-                                    success, atom->q, domain->boxlo, domain->prd);
+    firstneigh = crml_gpu_compute_n(
+        neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
+        atom->tag, atom->nspecial, atom->special, eflag, vflag,
+        eflag_atom, vflag_atom, host_start, &ilist, &numneigh, cpu_time,
+        success, atom->q, domain->boxlo, domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    crml_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                     eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success, atom->q,
-                     atom->nlocal, domain->boxlo, domain->prd);
+    crml_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+                     ilist, numneigh, firstneigh, eflag, vflag,
+                     eflag_atom, vflag_atom, host_start, cpu_time,
+                     success, atom->q, atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
@@ -257,7 +259,7 @@ void PairLJCharmmCoulLongGPU::cpu_compute(int start, int inum, int eflag, int /*
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction * dftable[itable];
             forcecoul = qtmp * q[j] * table;
             if (factor_coul < 1.0) {

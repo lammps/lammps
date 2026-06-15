@@ -25,8 +25,9 @@
 #include "fix_rheo.h"
 #include "force.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -42,10 +43,6 @@ ComputeRHEORhoSum::ComputeRHEORhoSum(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 1;
   comm_reverse = 1;
 }
-
-/* ---------------------------------------------------------------------- */
-
-ComputeRHEORhoSum::~ComputeRHEORhoSum() {}
 
 /* ---------------------------------------------------------------------- */
 

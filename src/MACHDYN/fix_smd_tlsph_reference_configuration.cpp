@@ -68,7 +68,7 @@ FixSMD_TLSPH_ReferenceConfiguration::FixSMD_TLSPH_ReferenceConfiguration(LAMMPS 
   wf_list = nullptr;
   energy_per_bond = nullptr;
   degradation_ij = nullptr;
-  grow_arrays(atom->nmax);
+  FixSMD_TLSPH_ReferenceConfiguration::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // initialize npartner to 0 so neighbor list creation is OK the 1st time
@@ -350,7 +350,7 @@ void FixSMD_TLSPH_ReferenceConfiguration::setup(int /*vflag*/) {
 
 double FixSMD_TLSPH_ReferenceConfiguration::memory_usage() {
   int nmax = atom->nmax;
-  int bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   bytes += (double)nmax * maxpartner * sizeof(tagint); // partner array
   bytes += (double)nmax * maxpartner * sizeof(float); // wf_list
   bytes += (double)nmax * maxpartner * sizeof(float); // wfd_list
@@ -420,7 +420,7 @@ int FixSMD_TLSPH_ReferenceConfiguration::unpack_exchange(int nlocal, double *buf
     grow_arrays(nmax);
 
     if (comm->me == 0)
-      error->message(FLERR, "in Fixtlsph_refconfigNeighGCG::unpack_exchange: local arrays too small for receiving partner information; growing arrays");
+      utils::logmesg(lmp, "in Fixtlsph_refconfigNeighGCG::unpack_exchange: local arrays too small for receiving partner information; growing arrays\n");
   }
 
   int m = 0;

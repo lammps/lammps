@@ -47,9 +47,11 @@ struct s_CounterType
 {
   int nSteps, nIters, nFuncs, nFails;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   s_CounterType() : nSteps(0), nIters(0), nFuncs(0), nFails(0) {};
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   s_CounterType& operator+=(const s_CounterType &rhs)
   {
@@ -65,6 +67,7 @@ typedef struct s_CounterType CounterType;
 template <class DeviceType>
 class FixRxKokkos : public FixRX {
  public:
+  typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
   FixRxKokkos(class LAMMPS *, int, char **);
@@ -78,21 +81,26 @@ class FixRxKokkos : public FixRX {
   // Define a value_type here for the reduction operator on CounterType.
   typedef CounterType value_type;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(Tag_FixRxKokkos_zeroCounterViews, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(Tag_FixRxKokkos_zeroTemperatureViews, const int&) const;
 
   template <int WT_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(Tag_FixRxKokkos_firstPairOperator<WT_FLAG,NEWTON_PAIR,NEIGHFLAG>, const int&) const;
 
   template <int WT_FLAG, int LOCAL_TEMP_FLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(Tag_FixRxKokkos_2ndPairOperator<WT_FLAG,LOCAL_TEMP_FLAG>, const int&) const;
 
   template <bool ZERO_RATES>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES>, const int&, CounterType&) const;
 
@@ -111,22 +119,28 @@ class FixRxKokkos : public FixRX {
 
     value_type *m_data;
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     StridedArrayType() : m_data(nullptr) {}
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     StridedArrayType(value_type *ptr) : m_data(ptr) {}
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION       value_type& operator()(const int idx)       { return m_data[Stride*idx]; }
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION const value_type& operator()(const int idx) const { return m_data[Stride*idx]; }
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION       value_type& operator[](const int idx)       { return m_data[Stride*idx]; }
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION const value_type& operator[](const int idx) const { return m_data[Stride*idx]; }
   };
 
   template <int stride = 1>
   struct UserRHSDataKokkos
   {
-    StridedArrayType<double,1> kFor;
-    StridedArrayType<double,1> rxnRateLaw;
+    StridedArrayType<KK_FLOAT,1> kFor;
+    StridedArrayType<KK_FLOAT,1> rxnRateLaw;
   };
 
   void solve_reactions(const int vflag, const bool isPreForce);
@@ -136,14 +150,17 @@ class FixRxKokkos : public FixRX {
   int rhs_sparse(double, const double *, double *, void *) const;
 
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   int k_rhs       (double, const VectorType&, VectorType&, UserDataType& ) const;
 
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   int k_rhs_dense (double, const VectorType&, VectorType&, UserDataType& ) const;
 
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   int k_rhs_sparse(double, const VectorType&, VectorType&, UserDataType& ) const;
 
@@ -164,22 +181,26 @@ class FixRxKokkos : public FixRX {
 
   //!< Classic Runge-Kutta 4th-order stepper.
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   void k_rk4(const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData) const;
 
   //!< Runge-Kutta-Fehlberg ODE Solver.
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   void k_rkf45(const int neq, const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData, CounterType& counter) const;
 
   //!< Runge-Kutta-Fehlberg ODE stepper function.
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   void k_rkf45_step (const int neq, const double h, VectorType& y, VectorType& y_out,
                      VectorType& rwk, UserDataType& userData) const;
 
   //!< Initial step size estimation for the Runge-Kutta-Fehlberg ODE solver.
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   int k_rkf45_h0 (const int neq, const double t, const double t_stop,
                   const double hmin, const double hmax,
@@ -193,8 +214,8 @@ class FixRxKokkos : public FixRX {
   int *diagnosticCounterPerODEnFuncs;
   DAT::tdual_int_1d k_diagnosticCounterPerODEnSteps;
   DAT::tdual_int_1d k_diagnosticCounterPerODEnFuncs;
-  //typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnSteps;
-  //typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnFuncs;
+  //typename AT::t_int_1d d_diagnosticCounterPerODEnSteps;
+  //typename AT::t_int_1d d_diagnosticCounterPerODEnFuncs;
   typename AT::t_int_1d d_diagnosticCounterPerODEnSteps;
   typename AT::t_int_1d d_diagnosticCounterPerODEnFuncs;
   HAT::t_int_1d h_diagnosticCounterPerODEnSteps;
@@ -204,14 +225,14 @@ class FixRxKokkos : public FixRX {
   struct KineticsType
   {
     // Arrhenius rate coefficients.
-    typename ArrayTypes<KokkosDeviceType>::t_float_1d Arr, nArr, Ea;
+    typename ArrayTypes<KokkosDeviceType>::t_kkfloat_1d Arr, nArr, Ea;
 
     // Dense versions.
-    typename ArrayTypes<KokkosDeviceType>::t_float_2d stoich, stoichReactants, stoichProducts;
+    typename ArrayTypes<KokkosDeviceType>::t_kkfloat_2d stoich, stoichReactants, stoichProducts;
 
     // Sparse versions.
     typename ArrayTypes<KokkosDeviceType>::t_int_2d   nuk, inu;
-    typename ArrayTypes<KokkosDeviceType>::t_float_2d nu;
+    typename ArrayTypes<KokkosDeviceType>::t_kkfloat_2d nu;
     typename ArrayTypes<KokkosDeviceType>::t_int_1d   isIntegral;
   };
 
@@ -224,27 +245,27 @@ class FixRxKokkos : public FixRX {
   void create_kinetics_data();
 
   // Need a dual-view and device-view for dpdThetaLocal and sumWeights since they're used in several callbacks.
-  DAT::tdual_efloat_1d k_dpdThetaLocal, k_sumWeights;
-  //typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
-  typename AT::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
-  HAT::t_efloat_1d h_dpdThetaLocal, h_sumWeights;
+  DAT::ttransform_kkfloat_1d k_dpdThetaLocal, k_sumWeights;
+  //typename AT::t_kkfloat_1d d_dpdThetaLocal, d_sumWeights;
+  typename AT::t_kkfloat_1d d_dpdThetaLocal, d_sumWeights;
+  HAT::t_double_1d h_dpdThetaLocal, h_sumWeights;
 
-  typename AT::t_x_array_randomread d_x;
+  typename AT::t_kkfloat_1d_3_lr_randomread d_x;
   typename AT::t_int_1d_randomread  d_type;
-  typename AT::t_efloat_1d          d_dpdTheta;
+  typename AT::t_kkfloat_1d          d_dpdTheta;
 
-  typename AT::tdual_ffloat_2d k_cutsq;
-  typename AT::t_ffloat_2d     d_cutsq;
+  DAT::ttransform_kkfloat_2d k_cutsq;
+  typename AT::t_kkfloat_2d     d_cutsq;
   //double **h_cutsq;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d       d_ilist;
   typename AT::t_int_1d       d_numneigh;
 
-  typename AT::t_float_2d  d_dvector;
+  typename AT::t_kkfloat_2d  d_dvector;
   typename AT::t_int_1d    d_mask;
 
-  typename AT::t_double_1d d_scratchSpace;
+  typename AT::t_kkfloat_1d d_scratchSpace;
   size_t scratchSpaceSize;
 
   // Error flag for any failures.

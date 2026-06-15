@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_TYPE_INFO_HPP
 #define KOKKOS_TYPE_INFO_HPP
@@ -23,10 +10,8 @@
 
 #include <Kokkos_Macros.hpp>
 
-// NVCC versions less than 11.3.0 segfault when that header is included
 // NVCC+MSVC doesn't work at all - it simply reports "T" inside type_name
-#if (!defined(KOKKOS_COMPILER_NVCC) || (KOKKOS_COMPILER_NVCC >= 1130)) && \
-    (!(defined(KOKKOS_COMPILER_NVCC) && defined(KOKKOS_COMPILER_MSVC)))
+#if !(defined(KOKKOS_COMPILER_NVCC) && defined(KOKKOS_COMPILER_MSVC))
 
 #define KOKKOS_ENABLE_IMPL_TYPEINFO
 

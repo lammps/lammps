@@ -37,6 +37,7 @@ class VerletKokkos : public Verlet {
   void run(int) override;
   void force_clear() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
     f(i,0) += f_merge_copy(i,0);
@@ -45,7 +46,7 @@ class VerletKokkos : public Verlet {
   }
 
  protected:
-  DAT::t_f_array f_merge_copy,f;
+  DAT::t_kkacc_1d_3 f_merge_copy,f;
   int fuse_force_clear,fuse_integrate;
 
   void fuse_check(int, int);

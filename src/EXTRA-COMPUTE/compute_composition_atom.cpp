@@ -102,12 +102,12 @@ void ComputeCompositionAtom::init()
 
   cutsq = cutoff * cutoff;
 
-  if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+  if (neighbor->style == Neighbor::MULTI)
     error->all(FLERR, "Compute composition/atom requires neighbor style 'bin' or 'nsq'");
 
   // need an occasional full neighbor list
 
-  auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  auto *req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
   if (cutflag) req->set_cutoff(cutoff);
 }
 

@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static const char cite_minstyle_spin_cg[] =
-  "min_style spin/cg command: doi:10.48550/arXiv.1904.02669\n\n"
+  "min_style spin/cg command: https://doi.org/10.48550/arXiv.1904.02669\n\n"
   "@article{ivanov2019fast,\n"
   "title={Fast and Robust Algorithm for the Minimisation of the Energy of "
   "Spin Systems},\n"
@@ -566,7 +566,7 @@ int MinSpinCG::calc_and_make_step(double a, double b, int index)
     df1 = der_e_cur;
 
     c1 = -2.0*(f1-f0)/(r*r*r)+(df1+df0)/(r*r);
-    c2 = 3.0*(f1-f0)/(r*r)-(df1+2.0*df0)/(r);
+    c2 = 3.0*(f1-f0)/(r*r)-(df1+2.0*df0)/r;
     c3 = df0;
 
     // f(x) = c1 x^3 + c2 x^2 + c3 x^1 + c4

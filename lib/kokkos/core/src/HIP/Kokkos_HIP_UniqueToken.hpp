@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HIP_UNIQUE_TOKEN_HPP
 #define KOKKOS_HIP_UNIQUE_TOKEN_HPP
@@ -57,18 +44,6 @@ class UniqueToken<HIP, UniqueTokenScope::Global> {
   }
 
  public:
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken(const UniqueToken&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken(UniqueToken&&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken& operator=(const UniqueToken&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken& operator=(UniqueToken&&) = default;
-
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
   size_type size() const noexcept { return m_locks.extent(0); }
@@ -129,7 +104,7 @@ class UniqueToken<HIP, UniqueTokenScope::Instance>
   UniqueToken()
       : UniqueToken<HIP, UniqueTokenScope::Global>(HIP().concurrency()) {}
   explicit UniqueToken(execution_space const& arg)
-      : UniqueToken<HIP, UniqueTokenScope::Global>(HIP().concurrency(), arg) {}
+      : UniqueToken<HIP, UniqueTokenScope::Global>(arg.concurrency(), arg) {}
   explicit UniqueToken(size_type max_size)
       : UniqueToken<HIP, UniqueTokenScope::Global>(max_size) {}
   UniqueToken(size_type max_size, execution_space const& arg)

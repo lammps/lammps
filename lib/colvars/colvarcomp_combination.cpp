@@ -111,7 +111,9 @@ void colvar::linearCombination::calc_gradients() {
             for (size_t j_elem = 0; j_elem < cv[i_cv]->value().size(); ++j_elem) {
                 for (size_t k_ag = 0 ; k_ag < cv[i_cv]->atom_groups.size(); ++k_ag) {
                     for (size_t l_atom = 0; l_atom < (cv[i_cv]->atom_groups)[k_ag]->size(); ++l_atom) {
-                        (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad = factor_polynomial * (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad;
+                        (cv[i_cv]->atom_groups)[k_ag]->grad_x(l_atom) *= factor_polynomial;
+                        (cv[i_cv]->atom_groups)[k_ag]->grad_y(l_atom) *= factor_polynomial;
+                        (cv[i_cv]->atom_groups)[k_ag]->grad_z(l_atom) *= factor_polynomial;
                     }
                 }
             }
@@ -321,7 +323,9 @@ void colvar::customColvar::calc_gradients() {
                         const double expr_grad = gradient_evaluators[e++]->evaluate();
                         for (size_t k_ag = 0 ; k_ag < cv[i_cv]->atom_groups.size(); ++k_ag) {
                             for (size_t l_atom = 0; l_atom < (cv[i_cv]->atom_groups)[k_ag]->size(); ++l_atom) {
-                                (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad = expr_grad * factor_polynomial * (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad;
+                                (cv[i_cv]->atom_groups)[k_ag]->grad_x(l_atom) *= expr_grad * factor_polynomial;
+                                (cv[i_cv]->atom_groups)[k_ag]->grad_y(l_atom) *= expr_grad * factor_polynomial;
+                                (cv[i_cv]->atom_groups)[k_ag]->grad_z(l_atom) *= expr_grad * factor_polynomial;
                             }
                         }
                     }

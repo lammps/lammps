@@ -74,7 +74,7 @@ protected:
   /// (f_cvb_awake and f_cv_awake); a
   /// Biases use this to apply "impulse" biasing forces at the outer timestep
   /// Unused by lower-level objects (cvcs and atom groups)
-  int   time_step_factor;
+  int time_step_factor = 1;
 
   /// List of the states of all features
   std::vector<feature_state> feature_states;

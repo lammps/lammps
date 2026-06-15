@@ -1,22 +1,14 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <sstream>
 #include <iostream>
 
@@ -37,8 +29,6 @@ TEST(TEST_CATEGORY, view_remap) {
 #define EXECSPACE                                                  \
   std::conditional_t<std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>, \
                      Kokkos::SYCLHostUSMSpace, TEST_EXECSPACE>
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-#define EXECSPACE Kokkos::HostSpace
 #else
 #define EXECSPACE TEST_EXECSPACE
 #endif
@@ -104,6 +94,13 @@ void test_left_stride(Extents... extents) {
     ASSERT_EQ(all_strides[i], expected_stride);
     expected_stride *= view.extent(i);
   }
+  ASSERT_EQ(all_strides[view_type::rank()], expected_stride);
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  for (size_t i = view_type::rank(); i < size_t(8); ++i) {
+    ASSERT_EQ(view.stride(i), view.stride(view_type::rank() - 1) *
+                                  view.extent(view_type::rank() - 1));
+  }
+#endif
 }
 
 template <typename DataType, typename... Extents>
@@ -120,12 +117,57 @@ void test_right_stride(Extents... extents) {
     ASSERT_EQ(all_strides[i], expected_stride);
     expected_stride *= view.extent(i);
   }
+  ASSERT_EQ(all_strides[view_type::rank()], expected_stride);
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  for (size_t i = view_type::rank(); i < size_t(8); ++i) {
+    ASSERT_EQ(view.stride(i), size_t(1));
+  }
+#endif
+}
+
+template <typename DataType, typename... Extents>
+void test_stride_stride(Extents... extents) {
+  using view_type =
+      Kokkos::View<DataType, Kokkos::LayoutStride, Kokkos::HostSpace>;
+
+  auto test = [](auto view_org) {
+    view_type view(view_org);
+
+    size_t all_strides[view_type::rank() + 1];
+    view.stride(all_strides);
+
+    size_t max_stride     = 0;
+    size_t max_stride_idx = 0;
+    for (size_t i = 0; i < view_type::rank(); ++i) {
+      ASSERT_EQ(view.stride(i), view_org.stride(i));
+      ASSERT_EQ(all_strides[i], view_org.stride(i));
+      if (view.stride(i) > max_stride) {
+        max_stride     = view.stride(i);
+        max_stride_idx = i;
+      }
+    }
+    ASSERT_EQ(all_strides[view_type::rank()],
+              max_stride * view.extent(max_stride_idx));
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+    for (size_t i = view_type::rank(); i < size_t(8); ++i) {
+      ASSERT_EQ(view.stride(i), size_t(0));
+    }
+#endif
+  };
+
+  Kokkos::View<DataType, Kokkos::LayoutRight, Kokkos::HostSpace> view_right(
+      "view", extents...);
+  test(view_right);
+  Kokkos::View<DataType, Kokkos::LayoutRight, Kokkos::HostSpace> view_left(
+      "view", extents...);
+  test(view_left);
 }
 
 template <typename DataType, typename... Extents>
 void test_stride(Extents... extents) {
   test_right_stride<DataType>(extents...);
   test_left_stride<DataType>(extents...);
+  test_stride_stride<DataType>(extents...);
 }
 
 TEST(TEST_CATEGORY, view_stride_method) {
@@ -221,10 +263,17 @@ struct TestViewAllocationLargeRank {
   ViewType v;
 };
 
+// Orin and other Jetson devices come with smaller memory capacity, 8GB total
 TEST(TEST_CATEGORY, view_allocation_large_rank) {
+#ifdef KOKKOS_ARCH_AMPERE87
+  GTEST_SKIP() << "skipping for Jetson devices that have only 8GB memory";
+#endif
+#ifdef KOKKOS_IMPL_32BIT
+  GTEST_SKIP() << "skipping for 32-bit builds";
+#endif
   using ExecutionSpace = typename TEST_EXECSPACE::execution_space;
   using MemorySpace    = typename TEST_EXECSPACE::memory_space;
-  constexpr int dim    = 16;
+  constexpr int dim    = 15;
   using FunctorType    = TestViewAllocationLargeRank<MemorySpace>;
   typename FunctorType::ViewType v("v", dim, dim, dim, dim, dim, dim, dim, dim);
 

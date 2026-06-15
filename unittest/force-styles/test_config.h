@@ -101,7 +101,7 @@ public:
     TestConfig(const TestConfig &)            = delete;
     TestConfig &operator=(const TestConfig &) = delete;
 
-    std::string tags_line() const
+    [[nodiscard]] std::string tags_line() const
     {
         if (tags.size() > 0) {
             std::stringstream line;

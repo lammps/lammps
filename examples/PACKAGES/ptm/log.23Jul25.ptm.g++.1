@@ -1,0 +1,162 @@
+LAMMPS (22 Jul 2025 - Development - patch_22Jul2025-8-g3b5b75d72a-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# LAMMPS Input File for Grain Boundaries
+# Mark Tschopp, Dec2009
+# Modified by PM Larsen to demonstrate the use of PTM in LAMMPS
+# This file will generate a single Sigma5(310) STGB and run PTM
+
+# ---------- Initialize Simulation ---------------------
+clear
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+units metal
+dimension 3
+boundary p p p
+atom_style atomic
+
+# ---------- Create Sigma5(310) Structure ---------
+lattice fcc 4.05
+Lattice spacing in x,y,z = 4.05 4.05 4.05
+region whole block 0.000000 12.807225 -64.0361225 64.0361225 0.000000 4.050000 units box
+create_box 2 whole
+Created orthogonal box = (0 -64.036123 0) to (12.807225 64.036123 4.05)
+  1 by 1 by 1 MPI processor grid
+region upper block INF INF 0.000000 64.0361225 INF INF units box
+lattice fcc 4.05 orient x  0  3  1 orient y  0 -1  3 orient z  1  0  0
+Lattice spacing in x,y,z = 5.1228898 5.1228898 4.05
+create_atoms 1 region upper
+Created 200 atoms
+  using lattice units in orthogonal box = (0 -64.036123 0) to (12.807225 64.036123 4.05)
+  create_atoms CPU = 0.000 seconds
+region lower block INF INF -64.0361225 0.000000 INF INF units box
+lattice fcc 4.05 orient x  0  3 -1 orient y  0  1  3 orient z  1  0  0
+Lattice spacing in x,y,z = 5.1228898 5.1228898 4.05
+create_atoms 2 region lower
+Created 200 atoms
+  using lattice units in orthogonal box = (0 -64.036123 0) to (12.807225 64.036123 4.05)
+  create_atoms CPU = 0.000 seconds
+group upper type 1
+200 atoms in group upper
+group lower type 2
+200 atoms in group lower
+
+mass 1 1.0
+mass 2 1.0
+
+# ---------- Define Interatomic Potential ---------------------
+pair_style	lj/cut 2.5
+pair_coeff	* * 1 1
+pair_coeff	1 1 1 1.1 2.8
+
+# ---------- Displace atoms and delete overlapping atoms ---------------------
+displace_atoms upper move 0 0 0 units lattice
+Displacing atoms ...
+delete_atoms overlap 0.35 lower upper
+System init for delete_atoms ...
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.8
+  ghost atom cutoff = 4.8
+  binsize = 2.4, bins = 6 54 2
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) command delete_atoms, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Deleted 2 atoms, new total = 398
+
+# ---------- Define PTM settings (default structures, RMSD threshold of 0.1) -------------------
+compute ptm all ptm/atom default 0.1
+
+# ---------- Dump data into Data file -------------
+reset_timestep 0
+dump 		1 all cfg 10000 dump.ptm_example_*.cfg mass type xs ys zs c_ptm[1] c_ptm[2] c_ptm[3] c_ptm[4] c_ptm[5] c_ptm[6] c_ptm[7]
+dump_modify     1 element Al Al
+run 1
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- PTM package: doi:10.1088/0965-0393/24/5/055007
+
+@Article{larsen2016ptm,
+ author={Larsen, Peter Mahler and Schmidt, S{\o}ren and
+    Schi{\o}tz, Jakob},
+ title={Robust Structural Identification via Polyhedral Template
+    Matching},
+ journal={Model.\ Simulat.\ Mater.\ Sci.\ Eng.},
+ year={2016},
+ number={5},
+ volume={24},
+ pages={055007},
+ DOI = {10.1088/0965-0393/24/5/055007}}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.8
+  ghost atom cutoff = 4.8
+  binsize = 2.4, bins = 6 54 2
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) compute ptm/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+WARNING: Dump 1 includes no atom IDs and is not sorted by ID. This may complicate post-processing tasks or visualization (src/dump.cpp:220)
+Per MPI rank memory allocation (min/avg/max) = 3.82 | 3.82 | 3.82 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -2.8040856      0             -2.8040856     -956.28074    
+         1   0             -2.8040856      0             -2.8040856     -956.28074    
+Loop time of 5.7039e-05 on 1 procs for 1 steps with 398 atoms
+
+Performance: 1514.753 ns/day, 0.016 hours/ns, 17531.864 timesteps/s, 6.978 Matom-step/s
+24.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.575e-05  | 1.575e-05  | 1.575e-05  |   0.0 | 27.61
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 1.5079e-05 | 1.5079e-05 | 1.5079e-05 |   0.0 | 26.44
+Output  | 1.2023e-05 | 1.2023e-05 | 1.2023e-05 |   0.0 | 21.08
+Modify  | 7.32e-07   | 7.32e-07   | 7.32e-07   |   0.0 |  1.28
+Other   |            | 1.346e-05  |            |       | 23.59
+
+Nlocal:            398 ave         398 max         398 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2194 ave        2194 max        2194 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           3594 ave        3594 max        3594 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:         7188 ave        7188 max        7188 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 7188
+Ave neighs/atom = 18.060302
+Neighbor list builds = 0
+Dangerous builds = 0
+
+print "All done"
+All done
+Total wall time: 0:00:00

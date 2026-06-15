@@ -20,7 +20,6 @@
 #include "colvar.h"
 #include "colvarbias.h"
 #include "colvars_memstream.h"
-
 #include "colvarcomp_torchann.h"
 
 std::map<std::string, std::function<colvar::cvc *()>> colvar::global_cvc_map =
@@ -32,6 +31,8 @@ std::map<std::string, std::string> colvar::global_cvc_desc_map =
 
 colvar::colvar()
 {
+  time_step_factor = cvm::proxy->time_step_factor();
+
   prev_timestep = -1L;
   after_restart = false;
   kinetic_energy = 0.0;
@@ -269,7 +270,7 @@ int colvar::init(std::string const &conf)
     // components may have different types only for scripted functions
     if (!(is_enabled(f_cv_scripted) || is_enabled(f_cv_custom_function)) && (colvarvalue::check_types(cvcs[i]->value(),
                                                                 cvcs[0]->value())) ) {
-      cvm::error("ERROR: you are defining this collective variable "
+      cvm::error("Error: you are defining this collective variable "
                  "by using components of different types. "
                  "You must use the same type in order to "
                  "sum them together.\n", COLVARS_INPUT_ERROR);
@@ -298,12 +299,18 @@ int colvar::init(std::string const &conf)
 
   reset_bias_force();
 
-  get_keyval(conf, "timeStepFactor", time_step_factor, 1);
-  if (time_step_factor < 0) {
-    cvm::error("Error: timeStepFactor must be positive.\n");
-    return COLVARS_ERROR;
+  get_keyval(conf, "timeStepFactor", time_step_factor, time_step_factor);
+  if (time_step_factor < 1) {
+    error_code |= cvm::error("Error: timeStepFactor must be 1 or greater.\n", COLVARS_INPUT_ERROR);
   }
-  if (time_step_factor != 1) {
+  if (time_step_factor % cvm::proxy->time_step_factor() != 0) {
+    error_code |=
+        cvm::error("timeStepFactor for this variable (currently " + cvm::to_str(time_step_factor) +
+                       ") must be a multiple of the global Colvars timestep multiplier (" +
+                       cvm::to_str(cvm::proxy->time_step_factor()) + ").\n",
+                   COLVARS_INPUT_ERROR);
+  }
+  if (time_step_factor > 1) {
     enable(f_cv_multiple_ts);
   }
 
@@ -1024,14 +1031,14 @@ void colvar::build_atom_list(void)
 
   for (size_t i = 0; i < cvcs.size(); i++) {
     for (size_t j = 0; j < cvcs[i]->atom_groups.size(); j++) {
-      cvm::atom_group const &ag = *(cvcs[i]->atom_groups[j]);
+      auto const &ag = *(cvcs[i]->atom_groups[j]);
       for (size_t k = 0; k < ag.size(); k++) {
-        temp_id_list.push_back(ag[k].id);
+        temp_id_list.push_back(ag.id(k));
       }
       if (ag.is_enabled(f_ag_fitting_group) && ag.is_enabled(f_ag_fit_gradients)) {
-        cvm::atom_group const &fg = *(ag.fitting_group);
+        auto const &fg = *(ag.fitting_group);
         for (size_t k = 0; k < fg.size(); k++) {
-          temp_id_list.push_back(fg[k].id);
+          temp_id_list.push_back(fg.id(k));
         }
       }
     }
@@ -1294,7 +1301,7 @@ void colvar::setup()
   // loop over all components to update masses and charges of all groups
   for (size_t i = 0; i < cvcs.size(); i++) {
     for (size_t ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
-      cvm::atom_group *atoms = cvcs[i]->atom_groups[ig];
+      auto *atoms = cvcs[i]->atom_groups[ig];
       atoms->setup();
       atoms->print_properties(name, i, ig);
       atoms->read_positions();
@@ -2112,7 +2119,7 @@ void colvar::communicate_forces()
 int colvar::set_cvc_flags(std::vector<bool> const &flags)
 {
   if (flags.size() != cvcs.size()) {
-    cvm::error("ERROR: Wrong number of CVC flags provided.");
+    cvm::error("Error: Wrong number of CVC flags provided.");
     return COLVARS_ERROR;
   }
   // We cannot enable or disable cvcs in the middle of a timestep or colvar evaluation sequence
@@ -2145,7 +2152,7 @@ int colvar::update_cvc_flags()
       }
     }
     if (!n_active_cvcs) {
-      cvm::error("ERROR: All CVCs are disabled for colvar " + this->name +"\n");
+      cvm::error("Error: All CVCs are disabled for colvar " + this->name +"\n");
       return COLVARS_ERROR;
     }
     cvc_flags.clear();
@@ -2656,52 +2663,38 @@ std::ostream & colvar::write_traj_label(std::ostream & os)
 
 std::ostream & colvar::write_traj(std::ostream &os)
 {
-  os << " ";
+  os << " " << std::setprecision(cvm::cv_prec);
   if (is_enabled(f_cv_output_value)) {
 
     if (is_enabled(f_cv_extended_Lagrangian) && !is_enabled(f_cv_external)) {
-      os << " "
-         << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-         << x;
+      os << " " << std::setw(cvm::cv_width) << x;
     }
 
-    os << " "
-       << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-       << x_reported;
+    os << " " << std::setw(cvm::cv_width) << x_reported;
   }
 
   if (is_enabled(f_cv_output_velocity)) {
 
     if (is_enabled(f_cv_extended_Lagrangian) && !is_enabled(f_cv_external)) {
-      os << " "
-         << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-         << v_fdiff;
+      os << " " << std::setw(cvm::cv_width) << v_fdiff;
     }
 
-    os << " "
-       << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-       << v_reported;
+    os << " " << std::setw(cvm::cv_width) << v_reported;
   }
 
+  os << std::setprecision(cvm::en_prec);
   if (is_enabled(f_cv_output_energy)) {
-    os << " "
-       << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-       << potential_energy
-       << " "
-       << kinetic_energy;
+    os << " " << std::setw(cvm::en_width) << potential_energy
+       << " " << kinetic_energy;
   }
 
 
   if (is_enabled(f_cv_output_total_force)) {
-    os << " "
-       << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-       << ft_reported;
+    os << " " << std::setw(cvm::en_width) << ft_reported;
   }
 
   if (is_enabled(f_cv_output_applied_force)) {
-    os << " "
-       << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-       << applied_force();
+    os << " " << std::setw(cvm::en_width) << applied_force();
   }
 
   return os;

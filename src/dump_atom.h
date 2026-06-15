@@ -54,7 +54,7 @@ class DumpAtom : public Dump {
   void format_endian_binary();
   void format_revision_binary();
 
-  typedef void (DumpAtom::*FnPtrHeader)(bigint);
+  using FnPtrHeader = void (DumpAtom::*)(bigint);
   FnPtrHeader header_choice;    // ptr to write header functions
   void header_binary(bigint);
   void header_binary_triclinic(bigint);
@@ -63,7 +63,7 @@ class DumpAtom : public Dump {
   void header_item_triclinic(bigint);
   void header_item_triclinic_general(bigint);
 
-  typedef void (DumpAtom::*FnPtrPack)(tagint *);
+  using FnPtrPack = void (DumpAtom::*)(tagint *);
   FnPtrPack pack_choice;    // ptr to pack functions
   void pack_scale_image(tagint *);
   void pack_scale_noimage(tagint *);
@@ -74,12 +74,12 @@ class DumpAtom : public Dump {
   void pack_noscale_image_triclinic_general(tagint *);
   void pack_noscale_noimage_triclinic_general(tagint *);
 
-  typedef int (DumpAtom::*FnPtrConvert)(int, double *);
+  using FnPtrConvert = int (DumpAtom::*)(int, double *);
   FnPtrConvert convert_choice;    // ptr to convert data functions
   int convert_image(int, double *);
   int convert_noimage(int, double *);
 
-  typedef void (DumpAtom::*FnPtrWrite)(int, double *);
+  using FnPtrWrite = void (DumpAtom::*)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
   void write_binary(int, double *);
   void write_string(int, double *);

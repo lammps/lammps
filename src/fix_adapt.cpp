@@ -455,7 +455,7 @@ void FixAdapt::init()
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
       if (utils::strmatch(force->pair_style,"^hybrid")) {
-        auto pair = dynamic_cast<PairHybrid *>(force->pair);
+        auto *pair = dynamic_cast<PairHybrid *>(force->pair);
         if (pair) {
           for (i = ad->ilo; i <= ad->ihi; i++) {
             for (j = MAX(ad->jlo,i); j <= ad->jhi; j++) {
@@ -492,7 +492,7 @@ void FixAdapt::init()
       if (ad->bdim == 1) ad->vector = (double *) ptr;
 
       if (utils::strmatch(force->bond_style,"^hybrid")) {
-        auto bond = dynamic_cast<BondHybrid *>(force->bond);
+        auto *bond = dynamic_cast<BondHybrid *>(force->bond);
         if (bond) {
           for (i = ad->ilo; i <= ad->ihi; i++) {
             if (!bond->check_itype(i,bstyle))
@@ -527,7 +527,7 @@ void FixAdapt::init()
       if (ad->adim == 1) ad->vector = (double *) ptr;
 
       if (utils::strmatch(force->angle_style,"^hybrid")) {
-        auto angle = dynamic_cast<AngleHybrid *>(force->angle);
+        auto *angle = dynamic_cast<AngleHybrid *>(force->angle);
         if (angle) {
           for (i = ad->ilo; i <= ad->ihi; i++) {
             if (!angle->check_itype(i,astyle))
@@ -561,7 +561,7 @@ void FixAdapt::init()
       if (ad->ddim == 1) ad->vector = (double *) ptr;
 
       if (utils::strmatch(force->dihedral_style,"^hybrid")) {
-        auto dihedral = dynamic_cast<DihedralHybrid *>(force->dihedral);
+        auto *dihedral = dynamic_cast<DihedralHybrid *>(force->dihedral);
         if (dihedral) {
           for (i = ad->ilo; i <= ad->ihi; i++) {
             if (!dihedral->check_itype(i,dstyle))
@@ -595,7 +595,7 @@ void FixAdapt::init()
       if (ad->idim == 1) ad->vector = (double *) ptr;
 
       if (utils::strmatch(force->improper_style,"^hybrid")) {
-        auto improper = dynamic_cast<ImproperHybrid *>(force->improper);
+        auto *improper = dynamic_cast<ImproperHybrid *>(force->improper);
         if (improper) {
           for (i = ad->ilo; i <= ad->ihi; i++) {
             if (!improper->check_itype(i,istyle))
@@ -816,7 +816,7 @@ void FixAdapt::change_settings()
       // for scaleflag, previous_diam_scale is the scale factor on previous step
 
       if (ad->atomparam == DIAMETER) {
-        double scale;
+        double scale = 1.0;
         double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
@@ -824,6 +824,12 @@ void FixAdapt::change_settings()
         int nall = nlocal + atom->nghost;
 
         if (scaleflag) scale = value / previous_diam_scale;
+
+        // mass must not become zero and radius must not be negative
+        if (massflag && ((scale == 0.0) || (value == 0.0)))
+          error->all(FLERR, Error::NOLASTLINE, "Fix adapt particle mass has become 0.0");
+        if (!massflag && ((scale < 0.0) || (value < 0.0)))
+          error->all(FLERR, Error::NOLASTLINE, "Fix adapt particle diameter has become negative");
 
         for (i = 0; i < nall; i++) {
           if (mask[i] & groupbit) {
@@ -999,7 +1005,7 @@ void FixAdapt::write_restart(FILE *fp)
 
 void FixAdapt::restart(char *buf)
 {
-  auto dbuf = (double *) buf;
+  auto *dbuf = (double *) buf;
 
   previous_diam_scale = dbuf[0];
   previous_chg_scale = dbuf[1];

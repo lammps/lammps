@@ -18,7 +18,6 @@
 #include "pair_pod.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "info.h"
@@ -27,11 +26,10 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "tokenizer.h"
+#include "safe_pointers.h"
 
+#include <algorithm>
 #include <cmath>
-#include <cstring>
-#include <chrono>
 
 #include "eapod.h"
 
@@ -748,7 +746,7 @@ void PairPOD::radialbasis(double *rbft, double *rbftx, double *rbfty, double *rb
     double fcut = y6/exp(-1.0);
 
     // Calculate the derivative of the final cutoff function
-    double dfcut = ((3.0/(rmax*exp(-1.0)))*(y2)*y6*(y*y2 - 1.0))/y7;
+    double dfcut = ((3.0/(rmax*exp(-1.0)))*y2*y6*(y*y2 - 1.0))/y7;
 
     // Calculate fcut/r, fcut/r^2, and dfcut/r
     double f1 = fcut/r;
@@ -825,7 +823,7 @@ void PairPOD::radialbasis(double *rbft, double *rbftx, double *rbfty, double *rb
   }
 }
 
-void matrixMultiply(double *Phi, double *rbft, double *rbf, int nrbfmax, int ns, int Nij)
+static void matrixMultiply(double *Phi, double *rbft, double *rbf, int nrbfmax, int ns, int Nij)
 {
   for (int idx=0; idx<nrbfmax*Nij; idx++)  {
     int j = idx / nrbfmax;  // pair index index
@@ -2113,26 +2111,24 @@ void PairPOD::blockatomenergyforce(double *ei, double *fij, int Ni, int Nij)
   blockatom_energyforce(ei, fij, Ni, Nij);
 }
 
-void PairPOD::savematrix2binfile(std::string filename, double *A, int nrows, int ncols)
+void PairPOD::savematrix2binfile(const std::string &filename, double *A, int nrows, int ncols)
 {
-  FILE *fp = fopen(filename.c_str(), "wb");
+  SafeFilePtr fp = fopen(filename.c_str(), "wb");
   double sz[2];
   sz[0] = (double) nrows;
   sz[1] = (double) ncols;
-  fwrite( reinterpret_cast<char*>( sz ), sizeof(double) * (2), 1, fp);
+  fwrite( reinterpret_cast<char*>( sz ), sizeof(double) * 2, 1, fp);
   fwrite( reinterpret_cast<char*>( A ), sizeof(double) * (nrows*ncols), 1, fp);
-  fclose(fp);
 }
 
-void PairPOD::saveintmatrix2binfile(std::string filename, int *A, int nrows, int ncols)
+void PairPOD::saveintmatrix2binfile(const std::string &filename, int *A, int nrows, int ncols)
 {
-  FILE *fp = fopen(filename.c_str(), "wb");
+  SafeFilePtr fp = fopen(filename.c_str(), "wb");
   int sz[2];
   sz[0] = nrows;
   sz[1] = ncols;
-  fwrite( reinterpret_cast<char*>( sz ), sizeof(int) * (2), 1, fp);
+  fwrite( reinterpret_cast<char*>( sz ), sizeof(int) * 2, 1, fp);
   fwrite( reinterpret_cast<char*>( A ), sizeof(int) * (nrows*ncols), 1, fp);
-  fclose(fp);
 }
 
 void PairPOD::savedatafordebugging()

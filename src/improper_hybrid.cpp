@@ -48,7 +48,7 @@ ImproperHybrid::~ImproperHybrid()
     delete[] keywords;
   }
 
-  deallocate();
+  ImproperHybrid::deallocate();
 }
 
 /* ---------------------------------------------------------------------- */

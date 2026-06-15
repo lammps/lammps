@@ -651,7 +651,7 @@ void PairAmoeba::multipole_kspace()
 
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ***gridpre = (FFT_SCALAR ***) m_kspace->zero();
+  auto ***gridpre = (FFT_SCALAR ***) m_kspace->zero();
 
   // map atoms to grid
 
@@ -731,7 +731,7 @@ void PairAmoeba::multipole_kspace()
   // post-convolution operations including backward FFT
   // gridppost = my portion of 3d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ***gridpost = (FFT_SCALAR ***) m_kspace->post_convolution();
+  auto ***gridpost = (FFT_SCALAR ***) m_kspace->post_convolution();
 
   // get potential
 
@@ -905,28 +905,16 @@ void PairAmoeba::damppole(double r, int rorder, double alphai, double alphak,
   dmpi[6] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + dampi4/30.0)*expi;
   dmpi[8] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 +
                    4.0*dampi4/105.0 + dampi5/210.0)*expi;
+
+  // valence-valence charge penetration damping for Gordon f1
+
   if (diff < eps) {
     dmpk[0] = dmpi[0];
     dmpk[2] = dmpi[2];
     dmpk[4] = dmpi[4];
     dmpk[6] = dmpi[6];
     dmpk[8] = dmpi[8];
-  } else {
-    dampk2 = dampk * dampk;
-    dampk3 = dampk * dampk2;
-    dampk4 = dampk2 * dampk2;
-    dampk5 = dampk2 * dampk3;
-    dmpk[0] = 1.0 - (1.0 + 0.5*dampk)*expk;
-    dmpk[2] = 1.0 - (1.0 + dampk + 0.5*dampk2)*expk;
-    dmpk[4] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0)*expk;
-    dmpk[6] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + dampk4/30.0)*expk;
-    dmpk[8] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0 +
-                     4.0*dampk4/105.0 + dampk5/210.0)*expk;
-  }
 
-  // valence-valence charge penetration damping for Gordon f1
-
-  if (diff < eps) {
     dampi6 = dampi3 * dampi3;
     dampi7 = dampi3 * dampi4;
     dmpik[0] = 1.0 - (1.0 + 11.0*dampi/16.0 + 3.0*dampi2/16.0 +
@@ -948,12 +936,23 @@ void PairAmoeba::damppole(double r, int rorder, double alphai, double alphak,
     }
 
   } else {
+    dampk2 = dampk * dampk;
+    dampk3 = dampk * dampk2;
+    dampk4 = dampk2 * dampk2;
+    dampk5 = dampk2 * dampk3;
+    dmpk[0] = 1.0 - (1.0 + 0.5*dampk)*expk;
+    dmpk[2] = 1.0 - (1.0 + dampk + 0.5*dampk2)*expk;
+    dmpk[4] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0)*expk;
+    dmpk[6] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + dampk4/30.0)*expk;
+    dmpk[8] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0 +
+                     4.0*dampk4/105.0 + dampk5/210.0)*expk;
     alphai2 = alphai * alphai;
     alphak2 = alphak * alphak;
     termi = alphak2 / (alphak2-alphai2);
     termk = alphai2 / (alphai2-alphak2);
     termi2 = termi * termi;
     termk2 = termk * termk;
+
     dmpik[0] = 1.0 - termi2*(1.0 + 2.0*termk + 0.5*dampi)*expi -
       termk2*(1.0 + 2.0*termi + 0.5*dampk)*expk;
     dmpik[2] = 1.0 - termi2*(1.0+dampi+0.5*dampi2)*expi -

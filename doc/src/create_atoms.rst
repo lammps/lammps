@@ -80,10 +80,10 @@ Examples
    create_atoms Pt box
 
    labelmap atom 1 C 2 Si
-   create_atoms C region regsphere basis Si C
+   create_atoms C region regsphere basis 1 Si
 
-   create_atoms 3 region regsphere basis 2 3
-   create_atoms 3 region regsphere basis 2 3 ratio 0.5 74637
+   create_atoms 2 region regsphere basis 2 3
+   create_atoms 1 region regsphere basis 2 2 ratio 0.5 74637
    create_atoms 3 single 0 0 5 group newatom
    create_atoms 1 box var v set x xpos set y ypos
    create_atoms 2 random 50 12345 NULL overlap 2.0 maxtry 50
@@ -120,7 +120,8 @@ added to the specified atom *type* (e.g., if *type* = 2 and the file
 specifies atom types 1, 2, and 3, then each created molecule will have
 atom types 3, 4, and 5).
 
-.. note::
+.. admonition:: Atoms outside the box
+   :class: note
 
    You cannot use this command to create atoms that are outside the
    simulation box; they will just be ignored by LAMMPS.  This is true
@@ -378,10 +379,20 @@ This is the meaning of the other optional keywords.
 
 The *basis* keyword is only used when atoms (not molecules) are being
 created.  It specifies an atom type that will be assigned to specific
-basis atoms as they are created.  See the :doc:`lattice <lattice>`
-command for specifics on how basis atoms are defined for the unit cell
-of the lattice.  By default, all created atoms are assigned the
-argument *type* as their atom type.
+basis atoms as they are created that *overrides* the default atom type.
+See the :doc:`lattice <lattice>` command for specifics on how basis
+atoms are defined for the unit cell of the lattice.  By default, all
+created atoms are assigned the argument *type* as their atom type.  To
+illustrate this please see the following 4 example *create_atom* command
+lines that all create the same system:
+
+.. code-block:: LAMMPS
+
+   lattice diamond 4.36
+   create_atoms 1 box basis 1 1 basis 2 2 basis 3 1 basis 4 2 basis 5 1 basis 6 2 basis 7 1 basis 8 2
+   create_atoms 2 box basis 1 1 basis 2 2 basis 3 1 basis 4 2 basis 5 1 basis 6 2 basis 7 1 basis 8 2
+   create_atoms 1 box basis 2 2 basis 4 2 basis 6 2 basis 8 2
+   create_atoms 2 box basis 1 1 basis 3 1 basis 5 1 basis 7 1
 
 The *ratio* and *subset* keywords can be used in conjunction with the
 *box* or *region* styles to limit the total number of particles
@@ -396,7 +407,7 @@ correct number of particles are inserted, in a perfectly random
 fashion.  Which lattice sites are selected will change with the number
 of processors used.
 
-.. versionadded:: TBD
+.. versionadded:: 12Jun2025
 
 The *group* keyword adds the newly created atoms to the named
 :doc:`group <group>`.  If the group does not yet exist it will be
@@ -416,24 +427,23 @@ atom, based on its coordinates.  They apply to all styles except
 *single*.  The *name* specified for the *var* keyword is the name of
 an :doc:`equal-style variable <variable>` that should evaluate to a
 zero or non-zero value based on one or two or three variables that
-will store the *x*, *y*, or *z* coordinates of an atom (one variable per
-coordinate).  If used, these other variables must be
-:doc:`internal-style variables <variable>` defined in the input
-script; their initial numeric value can be anything.  They must be
-internal-style variables, because this command resets their values
-directly.  The *set* keyword is used to identify the names of these
-other variables, one variable for the *x*-coordinate of a created atom,
-one for *y*, and one for *z*.
+will store the *x*, *y*, or *z* coordinates of an atom (one variable
+per coordinate).  If used, these other variables must be specified by
+the *set* keyword.  They are internal-style variable, because this
+command resets their values directly.  The internal-style variables do
+not need to be defined in the input script (though they can be); if
+one (or more) is not defined, then the *set* option creates an
+:doc:`internal-style variable <variable>` with the specified name.
 
 .. figure:: img/sinusoid.jpg
             :figwidth: 50%
             :align: right
             :target: _images/sinusoid.jpg
 
-When an atom is created, its :math:`(x,y,z)` coordinates become the values for
-any *set* variable that is defined.  The *var* variable is then
-evaluated.  If the returned value is 0.0, the atom is not created.  If
-it is non-zero, the atom is created.
+When an atom is about to be created, its :math:`(x,y,z)` coordinates
+become the values for any *set* variable that is defined.  The *var*
+variable is then evaluated.  If the returned value is 0.0, the atom is
+not created.  If it is non-zero, the atom is created.
 
 As an example, these commands can be used in a 2d simulation, to
 create a sinusoidal surface.  Note that the surface is "rough" due to
@@ -456,8 +466,6 @@ converts lattice spacings to distance.
    region      box block 0 $x 0 $y -0.5 0.5
    create_box  1 box
 
-   variable    xx internal 0.0
-   variable    yy internal 0.0
    variable    v equal "(0.2*v_y*ylat * cos(v_xx/xlat * 2.0*PI*4.0/v_x) + 0.5*v_y*ylat - v_yy) > 0.0"
    create_atoms  1 box var v set x xx set y yy
    write_dump  all atom sinusoid.lammpstrj
@@ -652,4 +660,4 @@ checked, *maxtry* = 10, and *units* = lattice.
 
 .. _Roberts2019:
 
-**(Roberts)** R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.  `<http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_
+**(Roberts)** R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.  `<https://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_

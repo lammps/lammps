@@ -93,6 +93,7 @@ static bool weinberg_coloured(int num_nodes, int num_edges, int8_t common[PTM_MA
         return false;
 }
 
+// NOLINTNEXTLINE
 int canonical_form_coloured(int num_facets, int8_t facets[][3], int num_nodes, int8_t* degree, int8_t* colours, int8_t* canonical_labelling, int8_t* best_code, uint64_t* p_hash)
 {
         int8_t common[PTM_MAX_NBRS][PTM_MAX_NBRS] = {{0}};

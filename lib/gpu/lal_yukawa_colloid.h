@@ -86,7 +86,7 @@ class YukawaColloid : public BaseAtomic<numtyp, acctyp> {
                 tagint **special, const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **jnum, const double cpu_time,
-                bool &success, double *rad);
+                bool &success, double *rad, double *prd, int *periodicity);
 
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture rad_tex;

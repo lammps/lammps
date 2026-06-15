@@ -19,6 +19,7 @@
 #include "output.h"
 #include "style_dump.h"         // IWYU pragma: keep
 
+#include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "dump.h"
@@ -26,6 +27,8 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "json_metadata.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "thermo.h"
@@ -38,10 +41,18 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr int DELTA = 1;
-static constexpr double EPSDT = 1.0e-6;
+namespace {
+constexpr int DELTA = 1;
+constexpr double EPSDT = 1.0e-6;
 
 enum {SETUP, WRITE, RESET_DT};
+
+struct Particle {
+  int tag;
+  int type;
+  double x[3];
+};
+}
 
 /* ----------------------------------------------------------------------
    one instance per dump style in style_dump.h
@@ -56,7 +67,7 @@ template <typename T> static Dump *dump_creator(LAMMPS *lmp, int narg, char ** a
    initialize all output
 ------------------------------------------------------------------------- */
 
-Output::Output(LAMMPS *lmp) : Pointers(lmp)
+Output::Output(LAMMPS *lmp) : Pointers(lmp), thermo(nullptr)
 {
   // create default computes for temp,pressure,pe
 
@@ -66,7 +77,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 
   // create default Thermo class
 
-  auto newarg = new char*[1];
+  auto *newarg = new char*[1];
   newarg[0] = (char *) "one";
   thermo = new Thermo(lmp,1,newarg);
   delete[] newarg;
@@ -132,7 +143,7 @@ Output::~Output()
 
   delete dump_map;
 
-  if (thermo) delete thermo;
+  delete thermo;
   delete[] var_thermo;
 
 }
@@ -629,6 +640,183 @@ void Output::write_restart(bigint ntimestep)
 }
 
 /* ----------------------------------------------------------------------
+   write molecule JSON objects to file based on per-atom array
+   atoms with integer array value of 0 assumed to not belong to a molecule
+------------------------------------------------------------------------- */
+
+void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *ivec, json_metadata *metadata)
+{
+  std::string indent;
+  int tab = 4;
+  indent.resize(json_level*tab, ' ');
+  int json_init = 0;
+
+  // let's first condense all ivec values
+  std::unordered_set<int> unique_ivec(ivec, ivec + (size_t) atom->nlocal);
+  unique_ivec.erase(0);
+  std::vector<int> mivec(unique_ivec.begin(), unique_ivec.end());
+
+  std::vector<Particle> atoms_local;
+  atoms_local.reserve(atom->nmax);
+  std::vector<Particle> atoms_root;
+  atoms_root.reserve(atom->nmax);
+  #if !defined(MPI_STUBS)
+  MPI_Datatype ParticleStructType = createParticleStructType();
+  #endif
+
+  for (int sendr = 0; sendr < comm->nprocs; sendr++) {
+    int nvals;
+    if (comm->me == sendr) nvals = mivec.size();
+    MPI_Bcast(&nvals, 1, MPI_INT, sendr, MPI_COMM_WORLD);
+    if (nvals == 0) continue;
+    std::vector<int> loop_ivals(nvals);
+    if (comm->me == sendr) loop_ivals = mivec;
+    MPI_Bcast(loop_ivals.data(), nvals, MPI_INT, sendr, MPI_COMM_WORLD);
+
+    for (int ival = 0; ival < nvals; ival++) {
+      int thisval = loop_ivals[ival];
+      std::string metadata_val;
+
+      Particle myatom;
+      int n2send = 0, n2recv = 0;
+      for (int i = 0; i < atom->nlocal; i++) {
+        if (ivec[i] == thisval) {
+          myatom.type = atom->type[i];
+          myatom.tag = (int) atom->tag[i];
+          if (metadata && metadata_val.empty() && comm->me == sendr)
+            metadata_val = metadata->values[metadata->ivec[atom->map(myatom.tag)]];
+          for (int k = 0; k < 3; k++)
+            myatom.x[k] = atom->x[i][k];
+          atoms_local.push_back(myatom);
+          n2send++;
+        }
+      }
+      #if !defined(MPI_STUBS)
+      if (comm->me != 0) {
+        if (metadata && comm->me == sendr) {
+          int len = metadata_val.size();
+          MPI_Send(&len, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+          MPI_Send(metadata_val.data(), len, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+        }
+        MPI_Send(&n2send, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(atoms_local.data(), n2send, ParticleStructType, 0, 0, MPI_COMM_WORLD);
+      }
+      #endif
+
+      if (comm->me == 0) {
+        #if !defined(MPI_STUBS)
+        for (int i = 1; i < comm->nprocs; i++) {
+          if (metadata && i == sendr) {
+            int len;
+            MPI_Recv(&len, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            metadata_val.resize(len);
+            MPI_Recv(metadata_val.data(), len, MPI_CHAR, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          }
+          MPI_Recv(&n2recv, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          std::vector<Particle> atoms_recv(n2recv);
+          MPI_Recv(atoms_recv.data(), n2recv, ParticleStructType, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          atoms_root.insert(atoms_root.end(), atoms_recv.begin(), atoms_recv.end());
+        }
+        #endif
+        atoms_root.insert(atoms_root.end(), atoms_local.begin(), atoms_local.end());
+
+        if (json_init > 0) {
+          indent.resize(--json_level*tab, ' ');
+          fprintf(fp, "%s},\n%s{\n", indent.c_str(), indent.c_str());
+        } else {
+          fprintf(fp, "%s{\n", indent.c_str());
+          json_init = 1;
+        }
+
+        if (metadata) {
+          indent.resize(++json_level*tab, ' ');
+          utils::print(fp, "{}\"{}\": \"{}\",\n", indent.c_str(), metadata->key, metadata_val);
+          indent.resize(--json_level*tab, ' ');
+        }
+
+        indent.resize(++json_level*tab, ' ');
+        fprintf(fp, "%s\"types\": {\n", indent.c_str());
+        indent.resize(++json_level*tab, ' ');
+        if (printflag == 1 && json_init == 1)
+          fprintf(fp, "%s\"format\": [\"atom-id\", \"type\"],\n", indent.c_str());
+        fprintf(fp, "%s\"data\": [\n", indent.c_str());
+        indent.resize(++json_level*tab, ' ');
+        auto it = atoms_root.begin();
+        for (auto myatom : atoms_root) {
+          int mytype = myatom.type;
+          std::string typestr = std::to_string(mytype);
+          if (atom->labelmapflag) typestr = atom->lmap->find_label(mytype, Atom::ATOM);
+          utils::print(fp, "{}[{}, \"{}\"]", indent, myatom.tag, typestr);
+          if (std::next(it) == atoms_root.end()) fprintf(fp, "\n");
+          else fprintf(fp, ",\n");
+          it++;
+        }
+
+        indent.resize(--json_level*tab, ' ');
+        fprintf(fp, "%s]\n", indent.c_str());
+        indent.resize(--json_level*tab, ' ');
+        fprintf(fp, "%s},\n", indent.c_str());
+        fprintf(fp, "%s\"coords\": {\n", indent.c_str());
+        indent.resize(++json_level*tab, ' ');
+        if (printflag == 1 && json_init == 1)
+          fprintf(fp, "%s\"format\": [\"atom-id\", \"x\", \"y\", \"z\"],\n", indent.c_str());
+        if (json_init == 1) json_init++;
+        fprintf(fp, "%s\"data\": [\n", indent.c_str());
+        indent.resize(++json_level*tab, ' ');
+        it = atoms_root.begin();
+        for (auto myatom : atoms_root) {
+          utils::print(fp, "{}[{}, {}, {}, {}]", indent, myatom.tag,
+                       myatom.x[0], myatom.x[1], myatom.x[2]);
+          if (std::next(it) == atoms_root.end()) fprintf(fp, "\n");
+          else fprintf(fp, ",\n");
+          it++;
+        }
+
+        indent.resize(--json_level*tab, ' ');
+        fprintf(fp, "%s]\n", indent.c_str());
+        indent.resize(--json_level*tab, ' ');
+        fprintf(fp, "%s}\n", indent.c_str());
+      }
+      unique_ivec.erase(thisval);
+      mivec.assign(unique_ivec.begin(), unique_ivec.end());
+      atoms_local.clear();
+      atoms_root.clear();
+    }
+  }
+  if (json_init && comm->me == 0) {
+    indent.resize(--json_level*tab, ' ');
+    fprintf(fp, "%s}\n", indent.c_str());
+  }
+  #if !defined(MPI_STUBS)
+  MPI_Type_free(&ParticleStructType);
+  #endif
+}
+
+/* ----------------------------------------------------------------------
+   create Particle struct type for MPI
+------------------------------------------------------------------------- */
+
+#if !defined(MPI_STUBS)
+MPI_Datatype Output::createParticleStructType() {
+
+  MPI_Datatype ParticleStructType;
+
+  const int nfields = 3;
+  int blocklengths[nfields] = {1, 1, 3};
+  MPI_Aint offsets[nfields];
+  offsets[0] = offsetof(Particle, tag);
+  offsets[1] = offsetof(Particle, type);
+  offsets[2] = offsetof(Particle, x);
+  MPI_Datatype types[nfields] = {MPI_INT, MPI_INT, MPI_DOUBLE};
+
+  MPI_Type_create_struct(nfields, blocklengths, offsets, types, &ParticleStructType);
+  MPI_Type_commit(&ParticleStructType);
+
+  return ParticleStructType;
+}
+#endif
+
+/* ----------------------------------------------------------------------
    timestep is being changed, called by update->reset_timestep()
    for dumps, require that no dump is "active"
    meaning that a snapshot has already been output
@@ -747,17 +935,18 @@ void Output::reset_dt()
 
 Dump *Output::add_dump(int narg, char **arg)
 {
-  if (narg < 5) error->all(FLERR,"Illegal dump command");
+  if (narg < 5) utils::missing_cmd_args(FLERR,"dump", error);
 
   // error checks
 
   for (int idump = 0; idump < ndump; idump++)
-    if (strcmp(arg[0],dump[idump]->id) == 0) error->all(FLERR,"Reuse of dump ID: {}", arg[0]);
+    if (strcmp(arg[0],dump[idump]->id) == 0)
+      error->all(FLERR, Error::ARGZERO, "Reuse of dump ID: {}", arg[0]);
 
   int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR,"Could not find dump group ID: {}", arg[1]);
+  if (igroup == -1) error->all(FLERR, 1, "Could not find dump group ID: {}", arg[1]);
   if (utils::inumeric(FLERR,arg[3],false,lmp) <= 0)
-    error->all(FLERR,"Invalid dump frequency {}", arg[3]);
+    error->all(FLERR, 3, "Invalid dump frequency {}", arg[3]);
 
   // extend Dump list if necessary
 
@@ -785,8 +974,7 @@ Dump *Output::add_dump(int narg, char **arg)
   // initialize per-dump data to suitable default values
 
   mode_dump[idump] = 0;
-  every_dump[idump] = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (every_dump[idump] <= 0) error->all(FLERR,"Illegal dump command");
+  every_dump[idump] = utils::inumeric(FLERR,arg[3],false,lmp); // check for validity is above
   every_time_dump[idump] = 0.0;
   next_time_dump[idump] = -1.0;
   last_dump[idump] = -1;
@@ -809,8 +997,8 @@ void Output::modify_dump(int narg, char **arg)
 
   // find which dump it is
 
-  auto idump = get_dump_by_id(arg[0]);
-  if (!idump) error->all(FLERR,"Could not find dump_modify ID: {}", arg[0]);
+  auto *idump = get_dump_by_id(arg[0]);
+  if (!idump) error->all(FLERR, Error::ARGZERO, "Could not find dump_modify ID: {}", arg[0]);
   idump->modify_params(narg-1,&arg[1]);
 }
 
@@ -888,7 +1076,8 @@ void Output::set_thermo(int narg, char **arg)
     var_thermo = utils::strdup(arg[0]+2);
   } else {
     thermo_every = utils::inumeric(FLERR,arg[0],false,lmp);
-    if (thermo_every < 0) error->all(FLERR,"Illegal thermo output frequency {}", thermo_every);
+    if (thermo_every < 0)
+      error->all(FLERR, Error::ARGZERO, "Illegal thermo output frequency {}", thermo_every);
   }
 }
 

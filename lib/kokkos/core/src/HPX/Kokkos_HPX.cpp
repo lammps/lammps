@@ -1,24 +1,16 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 #endif
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 #ifdef KOKKOS_ENABLE_HPX
 #include <HPX/Kokkos_HPX.hpp>
@@ -43,7 +35,7 @@ namespace Kokkos {
 namespace Impl {
 void hpx_thread_buffer::resize(const std::size_t num_threads,
                                const std::size_t size_per_thread,
-                               const std::size_t extra_space) noexcept {
+                               const std::size_t extra_space) {
   m_num_threads     = num_threads;
   m_size_per_thread = size_per_thread;
   m_extra_space     = extra_space;
@@ -103,33 +95,6 @@ void HPX::print_configuration(std::ostream &os, const bool) const {
   os << hpx::configuration_string() << '\n';
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-bool &HPX::impl_get_in_parallel() noexcept {
-  static thread_local bool in_parallel = false;
-  return in_parallel;
-}
-
-HPX::impl_in_parallel_scope::impl_in_parallel_scope() noexcept {
-  KOKKOS_EXPECTS(!impl_get_in_parallel());
-  impl_get_in_parallel() = true;
-}
-
-HPX::impl_in_parallel_scope::~impl_in_parallel_scope() noexcept {
-  KOKKOS_EXPECTS(impl_get_in_parallel());
-  impl_get_in_parallel() = false;
-}
-
-HPX::impl_not_in_parallel_scope::impl_not_in_parallel_scope() noexcept {
-  KOKKOS_EXPECTS(impl_get_in_parallel());
-  impl_get_in_parallel() = false;
-}
-
-HPX::impl_not_in_parallel_scope::~impl_not_in_parallel_scope() noexcept {
-  KOKKOS_EXPECTS(!impl_get_in_parallel());
-  impl_get_in_parallel() = true;
-}
-#endif
-
 void HPX::impl_decrement_active_parallel_region_count() {
   std::unique_lock<hpx::spinlock> l(m_active_parallel_region_count_mutex);
   if (--m_active_parallel_region_count == 0) {
@@ -144,23 +109,11 @@ void HPX::impl_increment_active_parallel_region_count() {
 }
 
 void HPX::impl_instance_fence_locked(const std::string &name) const {
-  Kokkos::Tools::Experimental::Impl::profile_fence_event<
-      Kokkos::Experimental::HPX>(
-      name,
-      Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{
-          impl_instance_id()},
-      [&]() {
-        auto &s = impl_get_sender();
-
-        hpx::this_thread::experimental::sync_wait(std::move(s));
-        s = hpx::execution::experimental::unique_any_sender<>(
-            hpx::execution::experimental::just());
-      });
+  impl_get_instance_data().fence_locked(name);
 }
 
 void HPX::impl_instance_fence(const std::string &name) const {
-  std::lock_guard<hpx::spinlock> l(impl_get_sender_mutex());
-  impl_instance_fence_locked(name);
+  impl_get_instance_data().fence(name);
 }
 
 void HPX::impl_static_fence(const std::string &name) {
@@ -189,11 +142,7 @@ void HPX::impl_static_fence(const std::string &name) {
       });
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-int HPX::concurrency() {
-#else
 int HPX::concurrency() const {
-#endif
   hpx::runtime *rt = hpx::get_runtime_ptr();
   if (rt == nullptr) {
     return hpx::threads::hardware_concurrency();
@@ -221,11 +170,6 @@ void HPX::impl_initialize(InitializationSettings const &settings) {
 
     m_hpx_initialized = true;
   }
-}
-
-bool HPX::impl_is_initialized() noexcept {
-  hpx::runtime *rt = hpx::get_runtime_ptr();
-  return rt != nullptr;
 }
 
 void HPX::impl_finalize() {

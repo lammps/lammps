@@ -24,7 +24,6 @@
 #include "error.h"
 #include "memory.h"
 #include "modify.h"
-#include "neigh_list.h"
 #include "potential_file_reader.h"
 #include "update.h"
 
@@ -34,7 +33,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_compute_slcsa_atom_c[] =
-    "compute slcsa/atom command: doi:10.1016/j.commatsci.2023.112534\n\n"
+    "compute slcsa/atom command: https://doi.org/10.1016/j.commatsci.2023.112534\n\n"
     "@Article{Lafourcade2023,\n"
     " author = {P. Lafourcade and J.-B. Maillet and C. Denoual and E. Duval and A. Allera and A. "
     "M. Goryaeva and M.-C. Marinica},\n"
@@ -357,7 +356,7 @@ void ComputeSLCSAAtom::compute_peratom()
           classification[i][j] = sqrt(prodleft);
         }
         // 6th step : Sanity check
-        int locclass = classification[i][nclasses];
+        int locclass = classification[i][nclasses]; // NOLINT
 
         if (classification[i][locclass] > maha_thresholds[locclass]) {
           classification[i][nclasses] = -1.0;

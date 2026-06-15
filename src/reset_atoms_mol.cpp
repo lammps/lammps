@@ -149,7 +149,7 @@ void ResetAtomsMol::create_computes(char *fixid, char *groupid)
   // 'fixid' allows for creating independent instances of the computes
 
   idfrag = fmt::format("{}_reset_atoms_mol_FRAGMENT_ATOM", fixid);
-  auto use_single = singleflag ? "yes" : "no";
+  const auto *use_single = singleflag ? "yes" : "no";
   cfa = dynamic_cast<ComputeFragmentAtom *>(modify->add_compute(
       fmt::format("{} {} fragment/atom single {}", idfrag, groupid, use_single)));
 

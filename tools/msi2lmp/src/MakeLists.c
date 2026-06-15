@@ -309,7 +309,6 @@ void build_bonds_list()
       }
     }
   }
-  return;
 }
 
 int count_angles()
@@ -344,7 +343,6 @@ void build_angles_list()
       }
     }
   }
-  return;
 }
 
 int count_dihedrals()
@@ -406,7 +404,6 @@ void build_dihedrals_list()
       }
     }
   }
-  return;
 }
 
 int
@@ -434,7 +431,6 @@ void build_oops_list()
       oops[n++].members[3] = atoms[j].conn_no[2];
     }
   }
-  return;
 }
 
 int count_angle_angles()
@@ -468,7 +464,6 @@ void build_angleangles_list()
       }
     }
   }
-  return;
 }
 
 
@@ -506,7 +501,6 @@ void build_atomtypes_list()
     atoms[j].type = atom_type;
   }
   no_atom_types = n;
-  return;
 }
 
 void build_bondtypes_list() {
@@ -543,7 +537,6 @@ void build_bondtypes_list() {
     bonds[j].type = bond_type;
   }
   no_bond_types = n;
-  return;
 }
 
 void build_angletypes_list()
@@ -583,7 +576,6 @@ void build_angletypes_list()
     angles[j].type = angle_type;
   }
   no_angle_types = n;
-  return;
 }
 
 void build_dihedraltypes_list()
@@ -628,7 +620,6 @@ void build_dihedraltypes_list()
     dihedrals[j].type = dihedral_type;
   }
   no_dihedral_types = n;
-  return;
 }
 
 void build_ooptypes_list()
@@ -684,7 +675,6 @@ void build_ooptypes_list()
     oops[j].type = oop_type;
   }
   no_oop_types = n;
-  return;
 }
 
 void build_angleangletypes_list()
@@ -744,7 +734,6 @@ void build_angleangletypes_list()
     angleangles[j].type = angleangle_type;
   }
   no_angleangle_types = n;
-  return;
 }
 
 void swap_ints(int *i, int *j)
@@ -754,8 +743,6 @@ void swap_ints(int *i, int *j)
   temp = *i;
   *i = *j;
   *j = temp;
-
-  return;
 }
 
 void bubble_sort(int n, int *val, int *pos)

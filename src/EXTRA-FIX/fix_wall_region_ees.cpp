@@ -124,7 +124,7 @@ void FixWallRegionEES::init()
 void FixWallRegionEES::setup(int vflag)
 {
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     respa->copy_flevel_f(nlevels_respa - 1);
     post_force_respa(vflag, nlevels_respa - 1, 0);
     respa->copy_f_flevel(nlevels_respa - 1);

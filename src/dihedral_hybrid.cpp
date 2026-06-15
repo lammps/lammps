@@ -48,7 +48,7 @@ DihedralHybrid::~DihedralHybrid()
     delete[] keywords;
   }
 
-  deallocate();
+  DihedralHybrid::deallocate();
 }
 
 /* ---------------------------------------------------------------------- */

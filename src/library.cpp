@@ -18,7 +18,6 @@
 #define LAMMPS_LIB_MPI 1
 #include "library.h"
 #include <mpi.h>
-#include <algorithm>
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
@@ -36,6 +35,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "json.h"
 #include "lattice.h"
 #include "lmppython.h"
 #include "memory.h"
@@ -59,7 +59,10 @@
 #include "variable.h"
 #include "version.h"
 
+
+#include <algorithm>
 #include <cstring>
+#include <utility>
 
 #if defined(LMP_PYTHON)
 #include <Python.h>
@@ -122,6 +125,13 @@ static void ptr_argument_warning()
     } \
   } catch(LAMMPSException &e) { \
     error->set_last_error(e.what(), ERROR_NORMAL); \
+  }
+
+#define STORE_ERROR_MESSAGE(handle, message)                \
+  if (handle && handle->error) {                            \
+    handle->error->set_last_error(message);                 \
+  } else {                                                  \
+    lammps_last_global_errormessage = std::move(message);   \
   }
 
 // ----------------------------------------------------------------------
@@ -304,7 +314,8 @@ void lammps_close(void *handle)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->comm) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
 
@@ -357,7 +368,8 @@ completed and then MPI is cleanly shut down.  After calling this
 function no more MPI calls may be made.
 
 *See also*
-   :cpp:func:`lammps_kokkos_finalize`, :cpp:func:`lammps_python_finalize`
+   :cpp:func:`lammps_kokkos_finalize`, :cpp:func:`lammps_python_finalize`,
+   :cpp:func:`lammps_plugin_finalize`
 \endverbatim */
 
 void lammps_mpi_finalize()
@@ -389,12 +401,42 @@ closed (to release associated resources).
 After calling this function no Kokkos functionality may be used.
 
 *See also*
-   :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_python_finalize`
+   :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_python_finalize`,
+   :cpp:func:`lammps_plugin_finalize`
 \endverbatim */
 
 void lammps_kokkos_finalize()
 {
   KokkosLMP::finalize();
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Unload all plugins and release the corresponding DSO handles
+ *
+\verbatim embed:rst
+
+.. versionadded:: 12Jun2025
+
+This function clears the list of all loaded plugins and closes the
+corresponding DSO handles and releases the imported executable code.
+
+However, this is **not** done when a LAMMPS instance is deleted because
+plugins and their shared objects are global properties.
+
+This function can be called to explicitly clear out all loaded plugins
+in case it is safe to do so.
+
+*See also*
+   :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_kokkos_finalize`,
+   :cpp:func:`lammps_python_finalize`
+\endverbatim */
+
+void lammps_plugin_finalize()
+{
+#if defined(LMP_PLUGIN)
+  plugin_finalize();
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -425,14 +467,14 @@ This function can be called to explicitly clear the Python
 environment in case it is safe to do so.
 
 *See also*
-   :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_kokkos_finalize`
+   :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_kokkos_finalize`,
+   :cpp:func:`lammps_plugin_finalize`
 \endverbatim */
 
 void lammps_python_finalize()
 {
   Python::finalize();
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -460,7 +502,8 @@ void lammps_error(void *handle, int error_type, const char *error_text)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
 
@@ -546,7 +589,8 @@ char *lammps_expand(void *handle, const char *line)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
   char *copy, *work;
@@ -595,7 +639,8 @@ void lammps_file(void *handle, const char *filename)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->update || !lmp->input) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
 
@@ -636,7 +681,8 @@ char *lammps_command(void *handle, const char *cmd)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->update || !lmp->input) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
   char *result = nullptr;
@@ -711,7 +757,8 @@ void lammps_commands_string(void *handle, const char *str)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->update || !lmp->output || !lmp->comm || !lmp->input) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
 
@@ -753,9 +800,9 @@ void lammps_commands_string(void *handle, const char *str)
       else
         cmd = line;
 
-      if (utils::strmatch(line, "\"\"\".*\"\"\"")) {
+      if (utils::strmatch(line, R"(""".*""")")) {
         triple = false;
-      } else if (utils::strmatch(line, "\"\"\"")) {
+      } else if (utils::strmatch(line, R"(""")")) {
         triple = !triple;
       }
       if (triple) cmd += '\n';
@@ -838,7 +885,8 @@ double lammps_get_natoms(void *handle)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->atom) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1.0;
   }
 
@@ -870,7 +918,8 @@ double lammps_get_thermo(void *handle, const char *keyword)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->output || !lmp->output->thermo) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return 0.0;
   }
   double dval = 0.0;
@@ -970,7 +1019,8 @@ void *lammps_last_thermo(void *handle, const char *what, int index)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->update || !lmp->output || !lmp->output->thermo) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
   void *val = nullptr;
@@ -1060,7 +1110,8 @@ void lammps_extract_box(void *handle, double *boxlo, double *boxhi,
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->domain || !lmp->comm) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
 
@@ -1126,7 +1177,8 @@ void lammps_reset_box(void *handle, double *boxlo, double *boxhi,
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->domain || !lmp->comm) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   Domain *domain = lmp->domain;
@@ -1192,7 +1244,8 @@ void lammps_memory_usage(void *handle, double *meminfo)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   Info info(lmp);
@@ -1226,12 +1279,16 @@ If LAMMPS was compiled with MPI_STUBS, this function returns -1.
 int lammps_get_mpi_comm(void *handle)
 {
 #ifdef MPI_STUBS
-  lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+  LAMMPS *lmp = nullptr;
+  const auto &mesg = fmt::format("ERROR: {}(): No MPI communicator conversion possible "
+                                "with MPI STUBS\n", FNERR);
+  STORE_ERROR_MESSAGE(lmp, mesg);
   return -1;
 #else
-  LAMMPS *lmp = (LAMMPS *) handle;
+  auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
   MPI_Fint f_comm = MPI_Comm_c2f(lmp->world);
@@ -1257,6 +1314,7 @@ be called without a valid LAMMPS object handle (it is ignored).
 * :ref:`System sizes <extract_system_sizes>`
 * :ref:`Neighbor list settings <extract_neighbor_settings>`
 * :ref:`Atom style flags <extract_atom_flags>`
+* :ref:`Thermo settings <extract_thermo_settings>`
 
 .. _extract_integer_sizes:
 
@@ -1277,6 +1335,9 @@ be called without a valid LAMMPS object handle (it is ignored).
    * - imageint
      - size of the ``imageint`` integer type, 4 or 8 bytes.
        Set at :ref:`compile time <size>`.
+   * - MAX_GROUP
+     - size of the bitmask for groups in bits, should be 32.
+       Currently hard coded.
 
 .. _extract_image_masks:
 
@@ -1355,7 +1416,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
    * - comm_layout
      - communication layout (0 = LAYOUT_UNIFORM, 1 = LAYOUT_NONUNIFORM, 2 = LAYOUT_TILED)
    * - comm_mode
-     - communication mode (0 = SINGLE, 1 = MULTI, 2 = MULTIOLD)
+     - communication mode (0 = SINGLE, 1 = MULTI)
    * - ghost_velocity
      - whether velocities are communicated for ghost atoms (0 = no, 1 = yes)
 
@@ -1451,14 +1512,35 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
      - 1 if the atom style includes per-atom masses, 0 if there are per-type masses. See :doc:`atom_style`.
    * - radius_flag
      - 1 if the atom style includes a per-atom radius. See :doc:`atom_style`.
+   * - body_flag
+     - 1 if the atom style describes body particles. See :doc:`atom_style`.
    * - ellipsoid_flag
      - 1 if the atom style describes extended particles that may be ellipsoidal. See :doc:`atom_style`.
+   * - line_flag
+     - 1 if the atom style describes line particles. See :doc:`atom_style`.
+   * - tri_flag
+     - 1 if the atom style describes tri particles. See :doc:`atom_style`.
    * - omega_flag
      - 1 if the atom style can store per-atom rotational velocities. See :doc:`atom_style`.
    * - torque_flag
      - 1 if the atom style can store per-atom torques. See :doc:`atom_style`.
    * - angmom_flag
      - 1 if the atom style can store per-atom angular momentum. See :doc:`atom_style`.
+
+.. _extract_thermo_settings:
+
+**Thermo settings**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Keyword
+     - Description / Return value
+   * - thermo_every
+     - The current interval of thermo output. See :doc:`thermo`.
+   * - thermo_norm
+     - 1 if the thermo output is normalized. See :doc:`thermo_modify`.
 
 *See also*
    :cpp:func:`lammps_extract_global`
@@ -1476,6 +1558,8 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"tagint") == 0) return sizeof(tagint);
   if (strcmp(keyword,"imageint") == 0) return sizeof(imageint);
 
+  if (strcmp(keyword,"MAX_GROUP") == 0) return Group::MAX_GROUP;
+
   if (strcmp(keyword,"IMGMASK") == 0) return IMGMASK;
   if (strcmp(keyword,"IMGBITS") == 0) return IMGBITS;
   if (strcmp(keyword,"IMG2BITS") == 0) return IMG2BITS;
@@ -1483,7 +1567,8 @@ int lammps_extract_setting(void *handle, const char *keyword)
 
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->domain || !lmp->force || !lmp->comm || !lmp->universe || !lmp->atom) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
 
@@ -1540,11 +1625,20 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"rmass_flag") == 0) return lmp->atom->rmass_flag;
   if (strcmp(keyword,"radius_flag") == 0) return lmp->atom->radius_flag;
 
+  if (strcmp(keyword,"body_flag") == 0) return lmp->atom->body_flag;
   if (strcmp(keyword,"ellipsoid_flag") == 0) return lmp->atom->ellipsoid_flag;
+  if (strcmp(keyword,"line_flag") == 0) return lmp->atom->line_flag;
+  if (strcmp(keyword,"tri_flag") == 0) return lmp->atom->tri_flag;
+
   if (strcmp(keyword,"omega_flag") == 0) return lmp->atom->omega_flag;
   if (strcmp(keyword,"torque_flag") == 0) return lmp->atom->torque_flag;
   if (strcmp(keyword,"angmom_flag") == 0) return lmp->atom->angmom_flag;
   if (strcmp(keyword,"peri_flag") == 0) return lmp->atom->peri_flag;
+
+  if (strcmp(keyword,"thermo_every") == 0) return lmp->output->thermo_every;
+  if (lmp->output->thermo) {
+    if (strcmp(keyword,"thermo_norm") == 0) return lmp->output->thermo->normflag;
+  }
 
   return -1;
 }
@@ -1617,6 +1711,9 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"special_lj") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"special_coul") == 0) return LAMMPS_DOUBLE;
 
+  if (strcmp(name,"neigh_skin") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"neigh_cutmin") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"neigh_cutmax") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"neigh_bondlist") == 0) return LAMMPS_INT_2D;
   if (strcmp(name,"neigh_anglelist") == 0) return LAMMPS_INT_2D;
   if (strcmp(name,"neigh_dihedrallist") == 0) return LAMMPS_INT_2D;
@@ -1973,6 +2070,18 @@ Get length of lists with :ref:`lammps_extract_setting() <extract_neighbor_settin
      - Type
      - Length
      - Description
+   * - neigh_skin
+     - double
+     - 1
+     - neighbor list skin
+   * - neigh_cutmin
+     - double
+     - 1
+     - minimum neighbor cutoff across all type pairs
+   * - neigh_cutmax
+     - double
+     - 1
+     - maximum neighbor cutoff across all type pairs
    * - neigh_bondlist
      - 2d int
      - nbondlist
@@ -2150,10 +2259,16 @@ Get length of lists with :ref:`lammps_extract_setting() <extract_neighbor_settin
 
 void *lammps_extract_global(void *handle, const char *name)
 {
+  if (strcmp(name,"git_commit") == 0) return (void *)LAMMPS::git_commit;
+  if (strcmp(name,"git_branch") == 0) return (void  *)LAMMPS::git_branch;
+  if (strcmp(name,"git_descriptor") == 0) return (void *)LAMMPS::git_descriptor;
+  if (strcmp(name,"lammps_version") == 0) return (void *)LAMMPS_VERSION;
+
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->update || !lmp->atom || !lmp->force || !lmp->domain || !lmp->domain->lattice
       || !lmp->update->integrate) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
 
@@ -2175,15 +2290,10 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"atimestep") == 0) return (void *) &lmp->update->atimestep;
 
   if (utils::strmatch(lmp->update->integrate_style,"^respa")) {
-    auto respa = dynamic_cast<Respa *>(lmp->update->integrate);
+    auto *respa = dynamic_cast<Respa *>(lmp->update->integrate);
     if (strcmp(name,"respa_levels") == 0) return (void *) &respa->nlevels;
     if (strcmp(name,"respa_dt") == 0) return (void *) respa->step;
   }
-
-  if (strcmp(name,"git_commit") == 0) return (void *)LAMMPS::git_commit;
-  if (strcmp(name,"git_branch") == 0) return (void  *)LAMMPS::git_branch;
-  if (strcmp(name,"git_descriptor") == 0) return (void *)LAMMPS::git_descriptor;
-  if (strcmp(name,"lammps_version") == 0) return (void *)LAMMPS_VERSION;
 
   if (strcmp(name,"boxlo") == 0) return (void *) lmp->domain->boxlo;
   if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
@@ -2229,6 +2339,9 @@ void *lammps_extract_global(void *handle, const char *name)
 
   if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
 
+  if (strcmp(name,"neigh_skin") == 0) return (void *) &lmp->neighbor->skin;
+  if (strcmp(name,"neigh_cutmin") == 0) return (void *) &lmp->neighbor->cutneighmin;
+  if (strcmp(name,"neigh_cutmax") == 0) return (void *) &lmp->neighbor->cutneighmax;
   if (strcmp(name,"neigh_bondlist") == 0) return (void *) lmp->neighbor->bondlist;
   if (strcmp(name,"neigh_anglelist") == 0) return (void *) lmp->neighbor->anglelist;
   if (strcmp(name,"neigh_dihedrallist") == 0) return (void *) lmp->neighbor->dihedrallist;
@@ -2294,7 +2407,8 @@ int lammps_extract_pair_dimension(void * handle, const char *name)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->force || !lmp->force->pair) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
 
@@ -2327,7 +2441,8 @@ void *lammps_extract_pair(void * handle, const char *name)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->force || !lmp->force->pair) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
   if (!name) return nullptr;
@@ -2361,12 +2476,13 @@ int lammps_map_atom(void *handle, const void *id)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->atom) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
   if (!id) return -1;
 
-  auto tag = (const tagint *) id;
+  const auto *tag = (const tagint *) id;
   if (lmp->atom->map_style > Atom::MAP_NONE)
     return lmp->atom->map(*tag);
   else
@@ -2401,7 +2517,8 @@ int lammps_extract_atom_datatype(void *handle, const char *name)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->atom) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
   return lmp->atom->extract_datatype(name);
@@ -2438,7 +2555,8 @@ int lammps_extract_atom_size(void *handle, const char *name, int type)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->atom) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
   return lmp->atom->extract_size(name, type);
@@ -2478,7 +2596,8 @@ void *lammps_extract_atom(void *handle, const char *name)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->atom) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
   return lmp->atom->extract(name);
@@ -2600,7 +2719,8 @@ void *lammps_extract_compute(void *handle, const char *id, int style, int type)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
 
@@ -2832,7 +2952,8 @@ void *lammps_extract_fix(void *handle, const char *id, int style, int type, int 
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
 
@@ -3030,7 +3151,8 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->input || !lmp->input->variable || !lmp->group) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
 
@@ -3041,7 +3163,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Variable {} does not exist", FNERR, name);
 
     if (lmp->input->variable->equalstyle(ivar)) {
-      auto dptr = (double *) malloc(sizeof(double));
+      auto *dptr = (double *) malloc(sizeof(double));
       *dptr = lmp->input->variable->compute_equal(ivar);
       return (void *) dptr;
     } else if (lmp->input->variable->atomstyle(ivar)) {
@@ -3050,7 +3172,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
       if (igroup < 0)
         lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Group {} does not exist", FNERR, group);
       int nlocal = lmp->atom->nlocal;
-      auto vector = (double *) malloc(nlocal*sizeof(double));
+      auto *vector = (double *) malloc(nlocal*sizeof(double));
       lmp->input->variable->compute_atom(ivar,igroup,vector,1,0);
       return (void *) vector;
     } else if (lmp->input->variable->vectorstyle(ivar)) {
@@ -3095,7 +3217,8 @@ int lammps_extract_variable_datatype(void *handle, const char *name)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->input || !lmp->input->variable) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
 
@@ -3185,7 +3308,8 @@ int lammps_set_string_variable(void *handle, const char *name, const char *str)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->input || !lmp->input->variable) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
   int err = -1;
@@ -3227,7 +3351,8 @@ int lammps_set_internal_variable(void *handle, const char *name, double value)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->input || !lmp->input->variable) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
 
@@ -3274,12 +3399,13 @@ string, otherwise 1.
 int lammps_variable_info(void *handle, int idx, char *buffer, int buf_size) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->input || !lmp->input->variable) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
   Info info(lmp);
 
-  if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
+  if ((idx >= 0) && (idx < lmp->input->variable->get_nvar())) {
     auto varinfo = info.get_variable_info(idx);
     strncpy(buffer, varinfo.c_str(), buf_size);
     return 1;
@@ -3314,7 +3440,8 @@ double lammps_eval(void *handle, const char *expr)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->input || !lmp->input->variable) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return 0.0;
   }
   double result = 0.0;
@@ -3352,7 +3479,8 @@ double lammps_eval(void *handle, const char *expr)
 void lammps_clearstep_compute(void *handle) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   lmp->modify->clearstep_compute();
@@ -3383,10 +3511,11 @@ void lammps_clearstep_compute(void *handle) {
 void lammps_addstep_compute_all(void *handle, void *newstep) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
-  auto ns = (bigint *) newstep;
+  auto *ns = (bigint *) newstep;
   if (lmp && lmp->modify && ns) lmp->modify->addstep_compute_all(*ns);
 }
 /* ---------------------------------------------------------------------- */
@@ -3413,10 +3542,11 @@ void lammps_addstep_compute_all(void *handle, void *newstep) {
 void lammps_addstep_compute(void *handle, void *newstep) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
-  auto ns = (bigint *) newstep;
+  auto *ns = (bigint *) newstep;
   if (lmp && lmp->modify && ns) lmp->modify->addstep_compute(*ns);
 }
 
@@ -3475,7 +3605,8 @@ void lammps_gather_atoms(void *handle, const char *name, int dtype, int count, v
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->memory) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!name || !data) return;
@@ -3636,7 +3767,8 @@ void lammps_gather_atoms_concat(void *handle, const char *name, int dtype,
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->comm || !lmp->memory) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
 
@@ -3802,7 +3934,8 @@ void lammps_gather_atoms_subset(void *handle, const char *name, int dtype,
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->memory) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!name || !ids || !data) return;
@@ -3964,7 +4097,8 @@ void lammps_scatter_atoms(void *handle, const char *name, int dtype, int count, 
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->memory) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!name || !data) return;
@@ -4031,7 +4165,7 @@ void lammps_scatter_atoms(void *handle, const char *name, int dtype, int count, 
       double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
-      auto dptr = (double *) data;
+      auto *dptr = (double *) data;
 
       if (count == 1) {
         for (i = 0; i < natoms; i++)
@@ -4117,7 +4251,8 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int dtype,
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->memory) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!name || !ids || !data) return;
@@ -4187,7 +4322,7 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int dtype,
       double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
-      auto dptr = (double *) data;
+      auto *dptr = (double *) data;
 
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
@@ -4291,7 +4426,8 @@ void lammps_gather_bonds(void *handle, void *data)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->atom->avec || !lmp->comm || !lmp->memory) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!data) return;
@@ -4408,7 +4544,8 @@ void lammps_gather_angles(void *handle, void *data)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->atom->avec || !lmp->comm || !lmp->memory) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!data) return;
@@ -4526,7 +4663,8 @@ void lammps_gather_dihedrals(void *handle, void *data)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->atom->avec || !lmp->comm || !lmp->memory) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!data) return;
@@ -4644,7 +4782,8 @@ void lammps_gather_impropers(void *handle, void *data)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->atom->avec || !lmp->comm || !lmp->memory) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!data) return;
@@ -4756,7 +4895,8 @@ void lammps_gather(void *handle, const char *name, int dtype, int count, void *d
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->memory || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!name || !data) return;
@@ -5015,7 +5155,8 @@ void lammps_gather_concat(void *handle, const char *name, int dtype, int count, 
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->memory || !lmp->modify || !lmp->comm) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!name || !data) return;
@@ -5284,7 +5425,8 @@ void lammps_gather_subset(void *handle, const char *name, int dtype, int count, 
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->memory || !lmp->modify || !lmp->comm) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!name || !ids || !data) return;
@@ -5551,7 +5693,8 @@ void lammps_scatter(void *handle, const char *name, int dtype, int count, void *
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->memory || !lmp->modify || !lmp->comm) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!name || !data) return;
@@ -5701,7 +5844,7 @@ void lammps_scatter(void *handle, const char *name, int dtype, int count, void *
       double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
-      auto dptr = (double *) data;
+      auto *dptr = (double *) data;
 
       if (count == 1) {
         for (i = 0; i < natoms; i++)
@@ -5793,7 +5936,8 @@ void lammps_scatter_subset(void *handle, const char *name, int dtype, int count,
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->atom || !lmp->memory || !lmp->modify || !lmp->comm) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!name || !data) return;
@@ -5945,7 +6089,7 @@ void lammps_scatter_subset(void *handle, const char *name, int dtype, int count,
       double **array = nullptr;
       if (count == 1) vector = (double *) vptr;
       else array = (double **) vptr;
-      auto dptr = (double *) data;
+      auto *dptr = (double *) data;
 
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
@@ -6030,7 +6174,8 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->domain || !lmp->atom) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
   if (!type || !x) return -1;
@@ -6114,6 +6259,50 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
   return (int) lmp->atom->natoms - natoms_prev;
 }
 
+/* ---------------------------------------------------------------------- */
+
+/** Create new molecule template from JSON data provided as C-style string
+ *
+\verbatim embed:rst
+
+.. versionadded:: 22Jul2025
+
+This function creates a new molecule template similar to the
+:doc:`molecule command <molecule>`, but uses JSON data passed
+as a C-style string instead of reading it from a file.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  id       molecule-ID
+ * \param  jsonstr  molecule data in JSON format as C-style string */
+
+void lammps_create_molecule(void *handle, const char *id, const char *jsonstr)
+{
+  auto *lmp = (LAMMPS *) handle;
+  if (!lmp || !lmp->atom || !lmp->comm || !lmp->domain || !lmp->error) {
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
+    return;
+  }
+  if (!id || !jsonstr) {
+    const auto &mesg = fmt::format("ERROR: {}(): Non-NULL arguments required\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
+    return;
+  }
+
+  BEGIN_CAPTURE
+  {
+    try {
+      auto jsondata = json::parse(jsonstr);
+      lmp->atom->add_molecule(id, jsondata);
+    } catch (std::exception &e) {
+      STORE_ERROR_MESSAGE(lmp, e.what());
+    }
+  }
+  END_CAPTURE;
+}
+
 // ----------------------------------------------------------------------
 // Library functions for accessing neighbor lists
 // ----------------------------------------------------------------------
@@ -6147,7 +6336,8 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
 int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int nsub, int reqid) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->neighbor || !lmp->force) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
   if (!style) return -1;
@@ -6187,7 +6377,8 @@ int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int n
 int lammps_find_fix_neighlist(void *handle, const char *id, int reqid) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->neighbor || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
   if (!id) return -1;
@@ -6227,7 +6418,8 @@ int lammps_find_fix_neighlist(void *handle, const char *id, int reqid) {
 int lammps_find_compute_neighlist(void *handle, const char *id, int reqid) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->neighbor || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
   if (!id) return -1;
@@ -6255,18 +6447,19 @@ int lammps_find_compute_neighlist(void *handle, const char *id, int reqid) {
 
 // helper Command class for a single neighbor list build
 
-namespace LAMMPS_NS {
-  class NeighProxy : protected Command
-  {
+namespace {
+// NOLINTBEGIN
+class NeighProxy : protected Command {
  public:
   NeighProxy(class LAMMPS *lmp) : Command(lmp), neigh_idx(-1) {};
 
   void command(int, char **) override;
-  int get_index() const { return neigh_idx; }
+  [[nodiscard]] int get_index() const { return neigh_idx; }
+
  protected:
   int neigh_idx;
 };
-}
+// NOLINTEND
 
 void NeighProxy::command(int narg, char **arg)
 {
@@ -6294,7 +6487,7 @@ void NeighProxy::command(int narg, char **arg)
 
   // build neighbor list this command needs based on earlier request
 
-  auto list = neighbor->find_list(this);
+  auto *list = neighbor->find_list(this);
   neighbor->build_one(list);
 
   // find neigh list
@@ -6306,6 +6499,7 @@ void NeighProxy::command(int narg, char **arg)
     }
   }
 }
+}    // namespace
 
 /** Build a single neighbor list in between runs and return its index
  *
@@ -6320,10 +6514,11 @@ void NeighProxy::command(int narg, char **arg)
  * \return         return neighbor list index if valid, otherwise -1 */
 
 int lammps_request_single_neighlist(void *handle, const char *id, int flags, double cutoff) {
-  auto lmp = (LAMMPS *)handle;
+  auto *lmp = (LAMMPS *)handle;
   int idx = -1;
   if (!lmp || !lmp->error || !lmp->neighbor) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return -1;
   }
 
@@ -6351,9 +6546,10 @@ int lammps_request_single_neighlist(void *handle, const char *id, int flags, dou
  *                 not a valid index
  */
 int lammps_neighlist_num_elements(void *handle, int idx) {
-  auto   lmp = (LAMMPS *) handle;
+  auto *   lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->neighbor) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return 0;
   }
   Neighbor *neighbor = lmp->neighbor;
@@ -6383,7 +6579,8 @@ void lammps_neighlist_element_neighbors(void *handle, int idx, int element, int 
                                         int *numneigh, int **neighbors) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->neighbor) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!iatom || !numneigh || !neighbors) return;
@@ -6433,7 +6630,8 @@ int lammps_version(void *handle)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return 0;
   }
 
@@ -6487,6 +6685,31 @@ int lammps_config_has_mpi_support()
   return 0;
 #else
   return sizeof(MPI_Comm);
+#endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** This function is used to query whether LAMMPS was compiled with
+ *  OpenMP enabled.
+ *
+\verbatim embed:rst
+
+.. versionadded:: 10Sep2025
+
+*See also*
+   :cpp:func:`lammps_config_has_mpi_support`
+
+\endverbatim
+ *
+ * \return 1 when compiled with OpenMP enabled, otherwise 0 */
+
+int lammps_config_has_omp_support()
+{
+#ifdef _OPENMP
+  return 1;
+#else
+  return 0;
 #endif
 }
 
@@ -6782,7 +7005,8 @@ Valid categories are: *atom*\ , *integrate*\ , *minimize*\ ,
 int lammps_has_style(void *handle, const char *category, const char *name) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return 0;
   }
   if (!category || !name) return 0;
@@ -6809,7 +7033,8 @@ categories.
 int lammps_style_count(void *handle, const char *category) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return 0;
   }
   if (!category) return 0;
@@ -6840,7 +7065,8 @@ int lammps_style_count(void *handle, const char *category) {
 int lammps_style_name(void *handle, const char *category, int idx, char *buffer, int buf_size) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return 0;
   }
   if (!category || !buffer) return 0;
@@ -6880,7 +7106,8 @@ int lammps_has_id(void *handle, const char *category, const char *name) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify || !lmp->output || !lmp->group || !lmp->atom
       || !lmp->domain || !lmp->input || !lmp->input->variable) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return 0;
   }
   if (!category || !name) return 0;
@@ -6926,7 +7153,8 @@ int lammps_id_count(void *handle, const char *category) {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify || !lmp->output || !lmp->group || !lmp->atom
       || !lmp->domain || !lmp->input || !lmp->input->variable) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return 0;
   }
   if (!category) return 0;
@@ -6944,7 +7172,7 @@ int lammps_id_count(void *handle, const char *category) {
   } else if (strcmp(category,"region") == 0) {
     return lmp->domain->get_region_list().size();
   } else if (strcmp(category,"variable") == 0) {
-    return lmp->input->variable->nvar;
+    return lmp->input->variable->get_nvar();
   }
   return 0;
 }
@@ -6977,33 +7205,40 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify || !lmp->output || !lmp->group || !lmp->atom
       || !lmp->domain || !lmp->input || !lmp->input->variable) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return 0;
   }
   if (!buffer || !category || (idx < 0)) return 0;
 
   if (strcmp(category,"compute") == 0) {
-    auto icompute = lmp->modify->get_compute_by_index(idx);
+    auto *icompute = lmp->modify->get_compute_by_index(idx);
     if (icompute) {
       strncpy(buffer, icompute->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"dump") == 0) {
-    auto idump = lmp->output->get_dump_by_index(idx);
+    auto *idump = lmp->output->get_dump_by_index(idx);
     if (idump) {
       strncpy(buffer, idump->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"fix") == 0) {
-    auto ifix = lmp->modify->get_fix_by_index(idx);
+    auto *ifix = lmp->modify->get_fix_by_index(idx);
     if (ifix) {
       strncpy(buffer, ifix->id, buf_size);
       return 1;
     }
   } else if (strcmp(category,"group") == 0) {
-    if ((idx >= 0) && (idx < lmp->group->ngroup)) {
-      strncpy(buffer, lmp->group->names[idx], buf_size);
-      return 1;
+    // the list of groups may have "holes". So the available range is always 0 to 32
+    if ((idx >= 0) && (idx < Group::MAX_GROUP)) {
+      if (lmp->group->names[idx]) {
+        strncpy(buffer, lmp->group->names[idx], buf_size);
+        return 1;
+      } else {
+        buffer[0] = '\0';
+        return 0;
+      }
     }
   } else if (strcmp(category,"molecule") == 0) {
     if ((idx >= 0) && (idx < lmp->atom->nmolecule)) {
@@ -7017,8 +7252,9 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
       return 1;
     }
   } else if (strcmp(category,"variable") == 0) {
-    if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
-      strncpy(buffer, lmp->input->variable->names[idx], buf_size);
+    if ((idx >= 0) && (idx < lmp->input->variable->get_nvar()) &&
+        lmp->input->variable->get_name(idx)) {
+      strncpy(buffer, lmp->input->variable->get_name(idx), buf_size);
       return 1;
     }
   }
@@ -7205,7 +7441,8 @@ void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalF
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!id || !ptr) return;
@@ -7219,7 +7456,7 @@ void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalF
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal *>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !(utils::strmatch(fix->style, "^external")))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     fext->set_callback(callback, ptr);
@@ -7273,7 +7510,8 @@ double **lammps_fix_external_get_force(void *handle, const char *id)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
   if (!id) return nullptr;
@@ -7286,7 +7524,7 @@ double **lammps_fix_external_get_force(void *handle, const char *id)
     if (!fix)
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
-    if (strcmp("external",fix->style) != 0)
+    if (!utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     int tmp;
@@ -7328,7 +7566,8 @@ void lammps_fix_external_set_energy_global(void *handle, const char *id, double 
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!id) return;
@@ -7340,7 +7579,7 @@ void lammps_fix_external_set_energy_global(void *handle, const char *id, double 
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "Fix {} is not of style external", FNERR, id);
 
     fext->set_energy_global(eng);
@@ -7382,7 +7621,8 @@ void lammps_fix_external_set_virial_global(void *handle, const char *id, double 
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!id || !virial) return;
@@ -7394,7 +7634,7 @@ void lammps_fix_external_set_virial_global(void *handle, const char *id, double 
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     fext->set_virial_global(virial);
@@ -7436,7 +7676,8 @@ void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!id || !eng) return;
@@ -7448,7 +7689,7 @@ void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "Fix {} is not of style external", FNERR, id);
 
     fext->set_energy_peratom(eng);
@@ -7493,7 +7734,8 @@ void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!id || !virial) return;
@@ -7505,7 +7747,7 @@ void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     fext->set_virial_peratom(virial);
@@ -7543,7 +7785,8 @@ void lammps_fix_external_set_vector_length(void *handle, const char *id, int len
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!id) return;
@@ -7555,7 +7798,7 @@ void lammps_fix_external_set_vector_length(void *handle, const char *id, int len
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     fext->set_vector_length(len);
@@ -7603,7 +7846,8 @@ void lammps_fix_external_set_vector(void *handle, const char *id, int idx, doubl
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->modify) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   if (!id) return;
@@ -7615,7 +7859,7 @@ void lammps_fix_external_set_vector(void *handle, const char *id, int idx, doubl
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     fext->set_vector(idx, val);
@@ -7670,9 +7914,10 @@ void lammps_free(void *ptr)
 
 int lammps_is_running(void *handle)
 {
-  auto   lmp = (LAMMPS *) handle;
+  auto *   lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->update) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return 0;
   }
   return lmp->update->whichflag;
@@ -7689,7 +7934,8 @@ void lammps_force_timeout(void *handle)
 {
   auto *lmp = (LAMMPS *) handle;
   if (!lmp || !lmp->error || !lmp->timer) {
-    lammps_last_global_errormessage = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    const auto &mesg = fmt::format("ERROR: {}(): Invalid LAMMPS handle\n", FNERR);
+    STORE_ERROR_MESSAGE(lmp, mesg);
     return;
   }
   return lmp->timer->force_timeout();
@@ -7723,7 +7969,7 @@ has thrown a :ref:`C++ exception <exceptions>`.
 int lammps_has_error(void *handle)
 {
   if (handle) {
-    LAMMPS *lmp = (LAMMPS *) handle;
+    auto *lmp = (LAMMPS *) handle;
     Error *error = lmp->error;
     return (error->get_last_error().empty()) ? 0 : 1;
   } else {
@@ -7756,7 +8002,7 @@ temporarily and restore it afterwards.
  */
 int lammps_set_show_error(void *handle, const int flag)
 {
-  LAMMPS *lmp = (LAMMPS *) handle;
+  auto *lmp = (LAMMPS *) handle;
   if (lmp && lmp->error) return lmp->error->set_show_error(flag);
   return 1; // default value
 }
@@ -7803,7 +8049,7 @@ the failing MPI ranks to send messages.
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size)
 {
   if (handle) {
-    LAMMPS *lmp = (LAMMPS *) handle;
+    auto *lmp = (LAMMPS *) handle;
     Error *error = lmp->error;
     if (buffer) buffer[0] = buffer[buf_size-1] = '\0';
 

@@ -29,7 +29,7 @@ static inline void LimitDoubleMagnitude(double &x, const double limit)
 /*
  * deviator of a tensor
  */
-static inline Eigen::Matrix3d Deviator(const Eigen::Matrix3d M)
+static inline Eigen::Matrix3d Deviator(const Eigen::Matrix3d &M)
 {
   Eigen::Matrix3d eye;
   eye.setIdentity();
@@ -52,14 +52,14 @@ static inline Eigen::Matrix3d Deviator(const Eigen::Matrix3d M)
  * obtained again from an SVD. The rotation should proper now, i.e., det(R) = +1.
  */
 
-static inline bool PolDec(Eigen::Matrix3d M, Eigen::Matrix3d &R, Eigen::Matrix3d &T, bool scaleF)
+static inline bool PolDec(const Eigen::Matrix3d &M, Eigen::Matrix3d &R, Eigen::Matrix3d &T, bool scaleF)
 {
 
   Eigen::JacobiSVD<Eigen::Matrix3d> svd(
       M, Eigen::ComputeFullU | Eigen::ComputeFullV);    // SVD(A) = U S V*
-  Eigen::Vector3d S_eigenvalues = svd.singularValues();
+  const Eigen::Vector3d &S_eigenvalues = svd.singularValues();
   Eigen::Matrix3d S = svd.singularValues().asDiagonal();
-  Eigen::Matrix3d U = svd.matrixU();
+  const Eigen::Matrix3d &U = svd.matrixU();
   Eigen::Matrix3d V = svd.matrixV();
   Eigen::Matrix3d eye;
   eye.setIdentity();
@@ -95,11 +95,7 @@ static inline bool PolDec(Eigen::Matrix3d M, Eigen::Matrix3d &R, Eigen::Matrix3d
     T = V * S * V.transpose();
   }
 
-  if (R.determinant() > 0.0) {
-    return true;
-  } else {
-    return false;
-  }
+  return (R.determinant() > 0.0);
 }
 
 /*
@@ -133,7 +129,7 @@ static inline void pseudo_inverse_SVD(Eigen::Matrix3d &M)
 /*
  * test if two matrices are equal
  */
-static inline double TestMatricesEqual(Eigen::Matrix3d A, Eigen::Matrix3d B, double eps)
+static inline double TestMatricesEqual(const Eigen::Matrix3d &A, const Eigen::Matrix3d &B, double eps)
 {
   Eigen::Matrix3d diff;
   diff = A - B;
@@ -169,14 +165,14 @@ static inline Eigen::Matrix3d LimitEigenvalues(Eigen::Matrix3d S, double limitEi
   if ((amax_eigenvalue > limitEigenvalue) || (amin_eigenvalue > limitEigenvalue)) {
     if (amax_eigenvalue > amin_eigenvalue) {    // need to scale with max_eigenvalue
       double scale = amax_eigenvalue / limitEigenvalue;
-      Eigen::Matrix3d V = es.eigenvectors();
+      const Eigen::Matrix3d &V = es.eigenvectors();
       Eigen::Matrix3d S_diag = V.inverse() * S * V;    // diagonalized input matrix
       S_diag /= scale;
       Eigen::Matrix3d S_scaled = V * S_diag * V.inverse();    // undiagonalize matrix
       return S_scaled;
     } else {    // need to scale using min_eigenvalue
       double scale = amin_eigenvalue / limitEigenvalue;
-      Eigen::Matrix3d V = es.eigenvectors();
+      const Eigen::Matrix3d &V = es.eigenvectors();
       Eigen::Matrix3d S_diag = V.inverse() * S * V;    // diagonalized input matrix
       S_diag /= scale;
       Eigen::Matrix3d S_scaled = V * S_diag * V.inverse();    // undiagonalize matrix
@@ -198,7 +194,7 @@ static inline bool LimitMinMaxEigenvalues(Eigen::Matrix3d &S, double min, double
 
   if ((es.eigenvalues().maxCoeff() > max) || (es.eigenvalues().minCoeff() < min)) {
     Eigen::Matrix3d S_diag = es.eigenvalues().asDiagonal();
-    Eigen::Matrix3d V = es.eigenvectors();
+    const Eigen::Matrix3d &V = es.eigenvectors();
     for (int i = 0; i < 3; i++) {
       if (S_diag(i, i) < min) {
         //printf("limiting eigenvalue %f --> %f\n", S_diag(i, i), min);
@@ -278,4 +274,4 @@ static inline bool DoLineSegmentsIntersect(double x1, double y1, double x2, doub
 
 }    // namespace SMD_Math
 
-#endif /* SMD_MATH_H_ */
+#endif /* SMD_MATH_H */

@@ -15,25 +15,6 @@
 #endif
 #endif
 
-/// \brief Helper function for loading the ia-th atom in the vector pos to x, y and z (C++11 SFINAE is used)
-template <typename T, typename std::enable_if<std::is_same<T, cvm::atom_pos>::value, bool>::type = true>
-inline void read_atom_coord(
-  size_t ia, const std::vector<T>& pos,
-  cvm::real* _noalias x, cvm::real* _noalias y, cvm::real* _noalias z) {
-  *x = pos[ia].x;
-  *y = pos[ia].y;
-  *z = pos[ia].z;
-}
-
-template <typename T, typename std::enable_if<std::is_same<T, cvm::atom>::value, bool>::type = true>
-inline void read_atom_coord(
-  size_t ia, const std::vector<T>& pos,
-  cvm::real* _noalias x, cvm::real* _noalias y, cvm::real* _noalias z) {
-  *x = pos[ia].pos.x;
-  *y = pos[ia].pos.y;
-  *z = pos[ia].pos.z;
-}
-
 /// \brief Helper enum class for specifying options in rotation_derivative::prepare_derivative
 enum class rotation_derivative_dldq {
   /// Require the derivative of the leading eigenvalue with respect to the atom coordinates
@@ -55,34 +36,40 @@ inline constexpr bool operator&(rotation_derivative_dldq Lhs, rotation_derivativ
 }
 
 /// \brief Helper class for calculating the derivative of rotation
-template <typename T1, typename T2>
+// template <typename T1, typename T2, bool soa = false>
 struct rotation_derivative {
-  static_assert(std::is_same<T1, cvm::atom_pos>::value || std::is_same<T1, cvm::atom>::value,
-                "class template rotation_derivative only supports cvm::atom_pos or cvm::atom types.");
-  static_assert(std::is_same<T2, cvm::atom_pos>::value || std::is_same<T2, cvm::atom>::value,
-                "class template rotation_derivative only supports cvm::atom_pos or cvm::atom types.");
   /// \brief Reference to the rotation
   const cvm::rotation &m_rot;
   /// \brief Reference to the atom positions of group 1
-  const std::vector<T1> &m_pos1;
+  const std::vector<cvm::real> &m_pos1;
   /// \brief Reference to the atom positions of group 2
-  const std::vector<T2> &m_pos2;
+  const std::vector<cvm::real> &m_pos2;
+  /// \brief Number of atoms in group1 (used in SOA)
+  size_t m_num_atoms_pos1;
+  /// \brief Number of atoms in group1 (used in SOA)
+  size_t m_num_atoms_pos2;
   /// \brief Temporary variable that will be updated if prepare_derivative called
   cvm::real tmp_Q0Q0[4][4];
   cvm::real tmp_Q0Q0_L[4][4][4];
-  /*! @brief Constructor of the cvm::rotation::derivative class
+  /*! @brief Constructor of the cvm::rotation::derivative class for SOA
     *  @param[in]  rot   The cvm::rotation object (must have called
     *                    `calc_optimal_rotation` before calling
     *                    `calc_derivative_wrt_group1` and
     *                    `calc_derivative_wrt_group2`)
     *  @param[in]  pos1  The atom positions of group 1
     *  @param[in]  pos2  The atom positions of group 2
+    *  @param[in]  num_atoms_pos1 The number of atoms in group1
+    *  @param[in]  num_atoms_pos2 The number of atoms in group2
     */
   rotation_derivative(
     const cvm::rotation &rot,
-    const std::vector<T1> &pos1,
-    const std::vector<T2> &pos2):
-      m_rot(rot), m_pos1(pos1), m_pos2(pos2) {};
+    const std::vector<cvm::real> &pos1,
+    const std::vector<cvm::real> &pos2,
+    const size_t num_atoms_pos1,
+    const size_t num_atoms_pos2):
+      m_rot(rot), m_pos1(pos1), m_pos2(pos2),
+      m_num_atoms_pos1(num_atoms_pos1),
+      m_num_atoms_pos2(num_atoms_pos2) {}
   /*! @brief This function must be called before `calc_derivative_wrt_group1`
     *         and `calc_derivative_wrt_group2` in order to prepare the tmp_Q0Q0
     *        and tmp_Q0Q0_L.
@@ -479,9 +466,9 @@ struct rotation_derivative {
     cvm::vector1d<cvm::rvector>* _noalias const dq0_1_out = nullptr,
     cvm::matrix2d<cvm::rvector>* _noalias const ds_1_out = nullptr) const {
       // if (dl0_1_out == nullptr && dq0_1_out == nullptr) return;
-      cvm::real a2x, a2y, a2z;
-      // we can get rid of the helper function read_atom_coord if C++17 (constexpr) is available
-      read_atom_coord(ia, m_pos2, &a2x, &a2y, &a2z);
+      const cvm::real a2x = m_pos2[ia];
+      const cvm::real a2y = m_pos2[ia + m_num_atoms_pos2];
+      const cvm::real a2z = m_pos2[ia + 2 * m_num_atoms_pos2];
       const cvm::rvector ds_1[4][4] = {
         {{ a2x,  a2y,  a2z}, { 0.0, a2z,  -a2y}, {-a2z,  0.0,  a2x}, { a2y, -a2x,  0.0}},
         {{ 0.0,  a2z, -a2y}, { a2x, -a2y, -a2z}, { a2y,  a2x,  0.0}, { a2z,  0.0,  a2x}},
@@ -505,9 +492,9 @@ struct rotation_derivative {
     cvm::vector1d<cvm::rvector>* _noalias const dq0_2_out = nullptr,
     cvm::matrix2d<cvm::rvector>* _noalias const ds_2_out = nullptr) const {
     // if (dl0_2_out == nullptr && dq0_2_out == nullptr) return;
-    cvm::real a1x, a1y, a1z;
-    // we can get rid of the helper function read_atom_coord if C++17 (constexpr) is available
-    read_atom_coord(ia, m_pos1, &a1x, &a1y, &a1z);
+    const cvm::real a1x = m_pos1[ia];
+    const cvm::real a1y = m_pos1[ia + m_num_atoms_pos1];
+    const cvm::real a1z = m_pos1[ia + 2 * m_num_atoms_pos1];
     const cvm::rvector ds_2[4][4] = {
       {{ a1x,  a1y,  a1z}, { 0.0, -a1z,  a1y}, { a1z,  0.0, -a1x}, {-a1y,  a1x,  0.0}},
       {{ 0.0, -a1z,  a1y}, { a1x, -a1y, -a1z}, { a1y,  a1x,  0.0}, { a1z,  0.0,  a1x}},
@@ -516,98 +503,5 @@ struct rotation_derivative {
     calc_derivative_impl<use_dl, use_dq, use_ds>(ds_2, dl0_2_out, dq0_2_out, ds_2_out);
   }
 };
-
-/*! @brief  Function for debugging gradients (allow using either
- *          std::vector<cvm::atom_pos> or std::vector<cvm::atom> for
- *          pos1 and pos2)
- *  @param[in]  pos1  Atom positions of group 1
- *  @param[in]  pos2  Atom positions of group 2
- */
-template<typename T1, typename T2>
-void debug_gradients(
-  cvm::rotation &rot,
-  const std::vector<T1> &pos1,
-  const std::vector<T2> &pos2) {
-  static_assert(std::is_same<T1, cvm::atom_pos>::value || std::is_same<T1, cvm::atom>::value, "");
-  static_assert(std::is_same<T2, cvm::atom_pos>::value || std::is_same<T2, cvm::atom>::value, "");
-  // eigenvalues and eigenvectors
-  cvm::real const L0 = rot.S_eigval[0];
-  cvm::real const L1 = rot.S_eigval[1];
-  cvm::real const L2 = rot.S_eigval[2];
-  cvm::real const L3 = rot.S_eigval[3];
-  cvm::quaternion const Q0(rot.S_eigvec[0]);
-  cvm::quaternion const Q1(rot.S_eigvec[1]);
-  cvm::quaternion const Q2(rot.S_eigvec[2]);
-  cvm::quaternion const Q3(rot.S_eigvec[3]);
-
-  cvm::log("L0 = "+cvm::to_str(L0, cvm::cv_width, cvm::cv_prec)+
-            ", Q0 = "+cvm::to_str(Q0, cvm::cv_width, cvm::cv_prec)+
-            ", Q0*Q0 = "+cvm::to_str(Q0.inner(Q0), cvm::cv_width, cvm::cv_prec)+
-            "\n");
-  cvm::log("L1 = "+cvm::to_str(L1, cvm::cv_width, cvm::cv_prec)+
-            ", Q1 = "+cvm::to_str(Q1, cvm::cv_width, cvm::cv_prec)+
-            ", Q0*Q1 = "+cvm::to_str(Q0.inner(Q1), cvm::cv_width, cvm::cv_prec)+
-            "\n");
-  cvm::log("L2 = "+cvm::to_str(L2, cvm::cv_width, cvm::cv_prec)+
-            ", Q2 = "+cvm::to_str(Q2, cvm::cv_width, cvm::cv_prec)+
-            ", Q0*Q2 = "+cvm::to_str(Q0.inner(Q2), cvm::cv_width, cvm::cv_prec)+
-            "\n");
-  cvm::log("L3 = "+cvm::to_str(L3, cvm::cv_width, cvm::cv_prec)+
-            ", Q3 = "+cvm::to_str(Q3, cvm::cv_width, cvm::cv_prec)+
-            ", Q0*Q3 = "+cvm::to_str(Q0.inner(Q3), cvm::cv_width, cvm::cv_prec)+
-            "\n");
-
-  rotation_derivative<T1, T2> deriv(rot, pos1, pos2);
-  cvm::rvector dl0_2;
-  cvm::vector1d<cvm::rvector> dq0_2(4);
-  cvm::matrix2d<cvm::rvector> ds_2;
-#ifdef COLVARS_LAMMPS
-    MathEigen::Jacobi<cvm::real,
-                      cvm::real[4],
-                      cvm::real[4][4]> *ecalc =
-        reinterpret_cast<MathEigen::Jacobi<cvm::real,
-                                           cvm::real[4],
-                                           cvm::real[4][4]> *>(rot.jacobi);
-#endif
-  deriv.prepare_derivative(rotation_derivative_dldq::use_dl | rotation_derivative_dldq::use_dq);
-  cvm::real S_new[4][4];
-  cvm::real S_new_eigval[4];
-  cvm::real S_new_eigvec[4][4];
-  for (size_t ia = 0; ia < pos2.size(); ++ia) {
-    deriv.template calc_derivative_wrt_group2<true, true, true>(ia, &dl0_2, &dq0_2, &ds_2);
-    // make an infitesimal move along each cartesian coordinate of
-    // this atom, and solve again the eigenvector problem
-    for (size_t comp = 0; comp < 3; comp++) {
-      std::memcpy(S_new, rot.S_backup, sizeof(cvm::real) * 4 * 4);
-      std::memset(S_new_eigval, 0, sizeof(cvm::real) * 4);
-      std::memset(S_new_eigvec, 0, sizeof(cvm::real) * 4 * 4);
-      for (size_t i = 0; i < 4; i++) {
-        for (size_t j = 0; j < 4; j++) {
-          S_new[i][j] +=
-            colvarmodule::debug_gradients_step_size * ds_2[i][j][comp];
-        }
-      }
-#ifdef COLVARS_LAMMPS
-      ecalc->Diagonalize(S_new, S_new_eigval, S_new_eigvec);
-#else
-      NR::diagonalize_matrix(S_new, S_new_eigval, S_new_eigvec);
-#endif
-      cvm::real const &L0_new = S_new_eigval[0];
-      cvm::quaternion const Q0_new(S_new_eigvec[0]);
-
-      cvm::real const DL0 = (dl0_2[comp]) * colvarmodule::debug_gradients_step_size;
-      cvm::quaternion const DQ0(dq0_2[0][comp] * colvarmodule::debug_gradients_step_size,
-                                dq0_2[1][comp] * colvarmodule::debug_gradients_step_size,
-                                dq0_2[2][comp] * colvarmodule::debug_gradients_step_size,
-                                dq0_2[3][comp] * colvarmodule::debug_gradients_step_size);
-
-      cvm::log(  "|(l_0+dl_0) - l_0^new|/l_0 = "+
-                cvm::to_str(cvm::fabs(L0+DL0 - L0_new)/L0, cvm::cv_width, cvm::cv_prec)+
-                ", |(q_0+dq_0) - q_0^new| = "+
-                cvm::to_str((Q0+DQ0 - Q0_new).norm(), cvm::cv_width, cvm::cv_prec)+
-                "\n");
-    }
-  }
-}
 
 #endif // COLVAR_ROTATION_DERIVATIVE

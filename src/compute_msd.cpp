@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg), id_fix(nullptr)
 {
-  if (narg < 3) error->all(FLERR, "Illegal compute msd command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "compute msd", error);
 
   vector_flag = 1;
   size_vector = 4;
@@ -53,11 +53,11 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
       avflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Unknown compute msd keyword: {}", arg[iarg]);
+      error->all(FLERR, iarg, "Unknown compute msd keyword: {}", arg[iarg]);
   }
 
   if (group->dynamic[igroup])
-    error->all(FLERR, "Compute {} is not compatible with dynamic groups", style);
+    error->all(FLERR, 1, "Compute {} is not compatible with dynamic groups", style);
 
   // create a new fix STORE style for reference positions
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
@@ -128,7 +128,8 @@ void ComputeMSD::init()
   // set fix which stores reference atom coords
 
   fix = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(id_fix));
-  if (!fix) error->all(FLERR, "Could not find compute msd fix with ID {}", id_fix);
+  if (!fix)
+    error->all(FLERR, Error::NOLASTLINE, "Could not find compute msd fix with ID {}", id_fix);
 
   // nmsd = # of atoms in group
 
@@ -140,6 +141,12 @@ void ComputeMSD::init()
 
 void ComputeMSD::compute_vector()
 {
+  // check that nmsd is unchanged
+
+  int newnmsd = group->count(igroup);
+  if (newnmsd != nmsd)
+    error->all(FLERR, Error::NOLASTLINE, "Number of atoms in compute msd group must not change.");
+
   invoked_vector = update->ntimestep;
 
   // cm = current center of mass

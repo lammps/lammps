@@ -28,6 +28,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -48,6 +49,7 @@ DihedralQuadratic::DihedralQuadratic(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralQuadratic::~DihedralQuadratic()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

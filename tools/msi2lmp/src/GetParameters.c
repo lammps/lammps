@@ -1278,7 +1278,6 @@ void get_equivs(int ic,char potential_types[][5],char equiv_types[][5])
     condexit(26);
     break;
   }
-  return;
 }
 
 int find_equiv_type(char potential_type[5])

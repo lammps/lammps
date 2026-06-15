@@ -21,7 +21,7 @@ Syntax
 * Rmin = two atoms separated by less than Rmin can bond (distance units)
 * bondtype = type of created bonds (integer or type label)
 * zero or more keyword/value pairs may be appended to args
-* keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype* or *aconstrain*
+* keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype* or *aconstrain* or *molecule*
 
   .. parsed-literal::
 
@@ -43,6 +43,10 @@ Syntax
        *aconstrain* value = amin amax
          amin = minimal angle at which new bonds can be created
          amax = maximal angle at which new bonds can be created
+       *molecule* value = *off* or *inter* or *intra*
+         *off* = allow both inter- and intramolecular reactions (default)
+         *inter* = search for reactions between molecules with different IDs
+         *intra* = search for reactions within the same molecule
 
 Examples
 """"""""
@@ -52,6 +56,7 @@ Examples
    fix 5 all bond/create 10 1 2 0.8 1
    fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3
    fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3 atype 1 dtype 2
+   fix 5 all bond/create 10 13 25 7 28 iparam 1 15 jparam 1 27 prob 0.2 91322 molecule inter
    fix 5 all bond/create/angle 10 1 2 1.122 1 aconstrain 120 180 prob 1 4928459 iparam 2 1 jparam 2 2
 
    labelmap atom 1 c1 2 n2
@@ -122,6 +127,8 @@ The *prob* keyword can also affect whether an eligible bond is
 actually created.  The *fraction* setting must be a value between 0.0
 and 1.0.  A uniform random number between 0.0 and 1.0 is generated and
 the eligible bond is only created if the random number is less than *fraction*.
+
+The *molecule* keyword can be used to force the reaction to be intermolecular, intramolecular or either. When the value is set to *off*, molecule IDs are not considered when searching for reactions (default). When the value is set to *inter*, atoms must have different molecule IDs in order to be considered for the reaction. When the value is set to *intra*, only atoms with the same molecule ID are considered for the reaction.
 
 The *aconstrain* keyword is only available with the fix
 bond/create/angle command.  It allows one to specify minimum and maximum
@@ -236,6 +243,35 @@ You can dump out snapshots of the current bond topology via the :doc:`dump local
    dramatically when the bond is formed.  More generally, you may need to
    thermostat your system to compensate for energy changes resulting from
    created bonds (and angles, dihedrals, impropers).
+
+
+----------
+
+Dump image info
+"""""""""""""""
+
+.. versionadded:: 11Feb2026
+
+Fixes *bond/create* and *bond/create/angle* support the *fix* keyword of
+:doc:`dump image <dump_image>`.  The fixes will pass geometry
+information about atoms involved in a created bond to *dump image* so
+that these atoms can be highlighted in the visualization as additional
+spheres.  For how long those additional spheres will be shown depends on
+the value of the *vizsteps* setting (default is 1000) which can be
+changed by using the :doc:`fix_modify command <fix_modify>`.  If an atom
+is involved in the creation of multiple bonds, the check on showing the
+additional graphics depends on the timestep of its last bond creation.
+
+The color of the additional spheres is by default that of the atoms when
+using color styles "type" or "element".  With color style "const" the
+default value of "white" can be changed using :doc:`dump_modify fcolor
+<dump_image>`.  The transparency is by default fully opaque and can be
+changed with *dump\_modify ftrans*\ .
+
+The *fflag1* setting of *dump image fix* has no effect.
+
+The *fflag2* setting allows you to set the radius of the added
+spheres, since the radius is set to zero internally.
 
 ----------
 

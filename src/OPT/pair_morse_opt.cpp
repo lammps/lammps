@@ -57,12 +57,14 @@ void PairMorseOpt::compute(int eflag, int vflag)
 template < int EVFLAG, int EFLAG, int NEWTON_PAIR >
 void PairMorseOpt::eval()
 {
+// NOLINTBEGIN
   typedef struct { double x,y,z; } vec3_t;
 
   typedef struct {
     double cutsq,r0,alpha,morse1,d0,offset;
     double _pad[2];
   } fast_alpha_t;
+// NOLINTEND
 
   int i,j,ii,jj,inum,jnum,itype,jtype,sbindex;
   double factor_lj;

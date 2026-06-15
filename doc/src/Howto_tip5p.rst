@@ -87,7 +87,9 @@ atom style full or use :doc:`fix property/atom mol <fix_property_atom>`
 so that fix rigid/small can identify rigid bodies by their molecule ID.
 Also a :doc:`neigh_modify exclude <neigh_modify>` command is added to
 exclude computing intramolecular non-bonded interactions, since those
-are removed by the rigid fix anyway:
+are removed by the rigid fix anyway.  For simplicity and speed the
+example uses a cutoff Coulomb.  Most production simulations require
+long-range Coulomb instead.
 
 .. code-block:: LAMMPS
 

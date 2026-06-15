@@ -82,10 +82,9 @@ specified values may represent calculations performed by computes and
 fixes which store their own "group" definitions.
 
 Each listed value can be the result of a compute or fix or the
-evaluation of an equal-style or vector-style variable.  For
-vector-style variables, the specified indices can include a wildcard
-character.  See the :doc:`fix ave/correlate <fix_ave_correlate>` page
-for details.
+evaluation of an equal-style or vector-style variable.  The specified
+indices can include a wildcard string.  See the
+:doc:`fix ave/correlate <fix_ave_correlate>` page for details on that.
 
 The *Nevery* and *Nfreq* arguments specify on what time steps the input
 values will be used to calculate correlation data and the frequency

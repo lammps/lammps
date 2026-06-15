@@ -28,9 +28,8 @@ gives those details.
 
    * :ref:`ADIOS <PKG-ADIOS>`
    * :ref:`AMOEBA <PKG-AMOEBA>`
+   * :ref:`APIP <PKG-APIP>`
    * :ref:`ASPHERE <PKG-ASPHERE>`
-   * :ref:`ATC <PKG-ATC>`
-   * :ref:`AWPMD <PKG-AWPMD>`
    * :ref:`BOCS <PKG-BOCS>`
    * :ref:`BODY <PKG-BODY>`
    * :ref:`BPM <PKG-BPM>`
@@ -60,6 +59,7 @@ gives those details.
    * :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>`
    * :ref:`FEP <PKG-FEP>`
    * :ref:`GPU <PKG-GPU>`
+   * :ref:`GRAPHICS <PKG-GRAPHICS>`
    * :ref:`GRANULAR <PKG-GRANULAR>`
    * :ref:`H5MD <PKG-H5MD>`
    * :ref:`INTEL <PKG-INTEL>`
@@ -72,6 +72,7 @@ gives those details.
    * :ref:`MACHDYN <PKG-MACHDYN>`
    * :ref:`MANIFOLD <PKG-MANIFOLD>`
    * :ref:`MANYBODY <PKG-MANYBODY>`
+   * :ref:`MBX <PKG-MBX>`
    * :ref:`MC <PKG-MC>`
    * :ref:`MDI <PKG-MDI>`
    * :ref:`MEAM <PKG-MEAM>`
@@ -79,6 +80,7 @@ gives those details.
    * :ref:`MGPT <PKG-MGPT>`
    * :ref:`MISC <PKG-MISC>`
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
+   * :ref:`ML-RUNNER <PKG-ML-RUNNER>`
    * :ref:`ML-IAP <PKG-ML-IAP>`
    * :ref:`ML-PACE <PKG-ML-PACE>`
    * :ref:`ML-POD <PKG-ML-POD>`
@@ -97,7 +99,6 @@ gives those details.
    * :ref:`PHONON <PKG-PHONON>`
    * :ref:`PLUGIN <PKG-PLUGIN>`
    * :ref:`PLUMED <PKG-PLUMED>`
-   * :ref:`POEMS <PKG-POEMS>`
    * :ref:`PTM <PKG-PTM>`
    * :ref:`PYTHON <PKG-PYTHON>`
    * :ref:`QEQ <PKG-QEQ>`
@@ -186,6 +187,66 @@ provided by the Ponder group in their
 
 ----------
 
+.. _PKG-APIP:
+
+APIP package
+------------
+
+**Contents:**
+
+This package provides adaptive-precision interatomic potentials (APIP) as
+described in:
+
+D. Immel, R. Drautz and G. Sutmann, "Adaptive-precision potentials for
+large-scale atomistic simulations", J. Chem. Phys. 162, 114119 (2025)
+`link <immel2025_doi_>`_
+
+D. Immel, R. Drautz and G. Sutmann, "Conservative adaptive-precision
+interatomic potentials", arXiv:2512.07693
+`link <immel2026_doi_>`_
+
+Adaptive-precision means, that a fast interatomic potential, such as EAM,
+is coupled to a precise interatomic potential, such as ACE.
+This package provides the required pair_styles and fixes to run an efficient,
+energy-conserving adaptive-precision simulation.
+
+In the context of this package, precision refers to the accuracy of an interatomic
+potential.
+
+.. _immel2025_doi: https://doi.org/10.1063/5.0245877
+.. _immel2026_doi: https://doi.org/10.48550/arXiv.2512.07693
+
+**Authors:**
+
+This package was written by David Immel^1,
+Ralf Drautz^2 and Godehard Sutmann^1^2.
+
+ ^1: Forschungszentrum Juelich, Juelich, Germany
+
+ ^2: Ruhr-University Bochum, Bochum, Germany
+
+**Install:**
+
+The APIP package requires also the installation of ML-PACE, which has
+:ref:`specific installation instructions <ml-pace>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* ``src/APIP``: filenames -> commands
+* :doc:`Howto APIP <Howto_apip>`
+* ``examples/PACKAGES/apip``
+* :doc:`fix atom_weight/apip <fix_atom_weight_apip>`
+* :doc:`fix lambda/apip <fix_lambda_apip>`
+* :doc:`fix lambda/la/csp/apip <fix_lambda_la_csp_apip>`
+* :doc:`fix lambda_thermostat/apip <fix_lambda_thermostat_apip>`
+* :doc:`pair_style eam/apip <pair_eam_apip>`
+* :doc:`pair_style lambda/zone/apip <pair_lambda_zone_apip>`
+* :doc:`pair_style lambda/input/apip <pair_lambda_input_apip>`
+* :doc:`pair_style pace/apip <pair_pace_apip>`
+
+----------
+
 .. _PKG-ASPHERE:
 
 ASPHERE package
@@ -193,8 +254,8 @@ ASPHERE package
 
 **Contents:**
 
-Computes, time-integration fixes, and pair styles for aspherical
-particle models including ellipsoids, 2d lines, and 3d triangles.
+Computes, time-integration fixes, and pair styles for aspherical particle models
+including ellipsoids, granular superellipsoids, 2d lines, and 3d triangles.
 
 **Supporting info:**
 
@@ -203,69 +264,15 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
 * :doc:`pair_style ylz <pair_ylz>`
+* :doc:`pair_style line/lj <pair_line_lj>`
+* :doc:`pair_style tri/lj <pair_tri_lj>`
+* :doc:`pair_style granular/superellipsoid <pair_granular_superellipsoid>`
 * `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
 * `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * ``examples/ASPHERE``
 * ``examples/ellipse``
 * https://www.lammps.org/movies.html#line
 * https://www.lammps.org/movies.html#tri
-
-----------
-
-.. _PKG-ATC:
-
-ATC package
-----------------
-
-**Contents:**
-
-ATC stands for atoms-to-continuum.  This package implements a
-:doc:`fix atc <fix_atc>` command to either couple molecular dynamics
-with continuum finite element equations or perform on-the-fly
-conversion of atomic information to continuum fields.
-
-**Authors:** Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia).
-
-**Install:**
-
-This package has :ref:`specific installation instructions <atc>` on the
-:doc:`Build extras <Build_extras>` page.  The ATC package requires that
-also the :ref:`MANYBODY <PKG-MANYBODY>` package is installed.
-
-**Supporting info:**
-
-* ``src/ATC``: filenames -> commands
-* ``src/ATC/README``
-* :doc:`fix atc <fix_atc>`
-* ``examples/PACKAGES/atc``
-* https://www.lammps.org/pictures.html#atc
-
-----------
-
-.. _PKG-AWPMD:
-
-AWPMD package
-------------------
-
-**Contents:**
-
-AWPMD stands for Antisymmetrized Wave Packet Molecular Dynamics.  This
-package implements an atom, pair, and fix style which allows electrons
-to be treated as explicit particles in a classical molecular dynamics
-model.
-
-**Author:** Ilya Valuev (JIHT, Russia).
-
-**Install:**
-
-This package has :ref:`specific installation instructions <awpmd>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* ``src/AWPMD``: filenames -> commands
-* ``src/AWPMD/README``
-* :doc:`pair_style awpmd/cut <pair_awpmd>`
-* ``examples/PACKAGES/awpmd``
 
 ----------
 
@@ -284,12 +291,46 @@ N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
 molecular liquids", J. Chem. Phys. 143, 243148 (2015).
 
-**Authors:** Nicholas J. H. Dunn and Michael R. DeLyser (The
-Pennsylvania State University)
+The package also includes a pair_style that flexibly defines interactions
+as a function of the local density and/or gradient of the local density
+around a central particle.  Its per-atom local-density data can be written
+out with :doc:`fix pair <fix_pair>` in a form that is compatible with the
+Bottom-up Open-source Coarse-graining Software (BOCS), an external
+coarse-graining package that can be used to parameterize such potentials
+from atomistic simulation data (see link below).
+
+The package is compatible with molecular topologies, allows the user to
+specify the length-scale and weighting functions for multiple types of
+local densities, and distinguishes asymmetric local density potentials.
+(e.g. distinct potentials can govern 1.) solute density around solvent
+molecules and 2.) solvent density around solute molecules)
+
+The local density potentials implemented define "local density" flexibly
+with different choices of indicator weighting functions and asymmetry in
+interactions as generically described in: Michael R. DeLyser
+and W. G. Noid (2019). "Analysis of local density potentials" The
+Journal of Chemical Physics 151, : 224106 DOI: 10.1063/1.5128665
+
+The square gradient potential implementation is described in:
+Michael R. DeLyser and W. G. Noid (2021) "Coarse-grained models for
+local density gradients" The Journal of Chemical Physics, 156, 034106
+DOI: 10.1063/5.0075291
+
+
+**Authors:**
+- Nicholas J. H. Dunn and Michael R. DeLyser (The Pennsylvania State University) for :doc:`fix bocs <fix_bocs>`
+-  Michael R. DeLyser, Maria Lesniewski and Will Noid (The Pennsylvania State University) for :doc:`pair_style ldd <pair_ldd>`
 
 **Supporting info:**
 
-The BOCS package for LAMMPS is part of the BOCS software package:
+* ``src/BOCS``: filenames -> commands
+* ``src/BOCS/README``
+* ``examples/PACKAGES/bocs``
+*  :doc:`fix bocs <fix_bocs>`
+* :doc:`Howto_ldd <Howto_ldd>`
+* :doc:`pair_style ldd <pair_ldd>`
+
+The BOCS package in LAMMPS is part of the BOCS software package:
 `https://github.com/noid-group/BOCS <https://github.com/noid-group/BOCS>`_
 
 See the following reference for information about the entire package:
@@ -362,14 +403,15 @@ BROWNIAN package
 
 **Contents:**
 
-This package provides :doc:`fix brownian, fix brownian/sphere, and
-fix brownian/asphere <fix_brownian>` as well as
-:doc:`fix propel/self <fix_propel_self>` which allow to do Brownian
-Dynamics time integration of point, spherical and aspherical particles
-and also support self-propelled particles.
+This package provides :doc:`fix brownian, fix brownian/sphere, and fix
+brownian/asphere <fix_brownian>` as well as :doc:`fix propel/self
+<fix_propel_self>` which allow performing Brownian Dynamics time
+integration of point, spherical and aspherical particles and also
+support self-propelled particles.
 
-**Authors:** Sam Cameron (University of Bristol),
-Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
+**Authors:** Sam Cameron (University of Bristol), Arthur Straube (Zuse
+Institute Berlin), Stefan Paquay (while at Brandeis University) (initial
+version of fix propel/self)
 
 .. versionadded:: 14May2021
 
@@ -402,9 +444,11 @@ and :ref:`ASPHERE <PKG-ASPHERE>` packages are installed.
 * ``src/CG-DNA/README``
 * :doc:`pair_style oxdna/\* <pair_oxdna>`
 * :doc:`pair_style oxdna2/\* <pair_oxdna2>`
+* :doc:`pair_style oxdna3/\* <pair_oxdna3>`
 * :doc:`pair_style oxrna2/\* <pair_oxrna2>`
 * :doc:`bond_style oxdna/\* <bond_oxdna>`
 * :doc:`bond_style oxdna2/\* <bond_oxdna>`
+* :doc:`bond_style oxdna3/\* <bond_oxdna>`
 * :doc:`bond_style oxrna2/\* <bond_oxdna>`
 * :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 * ``examples/PACKAGES/cgdna``
@@ -515,6 +559,7 @@ the :doc:`Build extras <Build_extras>` page.
 **Supporting info:**
 
 * ``src/COLVARS``: filenames -> commands
+* https://colvars.github.io/master/colvars-refman-lammps.html
 * `doc/PDF/colvars-refman-lammps.pdf <PDF/colvars-refman-lammps.pdf>`_
 * ``src/COLVARS/README``
 * ``lib/colvars/README``
@@ -727,7 +772,6 @@ algorithm.
 * :doc:`pair_style tdpd <pair_mesodpd>`
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
 * ``examples/PACKAGES/mesodpd``
-* https://www.lammps.org/movies.html#mesodpd
 
 ----------
 
@@ -1020,6 +1064,7 @@ package in ``tools/fep``; see its ``README`` file.
 * :doc:`fix adapt/fep <fix_adapt_fep>`
 * :doc:`compute fep <compute_fep>`
 * :doc:`pair_style \*/soft <pair_fep_soft>`
+* :doc:`pair_style coul/cut/soft/gapsys <pair_fep_soft>`
 * ``examples/PACKAGES/fep``
 * tools/fep/README
 * tools/fep
@@ -1060,12 +1105,45 @@ This package has :ref:`specific installation instructions <gpu>` on the
 * ``lib/gpu/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`GPU package <Speed_gpu>`
-* :doc:`Section 2.6 -sf gpu <Run_options>`
-* :doc:`Section 2.6 -pk gpu <Run_options>`
+* :doc:`Section 4.2 -sf gpu <Run_options>`
+* :doc:`Section 4.2 -pk gpu <Run_options>`
 * :doc:`package gpu <package>`
 * :doc:`Commands <Commands_all>` pages (:doc:`pair <Commands_pair>`, :doc:`kspace <Commands_kspace>`)
   for styles followed by (g)
 * `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
+
+----------
+
+.. _PKG-GRAPHICS:
+
+GRAPHICS package
+----------------
+
+**Contents:**
+
+Dump styles :doc:`image and movie <dump_image>`, supporting classes for
+rendering images and fonts, several fixes for adding graphics objects to
+visualizations, and the region2vmd command for exporting visualizations
+of regions as scripted graphics in VMD.
+
+**Supporting info:**
+
+* ``src/GRAPHICS``: filenames -> commands
+* :doc:`Howto_viz`
+* :doc:`dump image <dump_image>`
+* :doc:`dump movie <dump_image>`
+* :doc:`fix graphics/arrows <fix_graphics_arrows>`
+* :doc:`fix graphics/isosurface <fix_graphics_isosurface>`
+* :doc:`fix graphics/labels <fix_graphics_labels>`,
+* :doc:`fix graphics/lines <fix_graphics_lines>`,
+* :doc:`fix graphics/objects <fix_graphics_objects>`,
+* :doc:`fix graphics/periodic <fix_graphics_periodic>`,
+* :doc:`region2vmd <region2vmd>`
+* https://www.youtube.com/watch?v=9HEsGaOsdik
+* https://www.youtube.com/watch?v=f4hfPs7aCmI
+* https://www.youtube.com/shorts/1QEjIITapwQ
+* https://www.youtube.com/shorts/OYn_VVodnIg
+* https://www.youtube.com/shorts/4Cm5p0SfgNU
 
 ----------
 
@@ -1112,7 +1190,7 @@ H5MD is a format for molecular simulations, built on top of HDF5.
 This package implements a :doc:`dump h5md <dump_h5md>` command to output
 LAMMPS snapshots in this format.
 
-.. _HDF5: https://www.hdfgroup.org/solutions/hdf5
+.. _HDF5: https://www.hdfgroup.org/solutions/hdf5/
 
 To use this package you must have the HDF5 library available on your
 system.
@@ -1141,7 +1219,7 @@ INTEL package
 **Contents:**
 
 Dozens of pair, fix, bond, angle, dihedral, improper, and kspace styles
-which are optimized for Intel CPUs and KNLs (Knights Landing).  All of
+which are optimized for Intel CPUs.  All of
 them have an "intel" in their style name.  The :doc:`INTEL package
 <Speed_intel>` page gives details of what hardware and compilers are
 required on your system, and how to build and use this package.  Its
@@ -1171,8 +1249,8 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
 * ``src/INTEL/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`INTEL package <Speed_intel>`
-* :doc:`Section 2.6 -sf intel <Run_options>`
-* :doc:`Section 2.6 -pk intel <Run_options>`
+* :doc:`Section 4.2 -sf intel <Run_options>`
+* :doc:`Section 4.2 -pk intel <Run_options>`
 * :doc:`package intel <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
@@ -1283,12 +1361,12 @@ Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`, :ref:`INTEL
 <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which have styles
 optimized for CPUs, KNLs, and GPUs.
 
-You must have a C++17 compatible compiler to use this package.
-KOKKOS makes extensive use of advanced C++ features, which can
-expose compiler bugs, especially when compiling for maximum
-performance at high optimization levels. Please see the file
-``lib/kokkos/README`` for a list of compilers and their respective
-platforms, that are known to work.
+You must have a C++20 compatible compiler to use this package.  KOKKOS
+makes extensive use of advanced C++ features, which can expose compiler
+bugs, especially when compiling for maximum performance at high
+optimization levels.  Please see the file ``lib/kokkos/README`` for a
+list of compilers and their respective platforms, that are known to
+work.
 
 **Authors:** The KOKKOS package was created primarily by Christian Trott
 and Stan Moore (Sandia), with contributions from other folks as well.
@@ -1308,9 +1386,9 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * ``lib/kokkos/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`KOKKOS package <Speed_kokkos>`
-* :doc:`Section 2.6 -k on ... <Run_options>`
-* :doc:`Section 2.6 -sf kk <Run_options>`
-* :doc:`Section 2.6 -pk kokkos <Run_options>`
+* :doc:`Section 4.2 -k on ... <Run_options>`
+* :doc:`Section 4.2 -sf kk <Run_options>`
+* :doc:`Section 4.2 -pk kokkos <Run_options>`
 * :doc:`package kokkos <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
@@ -1370,7 +1448,8 @@ Ontario).
 
 **Install:**
 
-The LATBOLTZ package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
+The LATBOLTZ package requires that LAMMPS is built in :ref:`MPI parallel
+mode <serial>`.
 
 **Supporting info:**
 
@@ -1457,7 +1536,6 @@ This package has :ref:`specific installation instructions <machdyn>` on the :doc
 * ``src/MACHDYN/README``
 * `doc/PDF/MACHDYN_LAMMPS_userguide.pdf <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
 * ``examples/PACKAGES/machdyn``
-* https://www.lammps.org/movies.html#smd
 
 ----------
 
@@ -1516,6 +1594,39 @@ A variety of many-body and bond-order potentials.  These include
 
 ----------
 
+.. _PKG-MBX:
+
+MBX Package
+-----------
+
+**Contents**
+
+The pair_style mbx command implements the MBX library for MB-pol and
+MB-nrg data-driven many-body potential energy functions. MBX is called
+using :doc:`pair_style mbx <pair_mbx>` command, which allows for MB-nrg
+potentials such as MB-pol to be used in LAMMPS.  For more information on
+MBX, see the `MBX library <https://mbxsimulations.com>`_ website.
+
+**Authors:** The `MBX library <https://mbxsimulations.com>`_ is
+developed by the Paesani group at the University of California, San
+Diego. Major contributors include: Marc Riera, Christopher Knight, Ethan
+Bull-Vulpe, and Henry Agnew.
+
+.. versionadded:: 11Feb2026
+
+**Install:**
+
+This package has :ref:`specific installation instructions <mbx>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* ``src/MBX``: filenames -> commands
+* :doc:`pair_style mbx <pair_mbx>`
+* https://mbxsimulations.com/
+
+----------
+
 .. _PKG-MC:
 
 MC package
@@ -1526,8 +1637,8 @@ MC package
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand canonical
-MC (GCMC), semi-grand canonical MC (SGCMC), or similar processes in
-conjunction with molecular dynamics (MD).
+MC (GCMC), semi-grand canonical MC (SGCMC), Gibbs ensemble MC (GEMC)
+or similar processes in conjunction with molecular dynamics (MD).
 
 **Supporting info:**
 
@@ -1539,6 +1650,10 @@ conjunction with molecular dynamics (MD).
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix gemc <fix_gemc>`
+* :doc:`fix hmc <fix_hmc>`
+* :doc:`fix mol/swap <fix_mol_swap>`
+* :doc:`fix neighbor/swap <fix_neighbor_swap>`
 * :doc:`fix sgcmc <fix_sgcmc>`
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`
@@ -1557,7 +1672,7 @@ MDI package
 A LAMMPS command and fixes to allow client-server coupling of LAMMPS
 to other atomic or molecular simulation codes or materials modeling
 workflows via the `MolSSI Driver Interface
-(MDI) library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
+(MDI) library <https://molssi-mdi.github.io/MDI_Library/>`_.
 
 **Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
 
@@ -1725,10 +1840,10 @@ ML-HDNNP package
 
 **Contents:**
 
-A :doc:`pair_style hdnnp <pair_hdnnp>` command which allows to use
-high-dimensional neural network potentials (HDNNPs), a form of machine learning
-potentials. HDNNPs must be carefully trained prior to their application in a
-molecular dynamics simulation.
+A :doc:`pair_style hdnnp <pair_hdnnp>` command which allows the use of
+high-dimensional neural network potentials (HDNNPs), a form of machine
+learning potentials.  HDNNPs must be carefully trained prior to their
+application in a molecular dynamics simulation.
 
 .. _n2p2: https://github.com/CompPhysVienna/n2p2
 
@@ -1751,6 +1866,38 @@ This package has :ref:`specific installation instructions <ml-hdnnp>` on the
 * ``lib/hdnnp/README``
 * :doc:`pair_style hdnnp <pair_hdnnp>`
 * ``examples/PACKAGES/hdnnp``
+
+----------
+
+.. _PKG-ML-RUNNER:
+
+ML-RUNNER package
+------------------
+**Contents:**
+A :doc:`pair_style runner <pair_runner>` command for the efficient evaluation of
+second-, third-, and fourth-generation high-dimensional neural network
+potentials (HDNNPs).
+
+.. _runner: https://www.theochem2.ruhr-uni-bochum.de/tc/software/runner.html.en
+
+To use this package you must have the `RuNNer <runner_>`_ library compiled on
+your system.
+
+**Authors:** K. Nikolas Lausch, Alexander L. M. Knoll, Moritz R. Schaefer,
+             Gunnar Schmitz, Joerg Behler (Ruhr-University Bochum)
+
+**Install:**
+
+This package has :ref:`specific installation instructions <ml-runner>` on the
+:doc:`Build extras <Build_extras>` page.
+
+.. versionadded:: TBD
+
+**Supporting info:**
+
+* ``src/ML-RUNNER``: filenames -> commands
+* :doc:`pair_style runner <pair_runner>`
+* ``examples/PACKAGES/ml-runner`` (see README.txt)
 
 ----------
 
@@ -2070,7 +2217,7 @@ support for new file formats can be added to LAMMPS (or VMD or other
 programs that use them) without having to re-compile the application
 itself.  More information about the VMD molfile plugins can be found
 at
-`https://www.ks.uiuc.edu/Research/vmd/plugins/molfile <https://www.ks.uiuc.edu/Research/vmd/plugins/molfile>`_.
+`https://www.ks.uiuc.edu/Research/vmd/plugins/molfile <https://www.ks.uiuc.edu/Research/vmd/plugins/molfile/>`_.
 
 **Author:** Axel Kohlmeyer (Temple U).
 
@@ -2210,7 +2357,7 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * ``src/OPT``: filenames -> commands
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`OPT package <Speed_opt>`
-* :doc:`Section 2.6 -sf opt <Run_options>`
+* :doc:`Section 4.2 -sf opt <Run_options>`
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
 * `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
@@ -2261,7 +2408,7 @@ Foster (UTSA).
 * :doc:`compute damage/atom <compute_damage_atom>`
 * :doc:`compute plasticity/atom <compute_plasticity_atom>`
 * ``examples/peri``
-* https://www.lammps.org/movies.html#peri
+* https://www.lammps.org/movies.html#impact
 
 ----------
 
@@ -2356,35 +2503,6 @@ as a plugin to avoid licensing conflicts when distributing binaries.
 * ``lib/plumed/README``
 * :doc:`fix plumed <fix_plumed>`
 * ``examples/PACKAGES/plumed``
-
-----------
-
-.. _PKG-POEMS:
-
-POEMS package
--------------
-
-**Contents:**
-
-A fix that wraps the Parallelizable Open source Efficient Multibody
-Software (POEMS) library, which is able to simulate the dynamics of
-articulated body systems.  These are systems with multiple rigid
-bodies (collections of particles) whose motion is coupled by
-connections at hinge points.
-
-**Author:** Rudra Mukherjee (JPL) while at RPI.
-
-**Install:**
-
-This package has :ref:`specific installation instructions <poems>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* ``src/POEMS``: filenames -> commands
-* ``src/POEMS/README``
-* ``lib/poems/README``
-* :doc:`fix poems <fix_poems>`
-* ``examples/rigid``
 
 ----------
 
@@ -2702,24 +2820,26 @@ SCAFACOS package
 
 **Contents:**
 
-A KSpace style which wraps the `ScaFaCoS Coulomb solver library <http://www.scafacos.de>`_ to compute long-range Coulombic
+A KSpace style which wraps the `ScaFaCoS Coulomb solver library
+<http://www.scafacos.de/>`_ to compute long-range Coulombic
 interactions.
 
-To use this package you must have the ScaFaCoS library available on
-your system.
+To use this package you must have the ScaFaCoS library available on your
+system.
 
 **Author:** Rene Halver (JSC) wrote the scafacos LAMMPS command.
 
 ScaFaCoS itself was developed by a consortium of German research
-facilities with a BMBF (German Ministry of Science and Education)
-funded project in 2009-2012. Participants of the consortium were the
-Universities of Bonn, Chemnitz, Stuttgart, and Wuppertal as well as
-the Forschungszentrum Juelich.
+facilities with a BMBF (German Ministry of Science and Education) funded
+project in 2009-2012. Participants of the consortium were the
+Universities of Bonn, Chemnitz, Stuttgart, and Wuppertal as well as the
+Forschungszentrum Juelich.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <scafacos>` on the :doc:`Build extras <Build_extras>` page.
-The SCAFACOS package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
+This package has :ref:`specific installation instructions <scafacos>` on
+the :doc:`Build extras <Build_extras>` page.  The SCAFACOS package
+requires that LAMMPS is built in :ref:`MPI parallel mode <serial>`.
 
 **Supporting info:**
 
@@ -2938,7 +3058,7 @@ VORONOI package
 A compute command which calculates the Voronoi tesselation of a
 collection of atoms by wrapping the `Voro++ library
 <https://math.lbl.gov/voro++/>`_.  This can be used to calculate the
-local volume or each atoms or its near neighbors.
+local volume of atoms or their near neighbors.
 
 To use this package you must have the Voro++ library available on your
 system.
@@ -2972,7 +3092,7 @@ A :doc:`dump vtk <dump_vtk>` command which outputs snapshot info in the
 `VTK format <vtk_>`_, enabling visualization by `Paraview <paraview_>`_ or
 other visualization packages.
 
-.. _vtk: https://www.vtk.org
+.. _vtk: https://vtk.org
 
 .. _paraview: https://www.paraview.org
 
@@ -3011,7 +3131,7 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 
 .. _vanduyfhuys2015: https://doi.org/10.1002/jcc.23877
 .. _vanduyfhuys2018: https://doi.org/10.1002/jcc.25173
-.. _quickff: https://molmod.github.io/QuickFF
+.. _quickff: https://molmod.github.io/QuickFF/
 .. _yaff: https://github.com/molmod/yaff
 
 **Author:** Steven Vandenbrande.

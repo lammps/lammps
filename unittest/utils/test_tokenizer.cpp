@@ -17,7 +17,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <cstdint>
+#include <cfloat>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using ::testing::Eq;
@@ -159,7 +162,7 @@ TEST(Tokenizer, unix_paths)
 
 TEST(Tokenizer, windows_paths)
 {
-    Tokenizer t("c:\\one;\\two\\three;d:four;", ";");
+    Tokenizer t(R"(c:\one;\two\three;d:four;)", ";");
     ASSERT_EQ(t.count(), 3);
     ASSERT_THAT(t.next(), Eq("c:\\one"));
     ASSERT_EQ(t.has_next(), true);

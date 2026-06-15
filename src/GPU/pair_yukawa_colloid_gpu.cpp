@@ -41,7 +41,8 @@ int **ykcolloid_gpu_compute_n(const int ago, const int inum_full, const int nall
                               int *host_type, double *sublo, double *subhi, tagint *tag,
                               int **nspecial, tagint **special, const bool eflag, const bool vflag,
                               const bool eatom, const bool vatom, int &host_start, int **ilist,
-                              int **jnum, const double cpu_time, bool &success, double *host_rad);
+                              int **jnum, const double cpu_time, bool &success, double *host_rad, double *prd,
+                              int *periodicity);
 void ykcolloid_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                            int *host_type, int *ilist, int *numj, int **firstneigh,
                            const bool eflag, const bool vflag, const bool eatom, const bool vatom,
@@ -96,7 +97,8 @@ void PairYukawaColloidGPU::compute(int eflag, int vflag)
     firstneigh = ykcolloid_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo,
                                          subhi, atom->tag, atom->nspecial, atom->special, eflag,
                                          vflag, eflag_atom, vflag_atom, host_start, &ilist,
-                                         &numneigh, cpu_time, success, atom->radius);
+                                         &numneigh, cpu_time, success, atom->radius,
+                                         domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;

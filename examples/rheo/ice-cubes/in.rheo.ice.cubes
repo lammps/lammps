@@ -62,8 +62,8 @@ fix             4 all rheo/thermal conductivity * constant ${kappa} &
                                    latent/heat * constant ${L} &
                                    react 1.5 1
 fix             5 all wall/region wall harmonic 1.0 1.0 1.0
-fix             6 all gravity 5e-4 vector 0 -1 0
-fix             7 all deposit 8 0 1000 37241459 mol my_mol region drop near 2.0 vy -0.02 -0.02
+fix             6 all gravity 2e-4 vector 0 -1 0
+fix             7 all deposit 8 0 1500 37241459 mol my_mol region drop near 2.0 vy -0.02 -0.02
 fix             8 all enforce2d
 
 compute         rho all rheo/property/atom rho

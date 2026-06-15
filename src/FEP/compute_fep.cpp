@@ -220,7 +220,7 @@ void ComputeFEP::init()
 
       if ((strcmp(force->pair_style, "hybrid") == 0 ||
            strcmp(force->pair_style, "hybrid/overlay") == 0)) {
-        auto pair = dynamic_cast<PairHybrid *>(force->pair);
+        auto *pair = dynamic_cast<PairHybrid *>(force->pair);
         for (i = pert->ilo; i <= pert->ihi; i++)
           for (j = MAX(pert->jlo, i); j <= pert->jhi; j++)
             if (!pair->check_ijtype(i, j, pert->pstyle))
@@ -268,8 +268,9 @@ void ComputeFEP::compute_vector()
 {
   double pe0, pe1;
 
-  eflag = 1;
-  vflag = 0;
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   invoked_vector = update->ntimestep;
 

@@ -872,7 +872,7 @@ void TAD::compute_tlo(int ievent)
 
   // update first event
 
-  auto  statstr = (char *) "D ";
+  auto *  statstr = (char *) "D ";
 
   if (ievent == 0) {
     deltfirst = deltlo;

@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairLJPirani : public Pair {
  public:
   PairLJPirani(class LAMMPS *);
-  virtual ~PairLJPirani() override;
+  ~PairLJPirani() override;
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;

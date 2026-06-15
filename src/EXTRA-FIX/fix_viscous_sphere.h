@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class FixViscousSphere : public Fix {
  public:
   FixViscousSphere(class LAMMPS *, int, char **);
-  virtual ~FixViscousSphere();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double memory_usage();
+  ~FixViscousSphere() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double memory_usage() override;
 
  protected:
   double gamma, *scalegamma, *scaleval;

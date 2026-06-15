@@ -11,12 +11,13 @@
 #   See the README file in the top-level LAMMPS directory.
 # -------------------------------------------------------------------------
 
-################################################################################
-# NumPy additions
-# Written by Richard Berger <richard.berger@temple.edu>
-################################################################################
+"""
+NumPy additions to the LAMMPS Python module
+Written by Richard Berger <richard.berger@outlook.com>
+"""
 
 from ctypes import POINTER, c_void_p, c_char_p, c_double, c_int, c_int32, c_int64, cast
+import numpy as np
 
 from .constants import  LAMMPS_AUTODETECT, LAMMPS_INT, LAMMPS_INT_2D, LAMMPS_DOUBLE, \
   LAMMPS_DOUBLE_2D, LAMMPS_INT64, LAMMPS_INT64_2D, LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, \
@@ -26,6 +27,7 @@ from .constants import  LAMMPS_AUTODETECT, LAMMPS_INT, LAMMPS_INT_2D, LAMMPS_DOU
 from .data import NeighList
 
 class numpy_wrapper:
+  # pylint: disable=C0103
   """lammps API NumPy Wrapper
 
   This is a wrapper class that provides additional methods on top of an
@@ -46,10 +48,9 @@ class numpy_wrapper:
   # -------------------------------------------------------------------------
 
   def _ctype_to_numpy_int(self, ctype_int):
-    import numpy as np
     if ctype_int == c_int32:
       return np.int32
-    elif ctype_int == c_int64:
+    if ctype_int == c_int64:
       return np.int64
     return np.intc
 
@@ -102,9 +103,9 @@ class numpy_wrapper:
 
     if dtype in (LAMMPS_DOUBLE, LAMMPS_DOUBLE_2D):
       return self.darray(raw_ptr, nelem, dim)
-    elif dtype in (LAMMPS_INT, LAMMPS_INT_2D):
+    if dtype in (LAMMPS_INT, LAMMPS_INT_2D):
       return self.iarray(c_int32, raw_ptr, nelem, dim)
-    elif dtype in (LAMMPS_INT64, LAMMPS_INT64_2D):
+    if dtype in (LAMMPS_INT64, LAMMPS_INT64_2D):
       return self.iarray(c_int64, raw_ptr, nelem, dim)
     return raw_ptr
 
@@ -133,7 +134,7 @@ class numpy_wrapper:
       if ctype == LMP_TYPE_VECTOR:
         nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_VECTOR)
         return self.darray(value, nrows)
-      elif ctype == LMP_TYPE_ARRAY:
+      if ctype == LMP_TYPE_ARRAY:
         nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_ROWS)
         ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
         return self.darray(value, nrows, ncols)
@@ -142,13 +143,12 @@ class numpy_wrapper:
       ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
       if ncols == 0:
         return self.darray(value, nrows)
-      else:
-        return self.darray(value, nrows, ncols)
+      return self.darray(value, nrows, ncols)
     elif cstyle == LMP_STYLE_ATOM:
       if ctype == LMP_TYPE_VECTOR:
         nlocal = self.lmp.extract_global("nlocal")
         return self.darray(value, nlocal)
-      elif ctype == LMP_TYPE_ARRAY:
+      if ctype == LMP_TYPE_ARRAY:
         nlocal = self.lmp.extract_global("nlocal")
         ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
         return self.darray(value, nlocal, ncols)
@@ -189,7 +189,7 @@ class numpy_wrapper:
       if ftype == LMP_TYPE_VECTOR:
         nlocal = self.lmp.extract_global("nlocal")
         return self.darray(value, nlocal)
-      elif ftype == LMP_TYPE_ARRAY:
+      if ftype == LMP_TYPE_ARRAY:
         nlocal = self.lmp.extract_global("nlocal")
         ncols = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_COLS, 0, 0)
         return self.darray(value, nlocal, ncols)
@@ -197,7 +197,7 @@ class numpy_wrapper:
       if ftype == LMP_TYPE_VECTOR:
         nrows = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_ROWS, 0, 0)
         return self.darray(value, nrows)
-      elif ftype == LMP_TYPE_ARRAY:
+      if ftype == LMP_TYPE_ARRAY:
         nrows = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_ROWS, 0, 0)
         ncols = self.lmp.extract_fix(fid, fstyle, LMP_SIZE_COLS, 0, 0)
         return self.darray(value, nrows, ncols)
@@ -222,7 +222,6 @@ class numpy_wrapper:
     :return: the requested data or None
     :rtype: c_double, numpy.array, or NoneType
     """
-    import numpy as np
     value = self.lmp.extract_variable(name, group, vartype)
     if vartype == LMP_VAR_ATOM:
       return np.ctypeslib.as_array(value)
@@ -242,7 +241,6 @@ class numpy_wrapper:
     :return: the requested data as a 2d-integer numpy array
     :rtype: numpy.array(nbonds,3)
     """
-    import numpy as np
     nbonds, value = self.lmp.gather_bonds()
     return np.ctypeslib.as_array(value).reshape(nbonds,3)
 
@@ -260,7 +258,6 @@ class numpy_wrapper:
     :return: the requested data as a 2d-integer numpy array
     :rtype: numpy.array(nangles,4)
     """
-    import numpy as np
     nangles, value = self.lmp.gather_angles()
     return np.ctypeslib.as_array(value).reshape(nangles,4)
 
@@ -278,7 +275,6 @@ class numpy_wrapper:
     :return: the requested data as a 2d-integer numpy array
     :rtype: numpy.array(ndihedrals,5)
     """
-    import numpy as np
     ndihedrals, value = self.lmp.gather_dihedrals()
     return np.ctypeslib.as_array(value).reshape(ndihedrals,5)
 
@@ -296,7 +292,6 @@ class numpy_wrapper:
     :return: the requested data as a 2d-integer numpy array
     :rtype: numpy.array(nimpropers,5)
     """
-    import numpy as np
     nimpropers, value = self.lmp.gather_impropers()
     return np.ctypeslib.as_array(value).reshape(nimpropers,5)
 
@@ -317,7 +312,6 @@ class numpy_wrapper:
     :return: requested data
     :rtype: numpy.array
     """
-    import numpy as np
     nlocal = self.lmp.extract_setting('nlocal')
     value = self.lmp.fix_external_get_force(fix_id)
     return self.darray(value,nlocal,3)
@@ -339,10 +333,9 @@ class numpy_wrapper:
     :param eatom:   per-atom potential energy
     :type: numpy.array
     """
-    import numpy as np
     nlocal = self.lmp.extract_setting('nlocal')
     if len(eatom) < nlocal:
-      raise Exception('per-atom energy dimension must be at least nlocal')
+      raise RuntimeError('per-atom energy dimension must be at least nlocal')
 
     c_double_p = POINTER(c_double)
     value = eatom.astype(np.double)
@@ -366,12 +359,11 @@ class numpy_wrapper:
     :param eatom:   per-atom potential energy
     :type: numpy.array
     """
-    import numpy as np
     nlocal = self.lmp.extract_setting('nlocal')
     if len(vatom) < nlocal:
-      raise Exception('per-atom virial first dimension must be at least nlocal')
+      raise RuntimeError('per-atom virial first dimension must be at least nlocal')
     if len(vatom[0]) != 6:
-      raise Exception('per-atom virial second dimension must be 6')
+      raise RuntimeError('per-atom virial second dimension must be 6')
 
     c_double_pp = np.ctypeslib.ndpointer(dtype=np.uintp, ndim=1, flags='C')
 
@@ -395,7 +387,7 @@ class numpy_wrapper:
     :rtype:  NumPyNeighList
     """
     if idx < 0:
-        return None
+      return None
     return NumPyNeighList(self.lmp, idx)
 
   # -------------------------------------------------------------------------
@@ -422,8 +414,23 @@ class numpy_wrapper:
   # -------------------------------------------------------------------------
 
   def iarray(self, c_int_type, raw_ptr, nelem, dim=1):
+    """Convert ctypes pointer to an array of integers into a corresponding numpy array
+
+    This will cast the raw pointer into a 1-d or 2-d numpy array and set its shape
+
+    :param c_int_type: type of integer (c_int32 or c_int64)
+    :type: ctypes type
+    :param raw_ptr: ctypes pointer to the array data
+    :type: POINTER(c_int_type)
+    :param nelem: length of the leading dimension
+    :type: integer
+    :param dim: length of the second dimension
+    :type: integer, optional
+    :return: ctypes array converted to numpy style array with proper shape
+    :rtype: numpy.array
+    """
+
     if raw_ptr and nelem >= 0 and dim >= 0:
-      import numpy as np
       np_int_type = self._ctype_to_numpy_int(c_int_type)
       ptr = None
 
@@ -438,17 +445,28 @@ class numpy_wrapper:
         a = np.empty(0, dtype=np_int_type)
 
       if dim > 1:
-        a.shape = (nelem, dim)
-      else:
-        a.shape = (nelem)
-      return a
+        return np.reshape(a, (nelem, dim))
+
+      return np.reshape(a, nelem)
     return None
 
   # -------------------------------------------------------------------------
 
   def darray(self, raw_ptr, nelem, dim=1):
+    """Convert ctypes pointer to an array of doubles into a corresponding numpy array
+
+    This will cast the raw pointer into a 1-d or 2-d numpy array and set its shape
+
+    :param raw_ptr: ctypes pointer to the array data
+    :type: POINTER(c_double)
+    :param nelem: length of the leading dimension
+    :type: integer
+    :param dim: length of the second dimension
+    :type: integer, optional
+    :return: ctypes array converted to numpy style array with proper shape
+    :rtype: numpy.array
+    """
     if raw_ptr and nelem >= 0 and dim >= 0:
-      import numpy as np
       ptr = None
 
       if dim == 1:
@@ -462,53 +480,54 @@ class numpy_wrapper:
         a = np.empty(0, c_double)
 
       if dim > 1:
-        a.shape = (nelem, dim)
-      else:
-        a.shape = (nelem)
-      return a
+        return np.reshape(a, (nelem, dim))
+
+      return np.reshape(a, nelem)
     return None
 
 # -------------------------------------------------------------------------
 
 class NumPyNeighList(NeighList):
-    """This is a wrapper class that exposes the contents of a neighbor list.
+  """This is a wrapper class that exposes the contents of a neighbor list.
 
-    It can be used like a regular Python list. Each element is a tuple of:
+  It can be used like a regular Python list. Each element is a tuple of:
 
-    * the atom local index
-    * a NumPy array containing the local atom indices of its neighbors
+  * the atom local index
+  * a NumPy array containing the local atom indices of its neighbors
 
-    Internally it uses the lower-level LAMMPS C-library interface.
+  Internally it uses the lower-level LAMMPS C-library interface.
 
-    :param lmp: reference to instance of :py:class:`lammps`
-    :type  lmp: lammps
-    :param idx: neighbor list index
-    :type  idx: int
+  :param lmp: reference to instance of :py:class:`lammps`
+  :type  lmp: lammps
+  :param idx: neighbor list index
+  :type  idx: int
+  """
+  def get(self, element):
     """
-    def __init__(self, lmp, idx):
-      super(NumPyNeighList, self).__init__(lmp, idx)
+    Access a specific neighbor list entry. "element" must be a number from 0 to the size-1 of the list
 
-    def get(self, element):
-        """
-        Access a specific neighbor list entry. "element" must be a number from 0 to the size-1 of the list
+    :return: tuple with atom local index, numpy array of neighbor local atom indices
+    :rtype:  (int, numpy.array)
+    """
+    iatom, neighbors = self.lmp.numpy.get_neighlist_element_neighbors(self.idx, element)
+    return iatom, neighbors
 
-        :return: tuple with atom local index, numpy array of neighbor local atom indices
-        :rtype:  (int, numpy.array)
-        """
-        iatom, neighbors = self.lmp.numpy.get_neighlist_element_neighbors(self.idx, element)
-        return iatom, neighbors
+  def find(self, iatom):
+    """
+    Find the neighbor list for a specific (local) atom iatom.
+    If there is no list for iatom, None is returned.
 
-    def find(self, iatom):
-        """
-        Find the neighbor list for a specific (local) atom iatom.
-        If there is no list for iatom, None is returned.
+    :return: numpy array of neighbor local atom indices
+    :rtype:  numpy.array or None
+    """
+    inum = self.size
+    for ii in range(inum):
+      idx, neighbors = self.get(ii)
+      if idx == iatom:
+        return neighbors
+    return None
 
-        :return: numpy array of neighbor local atom indices
-        :rtype:  numpy.array or None
-        """
-        inum = self.size
-        for ii in range(inum):
-          idx, neighbors = self.get(ii)
-          if idx == iatom:
-            return neighbors
-        return None
+# Local Variables:
+# fill-column: 100
+# python-indent-offset: 2
+# End:

@@ -23,6 +23,8 @@
 #include "memory.h"
 #include "modify.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 // peratom variables that are auto-included in corresponding child style field lists

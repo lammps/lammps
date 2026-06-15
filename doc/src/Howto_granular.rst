@@ -1,27 +1,32 @@
 Granular models
 ===============
 
-Granular system are composed of spherical particles with a diameter,
+Granular systems are typically composed of spherical particles with a diameter,
 as opposed to point particles.  This means they have an angular
 velocity and torque can be imparted to them to cause them to rotate.
 
-To run a simulation of a granular model, you will want to use
+To run a simulation of a granular model, you will typically want to use
 the following commands:
 
 * :doc:`atom_style sphere <atom_style>`
 * :doc:`fix nve/sphere <fix_nve_sphere>`
 * :doc:`fix gravity <fix_gravity>`
 
+Aspherical granular particles can be simulated by creating clusters of spherical
+particles using either the :doc:`rigid <fix_rigid>` or :doc:`BPM <Howto_bpm>`
+package or by using :doc:`superellipsoids <pair_granular_superellipsoid>`.
+
 This compute
 
 * :doc:`compute erotate/sphere <compute_erotate_sphere>`
 
-calculates rotational kinetic energy which can be :doc:`output with thermodynamic info <Howto_output>`.
-The compute
+calculates rotational kinetic energy which can be :doc:`output with
+thermodynamic info <Howto_output>`.  The compute
 
 * :doc:`compute fabric <compute_fabric>`
 
-calculates various versions of the fabric tensor for granular and non-granular pair styles.
+calculates various versions of the fabric tensor for granular and
+non-granular pair styles.
 
 Use one of these 4 pair potentials, which compute forces and torques
 between interacting pairs of particles:

@@ -26,7 +26,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_peri_package[] =
-    "PERI package for Peridynamics: doi:10.1016/j.cpc.2008.06.011\n\n"
+    "PERI package for Peridynamics: https://doi.org/10.1016/j.cpc.2008.06.011\n\n"
     "@Article{Parks08,\n"
     " author = {M. L. Parks and R. B. Lehoucq and S. J. Plimpton and S. A. Silling},\n"
     " title = {Implementing Peridynamics Within a Molecular Dynamics Code},\n"
@@ -88,7 +88,7 @@ void AtomVecPeri::grow_pointers()
 
 void AtomVecPeri::create_atom_post(int ilocal)
 {
-  const auto xinit = atom->x;
+  auto *const xinit = atom->x;
   vfrac[ilocal] = 1.0;
   rmass[ilocal] = 1.0;
   s0[ilocal] = DBL_MAX;
@@ -104,7 +104,7 @@ void AtomVecPeri::create_atom_post(int ilocal)
 
 void AtomVecPeri::data_atom_post(int ilocal)
 {
-  const auto xinit = atom->x;
+  auto *const xinit = atom->x;
   s0[ilocal] = DBL_MAX;
   x0[ilocal][0] = xinit[ilocal][0];
   x0[ilocal][1] = xinit[ilocal][1];

@@ -61,20 +61,20 @@
 #else  // not DEBUG
 
 // void macros for performance reasons
-#define CU_SAFE_CALL_NS( call ) call
-#define CU_SAFE_CALL( call) call
+#define CU_SAFE_CALL_NS(call) (void)call
+#define CU_SAFE_CALL(call) (void)call
 
 #endif
 
 #ifdef UCL_DESTRUCT_CHECK
 
-#define CU_DESTRUCT_CALL( call) CU_SAFE_CALL( call)
-#define CU_DESTRUCT_CALL_NS( call) CU_SAFE_CALL_NS( call)
+#define CU_DESTRUCT_CALL(call) CU_SAFE_CALL(call)
+#define CU_DESTRUCT_CALL_NS(call) CU_SAFE_CALL_NS(call)
 
 #else
 
-#define CU_DESTRUCT_CALL( call) call
-#define CU_DESTRUCT_CALL_NS( call) call
+#define CU_DESTRUCT_CALL(call) (void)call
+#define CU_DESTRUCT_CALL_NS(call) (void)call
 
 #endif
 

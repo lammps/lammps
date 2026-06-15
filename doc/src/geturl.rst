@@ -12,13 +12,14 @@ Syntax
 
 * url = URL of the file to download
 * zero or more keyword argument pairs may be provided
-* keyword = *output* or *verify* or *overwrite* or *verbose*
+* keyword = *output* or *overwrite* or *timeout* or *verify* or *verbose*
 
   .. parsed-literal::
 
      *output* filename = write to *filename* instead of inferring the name from the URL
-     *verify* yes/no = verify SSL certificate and hostname if *yes*, do not if *no*
      *overwrite* yes/no = if *yes* overwrite the output file in case it exists, do not if *no*
+     *timeout* time = stop download if not completed within given time in seconds
+     *verify* yes/no = verify SSL certificate and hostname if *yes*, do not if *no*
      *verbose* yes/no = if *yes* write verbose debug output from libcurl to screen, do not if *no*
 
 Examples
@@ -35,21 +36,26 @@ Description
 .. versionadded:: 29Aug2024
 
 Download a file from an URL to the local disk. This is implemented with
-the `libcurl library <https:://curl.se/libcurl/>`_ which supports a
+the `libcurl library <https://curl.se/libcurl/>`_ which supports a
 large variety of protocols including "http", "https", "ftp", "scp",
 "sftp", "file".  The transfer will only be performed on MPI rank 0.
 
 The *output* keyword can be used to set the filename. By default, the last part
 of the URL is used.
 
+The *overwrite* keyword determines whether a file should be overwritten if it
+already exists.  If the argument is *no*, then the download will be skipped
+if the file exists.
+
+The *timeout* keyword can be used to modify the timeout for downloads in
+seconds.  After the timeout, the download will stop, even if incomplete.
+The default time value is 300, i.e. 5 minutes.  Setting the timeout to 0
+means to wait forever.
+
 The *verify* keyword determines whether ``libcurl`` will validate the
 SSL certificate and hostname for encrypted connections.  Turning this
 off may be required when using a proxy or connecting to a server with a
 self-signed SSL certificate.
-
-The *overwrite* keyword determines whether a file should be overwritten if it
-already exists.  If the argument is *no*, then the download will be skipped
-if the file exists.
 
 The *verbose* keyword determines whether a detailed protocol of the steps
 performed by libcurl is written to the screen.  Using the argument *yes*
@@ -63,7 +69,7 @@ failure.
 .. admonition:: Using *geturl* with proxies for http or https
    :class: note
 
-   The `libcurl library <https:://curl.se/libcurl/>`_ supports `routing
+   The `libcurl library <https://curl.se/libcurl/>`_ supports `routing
    traffic through proxies
    <https://everything.curl.dev/usingcurl/proxies/env.html>`_ by setting
    suitable environment variables (e.g. ``http_proxy`` or
@@ -105,4 +111,4 @@ Related commands
 Default
 """""""
 
-*verify* = yes, *overwrite* = yes
+*overwrite* = yes, *timeout* = 300, *verify* = yes, *verbose* = no

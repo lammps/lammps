@@ -261,9 +261,7 @@ void ComputeTempCS::compute_vector()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
   double massone;
-
-  double t[6];
-  for (int i = 0; i < 6; i++) t[i] = 0.0;
+  double t[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {

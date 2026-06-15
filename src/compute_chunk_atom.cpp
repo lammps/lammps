@@ -22,6 +22,7 @@
 #include "error.h"
 #include "fix.h"
 #include "fix_store_atom.h"
+#include "graphics.h"
 #include "group.h"
 #include "input.h"
 #include "lattice.h"
@@ -53,12 +54,14 @@ static constexpr int IDMAX = (1024 * 1024);
 ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), chunk_volume_vec(nullptr), coord(nullptr), ichunk(nullptr),
     chunkID(nullptr), cfvid(nullptr), idregion(nullptr), region(nullptr), cchunk(nullptr),
-    fchunk(nullptr), varatom(nullptr), id_fix(nullptr), fixstore(nullptr), lockfix(nullptr),
-    chunk(nullptr), exclude(nullptr), hash(nullptr)
+    fchunk(nullptr), varatom(nullptr), fixstore(nullptr), lockfix(nullptr), chunk(nullptr),
+    exclude(nullptr), imgobjs(nullptr), imgparms(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "compute chunk/atom", error);
 
+  numobjs = 0;
   peratom_flag = 1;
+  image_flag = 1;
   scalar_flag = 1;
   extscalar = 0;
   size_peratom_cols = 0;
@@ -448,16 +451,10 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   // initialize chunk vector and per-chunk info
 
   nmax = 0;
-  chunk = nullptr;
   nmaxint = -1;
-  ichunk = nullptr;
-  exclude = nullptr;
 
   nchunk = 0;
   chunk_volume_scalar = 1.0;
-  chunk_volume_vec = nullptr;
-  coord = nullptr;
-  chunkID = nullptr;
 
   // computeflag = 1 if this compute might invoke another compute
   // during assign_chunk_ids()
@@ -472,19 +469,9 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   invoked_setup = -1;
   invoked_ichunk = -1;
 
-  id_fix = nullptr;
-  fixstore = nullptr;
-
-  if (compress)
-    hash = new std::map<tagint, int>();
-  else
-    hash = nullptr;
-
   maxvar = 0;
-  varatom = nullptr;
 
   lockcount = 0;
-  lockfix = nullptr;
 
   if (which == ArgInfo::MOLECULE)
     molcheck = 1;
@@ -498,8 +485,7 @@ ComputeChunkAtom::~ComputeChunkAtom()
 {
   // check nfix in case all fixes have already been deleted
 
-  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
-  delete[] id_fix;
+  if (id_fix.size() && modify->nfix) modify->delete_fix(id_fix);
 
   memory->destroy(chunk);
   memory->destroy(ichunk);
@@ -510,9 +496,10 @@ ComputeChunkAtom::~ComputeChunkAtom()
 
   delete[] idregion;
   delete[] cfvid;
-  delete hash;
 
   memory->destroy(varatom);
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -585,16 +572,15 @@ void ComputeChunkAtom::init()
   // need to do this if idsflag = ONCE or locks will be used by other commands
   // need to wait until init() so that fix command(s) are in place
   //   they increment lockcount if they lock this compute
-  // fixstore ID = compute-ID + COMPUTE_STORE, fix group = compute group
+  // fixstore ID = compute-ID + COMPUTE_STORE, fix group = all
   // fixstore initializes all values to 0.0
 
-  if ((idsflag == ONCE || lockcount) && !fixstore) {
-    id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
-    fixstore = dynamic_cast<FixStoreAtom *>(
-        modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1", id_fix, group->names[igroup])));
+  if (((idsflag == ONCE) || ((idsflag == NFREQ) && lockcount)) && !fixstore) {
+    id_fix = std::string(id) + "_COMPUTE_STORE";
+    fixstore = dynamic_cast<FixStoreAtom *>(modify->add_fix(id_fix + " all STORE/ATOM 1 0 0 1"));
   }
 
-  if ((idsflag != ONCE && !lockcount) && fixstore) {
+  if (((idsflag != ONCE) && !((idsflag == NFREQ) && lockcount)) && fixstore) {
     modify->delete_fix(id_fix);
     fixstore = nullptr;
   }
@@ -644,6 +630,159 @@ void ComputeChunkAtom::compute_peratom()
   for (int i = 0; i < nlocal; i++) chunk[i] = ichunk[i];
 }
 
+/* ---------------------------------------------------------------------- */
+
+int ComputeChunkAtom::compute_image(int *&objs, double **&parms)
+{
+  if (invoked_image != update->ntimestep) {
+    invoked_image = update->ntimestep;
+
+    if (which != ArgInfo::BIN1D && which != ArgInfo::BIN2D && which != ArgInfo::BIN3D) {
+      numobjs = 0;
+    } else {
+      if (invoked_setup != update->ntimestep) setup_chunks();
+
+      int nwalls = 0;
+      for (int m = 0; m < ndim; m++) nwalls += nlayers[m] + 1;
+
+      if (domain->dimension == 2) numobjs = nwalls;
+      else if (which == ArgInfo::BIN3D) numobjs = nwalls * 4;
+      else numobjs = nwalls * 2;
+
+      memory->destroy(imgobjs);
+      memory->destroy(imgparms);
+      memory->create(imgobjs, numobjs, "chunk/atom:imgobjs");
+      memory->create(imgparms, numobjs, 10, "chunk/atom:imgparms");
+
+      double binlo[3], binhi[3];
+      if (scaleflag == REDUCED) {
+        binlo[0] = binlo[1] = binlo[2] = 0.0;
+        binhi[0] = binhi[1] = binhi[2] = 1.0;
+      } else {
+        binlo[0] = domain->boxlo[0];
+        binlo[1] = domain->boxlo[1];
+        binlo[2] = domain->boxlo[2];
+        binhi[0] = domain->boxhi[0];
+        binhi[1] = domain->boxhi[1];
+        binhi[2] = domain->boxhi[2];
+      }
+
+      if (minflag[0] == COORD) binlo[0] = minvalue[0];
+      if (minflag[1] == COORD) binlo[1] = minvalue[1];
+      if (minflag[2] == COORD) binlo[2] = minvalue[2];
+      if (maxflag[0] == COORD) binhi[0] = maxvalue[0];
+      if (maxflag[1] == COORD) binhi[1] = maxvalue[1];
+      if (maxflag[2] == COORD) binhi[2] = maxvalue[2];
+
+      int n = 0;
+      for (int m = 0; m < ndim; m++) {
+        int idim = dim[m];
+        int idim1 = (idim + 1) % 3;
+        int idim2 = (idim + 2) % 3;
+        for (int i = 0; i <= nlayers[m]; i++) {
+          double c = offset[m] + i * delta[m];
+
+          if (domain->dimension == 2) {
+            double p1[3], p2[3];
+            p1[idim] = p2[idim] = c;
+            int other = 1 - idim;
+            p1[other] = binlo[other];
+            p1[2] = 1.0;
+            p2[other] = binhi[other];
+            p2[2] = 1.0;
+
+            if (scaleflag == REDUCED) {
+              domain->lamda2x(p1, p1);
+              domain->lamda2x(p2, p2);
+            }
+
+            imgobjs[n] = Graphics::CYLINDER;
+            imgparms[n][0] = 1.0;
+            imgparms[n][1] = p1[0];
+            imgparms[n][2] = p1[1];
+            imgparms[n][3] = p1[2];
+            imgparms[n][4] = p2[0];
+            imgparms[n][5] = p2[1];
+            imgparms[n][6] = p2[2];
+            imgparms[n][7] = 0.0;
+            n++;
+          } else if (which == ArgInfo::BIN3D) {
+            double p[4][3];
+            for (int j = 0; j < 4; j++) p[j][idim] = c;
+            p[0][idim1] = binlo[idim1]; p[0][idim2] = binlo[idim2];
+            p[1][idim1] = binhi[idim1]; p[1][idim2] = binlo[idim2];
+            p[2][idim1] = binhi[idim1]; p[2][idim2] = binhi[idim2];
+            p[3][idim1] = binlo[idim1]; p[3][idim2] = binhi[idim2];
+
+            if (scaleflag == REDUCED) {
+              for (int j = 0; j < 4; j++) domain->lamda2x(p[j], p[j]);
+            }
+
+            for (int j = 0; j < 4; j++) {
+              imgobjs[n] = Graphics::CYLINDER;
+              imgparms[n][0] = 1.0;
+              imgparms[n][1] = p[j][0];
+              imgparms[n][2] = p[j][1];
+              imgparms[n][3] = p[j][2];
+              int next = (j + 1) % 4;
+              imgparms[n][4] = p[next][0];
+              imgparms[n][5] = p[next][1];
+              imgparms[n][6] = p[next][2];
+              imgparms[n][7] = 0.0;
+              n++;
+            }
+          } else {
+            double p1[3], p2[3], p3[3], p4[3];
+            p1[idim] = p2[idim] = p3[idim] = p4[idim] = c;
+            p1[idim1] = binlo[idim1];
+            p1[idim2] = binlo[idim2];
+            p2[idim1] = binhi[idim1];
+            p2[idim2] = binlo[idim2];
+            p3[idim1] = binhi[idim1];
+            p3[idim2] = binhi[idim2];
+            p4[idim1] = binlo[idim1];
+            p4[idim2] = binhi[idim2];
+
+            if (scaleflag == REDUCED) {
+              domain->lamda2x(p1, p1);
+              domain->lamda2x(p2, p2);
+              domain->lamda2x(p3, p3);
+              domain->lamda2x(p4, p4);
+            }
+
+            imgobjs[n] = Graphics::TRIANGLE;
+            imgparms[n][0] = 1.0;
+            imgparms[n][1] = p1[0];
+            imgparms[n][2] = p1[1];
+            imgparms[n][3] = p1[2];
+            imgparms[n][4] = p2[0];
+            imgparms[n][5] = p2[1];
+            imgparms[n][6] = p2[2];
+            imgparms[n][7] = p3[0];
+            imgparms[n][8] = p3[1];
+            imgparms[n][9] = p3[2];
+            n++;
+            imgobjs[n] = Graphics::TRIANGLE;
+            imgparms[n][0] = 1.0;
+            imgparms[n][1] = p1[0];
+            imgparms[n][2] = p1[1];
+            imgparms[n][3] = p1[2];
+            imgparms[n][4] = p3[0];
+            imgparms[n][5] = p3[1];
+            imgparms[n][6] = p3[2];
+            imgparms[n][7] = p4[0];
+            imgparms[n][8] = p4[1];
+            imgparms[n][9] = p4[2];
+            n++;
+          }
+        }
+      }
+    }
+  }
+  objs = imgobjs;
+  parms = imgparms;
+  return numobjs;
+}
 /* ----------------------------------------------------------------------
    to return the number of chunks, we first need to make certain
    that compute_peratom() has been called.
@@ -716,8 +855,8 @@ void ComputeChunkAtom::compute_ichunk()
 
   const int nlocal = atom->nlocal;
   int restore = 0;
-  if (idsflag == ONCE && invoked_ichunk >= 0) restore = 1;
-  if (idsflag == NFREQ && lockfix && update->ntimestep > lockstart) restore = 1;
+  if ((idsflag == ONCE) && (invoked_ichunk >= 0)) restore = 1;
+  if ((idsflag == NFREQ) && lockfix && (update->ntimestep > lockstart)) restore = 1;
 
   if (restore) {
     if (idsflag == NFREQ) invoked_ichunk = update->ntimestep;
@@ -742,26 +881,26 @@ void ComputeChunkAtom::compute_ichunk()
     if (binflag) {
       for (i = 0; i < nlocal; i++) {
         if (exclude[i]) continue;
-        if (hash->find(ichunk[i]) == hash->end())
+        if (hash.find(ichunk[i]) == hash.end())
           exclude[i] = 1;
         else
-          ichunk[i] = hash->find(ichunk[i])->second;
+          ichunk[i] = hash.find(ichunk[i])->second;
       }
     } else if (discard == NODISCARD) {
       for (i = 0; i < nlocal; i++) {
         if (exclude[i]) continue;
-        if (hash->find(ichunk[i]) == hash->end())
+        if (hash.find(ichunk[i]) == hash.end())
           ichunk[i] = nchunk;
         else
-          ichunk[i] = hash->find(ichunk[i])->second;
+          ichunk[i] = hash.find(ichunk[i])->second;
       }
     } else {
       for (i = 0; i < nlocal; i++) {
         if (exclude[i]) continue;
-        if (hash->find(ichunk[i]) == hash->end())
+        if (hash.find(ichunk[i]) == hash.end())
           exclude[i] = 1;
         else
-          ichunk[i] = hash->find(ichunk[i])->second;
+          ichunk[i] = hash.find(ichunk[i])->second;
       }
     }
 
@@ -791,7 +930,7 @@ void ComputeChunkAtom::compute_ichunk()
   // if newly calculated IDs need to persist, store them in fixstore
   // yes if idsflag = ONCE or idsflag = NFREQ and lock is in place
 
-  if (idsflag == ONCE || (idsflag == NFREQ && lockfix)) {
+  if ((idsflag == ONCE) || ((idsflag == NFREQ) && lockfix)) {
     double *vstore = fixstore->vstore;
     for (i = 0; i < nlocal; i++) vstore[i] = ichunk[i];
   }
@@ -1010,8 +1149,8 @@ void ComputeChunkAtom::assign_chunk_ids()
   } else if (which == ArgInfo::FIX) {
     if (update->ntimestep % fchunk->peratom_freq)
       error->all(FLERR, Error::NOLASTLINE,
-                 "Fix {} used in compute chunk/atom not computed at compatible time{}",
-                 fchunk->id, utils::errorurl(7));
+                 "Fix {} used in compute chunk/atom not computed at compatible time{}", fchunk->id,
+                 utils::errorurl(7));
 
     if (argindex == 0) {
       double *vec = fchunk->vector_atom;
@@ -1059,20 +1198,20 @@ void ComputeChunkAtom::assign_chunk_ids()
 
 void ComputeChunkAtom::compress_chunk_ids()
 {
-  hash->clear();
+  hash.clear();
 
   // put my IDs into hash
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
     if (exclude[i]) continue;
-    if (hash->find(ichunk[i]) == hash->end()) (*hash)[ichunk[i]] = 0;
+    if (hash.find(ichunk[i]) == hash.end()) hash[ichunk[i]] = 0;
   }
 
   // n = # of my populated IDs
   // nall = n summed across all procs
 
-  int n = hash->size();
+  int n = hash.size();
   bigint nbone = n;
   bigint nball;
   MPI_Allreduce(&nbone, &nball, 1, MPI_LMP_BIGINT, MPI_SUM, world);
@@ -1083,8 +1222,7 @@ void ComputeChunkAtom::compress_chunk_ids()
   memory->create(list, n, "chunk/atom:list");
 
   n = 0;
-  std::map<tagint, int>::iterator pos;
-  for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
+  for (const auto &pos : hash) list[n++] = pos.first;
 
   // if nall < 1M, just allgather all ID lists on every proc
   // else perform ring comm
@@ -1114,7 +1252,7 @@ void ComputeChunkAtom::compress_chunk_ids()
     // add all unique IDs in listall to my hash
 
     for (int i = 0; i < nall; i++)
-      if (hash->find(listall[i]) == hash->end()) (*hash)[listall[i]] = 0;
+      if (hash.find(listall[i]) == hash.end()) hash[listall[i]] = 0;
 
     // clean up
 
@@ -1130,7 +1268,7 @@ void ComputeChunkAtom::compress_chunk_ids()
 
   // nchunk = length of hash containing populated IDs from all procs
 
-  nchunk = hash->size();
+  nchunk = hash.size();
 
   // reset hash value of each original chunk ID to ordered index
   //   ordered index = new compressed chunk ID (1 to Nchunk)
@@ -1142,9 +1280,9 @@ void ComputeChunkAtom::compress_chunk_ids()
   memory->create(chunkID, nchunk, "chunk/atom:chunkID");
 
   n = 0;
-  for (pos = hash->begin(); pos != hash->end(); ++pos) {
-    chunkID[n] = pos->first;
-    (*hash)[pos->first] = ++n;
+  for (const auto &pos : hash) {
+    chunkID[n] = pos.first;
+    hash[pos.first] = ++n;
   }
 }
 
@@ -1157,16 +1295,20 @@ void ComputeChunkAtom::compress_chunk_ids()
 
 void ComputeChunkAtom::idring(int n, char *cbuf, void *ptr)
 {
-  auto cptr = (ComputeChunkAtom *) ptr;
-  auto list = (tagint *) cbuf;
-  std::map<tagint, int> *hash = cptr->hash;
-  for (int i = 0; i < n; i++) (*hash)[list[i]] = 0;
+  auto *cptr = (ComputeChunkAtom *) ptr;
+  auto *list = (tagint *) cbuf;
+  auto &chunkhash = cptr->hash;
+  for (int i = 0; i < n; i++) chunkhash[list[i]] = 0;
 }
 
 /* ----------------------------------------------------------------------
    one-time check for which = MOLECULE to check
      if each chunk contains all atoms in the molecule
-   issue warning if not
+   issue warning only for a molecule that is *split*, i.e. that has some
+     atoms assigned to its chunk and some atoms excluded from all chunks.
+     a molecule that is entirely excluded (e.g. removed by the compute group
+     or region) is not split and must not trigger the warning, even when its
+     molecule ID happens to fall within the range of valid chunk IDs.
    note that this check is without regard to discard rule
    if discard == NODISCARD, there is no easy way to check that all
      atoms in an out-of-bounds molecule were added to a chunk,
@@ -1181,14 +1323,33 @@ void ComputeChunkAtom::check_molecules()
   int flag = 0;
 
   if (!compress) {
+
+    // for each molecule ID that maps to a valid chunk (1 <= mol <= nchunk):
+    //   bit 0 set -> some atom of the molecule is assigned to its chunk
+    //   bit 1 set -> some atom of the molecule is excluded from all chunks
+    // a molecule is split (warn) only when both bits are set.
+    // reduce across procs since a molecule may be distributed over procs.
+
+    std::vector<int> molflag(nchunk, 0);
+    std::vector<int> molflagall(nchunk, 0);
+
     for (int i = 0; i < nlocal; i++) {
-      if (molecule[i] > 0 && molecule[i] <= nchunk && ichunk[i] == 0) flag = 1;
+      if (molecule[i] <= 0 || molecule[i] > nchunk) continue;
+      molflag[molecule[i] - 1] |= (ichunk[i] == 0) ? 2 : 1;
     }
+
+    MPI_Allreduce(molflag.data(), molflagall.data(), nchunk, MPI_INT, MPI_BOR, world);
+    for (int m = 0; m < nchunk; m++)
+      if (molflagall[m] == 3) {
+        flag = 1;
+        break;
+      }
+
   } else {
     int molid;
     for (int i = 0; i < nlocal; i++) {
       molid = static_cast<int>(molecule[i]);
-      if (hash->find(molid) != hash->end() && ichunk[i] == 0) flag = 1;
+      if (hash.find(molid) != hash.end() && ichunk[i] == 0) flag = 1;
     }
   }
 
@@ -1268,7 +1429,7 @@ int ComputeChunkAtom::setup_xyz_bins()
     if (lo > hi) error->all(FLERR, Error::NOLASTLINE, "Invalid bin bounds in compute chunk/atom");
 
     offset[m] = lo;
-    nlayers[m] = static_cast<int>((hi - lo) * invdelta[m] + 0.5);
+    nlayers[m] = std::lround((hi - lo) * invdelta[m]);
     nbins *= nlayers[m];
   }
 
@@ -2069,5 +2230,7 @@ double ComputeChunkAtom::memory_usage()
   bytes += (double) nmax * sizeof(double);                 // chunk
   bytes += (double) ncoord * nchunk * sizeof(double);      // coord
   if (compress) bytes += (double) nchunk * sizeof(int);    // chunkID
+  bytes += (double) numobjs * sizeof(int);                 // imgobjs
+  bytes += (double) numobjs * 10 * sizeof(double);         // imgparms
   return bytes;
 }

@@ -79,6 +79,7 @@ double ComputeTempKokkos<DeviceType>::compute_scalar()
 
 template<class DeviceType>
 template<int RMASS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeTempKokkos<DeviceType>::operator()(TagComputeTempScalar<RMASS>, const int &i, CTEMP& t_kk) const {
   if (RMASS) {
@@ -136,10 +137,11 @@ void ComputeTempKokkos<DeviceType>::compute_vector()
 
 template<class DeviceType>
 template<int RMASS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeTempKokkos<DeviceType>::operator()(TagComputeTempVector<RMASS>, const int &i, CTEMP& t_kk) const {
   if (mask[i] & groupbit) {
-    F_FLOAT massone = 0.0;
+    KK_FLOAT massone = 0.0;
     if (RMASS) massone = rmass[i];
     else massone = mass[type[i]];
     t_kk.t0 += massone * v(i,0)*v(i,0);

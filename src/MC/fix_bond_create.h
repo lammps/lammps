@@ -22,6 +22,8 @@ FixStyle(bond/create,FixBondCreate);
 
 #include "fix.h"
 
+#include <unordered_map>
+
 namespace LAMMPS_NS {
 
 class FixBondCreate : public Fix {
@@ -36,6 +38,7 @@ class FixBondCreate : public Fix {
   void setup(int) override;
   void post_integrate() override;
   void post_integrate_respa(int, int) override;
+  int modify_param(int, char **) override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
@@ -48,8 +51,9 @@ class FixBondCreate : public Fix {
   double compute_vector(int) override;
   double memory_usage() override;
 
+  int image(int *&, double **&) override;
+
  protected:
-  int me;
   int iatomtype, jatomtype;
   int btype, seed;
   int imaxbond, jmaxbond;
@@ -59,6 +63,7 @@ class FixBondCreate : public Fix {
   double cutsq, fraction;
   int atype, dtype, itype;
   int angleflag, dihedralflag, improperflag;
+  int molecule_keyword;
 
   int overflow;
   tagint lastcheck;
@@ -80,6 +85,14 @@ class FixBondCreate : public Fix {
   int countflag, commflag;
   int nlevels_respa;
   int nangles, ndihedrals, nimpropers;
+
+  // arrays for dump image rendering
+
+  int *imgobjs;
+  double **imgparms;
+  // maps atom IDs to number of steps they have been highlighted
+  std::unordered_map<tagint, int> vizatoms;
+  int vizsteps;    // number of steps to highlight atoms in reactions
 
   void check_ghosts();
   void update_topology();

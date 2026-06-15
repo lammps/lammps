@@ -158,7 +158,7 @@ void ThrData::init_eim(int nall, double *rho, double *fp)
 #if defined(FFT_SINGLE)
 typedef float FFT_SCALAR;
 #else
-typedef double FFT_SCALAR;
+using FFT_SCALAR = double;
 #endif
 
 void ThrData::init_pppm(int order, Memory *memory)
@@ -191,7 +191,7 @@ void ThrData::init_pppm(int order, Memory *memory)
 #if defined(FFT_SINGLE)
 typedef float FFT_SCALAR;
 #else
-typedef double FFT_SCALAR;
+using FFT_SCALAR = double;
 #endif
 
 void ThrData::init_pppm_disp(int order_6, Memory *memory)

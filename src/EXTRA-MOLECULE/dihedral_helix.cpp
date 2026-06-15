@@ -28,6 +28,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -48,6 +49,7 @@ DihedralHelix::DihedralHelix(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralHelix::~DihedralHelix()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(aphi);

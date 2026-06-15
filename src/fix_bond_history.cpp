@@ -300,7 +300,7 @@ void FixBondHistory::write_restart(FILE *fp)
 void FixBondHistory::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto *list = (double *) buf;
   stored_flag = static_cast<int>(list[n++]);
 }
 
@@ -403,6 +403,7 @@ void FixBondHistory::cache_history(int i, int m)
   // Copy data to vector
   double **stored = atom->darray[index];
   std::vector<double> data;
+  data.reserve(ndata);
   for (int idata = 0; idata < ndata; idata++) data.push_back(stored[i][m * ndata + idata]);
 
   // Add data to cache

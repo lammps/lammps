@@ -149,8 +149,9 @@ void ComputeFEPTA::compute_vector()
 {
   double pe0, pe1;
 
-  eflag = 1;
-  vflag = 0;
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   invoked_vector = update->ntimestep;
 

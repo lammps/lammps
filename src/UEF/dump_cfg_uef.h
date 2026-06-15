@@ -29,10 +29,12 @@ namespace LAMMPS_NS {
 class DumpCFGUef : public DumpCFG {
  public:
   DumpCFGUef(LAMMPS *lmp, int narg, char **arg) : DumpCFG(lmp, narg, arg) {}
+
+ protected:
   void init_style() override;
   void write_header(bigint) override;
 
- protected:
+ private:
   int ifix_uef;
 };
 

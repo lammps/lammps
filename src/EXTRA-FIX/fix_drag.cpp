@@ -58,6 +58,13 @@ FixDrag::FixDrag(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
+FixDrag::~FixDrag()
+{
+  if (copymode) return;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int FixDrag::setmask()
 {
   int mask = 0;
@@ -114,7 +121,7 @@ void FixDrag::post_force(int /*vflag*/)
       if (!xflag) dx = 0.0;
       if (!yflag) dy = 0.0;
       if (!zflag) dz = 0.0;
-      domain->minimum_image(dx,dy,dz);
+      domain->minimum_image(FLERR, dx,dy,dz);
       r = sqrt(dx*dx + dy*dy + dz*dz);
       if (r > delta) {
         prefactor = f_mag/r;

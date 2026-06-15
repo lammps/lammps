@@ -161,11 +161,11 @@ class EAPOD : protected Pointers {
   EAPOD(LAMMPS *lmp) : Pointers(lmp){};
   ~EAPOD() override;
 
-  void read_pod_file(std::string pod_file);
-  void read_model_coeff_file(std::string coeff_file);
-  int read_coeff_file(std::string coeff_file);
-  int read_projection_matrix(std::string proj_file);
-  int read_centroids(std::string centroids_file);
+  void read_pod_file(const std::string &pod_file);
+  void read_model_coeff_file(const std::string &coeff_file);
+  int read_coeff_file(const std::string &coeff_file);
+  int read_projection_matrix(const std::string &proj_file);
+  int read_centroids(const std::string &centroids_file);
 
   int estimate_temp_memory(int Nj);
   void free_temp_memory();

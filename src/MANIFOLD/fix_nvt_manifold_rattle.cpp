@@ -59,7 +59,7 @@ enum {NOBIAS,BIAS};
 
 
 static const char* cite_fix_nvt_manifold_rattle =
-  "fix nvt/manifold/rattle command: doi:10.1016/j.bpj.2016.02.017\n\n"
+  "fix nvt/manifold/rattle command: https://doi.org/10.1016/j.bpj.2016.02.017\n\n"
   "@article{paquay-2016,\n"
   "   author        = {Paquay, Stefan and Kusters, Remy},\n"
   "   doi           = {10.1016/j.bpj.2016.02.017},\n"
@@ -121,7 +121,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
     }
   }
 
-  reset_dt();
+  FixNVTManifoldRattle::reset_dt();
 
   if (!got_temp ) error->all(FLERR,"Fix nvt/manifold/rattle needs 'temp'!");
 

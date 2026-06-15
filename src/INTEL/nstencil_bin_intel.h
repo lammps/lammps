@@ -13,32 +13,32 @@
 
 #ifdef NSTENCIL_CLASS
 // clang-format off
-typedef NStencilBinIntel<0, 0, 0> NStencilFullBin2dIntel;
+using NStencilFullBin2dIntel = NStencilBinIntel<0, 0, 0>;
 NStencilStyle(full/bin/2d/intel,
               NStencilFullBin2dIntel,
               NS_FULL | NS_BIN | NS_2D | NS_ORTHO | NS_TRI | NS_INTEL);
 
-typedef NStencilBinIntel<0, 1, 0> NStencilFullBin3dIntel;
+using NStencilFullBin3dIntel = NStencilBinIntel<0, 1, 0>;
 NStencilStyle(full/bin/3d/intel,
               NStencilFullBin3dIntel,
               NS_FULL | NS_BIN | NS_3D | NS_ORTHO | NS_TRI | NS_INTEL);
 
-typedef NStencilBinIntel<1, 0, 0> NStencilHalfBin2dIntel;
+using NStencilHalfBin2dIntel = NStencilBinIntel<1, 0, 0>;
 NStencilStyle(half/bin/2d/intel,
               NStencilHalfBin2dIntel,
               NS_HALF | NS_BIN | NS_2D | NS_ORTHO | NS_INTEL);
 
-typedef NStencilBinIntel<1, 0, 1> NStencilHalfBin2dTriIntel;
+using NStencilHalfBin2dTriIntel = NStencilBinIntel<1, 0, 1>;
 NStencilStyle(half/bin/2d/tri/intel,
               NStencilHalfBin2dTriIntel,
               NS_HALF | NS_BIN | NS_2D | NS_TRI | NS_INTEL);
 
-typedef NStencilBinIntel<1, 1, 0> NStencilHalfBin3dIntel;
+using NStencilHalfBin3dIntel = NStencilBinIntel<1, 1, 0>;
 NStencilStyle(half/bin/3d/intel,
               NStencilHalfBin3dIntel,
               NS_HALF | NS_BIN | NS_3D | NS_ORTHO | NS_INTEL);
 
-typedef NStencilBinIntel<1, 1, 1> NStencilHalfBin3dTriIntel;
+using NStencilHalfBin3dTriIntel = NStencilBinIntel<1, 1, 1>;
 NStencilStyle(half/bin/3d/tri/intel,
               NStencilHalfBin3dTriIntel,
               NS_HALF | NS_BIN | NS_3D | NS_TRI | NS_INTEL);

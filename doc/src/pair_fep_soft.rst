@@ -11,15 +11,21 @@
 .. index:: pair_style lj/charmm/coul/long/soft
 .. index:: pair_style lj/charmm/coul/long/soft/omp
 .. index:: pair_style lj/class2/soft
+.. index:: pair_style lj/class2/soft/omp
 .. index:: pair_style lj/class2/coul/cut/soft
+.. index:: pair_style lj/class2/coul/cut/soft/omp
 .. index:: pair_style lj/class2/coul/long/soft
+.. index:: pair_style lj/class2/coul/long/soft/omp
 .. index:: pair_style coul/cut/soft
 .. index:: pair_style coul/cut/soft/omp
+.. index:: pair_style coul/cut/soft/gapsys
+.. index:: pair_style coul/cut/soft/gapsys/omp
 .. index:: pair_style coul/long/soft
 .. index:: pair_style coul/long/soft/omp
 .. index:: pair_style tip4p/long/soft
 .. index:: pair_style tip4p/long/soft/omp
 .. index:: pair_style morse/soft
+.. index:: pair_style morse/soft/omp
 
 pair_style lj/cut/soft command
 ==============================
@@ -49,16 +55,27 @@ Accelerator Variants: *lj/charmm/coul/long/soft/omp*
 pair_style lj/class2/soft command
 =================================
 
+Accelerator Variants: *lj/class2/soft/omp*
+
 pair_style lj/class2/coul/cut/soft command
 ==========================================
 
+Accelerator Variants: *lj/class2/coul/cut/soft/omp*
+
 pair_style lj/class2/coul/long/soft command
 ===========================================
+
+Accelerator Variants: *lj/class2/coul/long/soft/omp*
 
 pair_style coul/cut/soft command
 ================================
 
 Accelerator Variants: *coul/cut/soft/omp*
+
+pair_style coul/cut/soft/gapsys command
+=======================================
+
+Accelerator Variants: *coul/cut/soft/gapsys/omp*
 
 pair_style coul/long/soft command
 =================================
@@ -73,6 +90,8 @@ Accelerator Variants: *tip4p/long/soft/omp*
 pair_style morse/soft command
 =============================
 
+Accelerator Variants: *morse/soft/omp*
+
 Syntax
 """"""
 
@@ -80,7 +99,7 @@ Syntax
 
    pair_style style args
 
-* style = *lj/cut/soft* or *lj/cut/coul/cut/soft* or *lj/cut/coul/long/soft* or *lj/cut/tip4p/long/soft* or *lj/charmm/coul/long/soft* or *lj/class2/soft* or *lj/class2/coul/cut/soft* or *lj/class2/coul/long/soft* or *coul/cut/soft* or *coul/long/soft* or *tip4p/long/soft* or *morse/soft*
+* style = *lj/cut/soft* or *lj/cut/coul/cut/soft* or *lj/cut/coul/long/soft* or *lj/cut/tip4p/long/soft* or *lj/charmm/coul/long/soft* or *lj/class2/soft* or *lj/class2/coul/cut/soft* or *lj/class2/coul/long/soft* or *coul/cut/soft* or *coul/cut/soft/gapsys* or *coul/long/soft* or *tip4p/long/soft* or *morse/soft*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
@@ -120,6 +139,9 @@ Syntax
        cutoff2 = global cutoff for Coulombic (optional) (distance units)
      *coul/cut/soft* args = n alpha_C cutoff
        n, alpha_C = parameters of the soft-core potential
+       cutoff = global cutoff for Coulomb interactions (distance units)
+     *coul/cut/soft/gapsys* args = sigma_q alpha_q cutoff
+       sigma_q, alpha_q = parameters of the soft-core potential
        cutoff = global cutoff for Coulomb interactions (distance units)
      *coul/long/soft* args = n alpha_C cutoff
        n, alpha_C = parameters of the soft-core potential
@@ -178,6 +200,9 @@ Examples
    pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 0.0 10.0
    pair_coeff 1 1 0.28 3.1 0.0 10.0 9.5
+
+   pair_style coul/cut/soft/gapsys 1.0 2.0 9.5
+   pair_coeff * * 1.0
 
    pair_style coul/long/soft 1.0 10.0 9.5
    pair_coeff * * 1.0
@@ -347,14 +372,13 @@ short range to have a soft core. The functional form differs from that of the
 .. math::
 
    \begin{split}
-   s(\lambda) =& (1 - \lambda) / (1 - \lambda_f), \qquad B = -2D e^{-2 \alpha
-   r_0} (e^{\alpha r_0} - 1) / 3 \\
-   E =& D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] +
-   s(\lambda) B e^{-3\alpha(r-r_0)}, \qquad \hspace{2.85em}\lambda \geq
-   \lambda_f,\quad r < r_c \\
-   E =& \left( D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)}
-   \right] + B e^{-3\alpha(r-r_0)} \right)(\lambda/\lambda_f)^n, \qquad \lambda
-   < \lambda_f,\quad r < r_c
+   s(\lambda) & = (1 - \lambda) / (1 - \lambda_f) \\
+   B          & = -2D e^{-2 \alpha r_0} (e^{\alpha r_0} - 1) / 3 \\
+   E          & = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] +
+                  s(\lambda) B e^{-3\alpha(r-r_0)}, \qquad \lambda \geq \lambda_f,\quad r < r_c \\
+   E          & = \left( D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)}
+                  \right] + B e^{-3\alpha(r-r_0)} \right)(\lambda/\lambda_f)^n, \qquad \lambda
+                  < \lambda_f,\quad r < r_c
    \end{split}
 
 The *morse/soft* style requires the following pair coefficients:
@@ -367,6 +391,57 @@ The *morse/soft* style requires the following pair coefficients:
 
 The last coefficient is optional. If not specified, the global morse cutoff is
 used.
+
+----------
+
+.. versionadded:: TBD
+
+The pair style *coul/cut/soft/gapsys* implements the pair potential for
+Coulombic interactions which was proposed by Gapsys et al :ref:`(Gapsys)
+<Gapsys>`.  The main idea behind this potential is the definition of a
+distance :math:`r_{inner}`, which is smaller than the cutoff distance
+:math:`r_c`: for distances shorter than :math:`r_{inner}` the forces are
+computed based on a linearized expression while for distances larger
+than :math:`r_{inner}` the forces are computed based on the standard
+Coulombic potential. The linearized expression ensures continuity of
+forces as well as of the first derivative of the forces.
+
+The distance :math:`r_{inner}` is given by
+
+.. math::
+
+   r_{inner} = \alpha_q \left( 1 + \sigma_q \left| q_i q_j \right| \right) \lambda^{1 / 6}
+
+where :math:`q_i` and :math:`q_j` are the charges on the two atoms. For
+:math:`\lambda = 0`, :math:`r_{inner} = 0`, which implies that the
+standard Coulombic potential is employed for all distances.
+
+For distances larger than :math:`r_{inner}`, the energy is computed by
+
+.. math::
+
+   E = \frac{ C q_i q_j}{\epsilon r} \qquad r_{inner} < r < r_c
+
+where :math:`C` is an energy-conversion constant, and epsilon is the
+dielectric constant which can be set by the :doc:`dielectric
+<dielectric>` command.
+
+For distances shorter than :math:`r_{inner}`, the energy is computed by
+
+.. math::
+
+   E = \frac{q_i q_j}{r_{inner}^3}r^2 - \frac{3q_i q_j}{r_{inner}^2}r + \frac{3q_i q_j}{r_{inner}}
+             \qquad r < r_{inner} < r_c
+
+This pair style requires the following pair coefficients:
+
+* :math:`\sigma_q` (inverse squared charge units, positive real number)
+* :math:`\alpha_q` (distance units, positive real number)
+* :math:`\lambda` (unitless, between 0.0 and 1.0)
+* cutoff (distance units)
+
+The recommended values for :math:`\sigma_q` and :math:`\alpha_q` are 1.0
+and 0.3 :math:`r_c` respectively.
 
 ----------
 
@@ -451,3 +526,7 @@ none
 
 **(Beutler)** Beutler, Mark, van Schaik, Gerber, van Gunsteren, Chem
 Phys Lett, 222, 529 (1994).
+
+.. _Gapsys:
+
+**(Gapsys)** Gapsys, Seeliger, de Groot, J Chem Theor Comput, 8, 2373 (2012).

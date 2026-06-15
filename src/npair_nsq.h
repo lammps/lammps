@@ -13,42 +13,42 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-typedef NPairNsq<0, 1, 0, 0> NPairFullNsq;
+using NPairFullNsq = NPairNsq<0, 1, 0, 0>;
 NPairStyle(full/nsq,
            NPairFullNsq,
            NP_FULL | NP_NSQ | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairNsq<1, 0, 0, 0> NPairHalfNsqNewtoff;
+using NPairHalfNsqNewtoff = NPairNsq<1, 0, 0, 0>;
 NPairStyle(half/nsq/newtoff,
            NPairHalfNsqNewtoff,
            NP_HALF | NP_NSQ | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairNsq<1, 1, 0, 0> NPairHalfNsqNewton;
+using NPairHalfNsqNewton = NPairNsq<1, 1, 0, 0>;
 NPairStyle(half/nsq/newton,
            NPairHalfNsqNewton,
            NP_HALF | NP_NSQ | NP_NEWTON | NP_ORTHO);
 
-typedef NPairNsq<1, 1, 1, 0> NPairHalfNsqNewtonTri;
+using NPairHalfNsqNewtonTri = NPairNsq<1, 1, 1, 0>;
 NPairStyle(half/nsq/newton/tri,
            NPairHalfNsqNewtonTri,
            NP_HALF | NP_NSQ | NP_NEWTON | NP_TRI);
 
-typedef NPairNsq<0, 1, 0, 1> NPairFullSizeNsq;
+using NPairFullSizeNsq = NPairNsq<0, 1, 0, 1>;
 NPairStyle(full/size/nsq,
            NPairFullSizeNsq,
            NP_FULL | NP_SIZE | NP_NSQ | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairNsq<1, 0, 0, 1> NPairHalfSizeNsqNewtoff;
+using NPairHalfSizeNsqNewtoff = NPairNsq<1, 0, 0, 1>;
 NPairStyle(half/size/nsq/newtoff,
            NPairHalfSizeNsqNewtoff,
            NP_HALF | NP_SIZE | NP_NSQ | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairNsq<1, 1, 0, 1> NPairHalfSizeNsqNewton;
+using NPairHalfSizeNsqNewton = NPairNsq<1, 1, 0, 1>;
 NPairStyle(half/size/nsq/newton,
            NPairHalfSizeNsqNewton,
            NP_HALF | NP_SIZE | NP_NSQ | NP_NEWTON | NP_ORTHO);
 
-typedef NPairNsq<1, 1, 1, 1> NPairHalfSizeNsqNewtonTri;
+using NPairHalfSizeNsqNewtonTri = NPairNsq<1, 1, 1, 1>;
 NPairStyle(half/size/nsq/newton/tri,
            NPairHalfSizeNsqNewtonTri,
            NP_HALF | NP_SIZE | NP_NSQ | NP_NEWTON | NP_TRI);

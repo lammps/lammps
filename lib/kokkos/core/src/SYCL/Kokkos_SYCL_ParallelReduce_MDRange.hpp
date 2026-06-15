@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SYCL_PARALLEL_REDUCE_MDRANGE_HPP
 #define KOKKOS_SYCL_PARALLEL_REDUCE_MDRANGE_HPP
@@ -92,10 +79,10 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
     const typename Policy::index_type n_tiles = m_policy.m_num_tiles;
     const unsigned int value_count =
         m_functor_reducer.get_reducer().value_count();
-    sycl_device_ptr<value_type> results_ptr;
+    sycl::global_ptr<value_type> results_ptr;
     auto host_result_ptr =
         (m_result_ptr && !m_result_ptr_device_accessible)
-            ? static_cast<sycl_host_ptr<value_type>>(
+            ? static_cast<sycl::global_ptr<value_type>>(
                   instance.scratch_host(sizeof(value_type) * value_count))
             : nullptr;
 
@@ -112,7 +99,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
 #else
         (void)memcpy_event;
 #endif
-        results_ptr = static_cast<sycl_device_ptr<value_type>>(
+        results_ptr = static_cast<sycl::global_ptr<value_type>>(
             instance.scratch_space(sizeof(value_type) * value_count));
         auto device_accessible_result_ptr =
             m_result_ptr_device_accessible
@@ -129,7 +116,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         });
       };
 
-#ifdef SYCL_EXT_ONEAPI_GRAPH
+#ifdef KOKKOS_IMPL_SYCL_GRAPH_SUPPORT
       if constexpr (Policy::is_graph_kernel::value) {
         sycl_attach_kernel_to_node(*this, cgh_lambda);
       } else
@@ -162,13 +149,13 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         n_wgroups = (n_tiles + values_per_thread - 1) / values_per_thread;
       }
 
-      results_ptr = static_cast<sycl_device_ptr<value_type>>(
+      results_ptr = static_cast<sycl::global_ptr<value_type>>(
           instance.scratch_space(sizeof(value_type) * value_count * n_wgroups));
       auto device_accessible_result_ptr =
           m_result_ptr_device_accessible
               ? static_cast<sycl::global_ptr<value_type>>(m_result_ptr)
               : static_cast<sycl::global_ptr<value_type>>(host_result_ptr);
-      auto scratch_flags = static_cast<sycl_device_ptr<unsigned int>>(
+      auto scratch_flags = static_cast<sycl::global_ptr<unsigned int>>(
           instance.scratch_flags(sizeof(unsigned int)));
 
       auto cgh_lambda = [&](sycl::handler& cgh) {
@@ -226,7 +213,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
                       {global_x, global_y, global_z},
                       {local_x, local_y, local_z})
                       .exec_range();
-                item.barrier(sycl::access::fence_space::local_space);
+                sycl::group_barrier(item.get_group());
 
                 SYCLReduction::workgroup_reduction<>(
                     item, local_mem, results_ptr, device_accessible_result_ptr,
@@ -239,7 +226,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
                       scratch_flags_ref(*scratch_flags);
                   num_teams_done[0] = ++scratch_flags_ref;
                 }
-                item.barrier(sycl::access::fence_space::local_space);
+                sycl::group_barrier(item.get_group());
                 if (num_teams_done[0] == n_wgroups) {
                   if (local_id == 0) *scratch_flags = 0;
                   if (local_id >= static_cast<int>(n_wgroups))
@@ -285,7 +272,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
                       scratch_flags_ref(*scratch_flags);
                   num_teams_done[0] = ++scratch_flags_ref;
                 }
-                item.barrier(sycl::access::fence_space::local_space);
+                sycl::group_barrier(item.get_group());
                 if (num_teams_done[0] == n_wgroups) {
                   if (local_id == 0) *scratch_flags = 0;
                   if (local_id >= static_cast<int>(n_wgroups))
@@ -306,7 +293,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
               }
             });
       };
-#ifdef SYCL_EXT_ONEAPI_GRAPH
+#ifdef KOKKOS_IMPL_SYCL_GRAPH_SUPPORT
       if constexpr (Policy::is_graph_kernel::value) {
         sycl_attach_kernel_to_node(*this, cgh_lambda);
       } else
@@ -370,7 +357,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
  private:
   const CombinedFunctorReducerType m_functor_reducer;
   const BarePolicy m_policy;
-  const Kokkos::SYCL& m_space;
+  const Kokkos::SYCL m_space;
   const pointer_type m_result_ptr;
   const bool m_result_ptr_device_accessible;
 };

@@ -14,7 +14,7 @@
 #ifndef LMP_EXCEPTIONS_H
 #define LMP_EXCEPTIONS_H
 
-#include <exception>
+#include <exception>  // IWYU pragma: export
 #include <mpi.h>
 #include <string>
 
@@ -23,7 +23,7 @@ namespace LAMMPS_NS {
 class LAMMPSException : public std::exception {
  public:
   LAMMPSException(const std::string &msg) : message(msg) {}
-  const char *what() const noexcept override { return message.c_str(); }
+  [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
 
  protected:
   std::string message;
@@ -35,7 +35,7 @@ class LAMMPSAbortException : public LAMMPSException {
       LAMMPSException(msg), universe(_universe)
   {
   }
-  MPI_Comm get_universe() const { return universe; }
+  [[nodiscard]] MPI_Comm get_universe() const { return universe; }
 
  protected:
   MPI_Comm universe;

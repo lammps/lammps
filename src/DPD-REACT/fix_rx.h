@@ -22,7 +22,6 @@ FixStyle(rx,FixRX);
 
 #include "fix.h"
 
-typedef int (*fnptr)(double, const double *, double *, void *);
 namespace LAMMPS_NS {
 
 enum { ODE_LAMMPS_RK4, ODE_LAMMPS_RKF45 };
@@ -38,12 +37,12 @@ class FixRX : public Fix {
   void setup_pre_force(int) override;
   void pre_force(int) override;
 
- protected:
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
+ protected:
   class NeighList *list;
 
   double tmpArg;
@@ -59,7 +58,7 @@ class FixRX : public Fix {
   Param *params;    // parameter set for an I-J-K interaction
 
   int nspecies;
-  void read_file(char *);
+  void read_file(const std::string &file);
   void setupParams();
   double *Arr, *nArr, *Ea, *tempExp;
   double **stoich, **stoichReactants, **stoichProducts;
@@ -137,7 +136,7 @@ class FixRX : public Fix {
   void odeDiagnostics();
 
  protected:
-  char *kineticsFile;
+  std::string kineticsFile;
   char *id_fix_species, *id_fix_species_old;
   class FixPropertyAtom *fix_species, *fix_species_old;
   int restartFlag;

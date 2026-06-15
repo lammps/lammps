@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 using namespace InterLayer;
 
 static const char cite_ilp_tmd[] =
-    "ilp/tmd potential doi:10.1021/acs.jctc.1c00782\n"
+    "ilp/tmd potential: https://doi.org/10.1021/acs.jctc.1c00782\n\n"
     "@Article{Ouyang2021\n"
     "  author = {W. Ouyang and R. Sofer and X. Gao and J. Hermann and\n"
     "    A. Tkatchenko and L. Kronik and M. Urbakh and O. Hod},\n"
@@ -72,7 +72,7 @@ void PairILPTMD::settings(int narg, char **arg)
     error->all(FLERR, "Pair style ilp/tmd must be used as sub-style with hybrid/overlay");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-  if (narg == 2) tap_flag = utils::numeric(FLERR, arg[1], false, lmp);
+  if (narg == 2) tap_flag = utils::inumeric(FLERR, arg[1], false, lmp);
 }
 
 /* ----------------------------------------------------------------------

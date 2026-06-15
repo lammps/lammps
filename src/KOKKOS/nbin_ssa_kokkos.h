@@ -62,8 +62,8 @@ class NBinSSAKokkos : public NBinStandard {
   typename AT::t_int_2d_const c_gbins;
 
   typename AT::t_int_scalar d_resize;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_resize;
-  typename AT::t_x_array_randomread x;
+  HAT::t_int_scalar h_resize;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
 
   // Bounds of the local atoms in the bins array
   typename AT::t_int_scalar d_lbinxlo;  // lowest local bin x-dim coordinate
@@ -72,23 +72,27 @@ class NBinSSAKokkos : public NBinStandard {
   typename AT::t_int_scalar d_lbinxhi;  // highest local bin x-dim coordinate
   typename AT::t_int_scalar d_lbinyhi;  // highest local bin y-dim coordinate
   typename AT::t_int_scalar d_lbinzhi;  // highest local bin z-dim coordinate
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinxlo;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinylo;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinzlo;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinxhi;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinyhi;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinzhi;
+  HAT::t_int_scalar h_lbinxlo;
+  HAT::t_int_scalar h_lbinylo;
+  HAT::t_int_scalar h_lbinzlo;
+  HAT::t_int_scalar h_lbinxhi;
+  HAT::t_int_scalar h_lbinyhi;
+  HAT::t_int_scalar h_lbinzhi;
 
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void binAtomsItem(const int &i) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void binIDAtomsItem(const int &i, int &update) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void binIDGhostsItem(const int &i, int &update) const;
 
+// NOLINTNEXTLINE
   static KOKKOS_INLINE_FUNCTION
   void sortBin(
       typename AT::t_int_1d gbincount,
@@ -98,8 +102,9 @@ class NBinSSAKokkos : public NBinStandard {
 /* ----------------------------------------------------------------------
    convert atom coords into the ssa active interaction region number
 ------------------------------------------------------------------------- */
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int coord2ssaAIR(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z) const
+  int coord2ssaAIR(const double & x,const double & y,const double & z) const
   {
     int ix, iy, iz;
     ix = iy = iz = 0;
@@ -127,8 +132,9 @@ class NBinSSAKokkos : public NBinStandard {
     return -2;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z, int* i) const
+  int coord2bin(const double & x,const double & y,const double & z, int* i) const
   {
     int ix,iy,iz;
 
@@ -177,6 +183,7 @@ struct NPairSSAKokkosBinAtomsFunctor {
   NPairSSAKokkosBinAtomsFunctor(const NBinSSAKokkos<DeviceType> &_c):
     c(_c) {};
   ~NPairSSAKokkosBinAtomsFunctor() {}
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.binAtomsItem(i);
@@ -193,17 +200,20 @@ struct NPairSSAKokkosBinIDAtomsFunctor {
   NPairSSAKokkosBinIDAtomsFunctor(const NBinSSAKokkos<DeviceType> &_c):
     c(_c) {};
   ~NPairSSAKokkosBinIDAtomsFunctor() {}
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i, value_type& update) const {
     c.binIDAtomsItem(i, update);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void join (value_type& dst,
              const value_type& src) const {
     if (dst < src) dst = src;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void init (value_type& dst) const {
     dst = INT_MIN;
@@ -220,17 +230,20 @@ struct NPairSSAKokkosBinIDGhostsFunctor {
   NPairSSAKokkosBinIDGhostsFunctor(const NBinSSAKokkos<DeviceType> &_c):
     c(_c) {};
   ~NPairSSAKokkosBinIDGhostsFunctor() {}
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i, value_type& update) const {
     c.binIDGhostsItem(i, update);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void join (value_type& dst,
              const value_type& src) const {
     if (dst < src) dst = src;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void init (value_type& dst) const {
     dst = INT_MIN;

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HIP_PARALLEL_FOR_MDRANGE_HPP
 #define KOKKOS_HIP_PARALLEL_FOR_MDRANGE_HPP
@@ -38,121 +25,66 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, HIP> {
   using array_index_type = typename Policy::array_index_type;
   using index_type       = typename Policy::index_type;
   using LaunchBounds     = typename Policy::launch_bounds;
+  using MaxGridSize      = Kokkos::Array<index_type, 3>;
+  using array_type       = typename Policy::point_type;
 
   const FunctorType m_functor;
   const Policy m_policy;
+  const MaxGridSize m_max_grid_size;
+
+  array_type m_lower;
+  array_type m_upper;
+  array_type m_extent;  // tile_size * num_tiles
 
  public:
-  ParallelFor()                              = delete;
-  ParallelFor(ParallelFor const&)            = default;
-  ParallelFor& operator=(ParallelFor const&) = delete;
+  ParallelFor() = delete;
 
   inline __device__ void operator()() const {
-    Kokkos::Impl::DeviceIterateTile<Policy::rank, Policy, FunctorType,
-                                    typename Policy::work_tag>(m_policy,
-                                                               m_functor)
+    Kokkos::Impl::DeviceIterate<Policy::rank, array_index_type, index_type,
+                                FunctorType, Policy::inner_direction,
+                                typename Policy::work_tag>(m_lower, m_upper,
+                                                           m_extent, m_functor)
         .exec_range();
   }
 
   inline void execute() const {
     using ClosureType = ParallelFor<FunctorType, Policy, HIP>;
     if (m_policy.m_num_tiles == 0) return;
-    auto const maxblocks = m_policy.space().hip_device_prop().maxGridSize;
-    if (Policy::rank == 2) {
-      dim3 const block(m_policy.m_tile[0], m_policy.m_tile[1], 1);
-      dim3 const grid(
-          std::min<array_index_type>(
-              (m_policy.m_upper[0] - m_policy.m_lower[0] + block.x - 1) /
-                  block.x,
-              maxblocks[0]),
-          std::min<array_index_type>(
-              (m_policy.m_upper[1] - m_policy.m_lower[1] + block.y - 1) /
-                  block.y,
-              maxblocks[1]),
-          1);
-      hip_parallel_launch<ClosureType, LaunchBounds>(
-          *this, grid, block, 0,
-          m_policy.space().impl_internal_space_instance(), false);
-    } else if (Policy::rank == 3) {
-      dim3 const block(m_policy.m_tile[0], m_policy.m_tile[1],
-                       m_policy.m_tile[2]);
-      dim3 const grid(
-          std::min<array_index_type>(
-              (m_policy.m_upper[0] - m_policy.m_lower[0] + block.x - 1) /
-                  block.x,
-              maxblocks[0]),
-          std::min<array_index_type>(
-              (m_policy.m_upper[1] - m_policy.m_lower[1] + block.y - 1) /
-                  block.y,
-              maxblocks[1]),
-          std::min<array_index_type>(
-              (m_policy.m_upper[2] - m_policy.m_lower[2] + block.z - 1) /
-                  block.z,
-              maxblocks[2]));
-      hip_parallel_launch<ClosureType, LaunchBounds>(
-          *this, grid, block, 0,
-          m_policy.space().impl_internal_space_instance(), false);
-    } else if (Policy::rank == 4) {
-      // id0,id1 encoded within threadIdx.x; id2 to threadIdx.y; id3 to
-      // threadIdx.z
-      dim3 const block(m_policy.m_tile[0] * m_policy.m_tile[1],
-                       m_policy.m_tile[2], m_policy.m_tile[3]);
-      dim3 const grid(
-          std::min<array_index_type>(
-              m_policy.m_tile_end[0] * m_policy.m_tile_end[1], maxblocks[0]),
-          std::min<array_index_type>(
-              (m_policy.m_upper[2] - m_policy.m_lower[2] + block.y - 1) /
-                  block.y,
-              maxblocks[1]),
-          std::min<array_index_type>(
-              (m_policy.m_upper[3] - m_policy.m_lower[3] + block.z - 1) /
-                  block.z,
-              maxblocks[2]));
-      hip_parallel_launch<ClosureType, LaunchBounds>(
-          *this, grid, block, 0,
-          m_policy.space().impl_internal_space_instance(), false);
-    } else if (Policy::rank == 5) {
-      // id0,id1 encoded within threadIdx.x; id2,id3 to threadIdx.y; id4
-      // to threadIdx.z
-      dim3 const block(m_policy.m_tile[0] * m_policy.m_tile[1],
-                       m_policy.m_tile[2] * m_policy.m_tile[3],
-                       m_policy.m_tile[4]);
-      dim3 const grid(
-          std::min<array_index_type>(
-              m_policy.m_tile_end[0] * m_policy.m_tile_end[1], maxblocks[0]),
-          std::min<array_index_type>(
-              m_policy.m_tile_end[2] * m_policy.m_tile_end[3], maxblocks[1]),
-          std::min<array_index_type>(
-              (m_policy.m_upper[4] - m_policy.m_lower[4] + block.z - 1) /
-                  block.z,
-              maxblocks[2]));
-      hip_parallel_launch<ClosureType, LaunchBounds>(
-          *this, grid, block, 0,
-          m_policy.space().impl_internal_space_instance(), false);
-    } else if (Policy::rank == 6) {
-      // id0,id1 encoded within threadIdx.x; id2,id3 to threadIdx.y;
-      // id4,id5 to threadIdx.z
-      dim3 const block(m_policy.m_tile[0] * m_policy.m_tile[1],
-                       m_policy.m_tile[2] * m_policy.m_tile[3],
-                       m_policy.m_tile[4] * m_policy.m_tile[5]);
-      dim3 const grid(
-          std::min<array_index_type>(
-              m_policy.m_tile_end[0] * m_policy.m_tile_end[1], maxblocks[0]),
-          std::min<array_index_type>(
-              m_policy.m_tile_end[2] * m_policy.m_tile_end[3], maxblocks[1]),
-          std::min<array_index_type>(
-              m_policy.m_tile_end[4] * m_policy.m_tile_end[5], maxblocks[2]));
-      hip_parallel_launch<ClosureType, LaunchBounds>(
-          *this, grid, block, 0,
-          m_policy.space().impl_internal_space_instance(), false);
-    } else {
-      Kokkos::abort("Kokkos::MDRange Error: Exceeded rank bounds with HIP\n");
-    }
 
+    const auto [grid, block] =
+        Kokkos::Impl::compute_device_launch_params(m_policy, m_max_grid_size);
+
+    hip_parallel_launch<ClosureType, LaunchBounds>(
+        *this, grid, block, 0, m_policy.space().impl_internal_space_instance(),
+        false);
   }  // end execute
 
   ParallelFor(FunctorType const& arg_functor, Policy const& arg_policy)
-      : m_functor(arg_functor), m_policy(arg_policy) {}
+      : m_functor(arg_functor),
+        m_policy(arg_policy),
+        m_max_grid_size({
+            static_cast<index_type>(
+                m_policy.space().hip_device_prop().maxGridSize[0]),
+            static_cast<index_type>(
+                m_policy.space().hip_device_prop().maxGridSize[1]),
+            static_cast<index_type>(
+                m_policy.space().hip_device_prop().maxGridSize[2]),
+        }) {
+    // Initialize begins and ends based on layout
+    // Swap the fastest indexes to x dimension
+    for (array_index_type i = 0; i < Policy::rank; ++i) {
+      if constexpr (Policy::inner_direction == Iterate::Left) {
+        m_lower[i]  = m_policy.m_lower[i];
+        m_upper[i]  = m_policy.m_upper[i];
+        m_extent[i] = m_policy.m_tile[i] * m_policy.m_tile_end[i];
+      } else {
+        m_lower[i]  = m_policy.m_lower[Policy::rank - 1 - i];
+        m_upper[i]  = m_policy.m_upper[Policy::rank - 1 - i];
+        m_extent[i] = m_policy.m_tile[Policy::rank - 1 - i] *
+                      m_policy.m_tile_end[Policy::rank - 1 - i];
+      }
+    }
+  }
 
   template <typename Policy, typename Functor>
   static int max_tile_size_product(const Policy&, const Functor&) {

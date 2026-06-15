@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 /*! \brief file gups.cpp
 
@@ -20,17 +7,17 @@
 */
 
 #include "Kokkos_Core.hpp"
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
-#include <chrono>
-#include <numeric>
 #include <algorithm>
+#include <cstdio>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <numeric>
 #include <random>
 
 #define HLINE "-------------------------------------------------------------\n"
 
-using Index = int;
+using Index = int64_t;
 using Datum = int64_t;
 
 using IndexView = Kokkos::View<Index*>;
@@ -122,8 +109,9 @@ int run_benchmark(const Index indicesCount, const Index dataCount,
   DataView data("data", dataCount);
   Kokkos::parallel_for(
       "init-data",
-      Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(0, dataCount),
-      KOKKOS_LAMBDA(const int i) { data[i] = 10101010101; });
+      Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace,
+                          Kokkos::IndexType<Index>>(0, dataCount),
+      KOKKOS_LAMBDA(const Index i) { data[i] = 10101010101; });
 
   printf("Starting benchmarking...\n");
   double gupsTime       = 0.0;

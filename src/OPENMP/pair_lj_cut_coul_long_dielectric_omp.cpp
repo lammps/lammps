@@ -184,7 +184,7 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction * dftable[itable];
             forcecoul = qtmp * q[j] * table;
             efield_i = q[j] * table;

@@ -29,8 +29,8 @@
 #include "potential_file_reader.h"
 
 #include <algorithm>
+#include <exception>
 #include <cstring>
-#include <memory>
 
 using namespace LAMMPS_NS;
 
@@ -370,7 +370,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
 
   // allocate parameter arrays
 
-  std::vector<lattice_t> lat(nlibelements);
+  std::vector<MEAM::lattice_t> lat(nlibelements);
   std::vector<int> ielement(nlibelements);
   std::vector<int> ibar(nlibelements);
   std::vector<double> z(nlibelements);
@@ -601,7 +601,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
     // map lattce_meam value to an integer
     if (which == 4) {
       std::string lattice_type = values.next_string();
-      lattice_t latt;
+      MEAM::lattice_t latt;
       if (!MEAM::str_to_lat(lattice_type, false, latt))
         error->all(FLERR, uidx, "Unrecognized lattice type {} in MEAM parameter file {}:{}",
                    lattice_type, userfile, lineno);

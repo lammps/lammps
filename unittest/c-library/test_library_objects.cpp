@@ -153,7 +153,7 @@ TEST_F(LibraryObjects, variables)
 
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "ten"), LMP_VAR_EQUAL);
     ptr = lammps_extract_variable(lmp, "ten", nullptr);
-    EXPECT_THAT(*(double *)ptr, 1.0);
+    EXPECT_THAT(*(double *)ptr, 10.0);
     lammps_free(ptr);
     variable->internal_set(variable->find("ten"), 2.5);
     ptr = lammps_extract_variable(lmp, "ten", nullptr);

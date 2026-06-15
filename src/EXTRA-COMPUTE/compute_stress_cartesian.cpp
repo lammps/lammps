@@ -39,7 +39,7 @@ static constexpr double SMALL = 1.0e-10;
 ------------------------------------------------------------------------------------*/
 
 static const char cite_compute_stress_cartesian[] =
-    "compute stress/cartesian: doi:10.3390/nano11010165\n\n"
+    "compute stress/cartesian: https://doi.org/10.3390/nano11010165\n\n"
     "@article{galteland2021nanothermodynamic,\n"
     "title={Nanothermodynamic Description and Molecular Simulation of a\n"
     "   Single-Phase Fluid in a Slit Pore},\n"
@@ -136,7 +136,7 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
 
   // check for variable box dimension
   int box_incompatible = 0;
-  for (auto &ifix : modify->get_fix_list()) {
+  for (const auto &ifix : modify->get_fix_list()) {
     if (((dir1 == 0) && (ifix->box_change & Fix::BOX_CHANGE_X)) ||
         ((dir1 == 1) && (ifix->box_change & Fix::BOX_CHANGE_Y)) ||
         ((dir1 == 2) && (ifix->box_change & Fix::BOX_CHANGE_Z)))
@@ -480,7 +480,7 @@ void ComputeStressCartesian::compute_pressure(double fpair, double xi, double yi
       tmp1[dir1] = (bin1 + 1) * bin_width1 - xi;
     else
       tmp1[dir1] = bin1 * bin_width1 - xi;
-    domain->minimum_image(tmp1[0],tmp1[1],tmp1[2]);
+    domain->minimum_image(FLERR, tmp1[0],tmp1[1],tmp1[2]);
     l1 = tmp1[dir1] / rij1;
 
     double l2;
@@ -489,7 +489,7 @@ void ComputeStressCartesian::compute_pressure(double fpair, double xi, double yi
       tmp2[dir2] = (bin2 + 1) * bin_width2 - yi;
     else
       tmp2[dir2] = bin2 * bin_width2 - yi;
-    domain->minimum_image(tmp2[0],tmp2[1],tmp2[2]);
+    domain->minimum_image(FLERR, tmp2[0],tmp2[1],tmp2[2]);
     l2 = tmp2[dir2] / rij2;
 
     if ((dims == 1 || l1 < l2 || l2 < lb + SMALL) && l1 <= 1.0 && l1 > lb) {

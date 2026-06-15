@@ -44,19 +44,19 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   // ensure they are valid for these computations
 
   id_ke = utils::strdup(arg[3]);
-  auto ike = modify->get_compute_by_id(id_ke);
+  auto *ike = modify->get_compute_by_id(id_ke);
   if (!ike) error->all(FLERR,"Could not find compute heat/flux compute ID {}", id_ke);
   if (!utils::strmatch(ike->style,"^ke/atom"))
     error->all(FLERR,"Compute heat/flux compute ID {} does not compute ke/atom", id_ke);
 
   id_pe = utils::strdup(arg[4]);
-  auto ipe = modify->get_compute_by_id(id_pe);
+  auto *ipe = modify->get_compute_by_id(id_pe);
   if (!ipe) error->all(FLERR,"Could not find compute heat/flux compute ID {}", id_pe);
   if (ipe->peatomflag == 0)
     error->all(FLERR,"Compute heat/flux compute ID {} does not compute pe/atom", id_pe);
 
   id_stress = utils::strdup(arg[5]);
-  auto istress = modify->get_compute_by_id(id_stress);
+  auto *istress = modify->get_compute_by_id(id_stress);
   if (!istress) error->all(FLERR,"Could not find compute heat/flux compute ID {}", id_stress);
   if ((istress->pressatomflag != 1) && (istress->pressatomflag != 2))
     error->all(FLERR,

@@ -38,7 +38,7 @@ endif
 
 # Package variables
 
-# PACKAGE    = all packages
+# PACKAGE    = all supported packages
 # PACKBASIC  = a few core packages
 # PACKMOST   = most packages that do not require additional libs
 # PACKLIB    = all packages that require an additional lib
@@ -54,7 +54,6 @@ PACKAGE = \
 	adios \
 	amoeba \
 	asphere \
-	awpmd \
 	bocs \
 	body \
 	bpm \
@@ -63,8 +62,6 @@ PACKAGE = \
 	cg-spica \
 	class2 \
 	colloid \
-	colvars \
-	compress \
 	coreshell \
 	diffraction \
 	dipole \
@@ -81,52 +78,33 @@ PACKAGE = \
 	extra-molecule \
 	extra-pair \
 	fep \
-	gpu \
+	graphics \
 	granular \
-	h5md \
 	intel \
 	interlayer \
-	kim \
-	kokkos \
 	latboltz \
-	lepton \
-	machdyn \
 	manifold \
 	manybody \
 	mc \
-	mdi \
 	meam \
 	mesont \
 	mgpt \
 	misc \
-	ml-hdnnp \
-	ml-pace \
-	ml-pod \
-	ml-quip \
 	ml-rann \
 	ml-snap \
 	ml-uf3 \
 	mofff \
-	molfile \
-	netcdf \
 	openmp \
 	opt \
 	orient \
 	peri \
-	plugin \
-	plumed \
-	poems \
 	ptm \
-	python \
 	qeq \
-	qmmm \
 	qtb \
 	reaction \
 	reaxff \
 	replica \
-	rheo \
 	rigid \
-	scafacos \
 	shock \
 	smtbq \
 	sph \
@@ -134,19 +112,15 @@ PACKAGE = \
 	srd \
 	tally \
 	uef \
-	voronoi \
-	vtk \
 	yaff \
-	atc \
 	dielectric \
-	electrode \
 	ml-iap \
 	phonon
 
 # NOTE: the last four packages must remain at the end since
 # they depend on other packages to be installed first.
 
-PACKBASIC = molecule kspace manybody rigid
+PACKBASIC = molecule kspace manybody rigid graphics
 
 PACKMOST = \
 	kspace \
@@ -177,6 +151,7 @@ PACKMOST = \
 	extra-molecule \
 	extra-pair \
 	fep \
+	graphics \
 	granular \
 	interlayer \
 	manybody \
@@ -209,57 +184,13 @@ PACKMOST = \
 # NOTE ^^^^^: the last three packages must remain at the end since
 # they depend on other packages to be installed first.
 
-PACKLIB = \
-	compress \
-	gpu \
-	kim \
-	kokkos \
-	lepton \
-	poems \
-	python \
-	voronoi \
-	adios \
-	atc \
-	awpmd \
-	colvars \
-	h5md \
-	ml-hdnnp \
-	latboltz \
-	lepton \
-	mdi \
-	molfile \
-	netcdf \
-	ml-pace \
-	ml-pod \
-	plumed \
-	qmmm \
-	ml-quip \
-	rheo \
-	scafacos \
-	machdyn \
-	vtk \
-	electrode
+PACKLIB = adios latboltz
 
-PACKSYS = compress latboltz python
+PACKSYS = latboltz
 
-PACKINT = atc awpmd colvars electrode gpu kokkos lepton ml-pod poems
+PACKINT =
 
-PACKEXT = \
-	adios \
-	h5md \
-	kim \
-	machdyn \
-	ml-hdnnp \
-	ml-pace \
-	ml-quip \
-	molfile \
-	netcdf \
-	plumed \
-	qmmm \
-	rheo \
-	scafacos \
-	voronoi \
-	vtk \
+PACKEXT = adios
 
 # Helper GNU make function for conversion to upper case without using shell commands
 uppercase_TABLE:=a,A b,B c,C d,D e,E f,F g,G h,H i,I j,J k,K l,L m,M n,N o,O p,P q,Q r,R s,S t,T u,U v,V w,W x,X y,Y z,Z
@@ -294,17 +225,11 @@ help:
 	@echo 'make no-basic                remove a few commonly used pkgs'
 	@echo 'make yes-most                install most pkgs w/o libs'
 	@echo 'make no-most                 remove most pkgs w/o libs'
-	@echo 'make yes-lib       install all pkgs with libs (included or ext)'
-	@echo 'make no-lib        remove all pkgs with libs (included or ext)'
-	@echo 'make yes-ext                 install all pkgs with external libs'
-	@echo 'make no-ext                  remove all pkgs with external libs'
 	@echo ''
 	@echo 'make package-update (pu) replace src files with updated package files'
 	@echo 'make package-overwrite   replace package files with src files'
 	@echo 'make package-diff (pd)   diff src files against package files'
 	@echo ''
-	@echo 'make lib-package         help for download/build/install a package library'
-	@echo 'make lib-package args="..."    download/build/install a package library'
 	@echo 'make purge               purge obsolete copies of source files'
 	@echo ''
 	@echo 'make machine             build LAMMPS for machine with static library'
@@ -332,7 +257,7 @@ help:
 	@files="`ls MAKE/MINE/Makefile.* 2>/dev/null`"; \
 	  for file in $$files; do head -1 $$file; done
 	@echo ''
-
+	@$(MAKE) $(MFLAGS) warning
 
 lmpinstalledpkgs.h: $(SRC) $(INC)
 	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  ${TMPNAME}.lmpinstalled
@@ -372,7 +297,19 @@ gitversion:
 	        mv ${TMPNAME}.lmpgitversion lmpgitversion.h || rm ${TMPNAME}.lmpgitversion ; \
         else mv ${TMPNAME}.lmpgitversion lmpgitversion.h ; fi
 
-# Build LAMMPS in one of 2 modes
+# deprecation warning
+
+warning:
+	@echo 'WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING'
+	@echo 'WARNING:'
+	@echo 'WARNING: The LAMMPS developers plan to retire the legacy build system'
+	@echo 'WARNING: Please use CMake instead. See https://docs.lammps.org/Build_cmake.html'
+	@echo 'WARNING: Contact us at developers@lammps.org if you have concerns or questions'
+	@echo 'WARNING:'
+	@echo 'WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING'
+	@echo ''
+
+## Build LAMMPS in one of 2 modes
 # static = static compile in Obj_machine (default)
 # shared = shared compile in Obj_shared_machine
 
@@ -385,6 +322,7 @@ gitversion:
 	@echo 'Gathering installed package information (may take a little while)'
 	@$(SHELL) Make.sh style
 	@$(SHELL) Make.sh packages
+	@$(MAKE) $(MFLAGS) warning
 	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h gitversion
 	@echo 'Compiling LAMMPS for machine $@'
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
@@ -440,14 +378,17 @@ endif
 # Remove machine-specific object files
 
 clean:
+	@$(MAKE) $(MFLAGS) warning
 	@echo 'make clean-all           delete all object files'
 	@echo 'make clean-machine       delete object files for one machine'
 
 clean-all:
+	@$(MAKE) $(MFLAGS) warning
 	rm -rf Obj_*
 	rm -f style_*.h packages_*.h lmpgitversion.h lmpinstalledpkgs.h
 
 clean-%:
+	@$(MAKE) $(MFLAGS) warning
 	@if [ $@ = "clean-serial" ]; \
 		then cd STUBS; $(MAKE) clean; cd ..; fi
 	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
@@ -517,15 +458,10 @@ check-docs:
 check-version:
 	$(PYTHON) ../tools/coding_standard/versiontags.py .. || echo
 
-format-src:
-	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h
-
-format-tests:
-	clang-format -i --verbose --style=file ../unittest/*/*.cpp ../unittest/*/*.h
-
 # Package management
 
 package:
+	@$(MAKE) $(MFLAGS) warning
 	@echo 'Available packages:' $(PACKAGE)
 	@echo ''
 	@echo 'Packages that need system libraries:' $(PACKSYS)
@@ -603,6 +539,7 @@ no-ext:
 	@for p in $(PACKEXT); do $(MAKE) no-$$p; done
 
 yes-%:
+	@$(MAKE) $(MFLAGS) warning
 	@if [ ! -e Makefile.package ]; \
 	  then cp Makefile.package.empty Makefile.package; fi
 	@if [ ! -e Makefile.package.settings ]; \
@@ -621,6 +558,7 @@ yes-%:
 	@$(SHELL) Fetch.sh $(YESDIR)
 
 no-%:
+	@$(MAKE) $(MFLAGS) warning
 	@if [ ! -e $(NODIR) ]; then \
 	  echo "Package $(NODIR) does not exist"; exit 1; \
 	elif [ -e $(NODIR)/Install.sh ]; then \
@@ -637,14 +575,13 @@ no-%:
 # update the timestamp on main.cpp to trigger a relink with "make machine"
 
 lib-%:
+	@$(MAKE) $(MFLAGS) warning
 	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-%=%)"; \
 	  ( cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args) ); \
 	else \
-	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
+	  echo "Install script for lib $(@:lib-%=%) does not exist. Please use CMake."; \
 	fi; touch main.cpp
-
-lib-colvars: lib-lepton
 
 # status = list src files that differ from package files
 # installed = list of installed packages
@@ -675,3 +612,5 @@ purge: Purge.list
 	@for f in `grep -v '#' Purge.list` ;		\
 	    do test -f $$f && rm $$f && echo $$f || : ;		\
 	done
+
+.PHONY: warning

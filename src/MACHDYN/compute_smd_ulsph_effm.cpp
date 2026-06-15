@@ -89,7 +89,7 @@ void ComputeSMD_Ulsph_Effm::compute_peratom() {
         }
 
         int itmp = 0;
-        auto particle_dt = (double *) force->pair->extract("smd/ulsph/effective_modulus_ptr", itmp);
+        auto *particle_dt = (double *) force->pair->extract("smd/ulsph/effective_modulus_ptr", itmp);
         if (particle_dt == nullptr)
           error->all(FLERR, "compute smd/ulsph_effm failed to access particle_dt array");
 

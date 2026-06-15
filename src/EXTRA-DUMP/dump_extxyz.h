@@ -36,9 +36,11 @@ class DumpExtXYZ : public DumpXYZ {
   int with_temp;
   int with_press;
   char *properties_string;
+  char *thermo_string;
 
   void update_properties();
   void init_style() override;
+  int count() override;
   void write_header(bigint) override;
   void pack(tagint *) override;
   int convert_string(int, double *) override;

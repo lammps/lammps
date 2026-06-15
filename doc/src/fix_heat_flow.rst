@@ -22,8 +22,6 @@ Syntax
        *type* = cp1 ... cpN
          cpN = value of specifc heat for type N (energy/(mass * temperature) units)
 
-*
-
 Examples
 """"""""
 

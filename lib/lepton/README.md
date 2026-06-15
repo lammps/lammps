@@ -3,11 +3,6 @@ which allows to efficiently evaluate mathematical expressions from
 strings.  This library is used with the LEPTON package that support
 force styles within LAMMPS that make use of this library.
 
-You can type "make lib-lepton" from the src directory to see help on how
-to build this library via make commands, or you can do the same thing
-by typing "python Install.py" from within this directory, or you can
-do it manually by following the instructions below.
-
 ---------------------
 
 Lepton (short for “lightweight expression parser”) is a C++ library for

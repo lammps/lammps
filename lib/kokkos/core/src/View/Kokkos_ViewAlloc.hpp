@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -24,6 +11,7 @@ static_assert(false,
 #define KOKKOS_VIEW_ALLOC_HPP
 
 #include <cstring>
+#include <new>
 #include <type_traits>
 #include <string>
 #include <optional>
@@ -35,12 +23,6 @@ static_assert(false,
 #include <impl/Kokkos_ZeroMemset_fwd.hpp>
 
 namespace Kokkos::Impl {
-
-template <typename T>
-bool is_zero_byte(const T& x) {
-  constexpr std::byte all_zeroes[sizeof(T)] = {};
-  return std::memcmp(&x, all_zeroes, sizeof(T)) == 0;
-}
 
 template <class DeviceType, class ValueType>
 struct ViewValueFunctor {
@@ -78,9 +60,7 @@ struct ViewValueFunctor {
 #endif
   }
 
-  ViewValueFunctor()                                   = default;
-  ViewValueFunctor(const ViewValueFunctor&)            = default;
-  ViewValueFunctor& operator=(const ViewValueFunctor&) = default;
+  ViewValueFunctor() = default;
 
   ViewValueFunctor(ExecSpace const& arg_space, ValueType* const arg_ptr,
                    size_t const arg_n, std::string arg_name)
@@ -119,9 +99,9 @@ struct ViewValueFunctor {
     }
 
 #ifdef KOKKOS_ENABLE_CUDA
-    if (std::is_same<ExecSpace, Kokkos::Cuda>::value) {
-      Kokkos::Impl::cuda_prefetch_pointer(space, ptr, sizeof(ValueType) * n,
-                                          true);
+    if constexpr (std::is_same<ExecSpace, Kokkos::Cuda>::value) {
+      Kokkos::Impl::cuda_prefetch_pointer(space.cuda_stream(), ptr,
+                                          sizeof(ValueType) * n, true);
     }
 #endif
     const Kokkos::Impl::ParallelFor<ViewValueFunctor, PolicyType> closure(
@@ -161,15 +141,12 @@ struct ViewValueFunctor {
   }
 
   void construct_shared_allocation() {
-// On A64FX memset seems to do the wrong thing with regards to first touch
-// leading to the significant performance issues
-#ifndef KOKKOS_ARCH_A64FX
-    if constexpr (std::is_trivial_v<ValueType>) {
+    if constexpr (std::is_trivially_default_constructible_v<ValueType>) {
       // value-initialization is equivalent to filling with zeros
       zero_memset_implementation();
-    } else
-#endif
+    } else {
       parallel_for_implementation<ConstructTag>();
+    }
   }
 
   void destroy_shared_allocation() {
@@ -191,7 +168,7 @@ struct ViewValueFunctor {
   // when the function is queried with cudaFuncGetAttributes
   void functor_instantiate_workaround() {
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
-    defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+    defined(KOKKOS_ENABLE_SYCL)
     if (false) {
       parallel_for_implementation<DestroyTag>();
     }
@@ -222,7 +199,7 @@ struct ViewValueFunctorSequentialHostInit {
       : ptr(arg_ptr), n(arg_n) {}
 
   void construct_shared_allocation() {
-    if constexpr (std::is_trivial_v<ValueType>) {
+    if constexpr (std::is_trivially_default_constructible_v<ValueType>) {
       // value-initialization is equivalent to filling with zeros
       std::memset(static_cast<void*>(ptr), 0, n * sizeof(ValueType));
     } else {

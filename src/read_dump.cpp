@@ -193,13 +193,13 @@ void ReadDump::setup_reader(int narg, char **arg)
     firstfile = -1;
     MPI_Comm_dup(world, &clustercomm);
   } else if (multiproc_nfile >= nprocs) {
-    firstfile = static_cast<int> ((bigint) me * multiproc_nfile/nprocs);
-    int lastfile = static_cast<int> ((bigint) (me+1) * multiproc_nfile/nprocs);
+    firstfile = static_cast<int>((bigint) me * multiproc_nfile/nprocs);
+    int lastfile = static_cast<int>((bigint) (me+1) * multiproc_nfile/nprocs);
     nreader = lastfile - firstfile;
     MPI_Comm_split(world, me, 0, &clustercomm);
   } else if (multiproc_nfile < nprocs) {
     nreader = 1;
-    int icluster = static_cast<int> ((bigint) me * multiproc_nfile/nprocs);
+    int icluster = static_cast<int>((bigint) me * multiproc_nfile/nprocs);
     firstfile = icluster;
     MPI_Comm_split(world, icluster, 0, &clustercomm);
   }
@@ -345,7 +345,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
 
 bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 {
-  int ifile,eofflag;
+  int ifile = 0, eofflag = 0;
   bigint ntimestep;
 
   // proc 0 finds the timestep in its first reader
@@ -442,7 +442,8 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 
 void ReadDump::header(int fieldinfo)
 {
-  int boxinfo, triclinic_snap;
+  int boxinfo = 0;
+  int triclinic_snap;
   int fieldflag,xflag,yflag,zflag;
 
   if (filereader) {
@@ -691,7 +692,7 @@ void ReadDump::read_atoms()
       olast = (bigint) (otherproc+1) * nsnap/nprocs_cluster;
       if (olast-ofirst > MAXSMALLINT)
         error->one(FLERR,"Read dump snapshot is too large for a proc");
-      nnew = static_cast<int> (olast - ofirst);
+      nnew = static_cast<int>(olast - ofirst);
 
       if (nnew > maxnew || maxnew == 0) {
         memory->destroy(fields);
@@ -734,7 +735,7 @@ void ReadDump::read_atoms()
       olast = (bigint) (me_cluster+1) * nsnap/nprocs_cluster;
       if (olast-ofirst > MAXSMALLINT)
         error->one(FLERR,"Read dump snapshot is too large for a proc");
-      nnew = static_cast<int> (olast - ofirst);
+      nnew = static_cast<int>(olast - ofirst);
       if (nnew > maxnew || maxnew == 0) {
         memory->destroy(fields);
         maxnew = MAX(nnew,1);     // avoid null pointer
@@ -760,7 +761,7 @@ void ReadDump::read_atoms()
       sum += nsnapatoms[i];
     if (sum > MAXSMALLINT)
       error->one(FLERR,"Read dump snapshot is too large for a proc");
-    nnew = static_cast<int> (sum);
+    nnew = static_cast<int>(sum);
     if (nnew > maxnew || maxnew == 0) {
       memory->destroy(fields);
       maxnew = MAX(nnew,1);     // avoid null pointer
@@ -815,9 +816,11 @@ void ReadDump::process_atoms()
   double **x = atom->x;
   double **v = atom->v;
   double *q = atom->q;
+  double *apip_lambda = atom->apip_lambda;
   double **f = atom->f;
   tagint *tag = atom->tag;
   imageint *image = atom->image;
+  tagint *molecule = atom->molecule;
   tagint map_tag_max = atom->map_tag_max;
 
   for (i = 0; i < nnew; i++) {
@@ -827,7 +830,7 @@ void ReadDump::process_atoms()
     // NOTE: atom ID in fields is stored as double, not as ubuf
     //       so can only cast it to tagint, thus cannot be full 64-bit ID
 
-    mtag = static_cast<tagint> (fields[i][0]);
+    mtag = static_cast<tagint>(fields[i][0]);
     if (mtag <= map_tag_max) m = atom->map(mtag);
     else m = -1;
     if (m < 0 || m >= nlocal) continue;
@@ -864,6 +867,12 @@ void ReadDump::process_atoms()
         case Reader::Q:
           q[m] = fields[i][ifield];
           break;
+        case Reader::MOL:
+          molecule[m] = static_cast<tagint>(fields[i][ifield]);
+          break;
+        case Reader::APIP_LAMBDA:
+          apip_lambda[m] = fields[i][ifield];
+          break;
         case Reader::VY:
           v[m][1] = fields[i][ifield];
           break;
@@ -871,13 +880,13 @@ void ReadDump::process_atoms()
           v[m][2] = fields[i][ifield];
           break;
         case Reader::IX:
-          xbox = static_cast<int> (fields[i][ifield]);
+          xbox = static_cast<int>(fields[i][ifield]);
           break;
         case Reader::IY:
-          ybox = static_cast<int> (fields[i][ifield]);
+          ybox = static_cast<int>(fields[i][ifield]);
           break;
         case Reader::IZ:
-          zbox = static_cast<int> (fields[i][ifield]);
+          zbox = static_cast<int>(fields[i][ifield]);
           break;
         case Reader::FX:
           f[m][0] = fields[i][ifield];
@@ -955,7 +964,7 @@ void ReadDump::process_atoms()
     for (ifield = 1; ifield < nfield; ifield++) {
       switch (fieldtype[ifield]) {
       case Reader::TYPE:
-        itype = static_cast<int> (fields[i][ifield]);
+        itype = static_cast<int>(fields[i][ifield]);
         break;
       case Reader::X:
         one[0] = xfield(i,ifield);
@@ -969,6 +978,19 @@ void ReadDump::process_atoms()
       }
     }
 
+    // check if atom type is valid
+
+    if ((itype < 1) || (itype > atom->ntypes)) {
+      tagint newtag = i + 1;
+      if ((atom->tag_enable) && (atom->map_tag_max > 0)) {
+        newtag += atom->map_tag_max;
+      } else {
+        newtag += atom->natoms;
+      }
+      error->all(FLERR, Error::NOLASTLINE, "Atom type {} for new atom-ID {} is out of range",
+                 itype, newtag);
+    }
+
     // create the atom on proc that owns it
     // reset v,image ptrs in case they are reallocated
 
@@ -979,7 +1001,9 @@ void ReadDump::process_atoms()
     tag = atom->tag;
     v = atom->v;
     q = atom->q;
+    apip_lambda = atom->apip_lambda;
     image = atom->image;
+    molecule = atom->molecule;
 
     // set atom attributes from other dump file fields
 
@@ -989,7 +1013,7 @@ void ReadDump::process_atoms()
       switch (fieldtype[ifield]) {
       case Reader::ID:
         if (addflag == KEEPADD)
-          tag[m] = static_cast<tagint> (fields[i][ifield]);
+          tag[m] = static_cast<tagint>(fields[i][ifield]);
         break;
       case Reader::VX:
         v[m][0] = fields[i][ifield];
@@ -1003,14 +1027,20 @@ void ReadDump::process_atoms()
       case Reader::Q:
         q[m] = fields[i][ifield];
         break;
+      case Reader::MOL:
+        molecule[m] = static_cast<tagint>(fields[i][ifield]);
+        break;
+      case Reader::APIP_LAMBDA:
+        apip_lambda[m] = fields[i][ifield];
+        break;
       case Reader::IX:
-        xbox = static_cast<int> (fields[i][ifield]);
+        xbox = static_cast<int>(fields[i][ifield]);
         break;
       case Reader::IY:
-        ybox = static_cast<int> (fields[i][ifield]);
+        ybox = static_cast<int>(fields[i][ifield]);
         break;
       case Reader::IZ:
-        zbox = static_cast<int> (fields[i][ifield]);
+        zbox = static_cast<int>(fields[i][ifield]);
         break;
       }
 
@@ -1063,7 +1093,7 @@ void ReadDump::migrate_old_atoms()
   for (int i = 0; i < nlocal; i++)
     procassign[i] = tag[i] % comm->nprocs;
 
-  auto irregular = new Irregular(lmp);
+  auto *irregular = new Irregular(lmp);
   irregular->migrate_atoms(1,1,procassign);
   delete irregular;
 
@@ -1082,11 +1112,11 @@ void ReadDump::migrate_new_atoms()
 
   memory->create(procassign,nnew,"read_dump:procassign");
   for (int i = 0; i < nnew; i++) {
-    mtag = static_cast<tagint> (fields[i][0]);
+    mtag = static_cast<tagint>(fields[i][0]);
     procassign[i] = mtag % comm->nprocs;
   }
 
-  auto irregular = new Irregular(lmp);
+  auto *irregular = new Irregular(lmp);
   int nrecv = irregular->create_data(nnew,procassign,1);
   int newmaxnew = MAX(nrecv,maxnew);
   newmaxnew = MAX(newmaxnew,1);    // avoid null pointer
@@ -1123,7 +1153,7 @@ void ReadDump::migrate_atoms_by_coords()
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
-  auto irregular = new Irregular(lmp);
+  auto *irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -1135,7 +1165,7 @@ void ReadDump::migrate_atoms_by_coords()
 
 int ReadDump::fields_and_keywords(int narg, char **arg)
 {
-  // per-field vectors, leave space for ID and TYPE
+  // per-field vectors, leave extra space for ID and TYPE
 
   fieldtype = new int[narg+2];
   fieldlabel = new char*[narg+2];
@@ -1153,6 +1183,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   nfield = 0;
   fieldtype[nfield++] = Reader::ID;
   if (iarg < narg) {
+    // must include type field since we found "add yes" or "add keep"
     if (comm->me == 0) utils::logmesg(lmp, "Adding 'type' field to requested per-atom fields\n");
     fieldtype[nfield++] = Reader::TYPE;
   }
@@ -1165,14 +1196,21 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
     if (type < 0) break;
     if (type == Reader::Q && !atom->q_flag)
       error->all(FLERR,"Read dump of charge property that isn't supported by atom style");
-    fieldtype[nfield++] = type;
+    if (type == Reader::MOL && !atom->molecule_flag)
+      error->all(FLERR,"Read dump of molecule ID that isn't supported by atom style");
+    if (type == Reader::APIP_LAMBDA && !atom->apip_lambda_flag)
+      error->all(FLERR,"Read dump of apip_lambda property that isn't supported by atom style");
+
     iarg++;
+    if (type == Reader::ID) continue; // already present since added by default
+    if ((type == Reader::TYPE) && (nfield > 1) && (fieldtype[1] == Reader::TYPE)) continue;
+    fieldtype[nfield++] = type;
   }
 
   // check for no fields
 
   if (fieldtype[nfield-1] == Reader::ID || fieldtype[nfield-1] == Reader::TYPE)
-    error->all(FLERR,"Read_dump must use at least either 'id' or 'type' field");
+    error->all(FLERR,"Read_dump command has no or invalid attribute fields");
 
   if (domain->dimension == 2) {
     for (int i = 0; i < nfield; i++)
@@ -1184,7 +1222,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   for (int i = 0; i < nfield; i++)
     for (int j = i+1; j < nfield; j++)
       if (fieldtype[i] == fieldtype[j])
-        error->all(FLERR,"Duplicate fields in read_dump command");
+        error->all(FLERR,"Duplicate fields {} and {} in read_dump command", arg[i], arg[j]);
 
   // parse optional args
 
@@ -1289,7 +1327,9 @@ int ReadDump::whichtype(char *str)
   else if (strcmp(str,"vx") == 0) type = Reader::VX;
   else if (strcmp(str,"vy") == 0) type = Reader::VY;
   else if (strcmp(str,"vz") == 0) type = Reader::VZ;
+  else if (strcmp(str,"mol") == 0) type = Reader::MOL;
   else if (strcmp(str,"q") == 0) type = Reader::Q;
+  else if (strcmp(str,"apip_lambda") == 0) type = Reader::APIP_LAMBDA;
   else if (strcmp(str,"ix") == 0) type = Reader::IX;
   else if (strcmp(str,"iy") == 0) type = Reader::IY;
   else if (strcmp(str,"iz") == 0) type = Reader::IZ;

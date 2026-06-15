@@ -7,6 +7,7 @@
 .. index:: pair_style lj/sf/dipole/sf/omp
 .. index:: pair_style lj/cut/dipole/long
 .. index:: pair_style lj/cut/dipole/long/gpu
+.. index:: pair_style lj/cut/dipole/long/omp
 .. index:: pair_style lj/long/dipole/long
 
 pair_style lj/cut/dipole/cut command
@@ -22,7 +23,7 @@ Accelerator Variants: *lj/sf/dipole/sf/gpu*, *lj/sf/dipole/sf/omp*
 pair_style lj/cut/dipole/long command
 =====================================
 
-Accelerator Variants: *lj/cut/dipole/long/gpu*
+Accelerator Variants: *lj/cut/dipole/long/gpu*, *lj/cut/dipole/long/omp*
 
 pair_style lj/long/dipole/long command
 ======================================

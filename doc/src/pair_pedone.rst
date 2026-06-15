@@ -1,11 +1,11 @@
 .. index:: pair_style pedone
 .. index:: pair_style pedone/omp
+.. index:: pair_style pedone/kk
 
 pair_style pedone command
 =========================
 
-Accelerator Variants: *pedone/omp*
-
+Accelerator Variants: *pedone/omp*, *pedone/kk*
 
 Syntax
 """"""

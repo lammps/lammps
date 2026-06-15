@@ -134,12 +134,17 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
         numflag = 1;
         numdelta = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
         if (numdelta <= 0.0) error->all(FLERR, "Illegal compute born/matrix command");
+        delete[] id_virial;
         id_virial = utils::strdup(arg[iarg + 2]);
-        int icompute = modify->find_compute(id_virial);
-        if (icompute < 0) error->all(FLERR, "Could not find compute born/matrix pressure ID");
-        compute_virial = modify->compute[icompute];
+        compute_virial = modify->get_compute_by_id(id_virial);
+        if (!compute_virial)
+          error->all(FLERR, iarg + 2, "Could not find compute born/matrix pressure ID {}",
+                     id_virial);
         if (compute_virial->pressflag == 0)
-          error->all(FLERR, "Compute born/matrix pressure ID does not compute pressure");
+          error->all(FLERR, iarg + 2,
+                     "Compute born/matrix pressure ID {} does not compute "
+                     "pressure",
+                     id_virial);
         iarg += 3;
       } else if (strcmp(arg[iarg], "pair") == 0) {
         pairflag = 1;
@@ -292,11 +297,12 @@ void ComputeBornMatrix::init()
 
   } else {
 
-    // check for virial compute
+    // re-check for virial compute
 
-    int icompute = modify->find_compute(id_virial);
-    if (icompute < 0) error->all(FLERR, "Virial compute ID for compute born/matrix does not exist");
-    compute_virial = modify->compute[icompute];
+    compute_virial = modify->get_compute_by_id(id_virial);
+    if (!compute_virial)
+      error->all(FLERR, Error::NOLASTLINE, "Could not find compute born/matrix pressure ID {}",
+                 id_virial);
 
     // set up reverse index lookup
     // This table is used for consistency between numdiff and analytical
@@ -764,7 +770,7 @@ void ComputeBornMatrix::compute_bonds()
       dx = x[atom2][0] - x[atom1][0];
       dy = x[atom2][1] - x[atom1][1];
       dz = x[atom2][2] - x[atom1][2];
-      domain->minimum_image(dx, dy, dz);
+      domain->minimum_image(FLERR, dx, dy, dz);
       rsq = dx * dx + dy * dy + dz * dz;
       rij[0] = dx;
       rij[1] = dy;
@@ -870,7 +876,7 @@ void ComputeBornMatrix::compute_angles()
       delx1 = x[atom1][0] - x[atom2][0];
       dely1 = x[atom1][1] - x[atom2][1];
       delz1 = x[atom1][2] - x[atom2][2];
-      domain->minimum_image(delx1, dely1, delz1);
+      domain->minimum_image(FLERR, delx1, dely1, delz1);
       del1[0] = delx1;
       del1[1] = dely1;
       del1[2] = delz1;
@@ -882,7 +888,7 @@ void ComputeBornMatrix::compute_angles()
       delx2 = x[atom3][0] - x[atom2][0];
       dely2 = x[atom3][1] - x[atom2][1];
       delz2 = x[atom3][2] - x[atom2][2];
-      domain->minimum_image(delx2, dely2, delz2);
+      domain->minimum_image(FLERR, delx2, dely2, delz2);
       del2[0] = delx2;
       del2[1] = dely2;
       del2[2] = delz2;
@@ -1046,7 +1052,7 @@ void ComputeBornMatrix::compute_dihedrals()
       vb1x = x[atom2][0] - x[atom1][0];
       vb1y = x[atom2][1] - x[atom1][1];
       vb1z = x[atom2][2] - x[atom1][2];
-      domain->minimum_image(vb1x, vb1y, vb1z);
+      domain->minimum_image(FLERR, vb1x, vb1y, vb1z);
       b1[0] = vb1x;
       b1[1] = vb1y;
       b1[2] = vb1z;
@@ -1055,7 +1061,7 @@ void ComputeBornMatrix::compute_dihedrals()
       vb2x = x[atom3][0] - x[atom2][0];
       vb2y = x[atom3][1] - x[atom2][1];
       vb2z = x[atom3][2] - x[atom2][2];
-      domain->minimum_image(vb2x, vb2y, vb2z);
+      domain->minimum_image(FLERR, vb2x, vb2y, vb2z);
       b2[0] = vb2x;
       b2[1] = vb2y;
       b2[2] = vb2z;
@@ -1064,7 +1070,7 @@ void ComputeBornMatrix::compute_dihedrals()
       vb3x = x[atom4][0] - x[atom3][0];
       vb3y = x[atom4][1] - x[atom3][1];
       vb3z = x[atom4][2] - x[atom3][2];
-      domain->minimum_image(vb3x, vb3y, vb3z);
+      domain->minimum_image(FLERR, vb3x, vb3y, vb3z);
       b3[0] = vb3x;
       b3[1] = vb3y;
       b3[2] = vb3z;

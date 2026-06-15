@@ -1,23 +1,15 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_STD_ALGORITHMS_IS_PARTITIONED_IMPL_HPP
 #define KOKKOS_STD_ALGORITHMS_IS_PARTITIONED_IMPL_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include "Kokkos_Constraints.hpp"
 #include "Kokkos_HelperPredicates.hpp"
 #include <std_algorithms/Kokkos_Distance.hpp>
@@ -112,6 +104,7 @@ bool is_partitioned_exespace_impl(const std::string& label,
       red_result.min_loc_false != red_id_min) {
     // this occurs when the reduction yields nontrivial values
     return red_result.max_loc_true < red_result.min_loc_false;
+    // NOLINTBEGIN(bugprone-branch-clone)
   } else if (red_result.max_loc_true == red_id_max &&
              red_result.min_loc_false == 0) {
     // this occurs when all values do NOT satisfy
@@ -121,6 +114,7 @@ bool is_partitioned_exespace_impl(const std::string& label,
     // this occurs when all values satisfy the predicate,
     // this corner case should also be true
     return true;
+    // NOLINTEND(bugprone-branch-clone)
   } else {
     return false;
   }
@@ -168,6 +162,7 @@ KOKKOS_FUNCTION bool is_partitioned_team_impl(const TeamHandleType& teamHandle,
       red_result.min_loc_false != red_id_min) {
     // this occurs when the reduction yields nontrivial values
     return red_result.max_loc_true < red_result.min_loc_false;
+    // NOLINTBEGIN(bugprone-branch-clone)
   } else if (red_result.max_loc_true == red_id_max &&
              red_result.min_loc_false == 0) {
     // this occurs when all values do NOT satisfy
@@ -177,6 +172,7 @@ KOKKOS_FUNCTION bool is_partitioned_team_impl(const TeamHandleType& teamHandle,
     // this occurs when all values satisfy the predicate,
     // this corner case should also be true
     return true;
+    // NOLINTEND(bugprone-branch-clone)
   } else {
     return false;
   }

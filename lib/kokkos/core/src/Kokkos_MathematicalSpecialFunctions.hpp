@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_MATHEMATICAL_SPECIAL_FUNCTIONS_HPP
 #define KOKKOS_MATHEMATICAL_SPECIAL_FUNCTIONS_HPP
@@ -502,8 +489,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_j0(const CmplxType& z,
       CmplxType cf, cs0;
       for (int k = bw_start; k >= 0; k--) {  // Backward recurrence (default:
                                              // 70)
-        cf                    = 2.0 * (k + 1.0) / z * cf1 - cf2;
-        RealType tmp_exponent = static_cast<RealType>(k / 2);
+        cf               = 2.0 * (k + 1.0) / z * cf1 - cf2;
+        int tmp_exponent = k / 2;
         if (k == 0) cbj0 = cf;
         if ((k == 2 * (k / 2)) && (k != 0)) {
           if (y0 <= 1.0)
@@ -597,8 +584,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_y0(const CmplxType& z,
       CmplxType cf, cs0, ce;
       for (int k = bw_start; k >= 0; k--) {  // Backward recurrence (default:
                                              // 70)
-        cf                    = 2.0 * (k + 1.0) / z * cf1 - cf2;
-        RealType tmp_exponent = static_cast<RealType>(k / 2);
+        cf               = 2.0 * (k + 1.0) / z * cf1 - cf2;
+        int tmp_exponent = k / 2;
         if (k == 0) cbj0 = cf;
         if ((k == 2 * (k / 2)) && (k != 0)) {
           if (y0 <= 1.0)
@@ -694,8 +681,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_j1(const CmplxType& z,
       CmplxType cf, cs0;
       for (int k = bw_start; k >= 0; k--) {  // Backward recurrence (default:
                                              // 70)
-        cf                    = 2.0 * (k + 1.0) / z * cf1 - cf2;
-        RealType tmp_exponent = static_cast<RealType>(k / 2);
+        cf               = 2.0 * (k + 1.0) / z * cf1 - cf2;
+        int tmp_exponent = k / 2;
         if (k == 1) cbj1 = cf;
         if ((k == 2 * (k / 2)) && (k != 0)) {
           if (y0 <= 1.0)
@@ -793,8 +780,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_y1(const CmplxType& z,
       CmplxType cf, cs0, ce;
       for (int k = bw_start; k >= 0; k--) {  // Backward recurrence (default:
                                              // 70)
-        cf                    = 2.0 * (k + 1.0) / z * cf1 - cf2;
-        RealType tmp_exponent = static_cast<RealType>(k / 2);
+        cf               = 2.0 * (k + 1.0) / z * cf1 - cf2;
+        int tmp_exponent = k / 2;
         if (k == 1) cbj1 = cf;
         if (k == 0) cbj0 = cf;
         if ((k == 2 * (k / 2)) && (k != 0)) {

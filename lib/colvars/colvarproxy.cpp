@@ -124,7 +124,7 @@ size_t colvarproxy_atoms::get_num_active_atoms() const
 void colvarproxy_atoms::compute_rms_atoms_applied_force()
 {
   atoms_rms_applied_force_ =
-    compute_norm2_stats<cvm::rvector, 0, false>(atoms_new_colvar_forces);
+    compute_norm2_stats<decltype(atoms_new_colvar_forces), 0, false>(atoms_new_colvar_forces);
 }
 
 
@@ -134,7 +134,7 @@ void colvarproxy_atoms::compute_max_atoms_applied_force()
   size_t const n_atoms_ids = atoms_ids.size();
   if ((n_atoms_ids > 0) && (n_atoms_ids == atoms_new_colvar_forces.size())) {
     atoms_max_applied_force_ =
-      compute_norm2_stats<cvm::rvector, 1, true>(atoms_new_colvar_forces,
+      compute_norm2_stats<decltype(atoms_new_colvar_forces), 1, true>(atoms_new_colvar_forces,
                                                  &minmax_index);
     if (minmax_index >= 0) {
       atoms_max_applied_force_id_ = atoms_ids[minmax_index];
@@ -143,7 +143,7 @@ void colvarproxy_atoms::compute_max_atoms_applied_force()
     }
   } else {
     atoms_max_applied_force_ =
-      compute_norm2_stats<cvm::rvector, 1, false>(atoms_new_colvar_forces);
+      compute_norm2_stats<decltype(atoms_new_colvar_forces), 1, false>(atoms_new_colvar_forces);
     atoms_max_applied_force_id_ = -1;
   }
 }
@@ -229,14 +229,14 @@ size_t colvarproxy_atom_groups::get_num_active_atom_groups() const
 void colvarproxy_atom_groups::compute_rms_atom_groups_applied_force()
 {
   atom_groups_rms_applied_force_ =
-    compute_norm2_stats<cvm::rvector, 0, false>(atom_groups_new_colvar_forces);
+    compute_norm2_stats<decltype(atom_groups_new_colvar_forces), 0, false>(atom_groups_new_colvar_forces);
 }
 
 
 void colvarproxy_atom_groups::compute_max_atom_groups_applied_force()
 {
   atom_groups_max_applied_force_ =
-    compute_norm2_stats<cvm::rvector, 1, false>(atom_groups_new_colvar_forces);
+    compute_norm2_stats<decltype(atom_groups_new_colvar_forces), 1, false>(atom_groups_new_colvar_forces);
 }
 
 
@@ -535,7 +535,6 @@ int colvarproxy::parse_module_config()
   return error_code;
 }
 
-
 int colvarproxy::load_atoms_pdb(char const * /* filename */,
                                 cvm::atom_group & /* atoms */,
                                 std::string const & /* pdb_field */,
@@ -546,7 +545,6 @@ int colvarproxy::load_atoms_pdb(char const * /* filename */,
           engine_name() + ".\n",
       COLVARS_NOT_IMPLEMENTED);
 }
-
 
 int colvarproxy::load_coords_pdb(char const * /* filename */,
                                  std::vector<cvm::atom_pos> & /* pos */,

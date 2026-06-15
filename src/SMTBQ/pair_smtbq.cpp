@@ -3512,6 +3512,7 @@ void PairSMTBQ::add_pages(int howmany)
 }
 
 /* ---------------------------------------------------------------------- */
+// NOLINTBEGIN
 
 void PairSMTBQ::CheckEnergyVSForce()
 {
@@ -3573,7 +3574,6 @@ void PairSMTBQ::CheckEnergyVSForce()
           coord[j]=3.5;
           NameFile=(const char *)"energyandForceOxOxUnderOverCoord.txt";
         }
-
 
       ofstream fichierOxOx(NameFile, ios::out | ios::trunc) ;
 
@@ -4012,6 +4012,7 @@ void PairSMTBQ::css(double &s, double nn1, double nn2, double alpha, double beta
   memory->destroy(a);
   memory->destroy(b);
 }
+// NOLINTEND
 /* -------------------------------------------------------------------------------
    coeffs
    ------------------------------------------------------------------------------- */

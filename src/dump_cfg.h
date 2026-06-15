@@ -26,8 +26,6 @@ namespace LAMMPS_NS {
 
 class DumpCFG : public DumpCustom {
  public:
-  int multifile_override;    // used by write_dump command
-
   DumpCFG(class LAMMPS *, int, char **);
   ~DumpCFG() override;
 
@@ -40,10 +38,9 @@ class DumpCFG : public DumpCustom {
   int convert_string(int, double *) override;
   void write_data(int, double *) override;
 
-  typedef void (DumpCFG::*FnPtrWrite)(int, double *);
+  using FnPtrWrite = void (DumpCFG::*)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
-  void write_string(int, double *);
-  void write_lines(int, double *);
+  void write_lines(int, double *) override;
 };
 
 }    // namespace LAMMPS_NS

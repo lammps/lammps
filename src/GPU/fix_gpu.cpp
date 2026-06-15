@@ -20,7 +20,6 @@
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
-#include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "pair_hybrid.h"
@@ -38,8 +37,10 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH};
+// must match definition in lib/gpu/lal_device.h
+enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH, GPU_DEFAULT};
 
+// functions provided by the GPU library
 extern int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                            const int first_gpu_id, const int gpu_mode,
                            const double particle_split, const int t_per_atom,
@@ -51,9 +52,10 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom, double **v
                              double *virial, double &ecoul, int &err_flag);
 extern double lmp_gpu_update_bin_size(const double subx, const double suby, const double subz,
                                       const int nlocal, const double cut);
+extern bool lmp_gpu_requires_host_neighbor();
 
 static const char cite_gpu_package[] =
-  "GPU package (short-range, long-range and three-body potentials): doi:10.1016/j.cpc.2010.12.021, doi:10.1016/j.cpc.2011.10.012, doi:10.1016/j.cpc.2013.08.002, doi:10.1016/j.commatsci.2014.10.068, doi:10.1016/j.cpc.2016.10.020, doi:10.3233/APC200086\n\n"
+  "GPU package (short-range, long-range and three-body potentials): https://doi.org/10.1016/j.cpc.2010.12.021, https://doi.org/10.1016/j.cpc.2011.10.012, https://doi.org/10.1016/j.cpc.2013.08.002, https://doi.org/10.1016/j.commatsci.2014.10.068, https://doi.org/10.1016/j.cpc.2016.10.020, https://doi.org/10.3233/APC200086\n\n"
   "@Article{Brown11,\n"
   " author = {W. M. Brown and P. Wang and S. J. Plimpton and A. N. Tharrington},\n"
   " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers---Short Range Forces},\n"
@@ -116,19 +118,19 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 {
   if (lmp->citeme) lmp->citeme->add(cite_gpu_package);
 
-  if (narg < 4) error->all(FLERR,"Illegal package gpu command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"package gpu", error);
 
   // If ngpu is 0, autoset ngpu to the number of devices per node matching
   // best device
   int ngpu = utils::inumeric(FLERR, arg[3], false, lmp);
-  if (ngpu < 0) error->all(FLERR,"Illegal number of GPUs ({}) in package gpu command", ngpu);
+  if (ngpu < 0) error->all(FLERR, 1, "Illegal number of GPUs ({}) in package gpu command", ngpu);
 
   // Negative value indicate GPU package should find the best device ID
   int first_gpu_id = -1;
 
   // options
 
-  _gpu_mode = GPU_NEIGH;
+  _gpu_mode = GPU_DEFAULT;
   _particle_split = 1.0;
   int nthreads = 0;
   int newtonflag = force->newton_pair;
@@ -140,77 +142,91 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   char *device_type_flags = nullptr;
 
   int iarg = 4;
+  int ioffs = -2;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu neigh", error);
       const std::string modearg = arg[iarg+1];
-      if ((modearg == "yes") || (modearg == "on") || (modearg == "true"))
+      if (modearg == "hybrid")
+        _gpu_mode = GPU_HYB_NEIGH;
+      else if (utils::logical(FLERR, modearg, false, lmp))
         _gpu_mode = GPU_NEIGH;
-      else if ((modearg == "no") || (modearg == "off") || (modearg == "false"))
+      else
         _gpu_mode = GPU_FORCE;
-      else if (modearg == "hybrid") _gpu_mode = GPU_HYB_NEIGH;
-      else error->all(FLERR,"Illegal package gpu command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"newton") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu newton", error);
       newtonflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu binsize", error);
       binsize = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (binsize <= 0.0) error->all(FLERR,"Illegal fix GPU command");
+      if (binsize <= 0.0)
+        error->all(FLERR,iarg+1+ioffs,"Illegal package gpu binsize value {}", binsize);
       iarg += 2;
     } else if (strcmp(arg[iarg],"split") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu split", error);
       _particle_split = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (_particle_split == 0.0 || _particle_split > 1.0)
-        error->all(FLERR,"Illegal package GPU command");
+        error->all(FLERR,iarg+1+ioffs,"Illegal package gpu split value {}", _particle_split);
       iarg += 2;
     } else if (strcmp(arg[iarg],"gpuID") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu gpuID", error);
       first_gpu_id = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tpa") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu tpa", error);
       threads_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"omp") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu omp", error);
       nthreads = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nthreads < 0) error->all(FLERR,"Illegal fix GPU command");
+      if (nthreads < 0)
+        error->all(FLERR,iarg+1+ioffs,"Illegal package gpu omp value {}", nthreads);
       iarg += 2;
     } else if (strcmp(arg[iarg],"platform") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu platform", error);
       ocl_platform = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"device_type") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu device_type", error);
       device_type_flags = arg[iarg+1];
       iarg += 2;
     } else if (strcmp(arg[iarg],"blocksize") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu blocksize", error);
       block_pair = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair/only") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu pair/only", error);
       lmp->pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ocl_args") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu ocl_args", error);
       opencl_args = arg[iarg+1];
       iarg += 2;
-    } else error->all(FLERR,"Illegal package gpu command");
+    } else error->all(FLERR,iarg+ioffs,"Unknown package gpu keyword {}", arg[iarg]);
   }
 
-  #if (LAL_USE_OMP == 0)
+#if (LAL_USE_OMP == 0)
   if (nthreads > 1)
-    error->all(FLERR,"No OpenMP support compiled into the GPU package");
-  #else
+    error->all(FLERR, Error::NOPOINTER, "No OpenMP support compiled into the GPU package");
+#else
   if (nthreads > 0) {
     omp_set_num_threads(nthreads);
     comm->nthreads = nthreads;
   }
-  #endif
+#endif
+
+  // change default setting for neighbor lists if GPU requires host neighbor lists
+  if (_gpu_mode == GPU_DEFAULT) {
+    if (lmp_gpu_requires_host_neighbor()) {
+      if (comm->me == 0)
+        error->warning(FLERR, "GPU does not support neighbor lists on device, switching to host");
+      _gpu_mode = GPU_FORCE;
+    } else {
+      _gpu_mode = GPU_NEIGH;
+    }
+  }
 
   // set newton pair flag
 
@@ -260,24 +276,25 @@ void FixGPU::init()
   // GPU package cannot be used with atom_style template
 
   if (atom->molecular == Atom::TEMPLATE)
-    error->all(FLERR,"GPU package does not (yet) work with "
-               "atom_style template");
+    error->all(FLERR, Error::NOLASTLINE,
+               "GPU package does not (yet) work with atom_style template");
 
   // give a warning if no pair style is defined
 
   if (!force->pair && (comm->me == 0))
-    error->warning(FLERR,"Using package gpu without any pair style defined");
+    error->warning(FLERR, "Using package gpu without any pair style defined");
 
   // make sure fdotr virial is not accumulated multiple times
   // also disallow GPU neighbor lists for hybrid styles
 
   if (force->pair_match("^hybrid",0) != nullptr) {
-    auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
+    auto *hybrid = dynamic_cast<PairHybrid *>(force->pair);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (!utils::strmatch(hybrid->keywords[i],"/gpu$"))
         force->pair->no_virial_fdotr_compute = 1;
     if (_gpu_mode != GPU_FORCE)
-      error->all(FLERR, "Must not use GPU neighbor lists with hybrid pair style");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Must not use GPU neighbor lists with hybrid pair style");
   }
 
   // rRESPA support
@@ -302,14 +319,16 @@ void FixGPU::setup(int vflag)
       if (force->pair_match("gpu",0)) overlap_topo = 1;
     }
   }
-  if (overlap_topo) neighbor->set_overlap_topo(1);
 
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
     if (neighbor->exclude_setting() != 0)
-      error->all(FLERR, "Cannot use neigh_modify exclude with GPU neighbor builds");
+      error->all(FLERR,  Error::NOLASTLINE,
+                 "Cannot use neigh_modify exclude with GPU neighbor builds");
 
-  if (utils::strmatch(update->integrate_style,"^verlet")) post_force(vflag);
-  else {
+  if (utils::strmatch(update->integrate_style,"^verlet")) {
+    if (overlap_topo) neighbor->set_overlap_topo(1);
+    post_force(vflag);
+  } else {
     // In setup only, all forces calculated on GPU are put in the outer level
     (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(_nlevels_respa-1);
     post_force(vflag);
@@ -337,7 +356,8 @@ void FixGPU::post_force(int /* vflag */)
   double my_eng = lmp_gpu_forces(atom->f, atom->torque, force->pair->eatom, force->pair->vatom,
                                  lvirial, force->pair->eng_coul, err_flag);
   if (err_flag==1)
-    error->one(FLERR,"Neighbor list problem on the GPU. Try increasing the value of 'neigh_modify one' "
+    error->one(FLERR, Error::NOLASTLINE,
+               "Neighbor list problem on the GPU. Try increasing the value of 'neigh_modify one' "
                "or the GPU neighbor list 'binsize'.");
 
   force->pair->eng_vdwl += my_eng;

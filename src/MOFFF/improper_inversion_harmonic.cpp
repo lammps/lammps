@@ -31,6 +31,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -49,6 +51,8 @@ ImproperInversionHarmonic::ImproperInversionHarmonic(LAMMPS *lmp) : Improper(lmp
 
 ImproperInversionHarmonic::~ImproperInversionHarmonic()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(kw);

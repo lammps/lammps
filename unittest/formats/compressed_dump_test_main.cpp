@@ -11,13 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "../testing/utils.h"
 #include "compressed_dump_test.h"
-#include "fmt/format.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cstring>
+#include <iostream>
 #include <string>
 
 const char *COMPRESS_SUFFIX    = nullptr;

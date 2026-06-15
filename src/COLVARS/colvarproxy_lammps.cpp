@@ -13,13 +13,13 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "lammps.h"             // includes <cstdio>, <mpi.h>, <string>, <vector>
+#include "random_park.h"
 #include "update.h"
-#include "utils.h"
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvarscript.h"
+#include "colvartypes.h"
 
 #define HASH_FAIL  -1
 
@@ -78,6 +78,11 @@ void colvarproxy_lammps::set_random_seed(int seed)
   if (_random) delete _random;
 
   _random = new LAMMPS_NS::RanPark(_lmp, seed);
+}
+
+cvm::real colvarproxy_lammps::rand_gaussian()
+{
+  return _random->gaussian();
 }
 
 /* ----------------------------------------------------------------------
@@ -188,7 +193,7 @@ cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
   double xtmp = pos2.x - pos1.x;
   double ytmp = pos2.y - pos1.y;
   double ztmp = pos2.z - pos1.z;
-  _lmp->domain->minimum_image_big(xtmp,ytmp,ztmp);
+  _lmp->domain->minimum_image_big(FLERR, xtmp,ytmp,ztmp);
   return {xtmp, ytmp, ztmp};
 }
 

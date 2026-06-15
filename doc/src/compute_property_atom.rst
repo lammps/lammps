@@ -26,6 +26,8 @@ Syntax
                              temperature, heatflow,
                              angmomx, angmomy, angmomz,
                              shapex, shapey, shapez,
+                             block1, block2,
+                             inertiax, inertiay, inertiaz,
                              quatw, quati, quatj, quatk, tqx, tqy, tqz,
                              end1x, end1y, end1z, end2x, end2y, end2z,
                              corner1x, corner1y, corner1z,
@@ -34,6 +36,9 @@ Syntax
                              i_name, d_name, i2_name[I], d2_name[I],
                              vfrac, s0, espin, eradius, ervel, erforce,
                              rho, drho, e, de, cv, buckling,
+                             apip_lambda, apip_lambda_input, apip_e_fast,
+                             apip_e_precise, apip_la_inp, apip_la_avg,
+                             apip_la_norm
 
   .. parsed-literal::
 
@@ -61,6 +66,8 @@ Syntax
            *heatflow* = internal heat flow of spherical particle
            *angmomx,angmomy,angmomz* = angular momentum of aspherical particle
            *shapex,shapey,shapez* = 3 diameters of aspherical particle
+           *block1,block2* = 2 blockiness exponents of aspherical (superellipsoid) particle
+           *inertiax,inertiay,inertiaz* = 3 principal moments of inertia of aspherical (superellipsoid) particle
            *quatw,quati,quatj,quatk* = quaternion components for aspherical or body particles
            *tqx,tqy,tqz* = torque on finite-size particles
            *end12x, end12y, end12z* = end points of line segment
@@ -72,13 +79,23 @@ Syntax
 
   .. parsed-literal::
 
+           APIP package per-atom properties:
+           *apip_lambda* = switching parameter
+           *apip_lambda_input* = input used to calculate the switching parameter
+           *apip_e_fast,apip_e_precise* = potential energies mixed by the adaptive-precision potential
+           *apip_la_inp* = input used for the local averaging of the descriptor
+           *apip_la_norm* = locally averaged radial weighting function used for normalization
+           *apip_la_avg* = locally averaged descriptor used to calculate the switching parameter
+
+  .. parsed-literal::
+
            PERI package per-atom properties:
            vfrac = volume fraction
            s0 = max stretch of any bond a particle is part of
 
   .. parsed-literal::
 
-           EFF and AWPMD package per-atom properties:
+           EFF package per-atom properties:
            espin = electron spin
            eradius = electron radius
            ervel = electron radial velocity
@@ -150,6 +167,20 @@ If :doc:`newton bond off <newton>` is set, it will be tallied with both atom
 The quantities *shapex*, *shapey*, and *shapez* are defined for ellipsoidal
 particles and define the 3d shape of each particle.
 
+.. versionadded:: 30Mar2026
+
+The quantities *block1*, and *block2*, are defined for superellipsoidal
+particles and define the blockiness of each superellipsoid particle.
+See the :doc:`set <set>` command for an explanation of the blockiness.
+
+.. versionadded:: 30Mar2026
+
+The quantities *inertiax*, *inertiay*, and *inertiaz* are defined for
+superellipsoidal particles and define the 3 principal moments of inertia
+of each particle.  These are with respect to the particle's center of
+mass and in a reference system aligned with the particle's principal
+axes.
+
 The quantities *quatw*, *quati*, *quatj*, and *quatk* are defined for
 ellipsoidal particles and body particles and store the 4-vector quaternion
 representing the orientation of each particle.  See the :doc:`set <set>`
@@ -161,6 +192,31 @@ segment particles and define the end points of each line segment.
 *Corner1x*, *corner1y*, *corner1z*, *corner2x*, *corner2y*,
 *corner2z*, *corner3x*, *corner3y*, *corner3z*, are defined for
 triangular particles and define the corner points of each triangle.
+
+The accessible quantities from the :doc:`APIP package <Howto_apip>` are
+explained in the doc pages of this package in detail.
+In short: *apip_lambda* is the switching parameter :math:`\lambda\in[0,1]`.
+The switching parameter can be calculated from *apip_lambda_input* and mixes
+the energies of a
+fast (*apip_e_fast*) and a precise (*apip_e_precise*) potential into an
+adaptive-precision energy.
+
+.. versionchanged:: 30Mar2026
+
+Alternatively, the switching parameter can be calculated from a
+locally averaged descriptor (*apip_la_avg*) to obtain a conservative
+potential.
+The descriptor is calculated from an atomic property (*apip_la_inp*) and
+normalized with a locally averaged weighting function (*apip_la_norm*).
+
+.. note::
+
+   The energy according to the fast and the precise potential are only
+   computed for the subset of atoms, for which it is required, i.e.,
+   for an atom :math:`i` with :math:`\lambda_i=1` one does not need
+   :math:`E_i^\text{precise}` and with :math:`\lambda_i=0` one does
+   not need :math:`E_i^\text{fast}`.
+
 
 In addition, the various per-atom quantities listed above for specific
 packages are only accessible by this command.
@@ -190,7 +246,7 @@ are given in rad/THz.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

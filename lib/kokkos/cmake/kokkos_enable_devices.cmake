@@ -47,7 +47,7 @@ else()
   if(NOT DEFINED Kokkos_ENABLE_SERIAL)
     message(
       STATUS
-        "SERIAL backend is being turned on to ensure there is at least one Host space. To change this, you must enable another host execution space and configure with -DKokkos_ENABLE_SERIAL=OFF or change CMakeCache.txt"
+        "SERIAL backend is being turned on to ensure there is at least one Host space. To change this, you must enable another host execution space and configure with -DKokkos_ENABLE_SERIAL=OFF."
     )
   endif()
 endif()
@@ -69,36 +69,6 @@ if(KOKKOS_ENABLE_OPENACC)
     -Wno-unknown-cuda-version
     -Wno-pass-failed
   )
-  compiler_specific_defs(Clang KOKKOS_WORKAROUND_OPENMPTARGET_CLANG)
-endif()
-
-kokkos_device_option(OPENMPTARGET OFF DEVICE "Whether to build the OpenMP target backend")
-if(KOKKOS_ENABLE_OPENMPTARGET)
-  set(ClangOpenMPFlag -fopenmp=libomp)
-  if(KOKKOS_CLANG_IS_CRAY)
-    set(ClangOpenMPFlag -fopenmp)
-  endif()
-
-  compiler_specific_flags(
-    Clang
-    ${ClangOpenMPFlag}
-    -Wno-openmp-mapping
-    IntelLLVM
-    -fiopenmp
-    -Wno-openmp-mapping
-    NVHPC
-    -mp=gpu
-    DEFAULT
-    -fopenmp
-  )
-  compiler_specific_defs(Clang KOKKOS_WORKAROUND_OPENMPTARGET_CLANG)
-  # Are there compilers which identify as Clang and need this library?
-  #  COMPILER_SPECIFIC_LIBS(
-  #    Clang -lopenmptarget
-  #  )
-  if(KOKKOS_CXX_STANDARD LESS 17)
-    message(FATAL_ERROR "OpenMPTarget backend requires C++17 or newer")
-  endif()
 endif()
 
 if(Trilinos_ENABLE_Kokkos AND TPL_ENABLE_CUDA)
@@ -125,8 +95,5 @@ kokkos_device_option(SYCL OFF DEVICE "Whether to build SYCL backend")
 
 ## SYCL has extra setup requirements, turn on Kokkos_Setup_SYCL.hpp in macros
 if(KOKKOS_ENABLE_SYCL)
-  if(KOKKOS_CXX_STANDARD LESS 17)
-    message(FATAL_ERROR "SYCL backend requires C++17 or newer!")
-  endif()
   list(APPEND DEVICE_SETUP_LIST SYCL)
 endif()

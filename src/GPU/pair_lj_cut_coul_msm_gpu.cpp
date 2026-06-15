@@ -45,7 +45,7 @@ int **ljcm_gpu_compute_n(const int ago, const int inum, const int nall, double *
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
                          const bool vatom, int &host_start, int **ilist, int **jnum,
                          const double cpu_time, bool &success, double *host_q, double *boxlo,
-                         double *prd);
+                         double *prd, int *periodicity);
 void ljcm_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
@@ -100,7 +100,8 @@ void PairLJCutCoulMSMGPU::compute(int eflag, int vflag)
     firstneigh = ljcm_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
                                     atom->tag, atom->nspecial, atom->special, eflag, vflag,
                                     eflag_atom, vflag_atom, host_start, &ilist, &numneigh, cpu_time,
-                                    success, atom->q, domain->boxlo, domain->prd);
+                                    success, atom->q, domain->boxlo, domain->prd,
+                                    domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -238,7 +239,7 @@ void PairLJCutCoulMSMGPU::cpu_compute(int start, int inum, int eflag, int /* vfl
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction * dftable[itable];
             forcecoul = qtmp * q[j] * table;
             if (factor_coul < 1.0) {

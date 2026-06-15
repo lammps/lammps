@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_DECLARE_HIP_HPP
 #define KOKKOS_DECLARE_HIP_HPP
@@ -23,6 +10,7 @@
 #include <HIP/Kokkos_HIP_DeepCopy.hpp>
 #include <HIP/Kokkos_HIP_Half_Impl_Type.hpp>
 #include <HIP/Kokkos_HIP_Half_Conversion.hpp>
+#include <HIP/Kokkos_HIP_Half_MathematicalFunctions.hpp>
 #include <HIP/Kokkos_HIP_Instance.hpp>
 #include <HIP/Kokkos_HIP_MDRangePolicy.hpp>
 #include <HIP/Kokkos_HIP_ParallelFor_Range.hpp>

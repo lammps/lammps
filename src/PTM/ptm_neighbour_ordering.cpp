@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 namespace ptm {
-
+// NOLINTBEGIN
 typedef struct
 {
         double area;
@@ -41,7 +41,7 @@ typedef struct
         double offset[3];
 
 } solidnbr_t;
-
+// NOLINTEND
 static bool sorthelper_compare(sorthelper_t const& a, sorthelper_t const& b)
 {
         if (a.area > b.area)
@@ -179,7 +179,7 @@ static int _calculate_neighbour_ordering(void* _voronoi_handle, int num_points, 
 {
         assert(num_points <= PTM_MAX_INPUT_POINTS);
 
-        auto  voronoi_handle = (ptm_voro::voronoicell_neighbor*)_voronoi_handle;
+        auto *  voronoi_handle = (ptm_voro::voronoicell_neighbor*)_voronoi_handle;
 
         double max_norm = 0;
         double points[PTM_MAX_INPUT_POINTS][3];
@@ -277,13 +277,13 @@ static int find_diamond_neighbours(void* _voronoi_handle, int num_points, double
 
 void* voronoi_initialize_local()
 {
-        auto  ptr = new ptm_voro::voronoicell_neighbor;
+        auto *  ptr = new ptm_voro::voronoicell_neighbor;
         return (void*)ptr;
 }
 
 void voronoi_uninitialize_local(void* _ptr)
 {
-        auto  ptr = (ptm_voro::voronoicell_neighbor*)_ptr;
+        auto *  ptr = (ptm_voro::voronoicell_neighbor*)_ptr;
         delete ptr;
 }
 

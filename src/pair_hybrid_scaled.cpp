@@ -75,8 +75,8 @@ void PairHybridScaled::compute(int eflag, int vflag)
   const int nvars = scalevars.size();
   int atomscaleflag = 0;
   if (nvars > 0) {
-    auto vals = new double[nvars];
-    auto vars = new int[nvars];
+    auto *vals = new double[nvars];
+    auto *vars = new int[nvars];
     for (int k = 0; k < nvars; ++k) {
       int m = input->variable->find(scalevars[k].c_str());
       if (m < 0)
@@ -126,8 +126,8 @@ void PairHybridScaled::compute(int eflag, int vflag)
     if (atomscaleflag) memory->create(atomscale, nmaxfsum, "pair:atomscale");
   }
   const int nall = atom->nlocal + atom->nghost;
-  auto f = atom->f;
-  auto t = atom->torque;
+  auto *f = atom->f;
+  auto *t = atom->torque;
   for (i = 0; i < nall; ++i) {
     fsum[i][0] = f[i][0];
     fsum[i][1] = f[i][1];
@@ -438,8 +438,8 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
 
   const int nvars = scalevars.size();
   if (nvars > 0) {
-    auto vals = new double[nvars];
-    auto vars = new int[nvars];
+    auto *vals = new double[nvars];
+    auto *vars = new int[nvars];
     for (int k = 0; k < nvars; ++k) {
       int m = input->variable->find(scalevars[k].c_str());
       if (m < 0)
@@ -471,7 +471,7 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq, 
   double esum = 0.0;
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
-    auto pstyle = styles[map[itype][jtype][m]];
+    auto *pstyle = styles[map[itype][jtype][m]];
     if (rsq < pstyle->cutsq[itype][jtype]) {
       if (pstyle->single_enable == 0)
         error->one(FLERR, "Pair hybrid sub-style does not support single call");
@@ -517,8 +517,8 @@ void PairHybridScaled::born_matrix(int i, int j, int itype, int jtype, double rs
 
   const int nvars = scalevars.size();
   if (nvars > 0) {
-    auto vals = new double[nvars];
-    auto vars = new int[nvars];
+    auto *vals = new double[nvars];
+    auto *vars = new int[nvars];
     for (int k = 0; k < nvars; ++k) {
       int m = input->variable->find(scalevars[k].c_str());
       if (m < 0)
@@ -549,7 +549,7 @@ void PairHybridScaled::born_matrix(int i, int j, int itype, int jtype, double rs
   dupair = du2pair = 0.0;
 
   for (int m = 0; m < nmap[itype][jtype]; m++) {
-    auto pstyle = styles[map[itype][jtype][m]];
+    auto *pstyle = styles[map[itype][jtype][m]];
     if (rsq < pstyle->cutsq[itype][jtype]) {
       if (pstyle->single_enable == 0)
         error->one(FLERR, "Pair hybrid sub-style does not support single call");

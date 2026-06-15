@@ -33,9 +33,9 @@ class FixPropertyAtomKokkos : public FixPropertyAtom {
   ~FixPropertyAtomKokkos() override;
   void grow_arrays(int) override;
 
-  void sync(ExecutionSpace space, unsigned int mask);
-  void modified(ExecutionSpace space, unsigned int mask);
-  void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
+  void sync(ExecutionSpace space, uint64_t mask);
+  void modified(ExecutionSpace space, uint64_t mask);
+  void sync_pinned(ExecutionSpace space, uint64_t mask, int async_flag = 0);
 
  private:
   int dvector_flag;

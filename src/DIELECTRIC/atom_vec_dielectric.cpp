@@ -23,11 +23,12 @@
 #include "pair_hybrid.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 static const char cite_user_dielectric_package[] =
-    "DIELECTRIC package: doi:10.1016/j.cpc.2019.03.006\n\n"
+    "DIELECTRIC package: https://doi.org/10.1016/j.cpc.2019.03.006\n\n"
     "@Article{TrungCPC19,\n"
     " author = {Trung Dac Nguyen and Honghao Li and Debarshee Bagchi and"
     "   Francisco J. Solis and Olvera de la Cruz, Monica}\n"
@@ -115,7 +116,7 @@ void AtomVecDielectric::init()
     if (utils::strmatch(force->pair_style, "dipole")) mismatch = true;
 
     if (utils::strmatch(force->pair_style, "^hybrid")) {
-      auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
+      auto *hybrid = dynamic_cast<PairHybrid *>(force->pair);
       if (hybrid) {
         for (int i = 0; i < hybrid->nstyles; i++) {
           if (utils::strmatch(hybrid->keywords[i], "^reaxff")) mismatch = true;
@@ -217,8 +218,8 @@ void AtomVecDielectric::write_data_restricted_to_general()
 
   int nlocal = atom->nlocal;
   memory->create(mu_hold,nlocal,3,"atomvec:mu_hold");
-    for (int i = 0; i < nlocal; i++) {
-    memcpy(&mu_hold[i],&mu[i],3*sizeof(double));
+  for (int i = 0; i < nlocal; i++) {
+    memcpy(&mu_hold[i][0],&mu[i][0],3*sizeof(double));
     domain->restricted_to_general_vector(mu[i]);
   }
 }
@@ -238,7 +239,7 @@ void AtomVecDielectric::write_data_restore_restricted()
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
-    memcpy(&mu[i],&mu_hold[i],3*sizeof(double));
+    memcpy(&mu[i][0],&mu_hold[i][0],3*sizeof(double));
   memory->destroy(mu_hold);
   mu_hold = nullptr;
 }

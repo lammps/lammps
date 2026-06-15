@@ -62,7 +62,7 @@ void ComputeClusterAtom::init()
   if (force->pair == nullptr)
     error->all(FLERR, "Compute cluster/atom requires a pair style to be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
-    error->all(FLERR, "Compute cluster/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR, "Compute cluster/atom cutoff {} is longer than pairwise cutoff {}", sqrt(cutsq), force->pair->cutforce);
 
   // need an occasional full neighbor list
   // full required so that pair of atoms on 2 procs both set their clusterID

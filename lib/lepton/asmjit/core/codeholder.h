@@ -89,7 +89,7 @@ struct Expression {
   //! Resets the whole expression.
   //!
   //! Changes both values to \ref ExpressionValueType::kNone.
-  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { memset((void *)this, 0, sizeof(*this)); }
 
   //! Sets the value type at `index` to \ref ExpressionValueType::kConstant and its content to `constant`.
   inline void setValueAsConstant(size_t index, uint64_t constant) noexcept {

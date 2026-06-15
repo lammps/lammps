@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <cstdint>
 
 namespace ptm {
-
+// NOLINTBEGIN
 typedef struct {
   int8_t facets[PTM_MAX_FACETS][3];
   double plane_normal[PTM_MAX_FACETS][3];
@@ -24,9 +24,8 @@ typedef struct {
   int num_facets;
   int num_prev;
   bool ok;
-
 } convexhull_t;
-
+// NOLINTEND
 void add_facet(const double (*points)[3], int a, int b, int c, int8_t *facet, double *plane_normal,
                double *barycentre);
 int get_convex_hull(int num_points, const double (*points)[3], convexhull_t *ch,

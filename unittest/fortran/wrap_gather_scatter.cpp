@@ -5,9 +5,7 @@
 #include "input.h"
 #include "lammps.h"
 #include "library.h"
-#include <cstdint>
-#include <cstdlib>
-#include <mpi.h>
+
 #include <string>
 
 #include "gtest/gtest.h"
@@ -44,8 +42,6 @@ void f_lammps_gather_pe_atom_subset(int *, double *);
 void f_lammps_scatter_compute();
 void f_lammps_scatter_subset_compute();
 }
-
-using namespace LAMMPS_NS;
 
 class LAMMPS_gather_scatter : public ::testing::Test {
 protected:

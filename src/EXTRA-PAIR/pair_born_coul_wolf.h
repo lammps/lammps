@@ -48,7 +48,7 @@ class PairBornCoulWolf : public Pair {
   double **a, **rho, **sigma, **c, **d;
   double **rhoinv, **born1, **born2, **born3, **offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

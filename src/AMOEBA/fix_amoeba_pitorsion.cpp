@@ -81,7 +81,7 @@ FixAmoebaPiTorsion::FixAmoebaPiTorsion(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   nmax_previous = 0;
-  grow_arrays(atom->nmax);
+  FixAmoebaPiTorsion::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 

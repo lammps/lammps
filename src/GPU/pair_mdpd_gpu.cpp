@@ -22,7 +22,6 @@
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
-#include "info.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "suffix.h"

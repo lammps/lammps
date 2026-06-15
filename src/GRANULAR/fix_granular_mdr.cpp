@@ -27,17 +27,16 @@
 #include "force.h"
 #include "gran_sub_mod_normal.h"
 #include "granular_model.h"
-#include "input.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "pair.h"
 #include "pair_granular.h"
 #include "region.h"
 #include "update.h"
-#include "variable.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
@@ -678,7 +677,7 @@ void FixGranularMDR::update_fix_gran_wall()
   double *ddelta_bar = atom->dvector[index_ddelta_bar];
 
   for (auto &ifix : fix_wall_list) {
-    FixWallGranRegion *fix = dynamic_cast<FixWallGranRegion *>(ifix);
+    auto *fix = dynamic_cast<FixWallGranRegion *>(ifix);
     if (fix) {
       GranularModel *model = fix->model;
       const int size_history = model->size_history;

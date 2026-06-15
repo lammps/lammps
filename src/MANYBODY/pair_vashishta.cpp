@@ -481,8 +481,7 @@ void PairVashishta::setup_params()
 
 /* ---------------------------------------------------------------------- */
 
-void PairVashishta::twobody(Param *param, double rsq, double &fforce,
-                            int eflag, double &eng)
+void PairVashishta::twobody(const Param *param, double rsq, double &fforce, int eflag, double &eng)
 {
   double r,rinvsq,r4inv,r6inv,reta,lam1r,lam4r,vc2,vc3;
 
@@ -507,9 +506,8 @@ void PairVashishta::twobody(Param *param, double rsq, double &fforce,
 
 /* ---------------------------------------------------------------------- */
 
-void PairVashishta::threebody(Param *paramij, Param *paramik, Param *paramijk,
-                       double rsq1, double rsq2,
-                       double *delr1, double *delr2,
+void PairVashishta::threebody(const Param *paramij, const Param *paramik, const Param *paramijk,
+                       double rsq1, double rsq2, double *delr1, double *delr2,
                        double *fj, double *fk, int eflag, double &eng)
 {
   double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;

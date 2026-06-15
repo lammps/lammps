@@ -36,8 +36,8 @@ static void trisolve(int n,double A[][3],double y[]) {
 void makespline(int ntab,int stride,double tab[],double C[][4]) {
   int n = 3*(ntab-1);
 
-  double (*A)[3] = new double[n][3];
-  double *y = new double[n];
+  auto *A = new double[n][3];
+  auto *y = new double[n];
 
   double h_left,h_right,d;
   int i,j;

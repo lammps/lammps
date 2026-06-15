@@ -1,9 +1,0 @@
-material Ar real
-viscous_stress constant
-  viscosity 1000.
-end
-mass_density constant
-  density 0.2756
-end
-body_force null
-end

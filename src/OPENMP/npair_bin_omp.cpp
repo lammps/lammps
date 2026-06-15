@@ -56,10 +56,11 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
   const int molecular = atom->molecular;
   const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
   const double delta = 0.01 * force->angstrom;
+  int overflow = 0;
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list) reduction(+:overflow)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
@@ -252,9 +253,17 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+    if (ipage.status()) {
+      overflow = 1;
+      break;
+    }
   }
   NPAIR_OMP_CLOSE;
+
+  if (overflow > 0)
+    error->one(FLERR, Error::NOLASTLINE,
+               "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+
   list->inum = nlocal;
   if (!HALF) list->gnum = 0;
 }

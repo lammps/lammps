@@ -8,6 +8,18 @@ the two O-H bonds and the H-O-H angle rigid.  A bond style of
 *harmonic* and an angle style of *harmonic* or *charmm* should also be
 used.
 
+One suitable pair style with cutoff Coulomb would for instance be:
+
+* :doc:`pair_style lj/cut/coul/cut <pair_lj_cut_coul>`
+
+These commands are examples for a long-range Coulomb model:
+
+* :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`
+* :doc:`pair_style lj/cut/coul/long/soft <pair_fep_soft>`
+* :doc:`kspace_style pppm <kspace_style>`
+* :doc:`pair_style lj/long/coul/long <pair_lj_long>`
+* :doc:`kspace_style pppm/disp <kspace_style>`
+
 These are the additional parameters (in real units) to set for O and H
 atoms and the water molecule to run a rigid SPC model.
 
@@ -39,7 +51,9 @@ the SPC and SPC/E models.
 Below is the code for a LAMMPS input file and a molecule file
 (``spce.mol``) of SPC/E water for use with the :doc:`molecule command
 <molecule>` demonstrating how to set up a small bulk water system for
-SPC/E with rigid bonds.
+SPC/E with rigid bonds.  For simplicity and speed the example uses a
+cutoff Coulomb.  Most production simulations require long-range Coulomb
+instead.
 
 .. code-block:: LAMMPS
 

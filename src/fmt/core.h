@@ -219,6 +219,9 @@
 #  define FMT_UNICODE !FMT_MSC_VERSION
 #endif
 
+// LAMMPS customization: avoid problems with consteval altogether
+#define FMT_CONSTEVAL
+
 #ifndef FMT_CONSTEVAL
 #  if ((FMT_GCC_VERSION >= 1000 || FMT_CLANG_VERSION >= 1101) && \
        (!defined(__apple_build_version__) ||                     \

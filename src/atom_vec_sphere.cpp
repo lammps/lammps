@@ -109,7 +109,7 @@ void AtomVecSphere::grow_pointers()
 void AtomVecSphere::create_atom_post(int ilocal)
 {
   radius[ilocal] = 0.5;
-  rmass[ilocal] = 4.0 * MY_PI / 3.0 * 0.5 * 0.5 * 0.5;
+  rmass[ilocal] = MY_4PI3 * 0.5 * 0.5 * 0.5;
 }
 
 /* ----------------------------------------------------------------------
@@ -121,7 +121,7 @@ void AtomVecSphere::data_atom_post(int ilocal)
 {
   radius_one = 0.5 * atom->radius[ilocal];
   radius[ilocal] = radius_one;
-  if (radius_one > 0.0) rmass[ilocal] *= 4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one;
+  if (radius_one > 0.0) rmass[ilocal] *= MY_4PI3 * radius_one * radius_one * radius_one;
 
   if (rmass[ilocal] <= 0.0) error->one(FLERR, "Invalid density in Atoms section of data file");
 
@@ -141,7 +141,7 @@ void AtomVecSphere::pack_data_pre(int ilocal)
 
   radius[ilocal] *= 2.0;
   if (radius_one != 0.0)
-    rmass[ilocal] = rmass_one / (4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one);
+    rmass[ilocal] = rmass_one / (MY_4PI3 * radius_one * radius_one * radius_one);
 }
 
 /* ----------------------------------------------------------------------

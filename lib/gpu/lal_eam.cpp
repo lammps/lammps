@@ -61,7 +61,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
       if (onetype>0)
         onetype=-1;
       else if (onetype==0)
-        onetype=i*max_shared_types+i;
+        onetype=i;
     }
   if (onetype<0) onetype=0;
   #endif
@@ -109,7 +109,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
   int lj_types=ntypes;
   shared_types=false;
 
-  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
+  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types*max_shared_types) {
     lj_types=max_shared_types;
     shared_types=true;
   }
@@ -389,7 +389,7 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
                     const bool vflag_in, const bool /*eatom*/,
                     const bool /*vatom*/, int &host_start, int **ilist, int **jnum,
                     const double cpu_time, bool &success, int &inum,
-                    void **fp_ptr) {
+                    void **fp_ptr, double *prd, int *periodicity) {
   this->acc_timers();
   int eflag, vflag;
   if (eflag_in) eflag=2;
@@ -438,7 +438,8 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
-                          sublo, subhi, tag, nspecial, special, success);
+                          sublo, subhi, tag, nspecial, special,
+                          prd, periodicity, success);
     if (!success)
       return nullptr;
   } else {

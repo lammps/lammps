@@ -81,9 +81,9 @@ The manual is organized into three parts:
 
 .. _user_documentation:
 
-************
+**********
 User Guide
-************
+**********
 
 .. toctree::
    :maxdepth: 2
@@ -96,20 +96,19 @@ User Guide
    Install
    Build
    Run_head
+   Errors
    Commands
-   Packages
    Speed
+   Packages
+   Tools
    Howto
    Examples
-   Tools
-   Errors
-
 
 .. _programmer_documentation:
 
-******************
+****************
 Programmer Guide
-******************
+****************
 
 .. toctree::
    :maxdepth: 2
@@ -142,7 +141,6 @@ Command Reference
    dihedrals
    impropers
    dumps
-   fix_modify_atc_commands
    Bibliography
 
 ******************

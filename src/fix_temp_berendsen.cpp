@@ -156,8 +156,7 @@ void FixTempBerendsen::end_of_step()
     modify->clearstep_compute();
     t_target = input->variable->compute_equal(tvar);
     if (t_target < 0.0)
-      error->one(FLERR, "Fix temp/berendsen variable {} returned negative temperature",
-                 input->variable->names[tvar]);
+      error->one(FLERR, "Fix temp/berendsen variable {} returned negative temperature", tstr);
     modify->addstep_compute(update->ntimestep + nevery);
   }
 
@@ -259,7 +258,7 @@ void FixTempBerendsen::write_restart(FILE *fp)
 
 void FixTempBerendsen::restart(char *buf)
 {
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   energy = list[0];
 }

@@ -80,7 +80,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
     id_orientorder = utils::strdup(arg[4]);
 
-    auto iorientorder = modify->get_compute_by_id(id_orientorder);
+    auto *iorientorder = modify->get_compute_by_id(id_orientorder);
     if (!iorientorder)
       error->all(FLERR, "Could not find compute coord/atom compute ID {}", id_orientorder);
     if (!utils::strmatch(iorientorder->style, "^orientorder/atom"))

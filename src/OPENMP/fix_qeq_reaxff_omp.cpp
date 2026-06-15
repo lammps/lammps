@@ -224,7 +224,8 @@ void FixQEqReaxFFOMP::compute_H()
   } // omp
 
   if (m_fill >= H.m)
-    error->all(FLERR,"Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
+    error->all(FLERR,  Error::NOLASTLINE,
+               "Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
                m_fill, H.m);
 }
 

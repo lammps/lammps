@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HIP_GRAPH_IMPL_HPP
 #define KOKKOS_HIP_GRAPH_IMPL_HPP
@@ -41,6 +28,8 @@ class GraphImpl<Kokkos::HIP> {
       GraphNodeImpl<Kokkos::HIP, aggregate_impl_t,
                     Kokkos::Experimental::TypeErasedTag>;
 
+  using device_handle_t = Kokkos::Impl::DeviceHandle<Kokkos::HIP>;
+
   // Not movable or copyable; it spends its whole life as a shared_ptr in the
   // Graph object.
   GraphImpl()                            = delete;
@@ -51,23 +40,33 @@ class GraphImpl<Kokkos::HIP> {
 
   ~GraphImpl();
 
-  explicit GraphImpl(Kokkos::HIP instance);
+  explicit GraphImpl(const device_handle_t& device_handle);
 
-  GraphImpl(Kokkos::HIP instance, hipGraph_t graph);
+  GraphImpl(const device_handle_t& device_handle, hipGraph_t graph);
 
   void add_node(std::shared_ptr<aggregate_node_impl_t> const& arg_node_ptr);
 
   template <class NodeImpl>
   std::enable_if_t<
       Kokkos::Impl::is_graph_kernel_v<typename NodeImpl::kernel_type>>
-  add_node(std::shared_ptr<NodeImpl> const& arg_node_ptr);
+  add_node(std::shared_ptr<NodeImpl> arg_node_ptr);
+
+  template <class NodeImpl>
+  std::enable_if_t<
+      Kokkos::Impl::is_graph_capture_v<typename NodeImpl::kernel_type>>
+  add_node(const Kokkos::HIP& exec, std::shared_ptr<NodeImpl> arg_node_ptr);
+
+  template <class NodeImpl>
+  std::enable_if_t<
+      Kokkos::Impl::is_graph_then_host_v<typename NodeImpl::kernel_type>>
+  add_node(std::shared_ptr<NodeImpl> arg_node_ptr);
 
   template <class NodeImplPtr, class PredecessorRef>
   void add_predecessor(NodeImplPtr arg_node_ptr, PredecessorRef arg_pred_ref);
 
   void submit(const Kokkos::HIP& exec);
 
-  Kokkos::HIP const& get_execution_space() const noexcept;
+  auto get_device_handle() const noexcept -> device_handle_t const&;
 
   auto create_root_node_ptr();
 
@@ -77,7 +76,7 @@ class GraphImpl<Kokkos::HIP> {
   void instantiate() {
     KOKKOS_EXPECTS(!m_graph_exec);
     KOKKOS_IMPL_HIP_SAFE_CALL(
-        m_execution_space.impl_internal_space_instance()
+        m_device_handle.m_exec.impl_internal_space_instance()
             ->hip_graph_instantiate_wrapper(&m_graph_exec, m_graph, nullptr,
                                             nullptr, 0));
     KOKKOS_ENSURES(m_graph_exec);
@@ -87,7 +86,7 @@ class GraphImpl<Kokkos::HIP> {
   hipGraphExec_t hip_graph_exec() { return m_graph_exec; }
 
  private:
-  Kokkos::HIP m_execution_space;
+  device_handle_t m_device_handle;
   hipGraph_t m_graph          = nullptr;
   hipGraphExec_t m_graph_exec = nullptr;
 
@@ -97,29 +96,31 @@ class GraphImpl<Kokkos::HIP> {
 };
 
 inline GraphImpl<Kokkos::HIP>::~GraphImpl() {
-  m_execution_space.fence("Kokkos::GraphImpl::~GraphImpl: Graph Destruction");
+  m_device_handle.m_exec.fence(
+      "Kokkos::GraphImpl::~GraphImpl: Graph Destruction");
   KOKKOS_EXPECTS(m_graph);
   if (m_graph_exec) {
     KOKKOS_IMPL_HIP_SAFE_CALL(
-        m_execution_space.impl_internal_space_instance()
+        m_device_handle.m_exec.impl_internal_space_instance()
             ->hip_graph_exec_destroy_wrapper(m_graph_exec));
   }
   if (m_graph_owning) {
-    KOKKOS_IMPL_HIP_SAFE_CALL(m_execution_space.impl_internal_space_instance()
-                                  ->hip_graph_destroy_wrapper(m_graph));
+    KOKKOS_IMPL_HIP_SAFE_CALL(
+        m_device_handle.m_exec.impl_internal_space_instance()
+            ->hip_graph_destroy_wrapper(m_graph));
   }
 }
 
-inline GraphImpl<Kokkos::HIP>::GraphImpl(Kokkos::HIP instance)
-    : m_execution_space(std::move(instance)), m_graph_owning(true) {
-  KOKKOS_IMPL_HIP_SAFE_CALL(m_execution_space.impl_internal_space_instance()
-                                ->hip_graph_create_wrapper(&m_graph, 0));
+inline GraphImpl<Kokkos::HIP>::GraphImpl(const device_handle_t& device_handle)
+    : m_device_handle(device_handle), m_graph_owning(true) {
+  KOKKOS_IMPL_HIP_SAFE_CALL(
+      m_device_handle.m_exec.impl_internal_space_instance()
+          ->hip_graph_create_wrapper(&m_graph, 0));
 }
 
-inline GraphImpl<Kokkos::HIP>::GraphImpl(Kokkos::HIP instance, hipGraph_t graph)
-    : m_execution_space(std::move(instance)),
-      m_graph(graph),
-      m_graph_owning(false) {
+inline GraphImpl<Kokkos::HIP>::GraphImpl(const device_handle_t& device_handle,
+                                         hipGraph_t graph)
+    : m_device_handle(device_handle), m_graph(graph), m_graph_owning(false) {
   KOKKOS_EXPECTS(graph != nullptr);
 }
 
@@ -127,19 +128,18 @@ inline void GraphImpl<Kokkos::HIP>::add_node(
     std::shared_ptr<aggregate_node_impl_t> const& arg_node_ptr) {
   // All of the predecessors are just added as normal, so all we need to
   // do here is add an empty node
-  KOKKOS_IMPL_HIP_SAFE_CALL(m_execution_space.impl_internal_space_instance()
-                                ->hip_graph_add_empty_node_wrapper(
-                                    &(arg_node_ptr->node_details_t::node),
-                                    m_graph,
-                                    /* dependencies = */ nullptr,
-                                    /* numDependencies = */ 0));
+  KOKKOS_IMPL_HIP_SAFE_CALL(
+      m_device_handle.m_exec.impl_internal_space_instance()
+          ->hip_graph_add_empty_node_wrapper(
+              &(arg_node_ptr->node_details_t::node), m_graph,
+              /* dependencies = */ nullptr,
+              /* numDependencies = */ 0));
 }
 
 template <class NodeImpl>
 inline std::enable_if_t<
     Kokkos::Impl::is_graph_kernel_v<typename NodeImpl::kernel_type>>
-GraphImpl<Kokkos::HIP>::add_node(
-    std::shared_ptr<NodeImpl> const& arg_node_ptr) {
+GraphImpl<Kokkos::HIP>::add_node(std::shared_ptr<NodeImpl> arg_node_ptr) {
   static_assert(Kokkos::Impl::is_specialization_of_v<NodeImpl, GraphNodeImpl>);
   KOKKOS_EXPECTS(arg_node_ptr);
   // The Kernel launch from the execute() method has been shimmed to insert
@@ -151,7 +151,36 @@ GraphImpl<Kokkos::HIP>::add_node(
   kernel.set_hip_graph_node_ptr(&node);
   kernel.execute();
   KOKKOS_ENSURES(node);
-  m_nodes.push_back(arg_node_ptr);
+  m_nodes.push_back(std::move(arg_node_ptr));
+}
+
+template <class NodeImpl>
+inline std::enable_if_t<
+    Kokkos::Impl::is_graph_capture_v<typename NodeImpl::kernel_type>>
+GraphImpl<Kokkos::HIP>::add_node(const Kokkos::HIP& exec,
+                                 std::shared_ptr<NodeImpl> arg_node_ptr) {
+  static_assert(Kokkos::Impl::is_specialization_of_v<NodeImpl, GraphNodeImpl>);
+  KOKKOS_EXPECTS(bool(arg_node_ptr));
+
+  auto& kernel = arg_node_ptr->get_kernel();
+  kernel.capture(exec, m_graph);
+  static_cast<node_details_t*>(arg_node_ptr.get())->node = kernel.m_node;
+
+  m_nodes.push_back(std::move(arg_node_ptr));
+}
+
+template <class NodeImpl>
+inline std::enable_if_t<
+    Kokkos::Impl::is_graph_then_host_v<typename NodeImpl::kernel_type>>
+GraphImpl<Kokkos::HIP>::add_node(std::shared_ptr<NodeImpl> arg_node_ptr) {
+  static_assert(Kokkos::Impl::is_specialization_of_v<NodeImpl, GraphNodeImpl>);
+  KOKKOS_EXPECTS(bool(arg_node_ptr));
+
+  auto& kernel = arg_node_ptr->get_kernel();
+  kernel.add_to_graph(m_graph);
+  static_cast<node_details_t*>(arg_node_ptr.get())->node = kernel.m_node;
+
+  m_nodes.push_back(std::move(arg_node_ptr));
 }
 
 // Requires PredecessorRef is a specialization of GraphNodeRef that has
@@ -171,13 +200,11 @@ inline void GraphImpl<Kokkos::HIP>::add_predecessor(
   KOKKOS_EXPECTS(node);
 
   KOKKOS_IMPL_HIP_SAFE_CALL(
-      m_execution_space.impl_internal_space_instance()
+      m_device_handle.m_exec.impl_internal_space_instance()
           ->hip_graph_add_dependencies_wrapper(m_graph, &pred_node, &node, 1));
 }
 
 inline void GraphImpl<Kokkos::HIP>::submit(const Kokkos::HIP& exec) {
-  desul::ensure_hip_lock_arrays_on_device();
-
   if (!m_graph_exec) {
     instantiate();
   }
@@ -186,21 +213,22 @@ inline void GraphImpl<Kokkos::HIP>::submit(const Kokkos::HIP& exec) {
           m_graph_exec));
 }
 
-inline Kokkos::HIP const& GraphImpl<Kokkos::HIP>::get_execution_space()
-    const noexcept {
-  return m_execution_space;
+inline auto GraphImpl<Kokkos::HIP>::get_device_handle() const noexcept
+    -> device_handle_t const& {
+  return m_device_handle;
 }
 
 inline auto GraphImpl<Kokkos::HIP>::create_root_node_ptr() {
   KOKKOS_EXPECTS(m_graph);
   KOKKOS_EXPECTS(!m_graph_exec);
-  auto rv = std::make_shared<root_node_impl_t>(get_execution_space(),
+  auto rv = std::make_shared<root_node_impl_t>(m_device_handle,
                                                _graph_node_is_root_ctor_tag{});
-  KOKKOS_IMPL_HIP_SAFE_CALL(m_execution_space.impl_internal_space_instance()
-                                ->hip_graph_add_empty_node_wrapper(
-                                    &(rv->node_details_t::node), m_graph,
-                                    /* dependencies = */ nullptr,
-                                    /* numDependencies = */ 0));
+  KOKKOS_IMPL_HIP_SAFE_CALL(
+      m_device_handle.m_exec.impl_internal_space_instance()
+          ->hip_graph_add_empty_node_wrapper(&(rv->node_details_t::node),
+                                             m_graph,
+                                             /* dependencies = */ nullptr,
+                                             /* numDependencies = */ 0));
   KOKKOS_ENSURES(rv->node_details_t::node);
   return rv;
 }
@@ -212,7 +240,7 @@ inline auto GraphImpl<Kokkos::HIP>::create_aggregate_ptr(PredecessorRefs&&...) {
   // each predecessor ref, so all we need to do here is create the (trivial)
   // aggregate node.
   return std::make_shared<aggregate_node_impl_t>(
-      m_execution_space, _graph_node_kernel_ctor_tag{}, aggregate_impl_t{});
+      m_device_handle, _graph_node_kernel_ctor_tag{}, aggregate_impl_t{});
 }
 }  // namespace Impl
 }  // namespace Kokkos

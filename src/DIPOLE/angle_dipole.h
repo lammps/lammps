@@ -41,7 +41,7 @@ class AngleDipole : public Angle {
  protected:
   double *k, *gamma0;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

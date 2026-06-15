@@ -231,7 +231,7 @@ double quat_dot(double* a, double* b)
                 + a[3] * b[3];
 }
 
-double quat_size(double* q)
+static double quat_size(double* q)
 {
         return sqrt(quat_dot(q, q));
 }
@@ -325,7 +325,7 @@ void rotation_matrix_to_quaternion(double* u, double* q)
         normalize_quaternion(q);
 }
 
-double quat_quick_misorientation(double* q1, double* q2)
+static double quat_quick_misorientation(double* q1, double* q2)
 {
         double t = quat_dot(q1, q2);
         t = std::min(1., std::max(-1., t));

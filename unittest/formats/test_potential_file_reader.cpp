@@ -23,8 +23,6 @@
 #include "MANYBODY/pair_tersoff_table.h"
 #include "MANYBODY/pair_tersoff_zbl.h"
 #include "MANYBODY/pair_vashishta.h"
-#include "info.h"
-#include "input.h"
 #include "potential_file_reader.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -32,9 +30,6 @@
 #include "../testing/core.h"
 
 #include <cstring>
-#include <iostream>
-#include <mpi.h>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using utils::split_words;

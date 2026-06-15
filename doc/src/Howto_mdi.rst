@@ -7,7 +7,7 @@ code(s).  A server responds to each request with a reply message
 (data).  This enables two (or more) codes to work in tandem to perform
 a simulation.  In this context, LAMMPS can act as either a client or
 server code.  It does this by using the `MolSSI Driver Interface (MDI)
-library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_,
+library <https://molssi-mdi.github.io/MDI_Library/>`_,
 developed by the `Molecular Sciences Software Institute (MolSSI)
 <https://molssi.org>`_, which is supported by the :ref:`MDI <PKG-MDI>`
 package.
@@ -136,15 +136,15 @@ the ``examples/QUANTUM`` sub-directories for more details:
 * PySCF - QM/MM only
 * NWChem - AIMD or QM/MM
 
-There are also at least two quantum codes which have direct MDI
-support, `Quantum ESPRESSO (QE) <https://www.quantum-espresso.org/>`_
-and `INQ <https://qsg.llnl.gov/node/101.html>`_.  There are also
-several QM codes which have indirect support through QCEngine or i-PI.
-The former means they require a wrapper program (QCEngine) with MDI
-support which writes/read files to pass data to the quantum code
-itself.  The list of QCEngine-supported and i-PI-supported quantum
-codes is on the `MDI webpage
-<https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
+There are also at least two quantum codes which have direct MDI support,
+`Quantum ESPRESSO (QE) <https://www.quantum-espresso.org/>`_ and `INQ
+<https://gitlab.com/npneq/inq>`_.  There are also several QM codes which
+have indirect support through QCEngine or i-PI.  The former means they
+require a wrapper program (QCEngine) with MDI support which writes/read
+files to pass data to the quantum code itself.  The list of
+QCEngine-supported and i-PI-supported quantum codes is on the
+`MDI webpage
+<https://molssi-mdi.github.io/MDI_Library/user_guide/mdi_ecosystem/>`_.
 
 These direct- and indirect-support codes should be usable for full
 system calculations (e.g. AIMD).  Whether they support QM/MM models

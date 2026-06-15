@@ -42,7 +42,7 @@ class ComputePropertyAtom : public Compute {
   class AtomVecTri *avec_tri;
   class AtomVecBody *avec_body;
 
-  typedef void (ComputePropertyAtom::*FnPtrPack)(int);
+  using FnPtrPack = void (ComputePropertyAtom::*)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id(int);
@@ -104,10 +104,15 @@ class ComputePropertyAtom : public Compute {
   void pack_shapex(int);
   void pack_shapey(int);
   void pack_shapez(int);
+  void pack_block1(int);
+  void pack_block2(int);
   void pack_quatw(int);
   void pack_quati(int);
   void pack_quatj(int);
   void pack_quatk(int);
+  void pack_inertiax(int);
+  void pack_inertiay(int);
+  void pack_inertiaz(int);
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);
@@ -137,6 +142,11 @@ class ComputePropertyAtom : public Compute {
   void pack_d2name(int);
 
   void pack_atom_style(int);
+
+  void pack_apip_lambda(int);
+  void pack_apip_lambda_input(int);
+  void pack_apip_e_fast(int);
+  void pack_apip_e_precise(int);
 };
 
 }    // namespace LAMMPS_NS

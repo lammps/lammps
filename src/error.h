@@ -27,6 +27,7 @@ class Error : protected Pointers {
   [[noreturn]] void universe_one(const std::string &, int, const std::string &);
   void universe_warn(const std::string &, int, const std::string &);
 
+  static constexpr int COMMAND = -1;
   static constexpr int NOPOINTER = -2;
   static constexpr int NOLASTLINE = -3;
   static constexpr int ARGZERO = -99;
@@ -81,23 +82,17 @@ class Error : protected Pointers {
     _warning(file, line, format, fmt::make_format_args(args...));
   }
 
-  void message(const std::string &, int, const std::string &);
-  template <typename... Args>
-  void message(const std::string &file, int line, const std::string &format, Args &&...args)
-  {
-    _message(file, line, format, fmt::make_format_args(args...));
-  }
   [[noreturn]] void done(int = 0);    // 1 would be fully backwards compatible
 
-  int get_numwarn() const { return numwarn; }
-  int get_maxwarn() const { return maxwarn; }
+  [[nodiscard]] int get_numwarn() const { return numwarn; }
+  [[nodiscard]] int get_maxwarn() const { return maxwarn; }
   void set_numwarn(int val) { numwarn = val; }
   void set_maxwarn(int val) { maxwarn = val; }
   void set_allwarn(int val) { allwarn = val; }
 
-  std::string get_last_error() const;
-  ErrorType get_last_error_type() const;
-  void set_last_error(const char *msg, ErrorType type = ERROR_NORMAL);
+  [[nodiscard]] std::string get_last_error() const;
+  [[nodiscard]] ErrorType get_last_error_type() const;
+  void set_last_error(const std::string &msg, ErrorType type = ERROR_NORMAL);
   int set_show_error(const int flag);
 
  private:
@@ -109,7 +104,6 @@ class Error : protected Pointers {
   [[noreturn]] void _all(const std::string &, int, int, fmt::string_view, fmt::format_args args);
   [[noreturn]] void _one(const std::string &, int, int, fmt::string_view, fmt::format_args args);
   void _warning(const std::string &, int, fmt::string_view, fmt::format_args args);
-  void _message(const std::string &, int, fmt::string_view, fmt::format_args args);
 };
 
 }    // namespace LAMMPS_NS

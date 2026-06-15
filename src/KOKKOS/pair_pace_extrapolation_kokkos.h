@@ -50,7 +50,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
-  using complex = SNAComplex<double>;
+  using complex = SNAComplex<KK_FLOAT>;
 
   PairPACEExtrapolationKokkos(class LAMMPS *);
   ~PairPACEExtrapolationKokkos() override;
@@ -60,38 +60,49 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   void init_style() override;
   double init_one(int, int) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeNeigh>::member_type& team) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeRadial,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeRadial>::member_type& team) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeAi,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeAi>::member_type& team) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEConjugateAi,const int& ii) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeRho,const int& iter) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeFS,const int& ii) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeGamma, const int& ii) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeWeights,const int& iter) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeDerivative,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeDerivative>::member_type& team) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
@@ -108,18 +119,18 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
 
-  typedef Kokkos::DualView<F_FLOAT**, DeviceType> tdual_fparams;
+  typedef Kokkos::DualView<KK_FLOAT**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq, k_scale;
-  typedef Kokkos::View<F_FLOAT**, DeviceType> t_fparams;
+  typedef Kokkos::View<KK_FLOAT**, DeviceType> t_fparams;
   t_fparams d_cutsq, d_scale;
   t_fparams d_cut_in, d_dcut_in; // inner cutoff
 
@@ -135,11 +146,11 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   template<typename DataType, typename Layout>
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
-  DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
-  DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
+  DupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> dup_f;
+  DupScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout> dup_vatom;
 
-  NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
-  NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
+  NonDupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> ndup_f;
+  NonDupScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout> ndup_vatom;
 
   friend void pair_virial_fdotr_compute<PairPACEExtrapolationKokkos>(PairPACEExtrapolationKokkos*);
 
@@ -152,28 +163,35 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   double memory_usage() override;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz,
-      const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &fx, const KK_FLOAT &fy, const KK_FLOAT &fz,
+      const KK_FLOAT &delx, const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void cutoff_func_poly(const double, const double, const double, double &, double &) const;
+  void cutoff_func_poly(const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, KK_FLOAT &, KK_FLOAT &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void Fexp(const double, const double, double &, double &) const;
+  void Fexp(const KK_FLOAT, const KK_FLOAT, KK_FLOAT &, KK_FLOAT &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void FexpShiftedScaled(const double, const double, double &, double &) const;
+  void FexpShiftedScaled(const KK_FLOAT, const KK_FLOAT, KK_FLOAT &, KK_FLOAT &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void inner_cutoff(const double, const double, const double, double &, double &) const;
+  void inner_cutoff(const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, KK_FLOAT &, KK_FLOAT &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void FS_values_and_derivatives(const int, double&, const int) const;
+  void FS_values_and_derivatives(const int, KK_FLOAT&, const int) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void evaluate_splines(const int, const int, double, int, int, int, int) const;
+  void evaluate_splines(const int, const int, KK_FLOAT, int, int, int, int) const;
 
   template<class TagStyle>
   void check_team_size_for(int, int&, int);
@@ -192,16 +210,16 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   typedef Kokkos::View<int***, DeviceType> t_ace_3i;
   typedef Kokkos::View<int***, Kokkos::LayoutRight, DeviceType> t_ace_3i_lr;
   typedef Kokkos::View<int****, DeviceType> t_ace_4i;
-  typedef Kokkos::View<double*, DeviceType> t_ace_1d;
-  typedef Kokkos::View<double**, DeviceType> t_ace_2d;
-  typedef Kokkos::View<double**, Kokkos::LayoutRight, DeviceType> t_ace_2d_lr;
-  typedef Kokkos::View<double*[3], DeviceType> t_ace_2d3;
-  typedef Kokkos::View<double***, DeviceType> t_ace_3d;
-  typedef Kokkos::View<const double***, DeviceType> tc_ace_3d;
-  typedef Kokkos::View<double**[3], DeviceType> t_ace_3d3;
-  typedef Kokkos::View<double**[4], DeviceType> t_ace_3d4;
-  typedef Kokkos::View<double**[4], Kokkos::LayoutRight, DeviceType> t_ace_3d4_lr;
-  typedef Kokkos::View<double****, DeviceType> t_ace_4d;
+  typedef Kokkos::View<KK_FLOAT*, DeviceType> t_ace_1d;
+  typedef Kokkos::View<KK_FLOAT**, DeviceType> t_ace_2d;
+  typedef Kokkos::View<KK_FLOAT**, Kokkos::LayoutRight, DeviceType> t_ace_2d_lr;
+  typedef Kokkos::View<KK_FLOAT*[3], DeviceType> t_ace_2d3;
+  typedef Kokkos::View<KK_FLOAT***, DeviceType> t_ace_3d;
+  typedef Kokkos::View<const KK_FLOAT***, DeviceType> tc_ace_3d;
+  typedef Kokkos::View<KK_FLOAT**[3], DeviceType> t_ace_3d3;
+  typedef Kokkos::View<KK_FLOAT**[4], DeviceType> t_ace_3d4;
+  typedef Kokkos::View<KK_FLOAT**[4], Kokkos::LayoutRight, DeviceType> t_ace_3d4_lr;
+  typedef Kokkos::View<KK_FLOAT****, DeviceType> t_ace_4d;
   typedef Kokkos::View<complex*, DeviceType> t_ace_1c;
   typedef Kokkos::View<complex**, DeviceType> t_ace_2c;
   typedef Kokkos::View<complex***, DeviceType> t_ace_3c;
@@ -209,7 +227,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   typedef Kokkos::View<complex****, DeviceType> t_ace_4c;
   typedef Kokkos::View<complex***[3], DeviceType> t_ace_4c3;
 
-  typedef typename Kokkos::View<double*, DeviceType>::HostMirror th_ace_1d;
+  typedef typename Kokkos::View<KK_FLOAT*, DeviceType>::host_mirror_type th_ace_1d;
 
   t_ace_3d A_rank1;
   t_ace_4c A;
@@ -301,7 +319,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
  public:
   struct SplineInterpolatorKokkos {
     int ntot, nlut, num_of_functions;
-    double cutoff, deltaSplineBins, invrscalelookup, rscalelookup;
+    KK_FLOAT cutoff, deltaSplineBins, invrscalelookup, rscalelookup;
 
     t_ace_3d4_lr lookupTable;
 
@@ -311,12 +329,13 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
       lookupTable = t_ace_3d4_lr();
     }
 
-    double memory_usage() {
+    KK_FLOAT memory_usage() {
       return lookupTable.span() * sizeof(typename decltype(lookupTable)::value_type);
     }
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    void calcSplines(const int ii, const int jj, const double r, const t_ace_3d &d_values, const t_ace_3d &d_derivatives) const;
+    void calcSplines(const int ii, const int jj, const KK_FLOAT r, const t_ace_3d &d_values, const t_ace_3d &d_derivatives) const;
   };
 
   Kokkos::DualView<SplineInterpolatorKokkos**, DeviceType> k_splines_gk;

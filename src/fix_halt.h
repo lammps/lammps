@@ -36,6 +36,7 @@ class FixHalt : public Fix {
 
  private:
   int attribute, operation, eflag, msgflag, ivar, uflag;
+  bool triggered;
   bigint nextstep, thisstep;
   double value, tratio;
   char *idvar;

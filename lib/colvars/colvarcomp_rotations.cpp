@@ -13,25 +13,29 @@
 #include "colvarcomp.h"
 #include "colvar_rotation_derivative.h"
 
-
-struct colvar::orientation::rotation_derivative_impl_: public rotation_derivative<cvm::atom_pos, cvm::atom_pos> {
+struct colvar::orientation::rotation_derivative_impl_: public rotation_derivative {
 public:
   rotation_derivative_impl_(colvar::orientation* orientation_cvc):
-   rotation_derivative<cvm::atom_pos, cvm::atom_pos>(
-    orientation_cvc->rot, orientation_cvc->ref_pos, orientation_cvc->shifted_pos) {}
+   rotation_derivative(
+    orientation_cvc->rot,
+    orientation_cvc->ref_pos_soa,
+    orientation_cvc->shifted_pos_soa,
+    orientation_cvc->num_ref_pos,
+    orientation_cvc->num_shifted_pos) {}
 };
 
 
 colvar::orientation::orientation()
 {
   set_function_type("orientation");
-  rot_deriv_impl = std::unique_ptr<rotation_derivative_impl_>(new rotation_derivative_impl_(this));
   disable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_quaternion);
 }
 
 
-colvar::orientation::~orientation() {}
+colvar::orientation::~orientation() {
+  num_ref_pos = 0;
+}
 
 
 int colvar::orientation::init(std::string const &conf)
@@ -42,6 +46,7 @@ int colvar::orientation::init(std::string const &conf)
   if (!atoms || atoms->size() == 0) {
     return error_code | COLVARS_INPUT_ERROR;
   }
+  std::vector<cvm::atom_pos> ref_pos;
   ref_pos.reserve(atoms->size());
 
   if (get_keyval(conf, "refPositions", ref_pos, ref_pos)) {
@@ -101,7 +106,10 @@ int colvar::orientation::init(std::string const &conf)
   // (note that this won't be active for the orientation CVC itself, because
   // colvardeps prevents the flag's activation)
   rot.b_debug_gradients = is_enabled(f_cvc_debug_gradient);
-
+  ref_pos_soa = cvm::atom_group::pos_aos_to_soa(ref_pos);
+  num_ref_pos = ref_pos.size();
+  num_shifted_pos = atoms->size();
+  rot_deriv_impl = std::unique_ptr<rotation_derivative_impl_>(new rotation_derivative_impl_(this));
   return error_code;
 }
 
@@ -109,9 +117,8 @@ int colvar::orientation::init(std::string const &conf)
 void colvar::orientation::calc_value()
 {
   atoms_cog = atoms->center_of_geometry();
-
-  shifted_pos = atoms->positions_shifted(-1.0 * atoms_cog);
-  rot.calc_optimal_rotation(ref_pos, shifted_pos);
+  shifted_pos_soa = atoms->positions_shifted(-1.0 * atoms_cog);
+  rot.calc_optimal_rotation_soa(ref_pos_soa, shifted_pos_soa, num_ref_pos, atoms->size());
 
   if ((rot.q).inner(ref_quat) >= 0.0) {
     x.quaternion_value = rot.q;
@@ -135,15 +142,16 @@ void colvar::orientation::apply_force(colvarvalue const &force)
   cvm::quaternion const &FQ = force.quaternion_value;
 
   if (!atoms->noforce) {
+    const cvm::real sign = (rot.q).inner(ref_quat) >= 0.0 ? 1.0 : -1.0;
     rot_deriv_impl->prepare_derivative(rotation_derivative_dldq::use_dq);
     cvm::vector1d<cvm::rvector> dq0_2;
     auto ag_force = atoms->get_group_force_object();
     for (size_t ia = 0; ia < atoms->size(); ia++) {
       rot_deriv_impl->calc_derivative_wrt_group2<false, true, false>(ia, nullptr, &dq0_2);
-      const auto f_ia = FQ[0] * dq0_2[0] +
+      const auto f_ia = sign * (FQ[0] * dq0_2[0] +
                         FQ[1] * dq0_2[1] +
                         FQ[2] * dq0_2[2] +
-                        FQ[3] * dq0_2[3];
+                        FQ[3] * dq0_2[3]);
       ag_force.add_atom_force(ia, f_ia);
     }
   }
@@ -186,9 +194,8 @@ colvar::orientation_angle::orientation_angle()
 void colvar::orientation_angle::calc_value()
 {
   atoms_cog = atoms->center_of_geometry();
-
-  shifted_pos = atoms->positions_shifted(-1.0 * atoms_cog);
-  rot.calc_optimal_rotation(ref_pos, shifted_pos);
+  shifted_pos_soa = atoms->positions_shifted(-1.0 * atoms_cog);
+  rot.calc_optimal_rotation_soa(ref_pos_soa, shifted_pos_soa, num_ref_pos, atoms->size());
 
   if ((rot.q).q0 >= 0.0) {
     x.real_value = (180.0/PI) * 2.0 * cvm::acos((rot.q).q0);
@@ -200,8 +207,9 @@ void colvar::orientation_angle::calc_value()
 
 void colvar::orientation_angle::calc_gradients()
 {
+  const cvm::real sign = (rot.q).q0 >= 0.0 ? 1.0 : -1.0;
   cvm::real const dxdq0 =
-    ( ((rot.q).q0 * (rot.q).q0 < 1.0) ?
+    sign * ( ((rot.q).q0 * (rot.q).q0 < 1.0) ?
       ((180.0 / PI) * (-2.0) / cvm::sqrt(1.0 - ((rot.q).q0 * (rot.q).q0))) :
       0.0 );
 
@@ -209,7 +217,10 @@ void colvar::orientation_angle::calc_gradients()
   cvm::vector1d<cvm::rvector> dq0_2;
   for (size_t ia = 0; ia < atoms->size(); ia++) {
     rot_deriv_impl->calc_derivative_wrt_group2<false, true, false>(ia, nullptr, &dq0_2);
-    (*atoms)[ia].grad = (dxdq0 * dq0_2[0]);
+    const cvm::rvector g = dxdq0 * dq0_2[0];
+    atoms->grad_x(ia) = g.x;
+    atoms->grad_y(ia) = g.y;
+    atoms->grad_z(ia) = g.z;
   }
 }
 
@@ -256,8 +267,8 @@ colvar::orientation_proj::orientation_proj()
 void colvar::orientation_proj::calc_value()
 {
   atoms_cog = atoms->center_of_geometry();
-  shifted_pos = atoms->positions_shifted(-1.0 * atoms_cog);
-  rot.calc_optimal_rotation(ref_pos, shifted_pos);
+  shifted_pos_soa = atoms->positions_shifted(-1.0 * atoms_cog);
+  rot.calc_optimal_rotation_soa(ref_pos_soa, shifted_pos_soa, num_ref_pos, atoms->size());
   x.real_value = 2.0 * (rot.q).q0 * (rot.q).q0 - 1.0;
 }
 
@@ -269,7 +280,10 @@ void colvar::orientation_proj::calc_gradients()
   cvm::vector1d<cvm::rvector> dq0_2;
   for (size_t ia = 0; ia < atoms->size(); ia++) {
     rot_deriv_impl->calc_derivative_wrt_group2<false, true, false>(ia, nullptr, &dq0_2);
-    (*atoms)[ia].grad = (dxdq0 * dq0_2[0]);
+    const cvm::rvector g = dxdq0 * dq0_2[0];
+    atoms->grad_x(ia) = g.x;
+    atoms->grad_y(ia) = g.y;
+    atoms->grad_z(ia) = g.z;
   }
 }
 
@@ -302,8 +316,8 @@ void colvar::tilt::calc_value()
 {
   atoms_cog = atoms->center_of_geometry();
 
-  shifted_pos = atoms->positions_shifted(-1.0 * atoms_cog);
-  rot.calc_optimal_rotation(ref_pos, shifted_pos);
+  shifted_pos_soa = atoms->positions_shifted(-1.0 * atoms_cog);
+  rot.calc_optimal_rotation_soa(ref_pos_soa, shifted_pos_soa, num_ref_pos, atoms->size());
 
   x.real_value = rot.cos_theta(axis);
 }
@@ -316,11 +330,14 @@ void colvar::tilt::calc_gradients()
   rot_deriv_impl->prepare_derivative(rotation_derivative_dldq::use_dq);
   cvm::vector1d<cvm::rvector> dq0_2;
   for (size_t ia = 0; ia < atoms->size(); ia++) {
-    (*atoms)[ia].grad = cvm::rvector(0.0, 0.0, 0.0);
     rot_deriv_impl->calc_derivative_wrt_group2<false, true, false>(ia, nullptr, &dq0_2);
+    cvm::rvector grad(0, 0, 0);
     for (size_t iq = 0; iq < 4; iq++) {
-      (*atoms)[ia].grad += (dxdq[iq] * dq0_2[iq]);
+      grad += (dxdq[iq] * dq0_2[iq]);
     }
+    atoms->grad_x(ia) = grad.x;
+    atoms->grad_y(ia) = grad.y;
+    atoms->grad_z(ia) = grad.z;
   }
 }
 
@@ -338,8 +355,8 @@ void colvar::spin_angle::calc_value()
 {
   atoms_cog = atoms->center_of_geometry();
 
-  shifted_pos = atoms->positions_shifted(-1.0 * atoms_cog);
-  rot.calc_optimal_rotation(ref_pos, shifted_pos);
+  shifted_pos_soa = atoms->positions_shifted(-1.0 * atoms_cog);
+  rot.calc_optimal_rotation_soa(ref_pos_soa, shifted_pos_soa, num_ref_pos, atoms->size());
 
   x.real_value = rot.spin_angle(axis);
   wrap(x);
@@ -353,11 +370,14 @@ void colvar::spin_angle::calc_gradients()
   rot_deriv_impl->prepare_derivative(rotation_derivative_dldq::use_dq);
   cvm::vector1d<cvm::rvector> dq0_2;
   for (size_t ia = 0; ia < atoms->size(); ia++) {
-    (*atoms)[ia].grad = cvm::rvector(0.0, 0.0, 0.0);
     rot_deriv_impl->calc_derivative_wrt_group2<false, true, false>(ia, nullptr, &dq0_2);
+    cvm::rvector grad(0, 0, 0);
     for (size_t iq = 0; iq < 4; iq++) {
-      (*atoms)[ia].grad += (dxdq[iq] * dq0_2[iq]);
+      grad += (dxdq[iq] * dq0_2[iq]);
     }
+    atoms->grad_x(ia) = grad.x;
+    atoms->grad_y(ia) = grad.y;
+    atoms->grad_z(ia) = grad.z;
   }
 }
 
@@ -374,9 +394,8 @@ colvar::euler_phi::euler_phi()
 void colvar::euler_phi::calc_value()
 {
   atoms_cog = atoms->center_of_geometry();
-
-  shifted_pos = atoms->positions_shifted(-1.0 * atoms_cog);
-  rot.calc_optimal_rotation(ref_pos, shifted_pos);
+  shifted_pos_soa = atoms->positions_shifted(-1.0 * atoms_cog);
+  rot.calc_optimal_rotation_soa(ref_pos_soa, shifted_pos_soa, num_ref_pos, atoms->size());
 
   const cvm::real& q0 = rot.q.q0;
   const cvm::real& q1 = rot.q.q1;
@@ -403,10 +422,13 @@ void colvar::euler_phi::calc_gradients()
   cvm::vector1d<cvm::rvector> dq0_2;
   for (size_t ia = 0; ia < atoms->size(); ia++) {
     rot_deriv_impl->calc_derivative_wrt_group2<false, true, false>(ia, nullptr, &dq0_2);
-    (*atoms)[ia].grad = (dxdq0 * dq0_2[0]) +
-                        (dxdq1 * dq0_2[1]) +
-                        (dxdq2 * dq0_2[2]) +
-                        (dxdq3 * dq0_2[3]);
+    const cvm::rvector grad = (dxdq0 * dq0_2[0]) +
+                              (dxdq1 * dq0_2[1]) +
+                              (dxdq2 * dq0_2[2]) +
+                              (dxdq3 * dq0_2[3]);
+    atoms->grad_x(ia) = grad.x;
+    atoms->grad_y(ia) = grad.y;
+    atoms->grad_z(ia) = grad.z;
   }
 }
 
@@ -423,9 +445,8 @@ colvar::euler_psi::euler_psi()
 void colvar::euler_psi::calc_value()
 {
   atoms_cog = atoms->center_of_geometry();
-
-  shifted_pos = atoms->positions_shifted(-1.0 * atoms_cog);
-  rot.calc_optimal_rotation(ref_pos, shifted_pos);
+  shifted_pos_soa = atoms->positions_shifted(-1.0 * atoms_cog);
+  rot.calc_optimal_rotation_soa(ref_pos_soa, shifted_pos_soa, num_ref_pos, atoms->size());
 
   const cvm::real& q0 = rot.q.q0;
   const cvm::real& q1 = rot.q.q1;
@@ -452,10 +473,13 @@ void colvar::euler_psi::calc_gradients()
   cvm::vector1d<cvm::rvector> dq0_2;
   for (size_t ia = 0; ia < atoms->size(); ia++) {
     rot_deriv_impl->calc_derivative_wrt_group2<false, true, false>(ia, nullptr, &dq0_2);
-    (*atoms)[ia].grad = (dxdq0 * dq0_2[0]) +
-                        (dxdq1 * dq0_2[1]) +
-                        (dxdq2 * dq0_2[2]) +
-                        (dxdq3 * dq0_2[3]);
+    const cvm::rvector grad = (dxdq0 * dq0_2[0]) +
+                              (dxdq1 * dq0_2[1]) +
+                              (dxdq2 * dq0_2[2]) +
+                              (dxdq3 * dq0_2[3]);
+    atoms->grad_x(ia) = grad.x;
+    atoms->grad_y(ia) = grad.y;
+    atoms->grad_z(ia) = grad.z;
   }
 }
 
@@ -472,9 +496,8 @@ colvar::euler_theta::euler_theta()
 void colvar::euler_theta::calc_value()
 {
   atoms_cog = atoms->center_of_geometry();
-
-  shifted_pos = atoms->positions_shifted(-1.0 * atoms_cog);
-  rot.calc_optimal_rotation(ref_pos, shifted_pos);
+  shifted_pos_soa = atoms->positions_shifted(-1.0 * atoms_cog);
+  rot.calc_optimal_rotation_soa(ref_pos_soa, shifted_pos_soa, num_ref_pos, atoms->size());
 
   const cvm::real& q0 = rot.q.q0;
   const cvm::real& q1 = rot.q.q1;
@@ -499,9 +522,12 @@ void colvar::euler_theta::calc_gradients()
   cvm::vector1d<cvm::rvector> dq0_2;
   for (size_t ia = 0; ia < atoms->size(); ia++) {
     rot_deriv_impl->calc_derivative_wrt_group2<false, true, false>(ia, nullptr, &dq0_2);
-    (*atoms)[ia].grad = (dxdq0 * dq0_2[0]) +
-                        (dxdq1 * dq0_2[1]) +
-                        (dxdq2 * dq0_2[2]) +
-                        (dxdq3 * dq0_2[3]);
+    const cvm::rvector grad = (dxdq0 * dq0_2[0]) +
+                              (dxdq1 * dq0_2[1]) +
+                              (dxdq2 * dq0_2[2]) +
+                              (dxdq3 * dq0_2[3]);
+    atoms->grad_x(ia) = grad.x;
+    atoms->grad_y(ia) = grad.y;
+    atoms->grad_z(ia) = grad.z;
   }
 }

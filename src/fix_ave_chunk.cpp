@@ -29,6 +29,7 @@
 #include "variable.h"
 
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,10 +43,10 @@ enum { ONE, RUNNING, WINDOW };
 
 FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), nvalues(0), nrepeat(0), format(nullptr), tstring(nullptr),
-    sstring(nullptr), id_bias(nullptr), tbias(nullptr), fp(nullptr), chunk_volume_vec(nullptr),
-    idchunk(nullptr), cchunk(nullptr), varatom(nullptr), count_one(nullptr), count_many(nullptr),
-    count_sum(nullptr), values_one(nullptr), values_many(nullptr), values_sum(nullptr),
-    count_total(nullptr), count_list(nullptr), values_total(nullptr), values_list(nullptr)
+    sstring(nullptr), id_bias(nullptr), tbias(nullptr), chunk_volume_vec(nullptr), idchunk(nullptr),
+    cchunk(nullptr), varatom(nullptr), count_one(nullptr), count_many(nullptr), count_sum(nullptr),
+    values_one(nullptr), values_many(nullptr), values_sum(nullptr), count_total(nullptr),
+    count_list(nullptr), values_total(nullptr), values_list(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix ave/chunk", error);
 
@@ -132,7 +133,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       val.argindex = argi.get_index1();
       val.id = argi.get_name();
     }
-    values.push_back(val);
+    values.push_back(std::move(val));
     iarg++;
   }
 
@@ -402,8 +403,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveChunk::~FixAveChunk()
 {
-  if (fp && comm->me == 0) fclose(fp);
-
   memory->destroy(varatom);
   memory->destroy(count_one);
   memory->destroy(count_many);

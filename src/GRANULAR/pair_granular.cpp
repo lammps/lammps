@@ -63,6 +63,9 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   maxrad_dynamic = nullptr;
   maxrad_frozen = nullptr;
 
+  types_indices = nullptr;
+  cutoff_type = nullptr;
+
   // set comm size needed by this Pair if used with fix rigid
 
   comm_forward = 1;
@@ -110,13 +113,13 @@ PairGranular::~PairGranular()
 
 void PairGranular::compute(int eflag, int vflag)
 {
-  int i,j,k,ii,jj,inum,jnum,itype,jtype;
-  double factor_lj,mi,mj,meff;
+  int i, j, k, ii, jj, inum, jnum, itype, jtype;
+  double factor_lj, mi, mj, meff;
   double *forces, *torquesi, *torquesj, dq;
 
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  int *touch,**firsttouch;
-  double *history,*allhistory,**firsthistory;
+  int *ilist, *jlist, *numneigh, **firstneigh;
+  int *touch, **firsttouch;
+  double *history, *allhistory, **firsthistory;
 
   bool touchflag = false;
   const bool history_update = update->setupflag == 0;
@@ -135,7 +138,7 @@ void PairGranular::compute(int eflag, int vflag)
   if (fix_rigid && neighbor->ago == 0) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body",tmp);
-    auto mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    auto *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;
@@ -148,10 +151,10 @@ void PairGranular::compute(int eflag, int vflag)
     comm->forward_comm(this);
   }
 
+  int *type = atom->type;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  int *type = atom->type;
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *radius = atom->radius;
@@ -275,10 +278,9 @@ void PairGranular::compute(int eflag, int vflag)
         if (force->newton_pair || j < nlocal) heatflow[j] -= dq;
       }
 
-      if (evflag) {
-        ev_tally_xyz(i,j,nlocal,force->newton_pair,
-          0.0,0.0,forces[0],forces[1],forces[2],model->dx[0],model->dx[1],model->dx[2]);
-      }
+      if (evflag)
+        ev_tally_xyz(i, j, nlocal, force->newton_pair, 0.0, 0.0, forces[0], forces[1], forces[2],
+            model->dx[0], model->dx[1], model->dx[2]);
     }
   }
 }
@@ -422,7 +424,7 @@ void PairGranular::init_style()
 
   // allocate history and aggregate model information
   class GranularModel* model;
-  double nsvector_total;
+  int nsvector_total;
   extra_svector = 0;
   int size_max[NSUBMODELS] = {0};
   for (int n = 0; n < nmodels; n++) {
@@ -470,8 +472,10 @@ void PairGranular::init_style()
     }
   }
 
-  if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
-  else neighbor->add_request(this, NeighConst::REQ_SIZE);
+  int req_flags = NeighConst::REQ_DEFAULT;
+  if (!beyond_contact) req_flags |= NeighConst::REQ_SIZE;
+  if (use_history) req_flags |= NeighConst::REQ_HISTORY;
+  neighbor->add_request(this, req_flags);
 
   // if history is stored and first init, create Fix to store history
   // it replaces FixDummy, created in the constructor
@@ -559,9 +563,9 @@ double PairGranular::init_one(int i, int j)
 
   if (setflag[i][j] == 0) {
 
-    models_list[nmodels] = new GranularModel(lmp);
+    model = new GranularModel(lmp);
+    models_list[nmodels] = model;
     types_indices[i][j] = nmodels;
-    model = models_list[nmodels];
 
     nmodels += 1;
     if (nmodels == maxmodels) prune_models();
@@ -607,6 +611,8 @@ double PairGranular::init_one(int i, int j)
         // radius info about both i and j exist
         ((maxrad_frozen[i] > 0.0)  && (maxrad_dynamic[j] > 0.0))) {
       cutoff = maxrad_dynamic[i] + maxrad_dynamic[j];
+      cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j]);
+      cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j]);
       pulloff = 0.0;
       if (model->beyond_contact) {
         pulloff = model->pulloff_distance(maxrad_dynamic[i], maxrad_dynamic[j]);
@@ -616,7 +622,7 @@ double PairGranular::init_one(int i, int j)
         cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j] + pulloff);
 
         pulloff = model->pulloff_distance(maxrad_dynamic[i], maxrad_frozen[j]);
-        cutoff = MAX(cutoff,maxrad_dynamic[i] + maxrad_frozen[j] + pulloff);
+        cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j] + pulloff);
       }
     } else {
       // radius info about either i or j does not exist
@@ -876,56 +882,6 @@ void PairGranular::transfer_history(double* source, double* target, int itype, i
       target[i] = -source[i];
     }
   }
-}
-
-/* ----------------------------------------------------------------------
-   self-interaction range of particle
-------------------------------------------------------------------------- */
-
-double PairGranular::atom2cut(int i)
-{
-  double cut;
-
-  cut = atom->radius[i] * 2;
-  if (beyond_contact) {
-    int itype = atom->type[i];
-    class GranularModel* model = models_list[types_indices[itype][itype]];
-    if (model->beyond_contact) {
-      cut += model->pulloff_distance(cut, cut);
-    }
-  }
-
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
-   maximum interaction range for two finite particles
-------------------------------------------------------------------------- */
-
-double PairGranular::radii2cut(double r1, double r2)
-{
-  double cut = 0.0;
-
-  if (beyond_contact) {
-    int n = atom->ntypes;
-    double temp;
-
-    // Check all combinations of i and j to find theoretical maximum pull off distance
-    class GranularModel* model;
-    for (int i = 1; i <= n; i++) {
-      for (int j = 1; j <= n; j++) {
-        model = models_list[types_indices[i][j]];
-        if (model->beyond_contact) {
-          temp = model->pulloff_distance(r1, r2);
-          if (temp > cut) cut = temp;
-        }
-      }
-    }
-  }
-
-  cut += r1 + r2;
-
-  return cut;
 }
 
 /* ----------------------------------------------------------------------

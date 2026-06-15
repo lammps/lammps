@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HALF_NUMERIC_TRAITS_HPP_
 #define KOKKOS_HALF_NUMERIC_TRAITS_HPP_
@@ -155,6 +142,20 @@ struct Kokkos::Experimental::Impl::norm_min_helper<
   static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'00001'0000000000}; // 0.00006103515625
 };
 
+/// \brief: Smallest positive non-zero value
+///
+/// Smallest positive non-zero value
+///             [s  e  e  e  e  e  f f f f f f f f f f]
+///             [0  0  0  0  0  0  0 0 0 0 0 0 0 0 0 1]
+/// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+///
+/// and in base10: 2**-24 = 5.96046e-08
+template <>
+struct Kokkos::Experimental::Impl::denorm_min_helper<
+    Kokkos::Experimental::half_t> {
+  static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'00000'0000000001};
+};
+
 /// \brief: Quiet not a half precision number
 ///
 /// IEEE 754 defines this as all exponent bits and the first fraction bit high.
@@ -217,7 +218,7 @@ struct Kokkos::Experimental::Impl::radix_helper<Kokkos::Experimental::half_t> {
 
 /// \brief: This is the smallest possible exponent value
 ///
-/// Stdc defines this as the smallest possible exponent value for type binary16. 
+/// Stdc defines this as the smallest possible exponent value for type binary16.
 /// More precisely, it is the minimum negative integer such that the value min_exponent_helper
 /// raised to this power minus 1 can be represented as a normalized floating point number of type float.
 ///
@@ -225,10 +226,10 @@ struct Kokkos::Experimental::Impl::radix_helper<Kokkos::Experimental::half_t> {
 ///             [s  e  e  e  e  e  f f f f f f f f f f]
 ///             [0  0  0  0  0  1  0 0 0 0 0 0 0 0 0 0]
 /// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-/// 
+///
 /// and in base10: 1 * 2**(2**0 - 15) * (1 + 0)
 ///                = 2**-14
-/// 
+///
 /// with a bias of one from (C11 5.2.4.2.2), gives -13;
 template <>
 struct Kokkos::Experimental::Impl::min_exponent_helper<
@@ -242,11 +243,11 @@ struct Kokkos::Experimental::Impl::min_exponent_helper<
 ///             [s  e  e  e  e  e  f f f f f f f f f f]
 ///             [0  1  1  1  1  0  0 0 0 0 0 0 0 0 0 0]
 /// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-/// 
+///
 /// and in base10: 1 * 2**(2**4 + 2**3 + 2**2 + 2**1 - 15) * (1 + 0)
 ///                = 2**(30 - 15)
 ///                = 2**15
-/// 
+///
 /// with a bias of one from (C11 5.2.4.2.2), gives 16;
 template <>
 struct Kokkos::Experimental::Impl::max_exponent_helper<
@@ -298,6 +299,12 @@ template <>
 struct Kokkos::Experimental::Impl::norm_min_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'00000001'0000000}; // 1.175494351e-38
+};
+/// Smallest positive non-zero bhalf
+template <>
+struct Kokkos::Experimental::Impl::denorm_min_helper<
+    Kokkos::Experimental::bhalf_t> {
+  static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'00000000'0000001}; // 2^(-133)=9.18355e-41
 };
 // Quiet not a bhalf number
 template <>

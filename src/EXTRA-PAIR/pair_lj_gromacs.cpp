@@ -25,6 +25,7 @@
 #include "neigh_list.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

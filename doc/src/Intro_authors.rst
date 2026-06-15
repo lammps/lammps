@@ -76,7 +76,7 @@ lammps.org".  General questions about LAMMPS should be posted in the
 .. _jg:  https://www.nanocipher.org/
 .. _ak:  https://sites.google.com/site/akohlmey/
 .. _tn:  https://sites.google.com/site/ndtrung8/
-.. _at:  https://www2.sandia.gov/~athomps/
+.. _at:  https://www.sandia.gov/-athomps/staff/aidan-thompson/
 .. _sjp: https://sjplimp.github.io
 .. _lws: https://www.lammps.org
 
@@ -109,7 +109,7 @@ general-purpose as it is without their expertise and efforts.
 * Reese Jones (Sandia) and colleagues, ATC package for atom/continuum coupling
 * Christoph Kloss (DCS Computing), LIGGGHTS code for granular materials, built on top of LAMMPS
 * Rudra Mukherjee (JPL), POEMS package for articulated rigid body motion
-* Trung Ngyuen (U Chicago), GPU, RIGID, BODY, and DIELECTRIC packages
+* Trung Nguyen (U Chicago), GPU, RIGID, BODY, and DIELECTRIC packages
 * Mike Parks (Sandia), PERI package for Peridynamics
 * Roy Pollock (LLNL), Ewald and PPPM solvers
 * Julien Tranchida (CEA Cadarache), SPIN package

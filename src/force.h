@@ -26,9 +26,14 @@ class Improper;
 class KSpace;
 class Pair;
 
-enum { ENERGY_NONE = 0x00, ENERGY_GLOBAL = 0x01, ENERGY_ATOM = 0x02 };
-
 // clang-format off
+enum {
+  ENERGY_NONE   = 0x00,
+  ENERGY_GLOBAL = 0x01,
+  ENERGY_ATOM   = 0x02,
+  ENERGY_ONLY   = 0x04
+};
+
 enum {
   VIRIAL_NONE     = 0x00,
   VIRIAL_PAIR     = 0x01,
@@ -36,9 +41,13 @@ enum {
   VIRIAL_ATOM     = 0x04,
   VIRIAL_CENTROID = 0x08
 };
-// clang-format on
 
-enum { CENTROID_SAME = 0, CENTROID_AVAIL = 1, CENTROID_NOTAVAIL = 2 };
+enum {
+  CENTROID_SAME     = 0x00,
+  CENTROID_AVAIL    = 0x01,
+  CENTROID_NOTAVAIL = 0x02
+};
+// clang-format on
 
 class Force : protected Pointers {
  public:
@@ -86,19 +95,19 @@ class Force : protected Pointers {
   KSpace *kspace;
   char *kspace_style;
 
-  typedef Pair *(*PairCreator)(LAMMPS *);
-  typedef Bond *(*BondCreator)(LAMMPS *);
-  typedef Angle *(*AngleCreator)(LAMMPS *);
-  typedef Dihedral *(*DihedralCreator)(LAMMPS *);
-  typedef Improper *(*ImproperCreator)(LAMMPS *);
-  typedef KSpace *(*KSpaceCreator)(LAMMPS *);
+  using PairCreator = Pair *(*)(LAMMPS *);
+  using BondCreator = Bond *(*)(LAMMPS *);
+  using AngleCreator = Angle *(*)(LAMMPS *);
+  using DihedralCreator = Dihedral *(*)(LAMMPS *);
+  using ImproperCreator = Improper *(*)(LAMMPS *);
+  using KSpaceCreator = KSpace *(*)(LAMMPS *);
 
-  typedef std::map<std::string, PairCreator> PairCreatorMap;
-  typedef std::map<std::string, BondCreator> BondCreatorMap;
-  typedef std::map<std::string, AngleCreator> AngleCreatorMap;
-  typedef std::map<std::string, DihedralCreator> DihedralCreatorMap;
-  typedef std::map<std::string, ImproperCreator> ImproperCreatorMap;
-  typedef std::map<std::string, KSpaceCreator> KSpaceCreatorMap;
+  using PairCreatorMap = std::map<std::string, PairCreator>;
+  using BondCreatorMap = std::map<std::string, BondCreator>;
+  using AngleCreatorMap = std::map<std::string, AngleCreator>;
+  using DihedralCreatorMap = std::map<std::string, DihedralCreator>;
+  using ImproperCreatorMap = std::map<std::string, ImproperCreator>;
+  using KSpaceCreatorMap = std::map<std::string, KSpaceCreator>;
 
   PairCreatorMap *pair_map;
   BondCreatorMap *bond_map;

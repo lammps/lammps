@@ -13,12 +13,12 @@
 
 #ifdef NSTENCIL_CLASS
 // clang-format off
-typedef NStencilGhostBinIntel<0> NStencilFullGhostBin2dIntel;
+using NStencilFullGhostBin2dIntel = NStencilGhostBinIntel<0>;
 NStencilStyle(full/ghost/bin/2d/intel,
               NStencilFullGhostBin2dIntel,
               NS_FULL | NS_GHOST | NS_BIN | NS_2D | NS_ORTHO | NS_TRI | NS_INTEL);
 
-typedef NStencilGhostBinIntel<1> NStencilFullGhostBin3dIntel;
+using NStencilFullGhostBin3dIntel = NStencilGhostBinIntel<1>;
 NStencilStyle(full/ghost/bin/3d/intel,
               NStencilFullGhostBin3dIntel,
               NS_FULL | NS_GHOST | NS_BIN | NS_3D | NS_ORTHO | NS_TRI | NS_INTEL);

@@ -39,8 +39,7 @@ class AtomVec : protected Pointers {
   int size_data_atom;    // number of values in Atom line
   int size_data_vel;     // number of values in Velocity line
   int xcol_data;         // column (1-N) where x is in Atom line
-  int maxexchange;       // max size of exchanged atom
-                         // only needs to be set if size > BUFEXTRA
+  int maxexchange;       // max size of exchanged atom from bonds, angles, etc.
 
   int bonus_flag;                // 1 if stores bonus data
   int size_forward_bonus;        // # in forward bonus comm

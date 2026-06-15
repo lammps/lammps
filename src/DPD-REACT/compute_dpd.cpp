@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -19,17 +18,16 @@
 #include "compute_dpd.h"
 
 #include "atom.h"
-#include "update.h"
 #include "error.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeDpd::ComputeDpd(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+ComputeDpd::ComputeDpd(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute dpd command");
+  if (narg != 3) error->all(FLERR, "Illegal compute dpd command");
 
   vector_flag = 1;
   size_vector = 5;
@@ -37,16 +35,16 @@ ComputeDpd::ComputeDpd(LAMMPS *lmp, int narg, char **arg) :
 
   vector = new double[size_vector];
 
-  if (atom->dpd_flag != 1) error->all(FLERR,"compute dpd requires atom_style with internal temperature and energies (e.g. dpd)");
+  if (atom->dpd_flag != 1)
+    error->all(FLERR,
+               "compute dpd requires atom_style with internal temperature and energies (e.g. dpd)");
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeDpd::~ComputeDpd()
 {
-
-  delete [] vector;
-
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,16 +53,14 @@ void ComputeDpd::compute_vector()
 {
   invoked_vector = update->ntimestep;
 
-  double *uCond = atom->uCond;
-  double *uMech = atom->uMech;
-  double *uChem = atom->uChem;
-  double *dpdTheta = atom->dpdTheta;
+  auto *uCond = atom->uCond;
+  auto *uMech = atom->uMech;
+  auto *uChem = atom->uChem;
+  auto *dpdTheta = atom->dpdTheta;
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
-  int natoms;
 
-  dpdU = new double[size_vector];
-
+  auto *dpdU = new double[size_vector];
   for (int i = 0; i < size_vector; i++) dpdU[i] = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
@@ -73,15 +69,12 @@ void ComputeDpd::compute_vector()
       dpdU[1] += uMech[i];
       dpdU[2] += uChem[i];
       dpdU[3] += 1.0 / dpdTheta[i];
-      dpdU[4]++;
+      dpdU[4] += 1.0;
     }
   }
 
-  MPI_Allreduce(dpdU,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(dpdU, vector, size_vector, MPI_DOUBLE, MPI_SUM, world);
+  vector[3] = vector[4] / vector[3];
 
-  natoms = vector[4];
-  vector[3] = natoms / vector[3];
-
-  delete [] dpdU;
-
+  delete[] dpdU;
 }

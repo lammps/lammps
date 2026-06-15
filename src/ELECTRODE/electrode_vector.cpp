@@ -135,15 +135,15 @@ void ElectrodeVector::pair_contribution(double *vector)
   int *type = atom->type;
   int *mask = atom->mask;
   // neighbor list will be ready because called from post_neighbor
-  int const nlocal = atom->nlocal;
-  int const inum = list->inum;
+  const int nlocal = atom->nlocal;
+  const int inum = list->inum;
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   int newton_pair = force->newton_pair;
 
   for (int ii = 0; ii < inum; ii++) {
-    int const i = ilist[ii];
+    const int i = ilist[ii];
     bool const i_in_sensor = (mask[i] & groupbit);
     bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
     if (!(i_in_sensor || i_in_source)) continue;
@@ -155,7 +155,7 @@ void ElectrodeVector::pair_contribution(double *vector)
     int *jlist = firstneigh[i];
     int jnum = numneigh[i];
     for (int jj = 0; jj < jnum; jj++) {
-      int const j = jlist[jj] & NEIGHMASK;
+      const int j = jlist[jj] & NEIGHMASK;
       bool const j_in_sensor = (mask[j] & groupbit);
       bool const j_in_source = !!(mask[j] & source_grpbit) != invert_source;
       bool const compute_ij = i_in_sensor && j_in_source;
@@ -192,7 +192,7 @@ void ElectrodeVector::pair_contribution(double *vector)
 
 void ElectrodeVector::self_contribution(double *vector)
 {
-  int const inum = list->inum;
+  const int inum = list->inum;
   int *mask = atom->mask;
   int *ilist = list->ilist;
   double *q = atom->q;
@@ -201,7 +201,7 @@ void ElectrodeVector::self_contribution(double *vector)
   const double preta = MY_SQRT2 / MY_PIS;
 
   for (int ii = 0; ii < inum; ii++) {
-    int const i = ilist[ii];
+    const int i = ilist[ii];
     double const eta_i = etaflag ? atom->dvector[eta_index][i] : eta;
     bool const i_in_sensor = (mask[i] & groupbit);
     bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
@@ -213,14 +213,14 @@ void ElectrodeVector::self_contribution(double *vector)
 
 void ElectrodeVector::tf_contribution(double *vector)
 {
-  int const inum = list->inum;
+  const int inum = list->inum;
   int *mask = atom->mask;
   int *type = atom->type;
   int *ilist = list->ilist;
   double *q = atom->q;
 
   for (int ii = 0; ii < inum; ii++) {
-    int const i = ilist[ii];
+    const int i = ilist[ii];
     bool const i_in_sensor = (mask[i] & groupbit);
     bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
     if (i_in_sensor && i_in_source) vector[i] += tf_types[type[i]] * q[i];

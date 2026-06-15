@@ -84,7 +84,7 @@ void BondFENENM::compute(int eflag, int vflag)
     // and crash the run if rlogarg < -.21 rather than < -3
     // Don't print out warnings, only errors
     if (rlogarg < .02) {
-      error->warning(FLERR, "fene/nm/split bond too long: {} {} {} {}", update->ntimestep,
+      error->warning(FLERR, "fene/nm bond too long: {} {} {} {}", update->ntimestep,
                      atom->tag[i1], atom->tag[i2], sqrt(rsq));
       if (rlogarg <= -.21) error->one(FLERR, "Bad FENE bond");
       rlogarg = 0.02;
@@ -176,7 +176,7 @@ void BondFENENM::init_style()
   // special bonds should be 0 1 1
 
   if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0) {
-    if (comm->me == 0) error->warning(FLERR, "Use special bonds = 0,1,1 with bond style fene");
+    if (comm->me == 0) error->warning(FLERR, "Use special bonds = 0,1,1 with bond style fene/nm");
   }
 }
 

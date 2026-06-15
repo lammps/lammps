@@ -38,7 +38,6 @@ class ComputeFEPTA : public Compute {
  private:
   int tailflag;
   int fepinitflag;
-  int eflag, vflag;
   double temp_fep;
   double scale_factor;
   int tan_axis1, tan_axis2, norm_axis;

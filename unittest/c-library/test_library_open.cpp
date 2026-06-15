@@ -79,7 +79,7 @@ TEST(lammps_open, with_args)
 
 TEST(lammps_open, with_kokkos)
 {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
+    if (!LAMMPS_NS::Info::has_package("KOKKOS")) GTEST_SKIP();
     std::vector<char *> args = {(char *)"lammps", (char *)"-log", (char *)"none", (char *)"-echo",
                                 (char *)"screen", (char *)"-sf",  (char *)"kk"};
 
@@ -168,7 +168,7 @@ TEST(lammps_open_no_mpi, no_screen)
 
 TEST(lammps_open_no_mpi, with_omp)
 {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
+    if (!LAMMPS_NS::Info::has_package("OPENMP")) GTEST_SKIP();
     const char *args[] = {"liblammps", "-pk", "omp",  "2",    "neigh",   "no",
                           "-sf",       "omp", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;

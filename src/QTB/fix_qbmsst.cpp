@@ -245,7 +245,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   gfactor = new double[atom->ntypes+1];
 
   // allocate random-arrays and fran
-  grow_arrays(atom->nmax);
+  FixQBMSST::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // allocate omega_H and time_H
@@ -396,7 +396,7 @@ void FixQBMSST::init()
   // detect if any fix rigid exist so rigid bodies move when box is dilated
 
    rfix.clear();
-   for (auto &ifix : modify->get_fix_list())
+   for (const auto &ifix : modify->get_fix_list())
      if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
@@ -842,7 +842,7 @@ void FixQBMSST::write_restart(FILE *fp)
 void FixQBMSST::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   omega[direction] = list[n++];
   e0 = list[n++];
   v0 = list[n++];

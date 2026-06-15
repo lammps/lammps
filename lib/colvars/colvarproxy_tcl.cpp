@@ -38,13 +38,13 @@ void colvarproxy_tcl::init_tcl_pointers()
 #if defined(COLVARS_TCL)
   if (tcl_interp_ == NULL) {
     // Allocate a dedicated Tcl interpreter for Colvars
-    std::cout << "colvars: Allocating Tcl interpreter." << std::endl;
+    cvm::log("colvars: Allocating Tcl interpreter.\n");
     set_tcl_interp(Tcl_CreateInterp());
   } else {
-    std::cerr << "Error: init_tcl_pointers called with non-NULL tcl_interp_" << std::endl;
+    cvm::error("Error: init_tcl_pointers called with non-NULL tcl_interp_\n");
   }
 #else
-  std::cerr << "Error: Tcl support is not available in this build." << std::endl;
+  cvm::error("Error: Tcl support is not available in this build.\n");
 #endif
 }
 

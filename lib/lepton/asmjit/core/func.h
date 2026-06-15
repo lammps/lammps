@@ -231,7 +231,7 @@ struct CallConv {
   //! as it prevents from using an uninitialized data (CallConv doesn't have a constructor that would initialize it,
   //! it's just a struct).
   inline void reset() noexcept {
-    memset(this, 0, sizeof(*this));
+    memset((void *)this, 0, sizeof(*this));
     memset(_passedOrder.data(), 0xFF, sizeof(_passedOrder));
   }
 
@@ -407,7 +407,7 @@ struct FuncSignature {
     _args = args;
   }
 
-  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { memset((void *)this, 0, sizeof(*this)); }
 
   //! \}
 
@@ -794,7 +794,7 @@ public:
 
   //! Initializes this `FuncDetail` to the given signature.
   ASMJIT_API Error init(const FuncSignature& signature, const Environment& environment) noexcept;
-  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { memset((void *)this, 0, sizeof(*this)); }
 
   //! \}
 
@@ -1030,7 +1030,7 @@ public:
   ASMJIT_API Error init(const FuncDetail& func) noexcept;
 
   inline void reset() noexcept {
-    memset(this, 0, sizeof(FuncFrame));
+    memset((void *)this, 0, sizeof(FuncFrame));
     _spRegId = BaseReg::kIdBad;
     _saRegId = BaseReg::kIdBad;
     _daOffset = kTagInvalidOffset;
@@ -1336,7 +1336,7 @@ public:
   inline explicit FuncArgsAssignment(const FuncDetail* fd = nullptr) noexcept { reset(fd); }
 
   inline FuncArgsAssignment(const FuncArgsAssignment& other) noexcept {
-    memcpy(this, &other, sizeof(*this));
+    memcpy((void *)this, &other, sizeof(*this));
   }
 
   inline void reset(const FuncDetail* fd = nullptr) noexcept {

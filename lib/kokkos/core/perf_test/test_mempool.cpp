@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <cstdio>
 #include <cstring>
@@ -21,7 +8,12 @@
 #include <limits>
 
 #include <benchmark/benchmark.h>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <Kokkos_Timer.hpp>
 
 #include "Benchmark_Context.hpp"
@@ -151,19 +143,16 @@ struct TestFunctor {
   }
 };
 
-int get_number_alloc(int chunk_span, int min_superblock_size,
+int get_number_alloc(int chunk_span, unsigned min_superblock_size,
                      long total_alloc_size, int fill_level) {
   int chunk_span_bytes = 0;
   for (int i = 0; i < chunk_span; ++i) {
     auto chunk_bytes = TestFunctor::chunk * (1 + i);
     if (chunk_bytes < 64) chunk_bytes = 64;
-    auto block_bytes_lg2 =
-        Kokkos::Impl::integral_power_of_two_that_contains(chunk_bytes);
-    auto block_bytes = (1 << block_bytes_lg2);
-    chunk_span_bytes += block_bytes;
+    chunk_span_bytes += Kokkos::bit_ceil(chunk_bytes);
   }
   auto actual_superblock_bytes_lg2 =
-      Kokkos::Impl::integral_power_of_two_that_contains(min_superblock_size);
+      min_superblock_size ? Kokkos::bit_width(min_superblock_size - 1) : 0;
   auto actual_superblock_bytes = (1 << actual_superblock_bytes_lg2);
   auto superblock_mask         = actual_superblock_bytes - 1;
   auto nsuperblocks =

@@ -5,8 +5,7 @@ Accelerated versions of various :doc:`pair_style <pair_style>`,
 :doc:`fixes <fix>`, :doc:`computes <compute>`, and other commands have
 been added to LAMMPS, which will typically run faster than the
 standard non-accelerated versions.  Some require appropriate hardware
-to be present on your system, e.g. GPUs or Intel Xeon Phi
-co-processors.
+to be present on your system, e.g. GPUs.
 
 All of these commands are in packages provided with LAMMPS.  An
 overview of packages is give on the :doc:`Packages <Packages>` doc
@@ -17,9 +16,9 @@ These are the accelerator packages currently in LAMMPS:
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`GPU Package <Speed_gpu>`          | for GPUs via CUDA, OpenCL, or ROCm HIP                |
 +-----------------------------------------+-------------------------------------------------------+
-| :doc:`INTEL Package <Speed_intel>`      | for Intel CPUs and Intel Xeon Phi                     |
+| :doc:`INTEL Package <Speed_intel>`      | for Intel CPUs                                        |
 +-----------------------------------------+-------------------------------------------------------+
-| :doc:`KOKKOS Package <Speed_kokkos>`    | for NVIDIA GPUs, Intel Xeon Phi, and OpenMP threading |
+| :doc:`KOKKOS Package <Speed_kokkos>`    | for GPUs and threading via the Kokkos library         |
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`OPENMP Package <Speed_omp>`       | for OpenMP threading and generic CPU optimizations    |
 +-----------------------------------------+-------------------------------------------------------+
@@ -44,7 +43,7 @@ three kinds of hardware, via the listed packages:
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
 | GPUs            | :doc:`GPU <Speed_gpu>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                               |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| Intel Phi/AVX   | :doc:`INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                           |
+| Intel AVX       | :doc:`INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                           |
 +-----------------+-----------------------------------------------------------------------------------------------------------------------------+
 
 Which package is fastest for your hardware may depend on the size
@@ -78,20 +77,15 @@ any accelerated variants available for that style.
 To use an accelerator package in LAMMPS, and one or more of the styles
 it provides, follow these general steps.  Details vary from package to
 package and are explained in the individual accelerator doc pages,
-listed above:
+listed above.
 
 +-----------------------------------------------------------+---------------------------------------------+
-| build the accelerator library                             | only for GPU package                        |
+| Configure LAMMPS to include the accelerator package       | :doc:`Build_cmake` or :doc:`Build_make`     |
 +-----------------------------------------------------------+---------------------------------------------+
-| install the accelerator package                           | ``make yes-opt``, ``make yes-intel``, etc   |
+| (Re-)Compile LAMMPS                                       | :doc:`Build`                                |
 +-----------------------------------------------------------+---------------------------------------------+
-| add compile/link flags to ``Makefile.machine``            | only for INTEL, KOKKOS, OPENMP,             |
-| in ``src/MAKE``                                           | OPT packages                                |
-+-----------------------------------------------------------+---------------------------------------------+
-| re-build LAMMPS                                           | ``make machine``                            |
-+-----------------------------------------------------------+---------------------------------------------+
-| prepare and test a regular LAMMPS simulation              | ``lmp_machine -in in.script;``              |
-|                                                           | ``mpirun -np 32 lmp_machine -in in.script`` |
+| prepare and test a regular LAMMPS simulation              | ``lmp -in in.script;``                      |
+|                                                           | ``mpirun -np 32 lmp -in in.script``         |
 +-----------------------------------------------------------+---------------------------------------------+
 | enable specific accelerator support via ``-k on``         | only needed for KOKKOS package              |
 | :doc:`command-line switch <Run_options>`                  |                                             |
@@ -105,38 +99,26 @@ listed above:
 | :doc:`suffix <suffix>` command                            |                                             |
 +-----------------------------------------------------------+---------------------------------------------+
 
-Note that the first 4 steps can be done as a single command with
-suitable make command invocations. This is discussed on the
-:doc:`Packages <Packages>` doc pages, and its use is illustrated in the
-individual accelerator sections.  Typically these steps only need to
-be done once, to create an executable that uses one or more
-accelerator packages.
-
-The last 4 steps can all be done from the command-line when LAMMPS is
-launched, without changing your input script, as illustrated in the
-individual accelerator sections.  Or you can add
-:doc:`package <package>` and :doc:`suffix <suffix>` commands to your input
-script.
+This is discussed on the :doc:`Packages <Packages>` and :doc:`extra
+Build info <Build_extras>` doc pages, and its use is illustrated in the
+individual accelerator sections.  Typically these steps only need to be
+done once, to create an executable that uses one or more accelerator
+packages.
 
 .. note::
 
-   With a few exceptions, you can build a single LAMMPS executable
-   with all its accelerator packages installed.  Note however that the
-   INTEL and KOKKOS packages require you to choose one of their
-   hardware options when building for a specific platform.  I.e. CPU or
-   Phi option for the INTEL package.  Or the OpenMP, CUDA, HIP, SYCL,
-   or Phi option for the KOKKOS package.  Or the OpenCL, HIP, or CUDA
-   option for the GPU package.
+   With a few exceptions, you can build a single LAMMPS executable with
+   all its accelerator packages installed.  Note however that the KOKKOS
+   package requires you to choose one of its hardware options when
+   building for a specific platform, e.g. the OpenMP, CUDA, HIP, or SYCL
+   option for the KOKKOS package.  Or the OpenCL, HIP, or CUDA option
+   for the GPU package.
 
-These are the exceptions.  You cannot build a single executable with:
-
-* both the INTEL Phi and KOKKOS Phi options
-* the INTEL Phi or Kokkos Phi option, and the GPU package
-
-As mentioned above, the `Benchmark page <https://www.lammps.org/bench.html>`_ of the LAMMPS website gives
-performance results for the various accelerator packages for several
-of the standard LAMMPS benchmark problems, as a function of problem
-size and number of compute nodes, on different hardware platforms.
+As mentioned above, the `Benchmark page
+<https://www.lammps.org/bench.html>`_ of the LAMMPS website gives
+performance results for the various accelerator packages for several of
+the standard LAMMPS benchmark problems, as a function of problem size
+and number of compute nodes, on different hardware platforms.
 
 Here is a brief summary of what the various packages provide.  Details
 are in the individual accelerator sections.
@@ -147,14 +129,11 @@ are in the individual accelerator sections.
 * Styles with an "intel" suffix are part of the INTEL
   package. These styles support vectorized single and mixed precision
   calculations, in addition to full double precision.  In extreme cases,
-  this can provide speedups over 3.5x on CPUs.  The package also
-  supports acceleration in "offload" mode to Intel(R) Xeon Phi(TM)
-  co-processors.  This can result in additional speedup over 2x depending
-  on the hardware configuration.
+  this can provide speedups over 3.5x on CPUs.
 * Styles with a "kk" suffix are part of the KOKKOS package, and can be
-  run using OpenMP on multicore CPUs, on an NVIDIA or AMD GPU, or on an
-  Intel Xeon Phi in "native" mode.  The speed-up depends on a variety of
-  factors, as discussed on the KOKKOS accelerator page.
+  run using OpenMP on multicore CPUs or on an NVIDIA or AMD GPU.  The
+  speed-up depends on a variety of factors, as discussed on the KOKKOS
+  accelerator page.
 * Styles with an "omp" suffix are part of the OPENMP package and allow
   a pair-style to be run in multi-threaded mode using OpenMP.  This can
   be useful on nodes with high-core counts when using less MPI processes

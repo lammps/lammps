@@ -67,18 +67,19 @@ used.
 
 **-in file**
 
-Specify a file to use as an input script.  This is an optional but
-recommended switch when running LAMMPS in one-partition mode.  If it
-is not specified, LAMMPS reads its script from standard input, typically
-from a script via I/O redirection; e.g. lmp_linux < in.run.
-With many MPI implementations I/O redirection also works in parallel,
-but using the -in flag will always work.
+Specify a file to use as an input script.  This is currently an optional
+but recommended switch when running LAMMPS in the default one-partition
+mode.  If it is not specified, LAMMPS reads its script from standard
+input, typically from a script via I/O redirection; e.g. ``lmp_linux <
+in.run``.  With many MPI implementations (but not all of them), I/O
+redirection also works in parallel, but using the ``-in`` flag will
+*always* work.
 
-Note that this is a required switch when running LAMMPS in
-multi-partition mode, since multiple processors cannot all read from
-stdin concurrently.  The file name may be "none" for starting
-multi-partition calculations without reading an initial input file
-from the library interface.
+This is a **required** switch when running LAMMPS in multi-partition
+mode (see below), since multiple pools of MPI processes cannot all read
+from standard input concurrently.  The file name may be "none" for
+starting multi-partition calculations without reading an initial input
+file when using the library interface.
 
 ----------
 
@@ -87,12 +88,12 @@ from the library interface.
 **-kokkos on/off keyword/value ...**
 
 Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
-package.  Even if LAMMPS is built with this package, as described
-in the :doc:`the KOKKOS package page <Speed_kokkos>`, this switch must be set to enable
-running with KOKKOS-enabled styles the package provides.  If the
-switch is not set (the default), LAMMPS will operate as if the KOKKOS
-package were not installed; i.e. you can run standard LAMMPS or with
-the GPU or OPENMP packages, for testing or benchmarking purposes.
+package.  Even if LAMMPS is built with this package, as described in the
+:doc:`the KOKKOS package page <Speed_kokkos>`, this switch must be set
+to enable running with KOKKOS-enabled styles the package provides.  If
+the switch is not set (the default), LAMMPS will operate as if the
+KOKKOS package were not installed; i.e. you can run standard LAMMPS or
+with the GPU or OPENMP packages, for testing or benchmarking purposes.
 
 Additional optional keyword/value pairs can be specified which determine
 how Kokkos will use the underlying hardware on your platform.  These
@@ -210,13 +211,15 @@ how to launch LAMMPS in MDI client/server mode please refer to the
 
 If used, this must be the first command-line argument after the LAMMPS
 executable name.  It is only used when LAMMPS is launched by an mpirun
-command which also launches another executable(s) at the same time.
-(The other executable could be LAMMPS as well.)  The color is an
-integer value which should be different for each executable (another
-application may set this value in a different way).  LAMMPS and the
-other executable(s) perform an MPI_Comm_split() with their own colors
-to shrink the MPI_COMM_WORLD communication to be the subset of
-processors they are actually running on.
+command which also launches another executable(s) at the same time (The
+other executable could be LAMMPS as well.).  The *color* is an integer
+value which should be different for each executable (another application
+may set this value in a different way).  LAMMPS and the other
+executable(s) perform an `MPI_Comm_split()
+<https://docs.open-mpi.org/en/main/man-openmpi/man3/MPI_Comm_split.3.html>`_
+with their own colors to replace the ``MPI_COMM_WORLD`` communicator
+with a new communicator using the subset of MPI processes they are
+actually running on.
 
 ----------
 
@@ -291,23 +294,33 @@ having to edit an input script.
 
 **-partition 8x2 4 5 ...**
 
-Invoke LAMMPS in multi-partition mode.  When LAMMPS is run on P
-processors and this switch is not used, LAMMPS runs in one partition,
-i.e. all P processors run a single simulation.  If this switch is
-used, the P processors are split into separate partitions and each
-partition runs its own simulation.  The arguments to the switch
-specify the number of processors in each partition.  Arguments of the
-form MxN mean M partitions, each with N processors.  Arguments of the
-form N mean a single partition with N processors.  The sum of
-processors in all partitions must equal P.  Thus the command
-``-partition 8x2 4 5`` has 10 partitions and runs on a total of 25
-processors.
+Invoke LAMMPS in multi-partition mode.  When LAMMPS is run on *P* MPI
+processes and this switch is not used, LAMMPS runs in *one partition*,
+i.e. all *P* MPI processes run a single simulation with the same
+settings.  If this switch *is* used, the *P* MPI processes are split
+into separate partitions and each partition runs its own simulation.
+The arguments to the switch specify the number of MPI processes in each
+partition.  Arguments of the form *MxN* mean *M* partitions, each with
+*N* MPI processes.  Arguments of the form *N* mean a single partition
+with *N* MPI processes.  The sum of MPI processes in all partitions must
+equal *P*.  Thus the command ``-partition 8x2 4 5`` has 10 partitions
+(eight with 2 MPI processes, one with 4 and one with 5) and runs on a
+total of 25 MPI processes.
 
 Running with multiple partitions can be useful for running
 :doc:`multi-replica simulations <Howto_replica>`, where each replica
-runs on one or a few processors.  Note that with MPI installed on a
-machine (e.g. your desktop), you can run on more (virtual) processors
-than you have physical processors.
+runs on one or a few MPI processes.
+
+.. note::
+
+   With MPI installed on a standalone machine (e.g. your desktop or
+   laptop), you can run on more (virtual) MPI processes than you have
+   physical processors (for testing purposes), but some MPI
+   implementations (for instance `OpenMPI <https://www.open-mpi.org/>`_)
+   may require an additional command line flag to enable this so-called
+   oversubscription.  You may also have to disable `processor affinity
+   <https://en.wikipedia.org/wiki/Processor_affinity>`_ or else the
+   performance may be exceptionally bad when oversubscribing processors.
 
 To run multiple independent simulations from one input script, using
 multiple partitions, see the :doc:`Howto multiple <Howto_multiple>`
@@ -320,15 +333,15 @@ in this context.
 
 **-plog file**
 
-Specify the base name for the partition log files, so partition N
-writes log information to file.N. If file is none, then no partition
-log files are created.  This overrides the filename specified in the
--log command-line option.  This option is useful when working with
-large numbers of partitions, allowing the partition log files to be
-suppressed (-plog none) or placed in a subdirectory (-plog
-replica_files/log.lammps) If this option is not used the log file for
-partition N is log.lammps.N or whatever is specified by the -log
-command-line option.
+Specify the base name for the partition log files, so partition *N*
+writes log information to ``file.N``. If *file* is *none*, then no
+partition log files are created.  This overrides the filename specified
+in the *-log* command-line option.  This option is useful when working
+with large numbers of partitions, allowing the partition log files to be
+suppressed (``-plog none``) or placed in a subdirectory (``-plog
+replica_files/log.lammps``).  If this option is not used, the log file
+for partition *N* is ``log.lammps.N`` or whatever is specified by the
+*-log* command-line option.
 
 ----------
 
@@ -336,15 +349,15 @@ command-line option.
 
 **-pscreen file**
 
-Specify the base name for the partition screen file, so partition N
-writes screen information to file.N. If file is "none", then no
+Specify the base name for the partition screen file, so partition *N*
+writes screen information to ``file.N``. If *file* is *none*, then no
 partition screen files are created.  This overrides the filename
-specified in the -screen command-line option.  This option is useful
+specified in the *-screen* command-line option.  This option is useful
 when working with large numbers of partitions, allowing the partition
-screen files to be suppressed (-pscreen none) or placed in a
-subdirectory (-pscreen replica_files/screen).  If this option is not
-used the screen file for partition N is screen.N or whatever is
-specified by the -screen command-line option.
+screen files to be suppressed (``-pscreen none``) or placed in a
+subdirectory (``-pscreen replica_files/screen``).  If this option is not
+used, the screen file for partition *N* is ``screen.N`` or whatever is
+specified by the *-screen* command-line option.
 
 ----------
 
@@ -359,28 +372,29 @@ This option has 2 forms:
    -reorder nth N
    -reorder custom filename
 
-Reorder the processors in the MPI communicator used to instantiate
-LAMMPS, in one of several ways.  The original MPI communicator ranks
-all P processors from 0 to P-1.  The mapping of these ranks to
-physical processors is done by MPI before LAMMPS begins.  It may be
-useful in some cases to alter the rank order.  E.g. to ensure that
-cores within each node are ranked in a desired order.  Or when using
-the :doc:`run_style verlet/split <run_style>` command with 2 partitions
-to ensure that a specific Kspace processor (in the second partition) is
-matched up with a specific set of processors in the first partition.
-See the :doc:`General tips <Speed_tips>` page for more details.
-
-If the keyword *nth* is used with a setting *N*, then it means every
-Nth processor will be moved to the end of the ranking.  This is useful
+Reorder the ranks in the MPI communicator used to instantiate LAMMPS, in
+one of several ways.  The original MPI communicator ranks all *P* MPI
+processes from *0* to *P-1*.  The mapping of these ranks to physical
+processors is done by the MPI library before LAMMPS begins.  It may be
+useful in some cases to alter the order of the ranks, for example to
+ensure that cores within each node are ranked in a desired order.  Or
 when using the :doc:`run_style verlet/split <run_style>` command with 2
-partitions via the -partition command-line switch.  The first set of
+partitions to ensure that a specific Kspace processor (in the second
+partition) is matched up with a specific set of processors in the first
+partition.  See the :doc:`General tips <Speed_tips>` page for more
+details.
+
+If the keyword *nth* is used with a setting *N*, then it means every Nth
+processor will be moved to the end of the ranking.  This is useful when
+using the :doc:`run_style verlet/split <run_style>` command with 2
+partitions via the *-partition* command-line switch.  The first set of
 processors will be in the first partition, the second set in the second
-partition.  The -reorder command-line switch can alter this so that
-the first N procs in the first partition and one proc in the second partition
-will be ordered consecutively, e.g. as the cores on one physical node.
-This can boost performance.  For example, if you use ``-reorder nth 4``
-and ``-partition 9 3`` and you are running on 12 processors, the
-processors will be reordered from
+partition.  The *-reorder* command-line switch can alter this so that
+the first *N* MPI processes in the first partition and one MPI process
+in the second partition will be ordered consecutively, e.g. as the cores
+on one physical node.  This can boost performance.  For example, if you
+use ``-reorder nth 4`` and ``-partition 9 3`` and you are running on 12
+processors, the MPI process ranks will be reordered from
 
 .. parsed-literal::
 
@@ -406,30 +420,30 @@ If the keyword is *custom*, then a file that specifies a permutation
 of the processor ranks is also specified.  The format of the reorder
 file is as follows.  Any number of initial blank or comment lines
 (starting with a "#" character) can be present.  These should be
-followed by P lines of the form:
+followed by *P* lines of the form:
 
 .. parsed-literal::
 
    I J
 
-where P is the number of processors LAMMPS was launched with.  Note
+where *P* is the number of processors LAMMPS was launched with.  Note
 that if running in multi-partition mode (see the -partition switch
-above) P is the total number of processors in all partitions.  The I
-and J values describe a permutation of the P processors.  Every I and
-J should be values from 0 to P-1 inclusive.  In the set of P I values,
-every proc ID should appear exactly once.  Ditto for the set of P J
-values.  A single I,J pairing means that the physical processor with
-rank I in the original MPI communicator will have rank J in the
-reordered communicator.
+above) *P* is the total number of MPI processes in all partitions.  The
+*I* and *J* values describe a permutation of the *P* MPI process ranks.
+Every *I* and *J* should be values from *0* to *P-1* inclusive.  In the
+set of *P* *I* values, every MPI rank ID should appear exactly once.
+Ditto for the set of *P* *J* values.  A single *I*, *J* pairing means
+that the physical processor with MPI rank *I* in the original MPI
+communicator will have rank *J* in the reordered MPI communicator.
 
 Note that rank ordering can also be specified by many MPI
 implementations, either by environment variables that specify how to
-order physical processors, or by config files that specify what
-physical processors to assign to each MPI rank.  The -reorder switch
-simply gives you a portable way to do this without relying on MPI
-itself.  See the :doc:`processors file <processors>` command for how
-to output info on the final assignment of physical processors to
-the LAMMPS simulation domain.
+order physical processors, or by config files that specify what physical
+processors to assign to each MPI rank.  The *-reorder* switch simply
+gives you a portable way to do this without relying on MPI itself.  See
+the :doc:`processors file <processors>` command for how to output info
+on the final assignment of physical processors to the LAMMPS simulation
+domain.
 
 ----------
 

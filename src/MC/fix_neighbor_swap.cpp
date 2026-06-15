@@ -20,17 +20,19 @@
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
+#include "citeme.h"
 #include "comm.h"
 #include "compute.h"
-#include "compute_voronoi_atom.h"
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"
+#include "graphics.h"
 #include "group.h"
 #include "improper.h"
 #include "kspace.h"
+#include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
 #include "modify.h"
@@ -38,18 +40,21 @@
 #include "pair.h"
 #include "random_park.h"
 #include "region.h"
+#include "suffix.h"
 #include "update.h"
 
-#include <cctype>
 #include <cfloat>
 #include <cmath>
 #include <cstring>
+#include <unordered_set>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using MathExtra::distsq3;
+using MathSpecial::square;
 
-static const char cite_fix_neighbor_swap_c[] =
-    "fix neighbor/swap command: doi:10.1016/j.commatsci.2022.111929\n\n"
+static const char cite_fix_neighbor_swap[] =
+    "fix neighbor/swap command: https://doi.org/10.1016/j.commatsci.2022.111929\n\n"
     "@Article{Tavenner2023111929,\n"
     " author = {Jacob P. Tavenner and Mikhail I. Mendelev and John W. Lawson},\n"
     " title = {Molecular dynamics based kinetic Monte Carlo simulation for accelerated "
@@ -58,15 +63,17 @@ static const char cite_fix_neighbor_swap_c[] =
     " year = {2023},\n"
     " volume = {218},\n"
     " pages = {111929}\n"
-    " url = {https://www.sciencedirect.com/science/article/pii/S0927025622006401}\n"
+    " url = {https://dx.doi.org/10.1016/j.commatsci.2022.111929}\n"
     "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
 FixNeighborSwap::FixNeighborSwap(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), type_list(nullptr), qtype(nullptr),
-    c_voro(nullptr), voro_neighbor_list(nullptr), sqrt_mass_ratio(nullptr),
-    local_swap_iatom_list(nullptr), random_equal(nullptr), c_pe(nullptr)
+    Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), type_list(nullptr), rate_list(nullptr),
+    qtype(nullptr), mtype(nullptr), sqrt_mass_ratio(nullptr), voro_neighbor_list(nullptr),
+    local_swap_iatom_list(nullptr), local_swap_neighbor_list(nullptr),
+    local_swap_type_list(nullptr), local_swap_probability(nullptr), random_equal(nullptr),
+    id_voro(nullptr), c_voro(nullptr), c_pe(nullptr), imgobjs(nullptr), imgparms(nullptr)
 {
   if (narg < 10) utils::missing_cmd_args(FLERR, "fix neighbor/swap", error);
 
@@ -79,37 +86,61 @@ FixNeighborSwap::FixNeighborSwap(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   time_depend = 1;
 
+  // no visualization without an atom map
+  if (atom->map_style == Atom::MAP_NONE) {
+    vizsteps = 0;
+  } else {
+    vizsteps = 1000;
+  }
+
+  if (lmp->citeme) lmp->citeme->add(cite_fix_neighbor_swap);
+
   // required args
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  if (nevery <= 0)
+    error->all(FLERR, 3, "Illegal fix neighbor/swap command nevery value: {}", nevery);
+
   ncycles = utils::inumeric(FLERR, arg[4], false, lmp);
+  if (ncycles < 0)
+    error->all(FLERR, 4, "Illegal fix neighbor/swap command ncycles value: {}", ncycles);
+
   seed = utils::inumeric(FLERR, arg[5], false, lmp);
+  if (seed <= 0) error->all(FLERR, 5, "Illegal fix neighbor/swap command seed value: {}", seed);
+
   double temperature = utils::numeric(FLERR, arg[6], false, lmp);
-  r_0 = utils::inumeric(FLERR, arg[7], false, lmp);
+  if (temperature <= 0.0)
+    error->all(FLERR, 6, "Illegal fix neighbor/swap command temperature value: {}", temperature);
+
+  double r_0 = utils::numeric(FLERR, arg[7], false, lmp);
+  if (r_0 <= 0.0) error->all(FLERR, 7, "Illegal fix neighbor/swap command R0 value: {}", r_0);
+
+  beta = 1.0 / (force->boltz * temperature);
+  inv_r_0 = 1.0 / r_0;
 
   // Voro compute check
 
-  int icompute = modify->find_compute(utils::strdup(arg[8]));
-  if (icompute < 0) error->all(FLERR, "Could not find neighbor compute ID");
-  c_voro = modify->compute[icompute];
+  id_voro = utils::strdup(arg[8]);
+  c_voro = modify->get_compute_by_id(id_voro);
+  if (!c_voro) error->all(FLERR, 8, "Could not find voronoi compute ID {}", id_voro);
   if (c_voro->local_flag == 0)
-    error->all(FLERR, "Neighbor compute does not compute local info");
+    error->all(FLERR, 8, "Voronoi compute {} does not compute local info", id_voro);
   if (c_voro->size_local_cols != 3)
-    error->all(FLERR, "Neighbor compute does not give i, j, size as expected");
+    error->all(FLERR, "Voronoi compute {} does not give i, j, size as expected", id_voro);
 
-  if (nevery <= 0) error->all(FLERR, "Illegal fix neighbor/swap command nevery value");
-  if (ncycles < 0) error->all(FLERR, "Illegal fix neighbor/swap command ncycles value");
-  if (seed <= 0) error->all(FLERR, "Illegal fix neighbor/swap command seed value");
-  if (temperature <= 0.0) error->all(FLERR, "Illegal fix neighbor/swap command temperature value");
+  // defaults and allocations for options
 
-  beta = 1.0 / (force->boltz * temperature);
+  ke_flag = 1;
+  diff_flag = 0;
+  rates_flag = 0;
+  nswaptypes = 0;
 
   memory->create(type_list, atom->ntypes, "neighbor/swap:type_list");
   memory->create(rate_list, atom->ntypes, "neighbor/swap:rate_list");
 
   // read options from end of input line
 
-  options(narg - 8, &arg[8]);
+  options(narg - 9, &arg[9]);
 
   // random number generator, same for all procs
 
@@ -124,13 +155,7 @@ FixNeighborSwap::FixNeighborSwap(LAMMPS *lmp, int narg, char **arg) :
 
   nswap_attempts = 0.0;
   nswap_successes = 0.0;
-
   atom_swap_nmax = 0;
-  voro_neighbor_list = nullptr;
-  local_swap_iatom_list = nullptr;
-  local_swap_neighbor_list = nullptr;
-  local_swap_probability = nullptr;
-  local_swap_type_list = nullptr;
 
   // set comm size needed by this Fix
 
@@ -147,14 +172,29 @@ FixNeighborSwap::~FixNeighborSwap()
   memory->destroy(type_list);
   memory->destroy(rate_list);
   memory->destroy(qtype);
+  memory->destroy(mtype);
   memory->destroy(sqrt_mass_ratio);
   memory->destroy(local_swap_iatom_list);
   memory->destroy(local_swap_neighbor_list);
   memory->destroy(local_swap_probability);
   memory->destroy(local_swap_type_list);
   delete[] idregion;
+  delete[] id_voro;
   delete random_equal;
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
 }
+
+// helper function: detect known keywords
+namespace {
+// NOLINTNEXTLINE
+const std::unordered_set<std::string> known_keywords = {"region", "ke", "types", "diff", "rates"};
+
+bool is_keyword(const std::string &arg)
+{
+  return known_keywords.find(arg) != known_keywords.end();
+}
+}    // namespace
 
 /* ----------------------------------------------------------------------
    parse optional parameters at end of input line
@@ -162,60 +202,91 @@ FixNeighborSwap::~FixNeighborSwap()
 
 void FixNeighborSwap::options(int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR, "Illegal fix neighbor/swap command\n");
+  // either "types" or "diff" option is required
 
-  ke_flag = 1;
-  diff_flag = 0;
-  rates_flag = 0;
-  nswaptypes = 0;
+  if (narg < 0) utils::missing_cmd_args(FLERR, "fix neighbor/swap", error);
 
+  int ntypes = atom->ntypes;
+  int ioffset = 9;    // first 9 arguments are fixed and handled in constructor
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "region") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix neighbor/swap command");
-      region = domain->get_region_by_id(arg[iarg + 1]);
-      if (!region) error->all(FLERR, "Region ID for fix neighbor/swap does not exist");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix neighbor/swap region", error);
+      delete[] idregion;
       idregion = utils::strdup(arg[iarg + 1]);
+      region = domain->get_region_by_id(idregion);
+      if (!region)
+        error->all(FLERR, iarg + 1 + ioffset, "Region ID {} for fix neighbor/swap does not exist",
+                   idregion);
       iarg += 2;
     } else if (strcmp(arg[iarg], "ke") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix neighbor/swap command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix neighbor/swap ke", error);
       ke_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "types") == 0) {
-      if (iarg + 3 > narg) error->all(FLERR, "Illegal fix neighbor/swap command");
-      if (diff_flag != 0) error->all(FLERR, "Illegal fix neighbor/swap command");
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix neighbor/swap types", error);
+      if (diff_flag)
+        error->all(FLERR, iarg + ioffset, "Cannot use 'diff' and 'types' keywords together");
       iarg++;
       nswaptypes = 0;
       while (iarg < narg) {
-        if (isalpha(arg[iarg][0])) break;
-        if (nswaptypes >= atom->ntypes) error->all(FLERR, "Illegal fix neighbor/swap command");
-        type_list[nswaptypes] = utils::numeric(FLERR, arg[iarg], false, lmp);
+        if (is_keyword(arg[iarg])) break;
+        if (nswaptypes >= ntypes)
+          error->all(FLERR, iarg + ioffset, "Too many arguments to fix neighbor/swap types");
+        type_list[nswaptypes] = utils::expand_type_int(FLERR, arg[iarg], Atom::ATOM, lmp);
         nswaptypes++;
         iarg++;
       }
     } else if (strcmp(arg[iarg], "diff") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix neighbor/swap command");
-      if (nswaptypes != 0) error->all(FLERR, "Illegal fix neighbor/swap command");
-      type_list[nswaptypes] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (diff_flag) error->all(FLERR, iarg + ioffset, "Cannot use 'diff' keyword multiple times");
+      if (nswaptypes != 0)
+        error->all(FLERR, iarg + ioffset, "Cannot use 'diff' and 'types' keywords together");
+      type_list[nswaptypes] = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       diff_flag = 1;
       nswaptypes++;
       iarg += 2;
     } else if (strcmp(arg[iarg], "rates") == 0) {
-      if (iarg + atom->ntypes >= narg) error->all(FLERR, "Illegal fix neighbor/swap command");
+      if (iarg + ntypes >= narg) utils::missing_cmd_args(FLERR, "fix neighbor/swap rates", error);
       iarg++;
       int i = 0;
       while (iarg < narg) {
-        if (isalpha(arg[iarg][0])) break;
-        if (i >= atom->ntypes) error->all(FLERR, "Illegal fix neighbor/swap command");
+        if (is_keyword(arg[iarg])) break;
+        if (i >= ntypes)
+          error->all(FLERR, iarg + ioffset, "Too many values (> {}) for fix neighbor/swap rates",
+                     ntypes);
         rate_list[i] = utils::numeric(FLERR, arg[iarg], false, lmp);
         i++;
         iarg++;
       }
       rates_flag = 1;
-      if (i != atom->ntypes) error->all(FLERR, "Illegal fix neighbor/swap command");
+      if (i != ntypes)
+        error->all(FLERR, "Fix neighbor/swap rates keyword must have exactly {} arguments", ntypes);
     } else
-      error->all(FLERR, "Illegal fix neighbor/swap command");
+      error->all(FLERR, "Unknown fix neighbor/swap keyword: {}", arg[iarg]);
   }
+
+  // checks
+
+  if (!nswaptypes && !diff_flag)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Must specify at either 'types' or 'diff' keyword with fix neighbor/swap");
+
+  if (nswaptypes < 2 && !diff_flag)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Must specify at least 2 atom types in fix neighbor/swap 'types' keyword");
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixNeighborSwap::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0], "vizsteps") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify neighbor/swap", error);
+    vizsteps = utils::inumeric(FLERR, arg[1], false, lmp);
+    return 2;
+  }
+
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -231,9 +302,15 @@ int FixNeighborSwap::setmask()
 
 void FixNeighborSwap::init()
 {
-  c_pe = modify->get_compute_by_id("thermo_pe");
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
 
-  int *type = atom->type;
+  c_pe = modify->get_compute_by_id("thermo_pe");
+  if (!c_pe) error->all(FLERR, Error::NOLASTLINE, "Could not find 'thermo_pe' compute");
+
+  c_voro = modify->get_compute_by_id(id_voro);
+  if (!c_voro)
+    error->all(FLERR, Error::NOLASTLINE, "Could not find voronoi compute ID {}", id_voro);
 
   if (nswaptypes < 2 && !diff_flag)
     error->all(FLERR, "Must specify at least 2 types in fix neighbor/swap command");
@@ -242,13 +319,16 @@ void FixNeighborSwap::init()
 
   if (idregion) {
     region = domain->get_region_by_id(idregion);
-    if (!region) error->all(FLERR, "Region {} for fix setforce does not exist", idregion);
+    if (!region)
+      error->all(FLERR, Error::NOLASTLINE, "Region {} for fix neighbor/swap does not exist",
+                 idregion);
   }
 
   for (int iswaptype = 0; iswaptype < nswaptypes; iswaptype++)
     if (type_list[iswaptype] <= 0 || type_list[iswaptype] > atom->ntypes)
       error->all(FLERR, "Invalid atom type in fix neighbor/swap command");
 
+  int *type = atom->type;
   if (atom->q_flag) {
     double qmax, qmin;
     int firstall, first;
@@ -258,31 +338,88 @@ void FixNeighborSwap::init()
       for (int i = 0; i < atom->nlocal; i++) {
         if (atom->mask[i] & groupbit) {
           if (type[i] == type_list[iswaptype]) {
-            if (first) {
+            if (first > 0) {
               qtype[iswaptype] = atom->q[i];
               first = 0;
             } else if (qtype[iswaptype] != atom->q[i])
-              error->one(FLERR, "All atoms of a swapped type must have the same charge.");
+              first = -1;
           }
         }
       }
       MPI_Allreduce(&first, &firstall, 1, MPI_INT, MPI_MIN, world);
-      if (firstall)
-        error->all(FLERR,
-                   "At least one atom of each swapped type must be present to define charges.");
+      if (firstall < 0)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "All atoms of a swapped type must have the same charge");
+      if (firstall > 0)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "At least one atom of each swapped type must be present to define charges");
       if (first) qtype[iswaptype] = -DBL_MAX;
       MPI_Allreduce(&qtype[iswaptype], &qmax, 1, MPI_DOUBLE, MPI_MAX, world);
       if (first) qtype[iswaptype] = DBL_MAX;
       MPI_Allreduce(&qtype[iswaptype], &qmin, 1, MPI_DOUBLE, MPI_MIN, world);
-      if (qmax != qmin) error->all(FLERR, "All atoms of a swapped type must have same charge.");
+      if (qmax != qmin)
+        error->all(FLERR, Error::NOLASTLINE, "All atoms of a swapped type must have same charge.");
+      qtype[iswaptype] = qmax;
     }
   }
 
-  memory->create(sqrt_mass_ratio, atom->ntypes + 1, atom->ntypes + 1,
-                 "neighbor/swap:sqrt_mass_ratio");
-  for (int itype = 1; itype <= atom->ntypes; itype++)
-    for (int jtype = 1; jtype <= atom->ntypes; jtype++)
-      sqrt_mass_ratio[itype][jtype] = sqrt(atom->mass[itype] / atom->mass[jtype]);
+  // if we have per-atom masses, check that rmass is consistent with type,
+  // and set per-type mass to that value
+  if (ke_flag && (atom->rmass != nullptr)) {
+    double mmax, mmin;
+    int firstall, first;
+    memory->create(mtype, nswaptypes, "neighbor/swap:mtype");
+    for (int iswaptype = 0; iswaptype < nswaptypes; iswaptype++) {
+      first = 1;
+      for (int i = 0; i < atom->nlocal; i++) {
+        if (atom->mask[i] & groupbit) {
+          if (type[i] == type_list[iswaptype]) {
+            if (first > 0) {
+              mtype[iswaptype] = atom->rmass[i];
+              first = 0;
+            } else if (mtype[iswaptype] != atom->rmass[i])
+              first = -1;
+          }
+        }
+      }
+      MPI_Allreduce(&first, &firstall, 1, MPI_INT, MPI_MIN, world);
+      if (firstall < 0)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "All atoms of a swapped type must have the same per-atom mass");
+      if (firstall > 0)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "At least one atom of each swapped type must be present to define masses");
+      if (first) mtype[iswaptype] = -DBL_MAX;
+      MPI_Allreduce(&mtype[iswaptype], &mmax, 1, MPI_DOUBLE, MPI_MAX, world);
+      if (first) mtype[iswaptype] = DBL_MAX;
+      MPI_Allreduce(&mtype[iswaptype], &mmin, 1, MPI_DOUBLE, MPI_MIN, world);
+      if (mmax != mmin)
+        error->all(FLERR, Error::NOLASTLINE, "All atoms of a swapped type must have same mass.");
+      mtype[iswaptype] = mmax;
+    }
+  }
+
+  if (ke_flag) {
+    memory->create(sqrt_mass_ratio, atom->ntypes + 1, atom->ntypes + 1,
+                   "neighbor/swap:sqrt_mass_ratio");
+    if (atom->rmass != nullptr) {
+      for (int itype = 1; itype <= atom->ntypes; itype++)
+        for (int jtype = 1; jtype <= atom->ntypes; jtype++) sqrt_mass_ratio[itype][jtype] = 1.0;
+      for (int iswaptype = 0; iswaptype < nswaptypes; iswaptype++) {
+        int itype = type_list[iswaptype];
+        for (int jswaptype = 0; jswaptype < nswaptypes; jswaptype++) {
+          int jtype = type_list[jswaptype];
+          sqrt_mass_ratio[itype][jtype] = sqrt(mtype[iswaptype] / mtype[jswaptype]);
+        }
+      }
+    } else {
+      for (int itype = 1; itype <= atom->ntypes; itype++) {
+        for (int jtype = 1; jtype <= atom->ntypes; jtype++) {
+          sqrt_mass_ratio[itype][jtype] = sqrt(atom->mass[itype] / atom->mass[jtype]);
+        }
+      }
+    }
+  }
 
   // check to see if itype and jtype cutoffs are the same
   // if not, reneighboring will be needed between swaps
@@ -309,7 +446,9 @@ void FixNeighborSwap::init()
     int flagall;
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
 
-    if (flagall) error->all(FLERR, "Cannot do neighbor/swap on atoms in atom_modify first group");
+    if (flagall)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Cannot do neighbor/swap on atoms in atom_modify first group");
   }
 }
 
@@ -350,6 +489,20 @@ void FixNeighborSwap::pre_exchange()
   nswap_successes += nsuccess;
 
   next_reneighbor = update->ntimestep + nevery;
+
+  // if visualization support is enabled, age vizatoms and remove expired ones
+  if (vizsteps > 0) {
+    std::vector<tagint> eraseme;
+    for (const auto &[key, data] : vizatoms) {
+      int idx = atom->map(key);
+      if ((idx < 0) || (data.first < 0)) {
+        eraseme.push_back(key);
+        continue;
+      }
+      vizatoms[key] = std::make_pair(data.first - nevery, data.second);
+    }
+    for (const auto &key : eraseme) vizatoms.erase(key);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -359,9 +512,6 @@ void FixNeighborSwap::pre_exchange()
 
 int FixNeighborSwap::attempt_swap()
 {
-  // int nlocal = atom->nlocal;
-  tagint *id = atom->tag;
-
   if (niswap == 0) return 0;
 
   // pre-swap energy
@@ -372,9 +522,6 @@ int FixNeighborSwap::attempt_swap()
 
   int i = pick_i_swap_atom();
 
-  // get global id and position of atom i
-  // get_global_i(i);
-
   // build nearest-neighbor list based on atom i
 
   build_i_neighbor_list(i);
@@ -382,22 +529,39 @@ int FixNeighborSwap::attempt_swap()
 
   // pick a neighbor atom j based on i neighbor list
   jtype_selected = -1;
-  int j = pick_j_swap_neighbor(i);
+  int j = pick_j_swap_neighbor();
 
   int itype = type_list[0];
   int jtype = jtype_selected;
 
   // Accept swap if types are equal, no change to system
-  if (itype == jtype) { return 1; }
+  if (itype == jtype) {
+    // record atoms for which the type was swapped and store the old types
+    if (vizsteps > 0) {
+      vizatoms[atom->tag[i]] = std::make_pair(vizsteps, jtype);
+      vizatoms[atom->tag[j]] = std::make_pair(vizsteps, itype);
+    }
+    return 1;
+  }
+
+  // error out when pick_i_swap_atom() or pick_j_swap_neighbor() picked invalid indices
+  if (i >= atom->nlocal)
+    error->one(FLERR, Error::NOLASTLINE, "Invalid i index {} chosen for swap. nlocal = {}", i,
+               atom->nlocal);
+  if (j >= (atom->nlocal))
+    error->one(FLERR, Error::NOLASTLINE, "Invalid j index {} chosen for swap. nall = {}", j,
+               atom->nlocal);
 
   // swap their properties
   if (i >= 0) {
     atom->type[i] = jtype;
     if (atom->q_flag) atom->q[i] = qtype[jtype_selected];
+    if (atom->rmass_flag) atom->rmass[i] = mtype[jtype_selected];
   }
   if (j >= 0) {
     atom->type[j] = itype;
     if (atom->q_flag) atom->q[j] = qtype[0];
+    if (atom->rmass_flag) atom->rmass[j] = mtype[0];
   }
 
   // if unequal_cutoffs, call comm->borders() and rebuild neighbor list
@@ -421,7 +585,7 @@ int FixNeighborSwap::attempt_swap()
   double energy_after = energy_full();
 
   // if swap accepted, return 1
-  // if ke_flag, rescale atom velocities
+  // if ke_flag, rescale atom velocities first
 
   if (random_equal->uniform() < exp(beta * (energy_before - energy_after))) {
     update_iswap_atoms_list();
@@ -438,21 +602,28 @@ int FixNeighborSwap::attempt_swap()
       }
     }
     energy_stored = energy_after;
+    // record atoms for which the type was swapped and store the old types
+    if (vizsteps > 0) {
+      vizatoms[atom->tag[i]] = std::make_pair(vizsteps, itype);
+      vizatoms[atom->tag[j]] = std::make_pair(vizsteps, jtype);
+    }
     return 1;
   }
 
   // swap not accepted, return 0
   // restore the swapped itype & jtype atoms
   // do not need to re-call comm->borders() and rebuild neighbor list
-  //   since will be done on next cycle or in Verlet when this fix finishes
+  // since will be done on next cycle or in Verlet when this fix finishes
 
   if (i >= 0) {
     atom->type[i] = itype;
     if (atom->q_flag) atom->q[i] = qtype[0];
+    if (atom->rmass_flag) atom->rmass[i] = mtype[0];
   }
   if (j >= 0) {
     atom->type[j] = jtype;
     if (atom->q_flag) atom->q[j] = qtype[jtype_selected];
+    if (atom->rmass_flag) atom->rmass[j] = mtype[jtype_selected];
   }
 
   return 0;
@@ -464,8 +635,9 @@ int FixNeighborSwap::attempt_swap()
 
 double FixNeighborSwap::energy_full()
 {
-  int eflag = 1;
-  int vflag = 0;
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   if (modify->n_pre_force) modify->pre_force(vflag);
 
@@ -494,18 +666,22 @@ double FixNeighborSwap::energy_full()
 int FixNeighborSwap::pick_i_swap_atom()
 {
   tagint *id = atom->tag;
-  int id_center_local = -1;
   int i = -1;
+  int root_rank = -1;
 
   int iwhichglobal = static_cast<int>(niswap * random_equal->uniform());
   if ((iwhichglobal >= niswap_before) && (iwhichglobal < niswap_before + niswap_local)) {
+
     int iwhichlocal = iwhichglobal - niswap_before;
+
     i = local_swap_iatom_list[iwhichlocal];
-    id_center_local = id[i];
-    MPI_Allreduce(&id[i], &id_center, 1, MPI_INT, MPI_MAX, world);
-  } else {
-    MPI_Allreduce(&id[i], &id_center, 1, MPI_INT, MPI_MAX, world);
+    id_center = id[i];
+    root_rank = comm->me;
   }
+
+  MPI_Allreduce(MPI_IN_PLACE, &root_rank, 1, MPI_INT, MPI_MAX, world);
+
+  MPI_Bcast(&id_center, 1, MPI_LMP_TAGINT, root_rank, world);
 
   return i;
 }
@@ -513,13 +689,13 @@ int FixNeighborSwap::pick_i_swap_atom()
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-int FixNeighborSwap::pick_j_swap_neighbor(int i)
+int FixNeighborSwap::pick_j_swap_neighbor()
 {
   int j = -1;
   int jtype_selected_local = -1;
 
   // Generate random double from 0 to maximum global probability
-  double selected_prob = static_cast<double>(global_probability * random_equal->uniform());
+  auto selected_prob = static_cast<double>(global_probability * random_equal->uniform());
 
   // Find which local swap atom corresponds to probability
   if ((selected_prob >= prev_probability) &&
@@ -535,21 +711,11 @@ int FixNeighborSwap::pick_j_swap_neighbor(int i)
         return j;
       }
     }
-    error->all(FLERR, "Did not select local neighbor swap atom");
+    error->all(FLERR, Error::NOLASTLINE, "Did not select local neighbor swap atom");
   }
 
   MPI_Allreduce(&jtype_selected_local, &jtype_selected, 1, MPI_INT, MPI_MAX, world);
   return j;
-}
-
-/* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-
-double FixNeighborSwap::get_distance(double *i, double *j)
-{
-  double r = sqrt(MathSpecial::square((i[0] - j[0])) + MathSpecial::square((i[1] - j[1])) +
-                  MathSpecial::square((i[2] - j[2])));
-  return r;
 }
 
 /* ----------------------------------------------------------------------
@@ -565,18 +731,15 @@ void FixNeighborSwap::build_i_neighbor_list(int i_center)
 
   // Allocate local_swap_neighbor_list size
 
-  memory->sfree(local_swap_neighbor_list);
+  memory->destroy(local_swap_neighbor_list);
   atom_swap_nmax = atom->nmax;
-  local_swap_neighbor_list =
-      (int *) memory->smalloc(atom_swap_nmax * sizeof(int), "MCSWAP:local_swap_neighbor_list");
+  memory->create(local_swap_neighbor_list, atom_swap_nmax, "MCSWAP:local_swap_neighbor_list");
 
-  memory->sfree(local_swap_probability);
-  local_swap_probability = (double *) memory->smalloc(atom_swap_nmax * sizeof(double),
-                                                      "MCSWAP:local_swap_probability_list");
+  memory->destroy(local_swap_probability);
+  memory->create(local_swap_probability, atom_swap_nmax, "MCSWAP:local_swap_probability_list");
 
-  memory->sfree(local_swap_type_list);
-  local_swap_type_list =
-      (int *) memory->smalloc(atom_swap_nmax * sizeof(int), "MCSWAP:local_swap_type_list");
+  memory->destroy(local_swap_type_list);
+  memory->create(local_swap_type_list, atom_swap_nmax, "MCSWAP:local_swap_type_list");
 
   // Compute voronoi and access neighbor list
 
@@ -593,10 +756,10 @@ void FixNeighborSwap::build_i_neighbor_list(int i_center)
 
     // Find local voronoi entry with selected central atom
     if ((int) voro_neighbor_list[n][0] == id_center) {
-      temp_j_id = voro_neighbor_list[n][1];
+      temp_j_id = voro_neighbor_list[n][1];    // NOLINT
       temp_j = -1;
     } else if (((int) voro_neighbor_list[n][1] == id_center) && (i_center < 0)) {
-      temp_j_id = voro_neighbor_list[n][0];
+      temp_j_id = voro_neighbor_list[n][0];    // NOLINT
       temp_j = -1;
     } else {
       continue;
@@ -621,20 +784,19 @@ void FixNeighborSwap::build_i_neighbor_list(int i_center)
 
             // Get distance if own center atom
             double r = INFINITY;
-            if (i_center >= 0) { double r = get_distance(x[temp_j], x[i_center]); }
+            if (i_center >= 0) r = sqrt(distsq3(x[temp_j], x[i_center]));
 
             // Get local id of ghost center atom when ghost
             for (int i = nlocal; i < nlocal + nghost; i++) {
-              if ((id[i] == id_center) && (get_distance(x[temp_j], x[i]) < r)) {
-                r = get_distance(x[temp_j], x[i]);
-              }
+              double rtmp = sqrt(distsq3(x[temp_j], x[i]));
+              if ((id[i] == id_center) && (rtmp < r)) r = rtmp;
             }
 
             if (rates_flag) {
               local_swap_probability[njswap_local] =
-                  rate_list[type[temp_j] - 1] * exp(-MathSpecial::square(r / r_0));
+                  rate_list[type[temp_j] - 1] * exp(-square(r * inv_r_0));
             } else {
-              local_swap_probability[njswap_local] = exp(-MathSpecial::square(r / r_0));
+              local_swap_probability[njswap_local] = exp(-square(r * inv_r_0));
             }
             local_probability += local_swap_probability[njswap_local];
             local_swap_type_list[njswap_local] = type[temp_j];
@@ -646,20 +808,19 @@ void FixNeighborSwap::build_i_neighbor_list(int i_center)
                 // Calculate distance from i to each j, adjust probability of selection
                 // Get distance if own center atom
                 double r = INFINITY;
-                if (i_center >= 0) { double r = get_distance(x[temp_j], x[i_center]); }
+                if (i_center >= 0) r = sqrt(distsq3(x[temp_j], x[i_center]));
 
                 // Get local id of ghost center atom when ghost
                 for (int i = nlocal; i < nlocal + nghost; i++) {
-                  if ((id[i] == id_center) && (get_distance(x[temp_j], x[i]) < r)) {
-                    r = get_distance(x[temp_j], x[i]);
-                  }
+                  double rtmp = sqrt(distsq3(x[temp_j], x[i]));
+                  if ((id[i] == id_center) && (rtmp < r)) r = rtmp;
                 }
 
                 if (rates_flag) {
                   local_swap_probability[njswap_local] =
-                      rate_list[type[temp_j] - 1] * exp(-MathSpecial::square(r / r_0));
+                      rate_list[type[temp_j] - 1] * exp(-square(r * inv_r_0));
                 } else {
-                  local_swap_probability[njswap_local] = exp(-MathSpecial::square(r / r_0));
+                  local_swap_probability[njswap_local] = exp(-square(r * inv_r_0));
                 }
                 local_probability += local_swap_probability[njswap_local];
 
@@ -677,19 +838,19 @@ void FixNeighborSwap::build_i_neighbor_list(int i_center)
           // Calculate distance from i to each j, adjust probability of selection
           // Get distance if own center atom
           double r = INFINITY;
-          if (i_center >= 0) { r = get_distance(x[temp_j], x[i_center]); }
+          if (i_center >= 0) { r = sqrt(distsq3(x[temp_j], x[i_center])); }
 
           // Get local id of ghost center atoms
           for (int i = nlocal; i < nlocal + nghost; i++) {
-            if ((id[i] == id_center) && (get_distance(x[temp_j], x[i]) < r))
-              r = get_distance(x[temp_j], x[i]);
+            double rtmp = sqrt(distsq3(x[temp_j], x[i]));
+            if ((id[i] == id_center) && (rtmp < r)) r = rtmp;
           }
 
           if (rates_flag) {
             local_swap_probability[njswap_local] =
-                rate_list[type[temp_j] - 1] * exp(-MathSpecial::square(r / r_0));
+                rate_list[type[temp_j] - 1] * exp(-square(r * inv_r_0));
           } else {
-            local_swap_probability[njswap_local] = exp(-MathSpecial::square(r / r_0));
+            local_swap_probability[njswap_local] = exp(-square(r * inv_r_0));
           }
           local_probability += local_swap_probability[njswap_local];
 
@@ -702,20 +863,19 @@ void FixNeighborSwap::build_i_neighbor_list(int i_center)
               // Calculate distance from i to each j, adjust probability of selection
               // Get distance if own center atom
               double r = INFINITY;
-              if (i_center >= 0) { double r = get_distance(x[temp_j], x[i_center]); }
+              if (i_center >= 0) r = sqrt(distsq3(x[temp_j], x[i_center]));
 
               // Get local id of ghost center atom when ghost
               for (int i = nlocal; i < nlocal + nghost; i++) {
-                if ((id[i] == id_center) && (get_distance(x[temp_j], x[i]) < r)) {
-                  r = get_distance(x[temp_j], x[i]);
-                }
+                double rtmp = sqrt(distsq3(x[temp_j], x[i]));
+                if ((id[i] == id_center) && (rtmp < r)) r = rtmp;
               }
 
               if (rates_flag) {
                 local_swap_probability[njswap_local] =
-                    rate_list[type[temp_j] - 1] * exp(-MathSpecial::square(r / r_0));
+                    rate_list[type[temp_j] - 1] * exp(-square(r * inv_r_0));
               } else {
-                local_swap_probability[njswap_local] = exp(-MathSpecial::square(r / r_0));
+                local_swap_probability[njswap_local] = exp(-square(r * inv_r_0));
               }
               local_probability += local_swap_probability[njswap_local];
 
@@ -749,10 +909,9 @@ void FixNeighborSwap::update_iswap_atoms_list()
   double **x = atom->x;
 
   if (atom->nmax > atom_swap_nmax) {
-    memory->sfree(local_swap_iatom_list);
+    memory->destroy(local_swap_iatom_list);
     atom_swap_nmax = atom->nmax;
-    local_swap_iatom_list =
-        (int *) memory->smalloc(atom_swap_nmax * sizeof(int), "MCSWAP:local_swap_iatom_list");
+    memory->create(local_swap_iatom_list, atom_swap_nmax, "MCSWAP:local_swap_iatom_list");
   }
 
   niswap_local = 0;
@@ -853,7 +1012,9 @@ double FixNeighborSwap::compute_vector(int n)
 
 double FixNeighborSwap::memory_usage()
 {
-  double bytes = (double) atom_swap_nmax * sizeof(int);
+  double bytes = (double) atom_swap_nmax * sizeof(int) * 3;    // local_swap_*list
+  bytes += (double) atom_swap_nmax * sizeof(double);           // local_swap_probability_list
+  bytes += (double) nswaptypes * sizeof(double);               // qtype
   return bytes;
 }
 
@@ -885,7 +1046,7 @@ void FixNeighborSwap::write_restart(FILE *fp)
 void FixNeighborSwap::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto *list = (double *) buf;
 
   seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);
@@ -897,5 +1058,46 @@ void FixNeighborSwap::restart(char *buf)
 
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
-    error->all(FLERR, "Must not reset timestep when restarting fix neighbor/swap");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Must not reset timestep when restarting fix neighbor/swap");
+}
+
+/* ----------------------------------------------------------------------
+   provide graphics information to dump image to render spheres
+   at the location of atoms that were involved in a reaction
+------------------------------------------------------------------------- */
+
+int FixNeighborSwap::image(int *&objs, double **&parms)
+{
+  // no visualization without an atom map
+  if (atom->map_style == Atom::MAP_NONE)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Cannot use fix neighbor/swap in dump image without an atom map");
+
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
+
+  int numobjs = vizatoms.size();
+  int n = 0;
+  if (numobjs > 0) {
+    memory->create(imgobjs, numobjs, "neighbor/swap:imgobjs");
+    memory->create(imgparms, numobjs, 5, "neighbor/swap:imgparms");
+
+    int idx;
+    const auto *const *const x = atom->x;
+    for (const auto &[key, data] : vizatoms) {
+      idx = atom->map(key);
+      if (idx < 0) continue;
+      imgobjs[n] = Graphics::SPHERE;
+      imgparms[n][0] = data.second;    // use stored pre-swap atom type
+      imgparms[n][1] = x[idx][0];
+      imgparms[n][2] = x[idx][1];
+      imgparms[n][3] = x[idx][2];
+      imgparms[n][4] = 0.0;    // radius is set with fflag2 in dump image
+      ++n;
+    }
+  }
+  objs = imgobjs;
+  parms = imgparms;
+  return n;
 }

@@ -22,6 +22,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
@@ -32,7 +33,7 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperHarmonic::ImproperHarmonic(LAMMPS *_lmp) : Improper(_lmp)
+ImproperHarmonic::ImproperHarmonic(LAMMPS *_lmp) : Improper(_lmp), k(nullptr), chi(nullptr)
 {
   writedata = 1;
 
@@ -217,7 +218,8 @@ void ImproperHarmonic::allocate()
 
 void ImproperHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
+  if (narg != 3)
+    error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -236,7 +238,8 @@ void ImproperHarmonic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
+  if (count == 0)
+    error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

@@ -78,7 +78,7 @@
 using namespace LAMMPS_NS;
 
 static constexpr const char *const cite_openkim =
-  "OpenKIM Project: doi:10.1007/s11837-011-0102-6\n\n"
+  "OpenKIM Project: https://doi.org/10.1007/s11837-011-0102-6\n\n"
   "@Article{tadmor:elliott:2011,\n"
   " author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller "
   "and C. A. Becker},\n"
@@ -589,7 +589,7 @@ void PairKIM::init_style()
     int neighflags = NeighConst::REQ_FULL | NeighConst::REQ_NEWTON_OFF;
     if (!modelWillNotRequestNeighborsOfNoncontributingParticles[i])
       neighflags |= NeighConst::REQ_GHOST;
-    auto req = neighbor->add_request(this, neighflags);
+    auto *req = neighbor->add_request(this, neighflags);
     req->set_id(i);
 
     // set cutoff
@@ -774,7 +774,7 @@ int PairKIM::get_neigh(void const * const dataObject,
                        int * const numberOfNeighbors,
                        int const ** const neighborsOfParticle)
 {
-  auto  const Model = reinterpret_cast<PairKIM const *>(dataObject);
+  const auto *const   Model = reinterpret_cast<PairKIM const *>(dataObject);
 
   if (numberOfNeighborLists != Model->kim_number_of_neighbor_lists)
     return true;

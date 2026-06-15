@@ -99,6 +99,13 @@ Update::Update(LAMMPS *lmp) :
 
 Update::~Update()
 {
+  // restore default styles to avoid segfaults from plugins
+  char *str = (char *) "verlet";
+  create_integrate(1, &str, 1);
+
+  str = (char *) "cg";
+  create_minimize(1, &str, 1);
+
   delete[] unit_style;
 
   delete[] integrate_style;

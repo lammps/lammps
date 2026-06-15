@@ -41,7 +41,7 @@ class AngleMM3 : public Angle {
  protected:
   double *theta0, *k2;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

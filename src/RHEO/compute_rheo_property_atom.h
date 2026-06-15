@@ -41,7 +41,7 @@ class ComputeRHEOPropertyAtom : public Compute {
   int *col_index, *col_t_index;
   double *buf;
 
-  typedef void (ComputeRHEOPropertyAtom::*FnPtrPack)(int);
+  using FnPtrPack = void (ComputeRHEOPropertyAtom::*)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_phase(int);

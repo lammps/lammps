@@ -157,7 +157,7 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
   use_scripted_forces = false;
   scripting_after_biases = false;
 
-  colvarmodule::debug_gradients_step_size = 1.0e-07;
+  colvarmodule::debug_gradients_step_size = 1.0e-05;
 
   colvarmodule::rotation::monitor_crossings = false;
   colvarmodule::rotation::crossing_threshold = 1.0e-02;
@@ -408,22 +408,23 @@ int colvarmodule::parse_global_params(std::string const &conf)
       if (proxy->set_smp_mode(colvarproxy_smp::smp_mode_t::cvcs) != COLVARS_OK) {
         cvm::error("Colvars component-based parallelism is not implemented.\n");
         return COLVARS_INPUT_ERROR;
-      } else {
-        cvm::log("SMP parallelism will be applied to Colvars components.\n");
-        cvm::log("  - SMP parallelism: enabled (num. threads = " + to_str(proxy->smp_num_threads()) + ")\n");
       }
     } else if (smp == "inner_loop") {
       if (proxy->set_smp_mode(colvarproxy_smp::smp_mode_t::inner_loop) != COLVARS_OK) {
         cvm::error("SMP parallelism inside the calculation of Colvars components is not implemented.\n");
         return COLVARS_INPUT_ERROR;
-      } else {
-        cvm::log("SMP parallelism will be applied inside the Colvars components.\n");
-      cvm::log("  - SMP parallelism: enabled (num. threads = " + to_str(proxy->smp_num_threads()) + ")\n");
       }
     } else {
       proxy->set_smp_mode(colvarproxy_smp::smp_mode_t::none);
       cvm::log("SMP parallelism has been disabled.\n");
     }
+  }
+  if (smp == "cvcs" || smp == "on" || smp == "yes") {
+    cvm::log("SMP parallelism will be applied to Colvars components.\n");
+    cvm::log("  - SMP parallelism: enabled (num. threads = " + to_str(proxy->smp_num_threads()) + ")\n");
+  } else if (smp == "inner_loop") {
+    cvm::log("SMP parallelism will be applied inside the Colvars components.\n");
+    cvm::log("  - SMP parallelism: enabled (num. threads = " + to_str(proxy->smp_num_threads()) + ")\n");
   }
 
   bool b_analysis = true;
@@ -446,8 +447,19 @@ int colvarmodule::parse_global_params(std::string const &conf)
                     colvarparse::parse_silent);
 
   parse->get_keyval(conf, "colvarsTrajFrequency", cv_traj_freq, cv_traj_freq);
+  if (cv_traj_freq % cvm::proxy->time_step_factor() != 0) {
+    cvm::error("colvarsTrajFrequency (currently " + cvm::to_str(cv_traj_freq)
+      + ") must be a multiple of the global Colvars timestep multiplier ("
+      +  cvm::to_str(cvm::proxy->time_step_factor()) + ").\n", COLVARS_INPUT_ERROR);
+  }
+
   parse->get_keyval(conf, "colvarsRestartFrequency",
                     restart_out_freq, restart_out_freq);
+  if (restart_out_freq % cvm::proxy->time_step_factor() != 0) {
+    cvm::error("colvarsRestartFrequency (currently " + cvm::to_str(restart_out_freq)
+      + ") must be a multiple of the global Colvars timestep multiplier ("
+      +  cvm::to_str(cvm::proxy->time_step_factor()) + ").\n", COLVARS_INPUT_ERROR);
+  }
 
   parse->get_keyval(conf, "scriptedColvarForces",
                     use_scripted_forces, use_scripted_forces);
@@ -763,38 +775,32 @@ colvar *colvarmodule::colvar_by_name(std::string const &name)
   return NULL;
 }
 
-
-cvm::atom_group *colvarmodule::atom_group_by_name(std::string const &name)
-{
+cvm::atom_group *colvarmodule::atom_group_soa_by_name(std::string const& name) {
   colvarmodule *cv = cvm::main();
-  for (std::vector<cvm::atom_group *>::iterator agi = cv->named_atom_groups.begin();
-       agi != cv->named_atom_groups.end();
+  for (std::vector<cvm::atom_group *>::iterator agi = cv->named_atom_groups_soa.begin();
+       agi != cv->named_atom_groups_soa.end();
        agi++) {
     if ((*agi)->name == name) {
       return (*agi);
     }
   }
-  return NULL;
+  return nullptr;
 }
 
-
-void colvarmodule::register_named_atom_group(atom_group *ag) {
-  named_atom_groups.push_back(ag);
+void colvarmodule::register_named_atom_group_soa(atom_group *ag) {
+  named_atom_groups_soa.push_back(ag);
 }
 
-
-void colvarmodule::unregister_named_atom_group(cvm::atom_group *ag)
-{
-  for (std::vector<cvm::atom_group *>::iterator agi = named_atom_groups.begin();
-       agi != named_atom_groups.end();
+void colvarmodule::unregister_named_atom_group_soa(atom_group *ag) {
+  for (std::vector<cvm::atom_group *>::iterator agi = named_atom_groups_soa.begin();
+       agi != named_atom_groups_soa.end();
        agi++) {
     if (*agi == ag) {
-      named_atom_groups.erase(agi);
+      named_atom_groups_soa.erase(agi);
       break;
     }
   }
 }
-
 
 int colvarmodule::change_configuration(std::string const &bias_name,
                                        std::string const &conf)
@@ -2073,9 +2079,17 @@ int colvarmodule::error(std::string const &message, int code)
 
   std::string const trailing_newline = (message.size() > 0) ?
     (message[message.size()-1] == '\n' ? "" : "\n") : "";
+
+  std::string prefix = "Error: ";
+  if (message.size() >= 7) {
+    if (message.substr(0, 7) == prefix) {
+      prefix.clear();
+    }
+  }
+
   size_t const d = depth();
   if (d > 0) {
-    proxy->error((std::string(2*d, ' ')) + message + trailing_newline);
+    proxy->error((std::string(2*d, ' ')) + prefix + message + trailing_newline);
   } else {
     proxy->error(message + trailing_newline);
   }
@@ -2188,7 +2202,6 @@ int colvarmodule::reset_index_groups()
   return COLVARS_OK;
 }
 
-
 int cvm::load_coords(char const *file_name,
                      std::vector<cvm::rvector> *pos,
                      cvm::atom_group *atoms,
@@ -2228,7 +2241,6 @@ int cvm::load_coords(char const *file_name,
 
   return error_code;
 }
-
 
 int cvm::load_coords_xyz(char const *filename,
                          std::vector<rvector> *pos,
@@ -2340,8 +2352,6 @@ int cvm::load_coords_xyz(char const *filename,
   }
 }
 
-
-
 // Wrappers to proxy functions: these may go in the future
 
 
@@ -2384,7 +2394,7 @@ template<typename T> std::string _to_str(T const &x,
 }
 
 
-template<typename T> std::string _to_str_vector(std::vector<T> const &x,
+template<typename T> std::string _to_str_vector(T const &x,
                                                 size_t width, size_t prec)
 {
   if (!x.size()) return std::string("");
@@ -2487,50 +2497,64 @@ std::string colvarmodule::to_str(cvm::matrix2d<cvm::real> const &x,
 std::string colvarmodule::to_str(std::vector<int> const &x,
                                  size_t width, size_t prec)
 {
-  return _to_str_vector<int>(x, width, prec);
+  return _to_str_vector(x, width, prec);
 }
 
 std::string colvarmodule::to_str(std::vector<size_t> const &x,
                                  size_t width, size_t prec)
 {
-  return _to_str_vector<size_t>(x, width, prec);
+  return _to_str_vector(x, width, prec);
 }
 
 std::string colvarmodule::to_str(std::vector<long int> const &x,
                                  size_t width, size_t prec)
 {
-  return _to_str_vector<long int>(x, width, prec);
+  return _to_str_vector(x, width, prec);
 }
 
 std::string colvarmodule::to_str(std::vector<cvm::real> const &x,
                                  size_t width, size_t prec)
 {
-  return _to_str_vector<cvm::real>(x, width, prec);
+  return _to_str_vector(x, width, prec);
 }
 
 std::string colvarmodule::to_str(std::vector<cvm::rvector> const &x,
                                  size_t width, size_t prec)
 {
-  return _to_str_vector<cvm::rvector>(x, width, prec);
+  return _to_str_vector(x, width, prec);
 }
 
 std::string colvarmodule::to_str(std::vector<cvm::quaternion> const &x,
                                  size_t width, size_t prec)
 {
-  return _to_str_vector<cvm::quaternion>(x, width, prec);
+  return _to_str_vector(x, width, prec);
 }
 
 std::string colvarmodule::to_str(std::vector<colvarvalue> const &x,
                                  size_t width, size_t prec)
 {
-  return _to_str_vector<colvarvalue>(x, width, prec);
+  return _to_str_vector(x, width, prec);
 }
 
 std::string colvarmodule::to_str(std::vector<std::string> const &x,
                                  size_t width, size_t prec)
 {
-  return _to_str_vector<std::string>(x, width, prec);
+  return _to_str_vector(x, width, prec);
 }
+
+#if ( defined(COLVARS_CUDA) || defined(COLVARS_HIP) )
+std::string colvarmodule::to_str(std::vector<cvm::real, CudaHostAllocator<cvm::real>> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str_vector(x, width, prec);
+}
+
+std::string colvarmodule::to_str(std::vector<cvm::rvector, CudaHostAllocator<cvm::rvector>> const &x,
+                                 size_t width, size_t prec)
+{
+  return _to_str_vector(x, width, prec);
+}
+#endif
 
 
 std::string cvm::wrap_string(std::string const &s, size_t nchars)

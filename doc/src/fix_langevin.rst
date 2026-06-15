@@ -20,17 +20,13 @@ Syntax
 * damp = damping parameter (time units)
 * seed = random number seed to use for white noise (positive integer)
 * zero or more keyword/value pairs may be appended
-* keyword = *angmom* or *gjf* or *omega* or *scale* or *tally* or *zero*
+* keyword = *angmom* or *omega* or *scale* or *tally* or *zero*
 
   .. parsed-literal::
 
        *angmom* value = *no* or factor
          *no* = do not thermostat rotational degrees of freedom via the angular momentum
          factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric scale factor as discussed below
-       *gjf* value = *no* or *vfull* or *vhalf*
-         *no* = use standard formulation
-         *vfull* = use Gronbech-Jensen/Farago formulation
-         *vhalf* = use 2GJ formulation
        *omega* value = *no* or *yes*
          *no* = do not thermostat rotational degrees of freedom via the angular velocity
          *yes* = do thermostat rotational degrees of freedom via the angular velocity
@@ -241,36 +237,11 @@ to zero by subtracting off an equal part of it from each atom in the
 group.  As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 
-.. deprecated:: TDB
+.. deprecated:: 22Jul2025
 
-The *gjf* keyword in fix langevin is deprecated and will be removed
-soon.  The GJF functionality has been moved to its own fix style
-:doc:`fix gjf <fix_gjf>` and it is strongly recommended to use that
-fix instead.
-
-The keyword *gjf* can be used to run the :ref:`Gronbech-Jensen/Farago
-<Gronbech-Jensen>` time-discretization of the Langevin model.  As
-described in the papers cited below, the purpose of this method is to
-enable longer timesteps to be used (up to the numerical stability
-limit of the integrator), while still producing the correct Boltzmann
-distribution of atom positions.
-
-The current implementation provides the user with the option to output
-the velocity in one of two forms: *vfull* or *vhalf*, which replaces
-the outdated option *yes*\ . The *gjf* option *vfull* outputs the
-on-site velocity given in :ref:`Gronbech-Jensen/Farago
-<Gronbech-Jensen>`; this velocity is shown to be systematically lower
-than the target temperature by a small amount, which grows
-quadratically with the timestep.  The *gjf* option *vhalf* outputs the
-2GJ half-step velocity given in :ref:`Gronbech Jensen/Gronbech-Jensen
-<2Gronbech-Jensen>`; for linear systems, this velocity is shown to not
-have any statistical errors for any stable time step.  An overview of
-statistically correct Boltzmann and Maxwell-Boltzmann sampling of true
-on-site and true half-step velocities is given in
-:ref:`Gronbech-Jensen <1Gronbech-Jensen>`.  Regardless of the choice
-of output velocity, the sampling of the configurational distribution
-of atom positions is the same, and linearly consistent with the target
-temperature.
+The *gjf* keyword in fix langevin has been removed and the GJF
+functionality has been moved to its own fix style :doc:`fix gjf
+<fix_gjf>`. and it is strongly recommended to use that fix instead.
 
 ----------
 
@@ -281,11 +252,12 @@ temperature.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
-is not saved in restart files, this means you cannot do "exact"
-restarts with this fix, where the simulation continues on the same as
-if no restart had taken place.  However, in a statistical sense, a
-restarted simulation should produce the same behavior.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  Because the state of the random number generator is not
+saved in restart files, this means you cannot do "exact" restarts with
+this fix, where the simulation continues on the same as if no restart
+had taken place.  However, in a statistical sense, a restarted
+simulation should produce the same behavior.
 
 The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
@@ -315,19 +287,21 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-For *gjf* do not choose damp=dt/2. *gjf* is not compatible
-with run_style respa.
+none.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix viscous <fix_viscous>`, :doc:`fix nvt <fix_nh>`, :doc:`pair_style dpd/tstat <pair_dpd>`
+:doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`,
+:doc:`fix viscous <fix_viscous>`, :doc:`fix nvt <fix_nh>`,
+:doc:`pair_style dpd/tstat <pair_dpd>`, :doc:`fix gjf <fix_gjf>`,
+:doc:`fix gle <fix_gle>`, :doc:`fix gld <fix_gld>`
 
 Default
 """""""
 
 The option defaults are angmom = no, omega = no, scale = 1.0 for all
-types, tally = no, zero = no, gjf = no.
+types, tally = no, zero = no.
 
 ----------
 
@@ -340,16 +314,3 @@ Implementation remains unchanged.]
 .. _Dunweg1:
 
 **(Dunweg)** Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
-
-.. _Gronbech-Jensen:
-
-**(Gronbech-Jensen)** Gronbech-Jensen and Farago, Mol Phys, 111, 983
-(2013); Gronbech-Jensen, Hayre, and Farago, Comp Phys Comm, 185, 524 (2014)
-
-.. _2Gronbech-Jensen:
-
-**(Gronbech-Jensen)** Gronbech Jensen and Gronbech-Jensen, Mol Phys, 117, 2511 (2019)
-
-.. _1Gronbech-Jensen:
-
-**(Gronbech-Jensen)** Gronbech-Jensen, Mol Phys (2019); https://doi.org/10.1080/00268976.2019.1662506

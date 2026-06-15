@@ -70,8 +70,6 @@
 #include "modify.h"
 #include "update.h"
 
-#include "fmt/ranges.h"
-
 #include <cstring>
 #include <vector>
 
@@ -118,7 +116,7 @@ void KimInteractions::do_setup(int narg, char **arg)
   // retrieve model name and pointer to simulator model class instance.
   // validate model name if not given as null pointer.
 
-  auto fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
+  auto *fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
   if (fix_store) {
     model_name = (char *)fix_store->getptr("model_name");
     simulatorModel = (KIM_SimulatorModel *)fix_store->getptr("simulator_model");
@@ -130,8 +128,7 @@ void KimInteractions::do_setup(int narg, char **arg)
   if (simulatorModel) {
     auto first_visit = input->variable->find("kim_update");
     if (!fixed_types) {
-      std::string atom_type_sym_list =
-        fmt::format("{}", fmt::join(arg, arg + narg, " "));
+      std::string atom_type_sym_list = utils::join(std::vector(arg, arg + narg), " ");
 
       std::string atom_type_num_list =
         fmt::format("{}", species_to_atomic_no(arg[0]));
@@ -250,7 +247,7 @@ void KimInteractions::do_setup(int narg, char **arg)
 
     auto cmd1 = fmt::format("pair_style kim {}", model_name);
     auto cmd2 =
-      fmt::format("pair_coeff * * {}", fmt::join(arg, arg + narg, " "));
+      fmt::format("pair_coeff * * {}", utils::join(std::vector(arg, arg + narg), " "));
 
     input->one(cmd1);
     input->one(cmd2);
@@ -308,7 +305,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
           if (((species[ia] == words[0]) && (species[ib] == words[1]))
               || ((species[ib] == words[0]) && (species[ia] == words[1])))
             input->one(fmt::format("pair_coeff {} {} {}", ia + 1, ib + 1,
-              fmt::join(words.begin() + 2, words.end(), " ")));
+                                   utils::join(std::vector(words.begin() + 2, words.end()), " ")));
       }
     } else {
       for (int ia = 0; ia < atom->ntypes; ++ia)

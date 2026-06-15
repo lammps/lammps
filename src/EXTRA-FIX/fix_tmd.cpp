@@ -390,7 +390,7 @@ void FixTMD::readfile(char *file)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  auto buffer = new char[CHUNK*MAXLINE];
+  auto *buffer = new char[CHUNK*MAXLINE];
   char *next,*bufptr;
   int i,m,nlines,imageflag,ix,iy,iz;
   tagint itag;
@@ -434,19 +434,19 @@ void FixTMD::readfile(char *file)
         try {
           ValueTokenizer values(bufptr);
 
-          if (utils::strmatch(bufptr,"^\\s*\\f+\\s+\\f+\\s+xlo\\s+xhi")) {
+          if (utils::strmatch(bufptr,R"(^\s*\f+\s+\f+\s+xlo\s+xhi)")) {
             auto lo = values.next_double();
             auto hi = values.next_double();
             xprd = hi - lo;
             bufptr = next + 1;
             continue;
-          } else if (utils::strmatch(bufptr,"^\\s*\\f+\\s+\\f+\\s+ylo\\s+yhi")) {
+          } else if (utils::strmatch(bufptr,R"(^\s*\f+\s+\f+\s+ylo\s+yhi)")) {
             auto lo = values.next_double();
             auto hi = values.next_double();
             yprd = hi - lo;
             bufptr = next + 1;
             continue;
-          } else if (utils::strmatch(bufptr,"^\\s*\\f+\\s+\\f+\\s+zlo\\s+zhi")) {
+          } else if (utils::strmatch(bufptr,R"(^\s*\f+\s+\f+\s+zlo\s+zhi)")) {
             auto lo = values.next_double();
             auto hi = values.next_double();
             zprd = hi - lo;

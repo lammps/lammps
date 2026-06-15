@@ -98,52 +98,53 @@ the following dynamic equation:
 
    \frac{dc}{dt}  = -\alpha (K_p e + K_i \int_0^t e \, dt + K_d \frac{de}{dt} )
 
-where *c* is the continuous time analog of the control variable,
-*e* =\ *pvar*\ -\ *setpoint* is the error in the process variable, and
-:math:`\alpha`, :math:`K_p`, :math:`K_i` , and :math:`K_d` are constants
-set by the corresponding
-keywords described above. The discretized version of this equation is:
+where *c* is the continuous time analog of the control variable, *e*
+=\ *pvar*\ -\ *setpoint* is the error in the process variable, and
+:math:`\alpha`, :math:`K_p`, :math:`K_i` , and :math:`K_d` are
+constants set by the corresponding keywords described above. The
+discretized version of this equation is:
 
 .. math::
 
    c_n  = c_{n-1} -\alpha \left( K_p \tau e_n + K_i \tau^2 \sum_{i=1}^n e_i + K_d (e_n - e_{n-1}) \right)
 
-where :math:`\tau = \mathtt{Nevery} \cdot \mathtt{timestep}` is the time
-interval between updates,
-and the subscripted variables indicate the values of *c* and *e* at
-successive updates.
+where :math:`\tau = \mathtt{Nevery} \cdot \mathtt{timestep}` is the
+time interval between updates, and the subscripted variables indicate
+the values of *c* and *e* at successive updates.
 
 From the first equation, it is clear that if the three gain values
 :math:`K_p`, :math:`K_i`, :math:`K_d` are dimensionless constants,
-then :math:`\alpha` must have
-units of [unit *cvar*\ ]/[unit *pvar*\ ]/[unit time] e.g. [ eV/K/ps
-]. The advantage of this unit scheme is that the value of the
-constants should be invariant under a change of either the MD timestep
-size or the value of *Nevery*\ . Similarly, if the LAMMPS :doc:`unit style <units>` is changed, it should only be necessary to change
-the value of :math:`\alpha` to reflect this, while leaving :math:`K_p`,
-:math:`K_i`, and :math:`K_d` unaltered.
+then :math:`\alpha` must have units of [unit *cvar*\ ]/[unit *pvar*\
+]/[unit time] e.g. [ eV/K/ps ]. The advantage of this unit scheme is
+that the value of the constants should be invariant under a change of
+either the MD timestep size or the value of *Nevery*\ . Similarly, if
+the LAMMPS :doc:`unit style <units>` is changed, it should only be
+necessary to change the value of :math:`\alpha` to reflect this, while
+leaving :math:`K_p`, :math:`K_i`, and :math:`K_d` unaltered.
 
 When choosing the values of the four constants, it is best to first
 pick a value and sign for :math:`\alpha` that is consistent with the
-magnitudes and signs of *pvar* and *cvar*\ .  The magnitude of :math:`K_p`
-should then be tested over a large positive range keeping :math:`K_i = K_d =0`.
-A good value for :math:`K_p` will produce a fast response in *pvar*,
-without overshooting the *setpoint*\ .  For many applications, proportional
-feedback is sufficient, and so :math:`K_i = K_d =0` can be used. In cases
-where there is a substantial lag time in the response of *pvar* to a change
-in *cvar*, this can be counteracted by increasing :math:`K_d`. In situations
+magnitudes and signs of *pvar* and *cvar*\ .  The magnitude of
+:math:`K_p` should then be tested over a large positive range keeping
+:math:`K_i = K_d =0`.  A good value for :math:`K_p` will produce a
+fast response in *pvar*, without overshooting the *setpoint*\ .  For
+many applications, proportional feedback is sufficient, and so
+:math:`K_i = K_d =0` can be used. In cases where there is a
+substantial lag time in the response of *pvar* to a change in *cvar*,
+this can be counteracted by increasing :math:`K_d`. In situations
 where *pvar* plateaus without reaching *setpoint*, this can be
-counteracted by increasing :math:`K_i`.  In the language of Charles Dickens,
-:math:`K_p` represents the error of the present, :math:`K_i` the error of
-the past, and :math:`K_d` the error yet to come.
+counteracted by increasing :math:`K_i`.  In the language of Charles
+Dickens, :math:`K_p` represents the error of the present, :math:`K_i`
+the error of the past, and :math:`K_d` the error yet to come.
 
 Because this fix updates *cvar*, but does not initialize its value,
-the initial value :math:`c_0` is that assigned by the user in the input script via
-the :doc:`internal-style variable <variable>` command.  This value is
-used (by every other LAMMPS command that uses the variable) until this
-fix performs its first update of *cvar* after *Nevery* timesteps.  On
-the first update, the value of the derivative term is set to zero,
-because the value of :math:`e_{n-1}` is not yet defined.
+the initial value :math:`c_0` is that assigned by the user in the
+input script via the :doc:`internal-style variable <variable>`
+command.  This value is used (by every other LAMMPS command that uses
+the variable) until this fix performs its first update of *cvar* after
+*Nevery* timesteps.  On the first update, the value of the derivative
+term is set to zero, because the value of :math:`e_{n-1}` is not yet
+defined.
 
 ----------
 
@@ -154,21 +155,23 @@ must produce a global quantity, not a per-atom or local quantity.
 
 If *pvar* begins with "c\_", a compute ID must follow which has been
 previously defined in the input script and which generates a global
-scalar or vector.  See the individual :doc:`compute <compute>` doc page
-for details.  If no bracketed integer is appended, the scalar
+scalar or vector.  See the individual :doc:`compute <compute>` doc
+page for details.  If no bracketed integer is appended, the scalar
 calculated by the compute is used.  If a bracketed integer is
 appended, the Ith value of the vector calculated by the compute is
-used.  Users can also write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
+used.  Users can also write code for their own compute styles and
+:doc:`add them to LAMMPS <Modify>`.
 
 If *pvar* begins with "f\_", a fix ID must follow which has been
 previously defined in the input script and which generates a global
 scalar or vector.  See the individual :doc:`fix <fix>` page for
 details.  Note that some fixes only produce their values on certain
 timesteps, which must be compatible with when fix controller
-references the values, or else an error results.  If no bracketed integer
-is appended, the scalar calculated by the fix is used.  If a bracketed
-integer is appended, the Ith value of the vector calculated by the fix
-is used.  Users can also write code for their own fix style and :doc:`add them to LAMMPS <Modify>`.
+references the values, or else an error results.  If no bracketed
+integer is appended, the scalar calculated by the fix is used.  If a
+bracketed integer is appended, the Ith value of the vector calculated
+by the fix is used.  Users can also write code for their own fix style
+and :doc:`add them to LAMMPS <Modify>`.
 
 If *pvar* begins with "v\_", a variable name must follow which has been
 previously defined in the input script.  Only equal-style variables
@@ -182,19 +185,21 @@ variable.
 The target value *setpoint* for the process variable must be a numeric
 value, in whatever units *pvar* is defined for.
 
-The control variable *cvar* must be the name of an :doc:`internal-style variable <variable>` previously defined in the input script.  Note
-that it is not specified with a "v\_" prefix, just the name of the
-variable.  It must be an internal-style variable, because this fix
-updates its value directly.  Note that other commands can use an
-equal-style versus internal-style variable interchangeably.
+The control variable *cvar* must be the name of an
+:doc:`internal-style variable <variable>` previously defined in the
+input script.  Note that it is not specified with a "v\_" prefix, just
+the name of the variable.  It must be an internal-style variable,
+because this fix updates its value directly.  Note that other commands
+can use an equal-style versus internal-style variable interchangeably.
 
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Currently, no information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.
+Currently, no information about this fix is written to :doc:`binary
+restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>`
+options are relevant to this fix.
 
 This fix produces a global vector with 3 values which can be accessed
 by various :doc:`output commands <Howto_output>`.  The values can be
@@ -211,7 +216,8 @@ variable is in.  The vector values calculated by this fix are
 "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""

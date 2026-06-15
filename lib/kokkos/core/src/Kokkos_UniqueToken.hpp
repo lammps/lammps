@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -108,6 +95,9 @@ class AcquireUniqueToken {
   KOKKOS_FUNCTION AcquireUniqueToken(token_type t)
       : my_token(t), my_acquired_val(my_token.acquire()) {}
 
+  AcquireUniqueToken(const AcquireUniqueToken&)            = delete;
+  AcquireUniqueToken& operator=(const AcquireUniqueToken&) = delete;
+
   KOKKOS_FUNCTION ~AcquireUniqueToken() { my_token.release(my_acquired_val); }
 
   KOKKOS_FUNCTION size_type value() const { return my_acquired_val; }
@@ -145,6 +135,8 @@ class AcquireTeamUniqueToken {
   // `UniqueTokenScope` enumeration type and its enumerators away which would
   // hurt readability.
   KOKKOS_FUNCTION AcquireTeamUniqueToken(token_type t, team_member_type team);
+  AcquireTeamUniqueToken(const AcquireTeamUniqueToken&)            = delete;
+  AcquireTeamUniqueToken& operator=(const AcquireTeamUniqueToken&) = delete;
   KOKKOS_FUNCTION ~AcquireTeamUniqueToken();
   KOKKOS_FUNCTION size_type value() const { return my_acquired_val; }
   static std::size_t shmem_size() { return scratch_view::shmem_size(); }

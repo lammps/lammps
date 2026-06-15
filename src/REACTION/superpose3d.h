@@ -113,8 +113,8 @@ class Superpose3D {
 
   // C++ boilerplate: copy and move constructor, swap, and assignment operator
   Superpose3D(const Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> &source);
-  Superpose3D(Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> &&other);
-  void swap(Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> &other);
+  Superpose3D(Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> &&other) noexcept;
+  void swap(Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> &other) noexcept;
   Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> &
   operator=(Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> source);
 
@@ -271,7 +271,7 @@ Scalar Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::Superpose(
   // Optional: Decide the scale factor, c
   c = 1.0;    // by default, don't rescale the coordinates
 
-  if ((allow_rescale) && (!singular)) {
+  if (allow_rescale && !singular) {
     Scalar Waxaixai = 0.0;
     Scalar WaxaiXai = 0.0;
     for (size_t a = 0; a < N; a++) {
@@ -409,7 +409,7 @@ Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::Superpose3D(
 
 template <typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
 void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::swap(
-    Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> &other)
+    Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> &other) noexcept
 {
   std::swap(N, other.N);
   std::swap(R, other.R);
@@ -420,7 +420,7 @@ void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::swap(
 // Move constructor (C++11)
 template <typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
 Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::Superpose3D(
-    Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> &&other)
+    Superpose3D<Scalar, ConstArrayOfCoords, ConstArray> &&other) noexcept
 {
   Init();
   swap(*this, other);

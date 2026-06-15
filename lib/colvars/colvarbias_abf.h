@@ -19,6 +19,7 @@
 #include "colvarproxy.h"
 #include "colvarbias.h"
 #include "colvargrid.h"
+#include "colvargrid_integrate.h"
 #include "colvar_UIestimator.h"
 
 typedef cvm::real *gradient_t;
@@ -101,7 +102,7 @@ private:
   /// n-dim grid of number of samples
   std::shared_ptr<colvar_grid_count>    samples;
   /// n-dim grid of pmf (dimension 1 to 3)
-  std::shared_ptr<integrate_potential>  pmf;
+  std::shared_ptr<colvargrid_integrate>  pmf;
   /// n-dim grid: average force on "real" coordinate for eABF z-based estimator
   std::shared_ptr<colvar_grid_gradient> z_gradients;
   /// n-dim grid of number of samples on "real" coordinate for eABF z-based estimator
@@ -109,7 +110,7 @@ private:
   /// n-dim grid containing CZAR estimatr of "real" free energy gradients
   std::shared_ptr<colvar_grid_gradient> czar_gradients;
   /// n-dim grid of CZAR pmf (dimension 1 to 3)
-  std::shared_ptr<integrate_potential>  czar_pmf;
+  std::shared_ptr<colvargrid_integrate>  czar_pmf;
 
   /// Calculate system force for all colvars
   int update_system_force();
@@ -121,8 +122,8 @@ private:
   cvm::real smoothing_factor(cvm::real weight);
 
   // shared ABF
-  bool    shared_on;
-  size_t  shared_freq;
+  bool    shared_on   = false;
+  size_t  shared_freq = 0;
   cvm::step_number shared_last_step;
 
   // Share between replicas -- may be called independently of update
@@ -143,13 +144,13 @@ private:
   // ABF data from local replica only in shared ABF
   std::shared_ptr<colvar_grid_gradient> local_gradients;
   std::shared_ptr<colvar_grid_count>    local_samples;
-  std::unique_ptr<integrate_potential>  local_pmf;
+  std::unique_ptr<colvargrid_integrate>  local_pmf;
   // eABF/CZAR data collected from all replicas in shared eABF on replica 0
   // if non-shared, aliases of regular CZAR grids, for output purposes
   std::shared_ptr<colvar_grid_gradient> global_z_gradients;
   std::shared_ptr<colvar_grid_count>    global_z_samples;
   std::shared_ptr<colvar_grid_gradient> global_czar_gradients;
-  std::shared_ptr<integrate_potential>  global_czar_pmf;
+  std::shared_ptr<colvargrid_integrate>  global_czar_pmf;
 
 
   // For Tcl implementation of selection rules.

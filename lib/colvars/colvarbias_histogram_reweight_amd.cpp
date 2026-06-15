@@ -20,11 +20,15 @@ int colvarbias_reweightaMD::init(std::string const &conf) {
     cvm::error("Error: accelerated MD in your MD engine is not enabled.\n", COLVARS_INPUT_ERROR);
   }
   cvm::main()->cite_feature("reweightaMD colvar bias implementation (NAMD)");
-  int baseclass_init_code = colvarbias_histogram::init(conf);
+  int error_code = colvarbias_histogram::init(conf);
   get_keyval(conf, "CollectAfterSteps", start_after_steps, 0);
   get_keyval(conf, "CumulantExpansion", b_use_cumulant_expansion, true);
   get_keyval(conf, "WritePMFGradients", b_write_gradients, true);
   get_keyval(conf, "historyFreq", history_freq, 0);
+  if ((history_freq % output_freq) != 0) {
+    error_code |=
+        cvm::error("Error: historyFreq must be a multiple of outputFreq.\n", COLVARS_INPUT_ERROR);
+  }
   b_history_files = (history_freq > 0);
   grid_count.reset(new colvar_grid_scalar(colvars, nullptr, false, grid_conf));
   grid_count->request_actual_value();
@@ -44,7 +48,7 @@ int colvarbias_reweightaMD::init(std::string const &conf) {
     }
   }
   previous_bin.assign(num_variables(), -1);
-  return baseclass_init_code;
+  return error_code;
 }
 
 int colvarbias_reweightaMD::update() {

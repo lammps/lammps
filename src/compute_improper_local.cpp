@@ -37,10 +37,11 @@ static constexpr double SMALL = 0.001;
 ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), vlocal(nullptr), alocal(nullptr)
 {
-  if (narg < 4) error->all(FLERR, "Illegal compute improper/local command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute improper/local", error);
 
   if (atom->avec->impropers_allow == 0)
-    error->all(FLERR, "Compute improper/local used when impropers are not allowed");
+    error->all(FLERR, Error::NOPOINTER,
+               "Compute improper/local used when impropers are not allowed");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -51,7 +52,7 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg], "chi") == 0)
       cflag = nvalues++;
     else
-      error->all(FLERR, "Invalid keyword in compute improper/local command");
+      error->all(FLERR, iarg, "Unknown compute improper/local keyword {}", arg[iarg]);
   }
 
   if (nvalues == 1)
@@ -77,7 +78,7 @@ ComputeImproperLocal::~ComputeImproperLocal()
 void ComputeImproperLocal::init()
 {
   if (force->improper == nullptr)
-    error->all(FLERR, "No improper style is defined for compute improper/local");
+    error->all(FLERR, Error::NOLASTLINE, "No improper style is defined for compute improper/local");
 
   // do initial memory allocation so that memory_usage() is correct
 
@@ -183,17 +184,17 @@ int ComputeImproperLocal::compute_impropers(int flag)
           vb1x = x[atom1][0] - x[atom2][0];
           vb1y = x[atom1][1] - x[atom2][1];
           vb1z = x[atom1][2] - x[atom2][2];
-          domain->minimum_image(vb1x, vb1y, vb1z);
+          domain->minimum_image(FLERR, vb1x, vb1y, vb1z);
 
           vb2x = x[atom3][0] - x[atom2][0];
           vb2y = x[atom3][1] - x[atom2][1];
           vb2z = x[atom3][2] - x[atom2][2];
-          domain->minimum_image(vb2x, vb2y, vb2z);
+          domain->minimum_image(FLERR, vb2x, vb2y, vb2z);
 
           vb3x = x[atom4][0] - x[atom3][0];
           vb3y = x[atom4][1] - x[atom3][1];
           vb3z = x[atom4][2] - x[atom3][2];
-          domain->minimum_image(vb3x, vb3y, vb3z);
+          domain->minimum_image(FLERR, vb3x, vb3y, vb3z);
 
           ss1 = 1.0 / (vb1x * vb1x + vb1y * vb1y + vb1z * vb1z);
           ss2 = 1.0 / (vb2x * vb2x + vb2y * vb2y + vb2z * vb2z);
@@ -220,7 +221,7 @@ int ComputeImproperLocal::compute_impropers(int flag)
 
           if (c > 1.0) c = 1.0;
           if (c < -1.0) c = -1.0;
-          cbuf[n] = 180.0 * acos(c) / MY_PI;
+          if (cbuf) cbuf[n] = 180.0 * acos(c) / MY_PI;
         }
         n += nvalues;
       }

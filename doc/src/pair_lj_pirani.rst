@@ -1,10 +1,11 @@
 .. index:: pair_style lj/pirani
 .. index:: pair_style lj/pirani/omp
+.. index:: pair_style lj/pirani/kk
 
 pair_style lj/pirani command
 ============================
 
-Accelerator Variants: *lj/pirani/omp*
+Accelerator Variants: *lj/pirani/omp*, *lj/pirani/kk*
 
 Syntax
 """"""
@@ -27,7 +28,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 12Jun2025
 
 Pair style *lj/pirani* computes pairwise interactions from an Improved
 Lennard-Jones (ILJ) potential according to :ref:`(Pirani) <Pirani>`.

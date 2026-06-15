@@ -30,7 +30,7 @@ Description
 
 Dump a snapshot of atom quantities to one or more files every :math:`N`
 timesteps in a format readable by the `VTK visualization toolkit
-<https://www.vtk.org>`_ or other visualization tools that use it, such
+<https://vtk.org>`_ or other visualization tools that use it, such
 as `ParaView <https://www.paraview.org>`_.  The time steps on which dump
 output is written can also be controlled by a variable; see the
 :doc:`dump_modify every <dump_modify>` command for details.
@@ -40,7 +40,7 @@ the VTK library to write data to VTK simple legacy or XML format,
 depending on the filename extension specified for the dump file.  This
 can be either *\*.vtk* for the legacy format or *\*.vtp* and *\*.vtu*,
 respectively, for XML format; see the `VTK homepage
-<https://www.vtk.org/VTK/img/file-formats.pdf>`_ for a detailed
+<https://vtk.org/VTK/img/file-formats.pdf>`_ for a detailed
 description of these formats.  Since this naming convention conflicts
 with the way binary output is usually specified (see below), the
 :doc:`dump_modify binary <dump_modify>` command allows setting of a

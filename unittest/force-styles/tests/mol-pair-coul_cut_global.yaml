@@ -14,6 +14,7 @@ pair_coeff: ! |
   * *
 extract: ! |
   cut_coul 0
+  scale 2
 natoms: 29
 init_vdwl: 0
 init_coul: -127.49458629738443

@@ -398,7 +398,7 @@ int FixNPHug::size_restart_global()
 void FixNPHug::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   e0 = list[n++];
   v0 = list[n++];
   p0 = list[n++];

@@ -6,6 +6,7 @@ kokkos_add_example_directories(05_simple_atomics)
 kokkos_add_example_directories(06_simple_mdrangepolicy)
 kokkos_add_example_directories(Advanced_Views)
 kokkos_add_example_directories(Algorithms)
+kokkos_add_example_directories(Debugging)
 kokkos_add_example_directories(Hierarchical_Parallelism)
 kokkos_add_example_directories(launch_bounds)
 

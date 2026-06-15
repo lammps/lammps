@@ -21,6 +21,8 @@
 #include "update.h"
 
 #include <cstring>
+#include <map>
+#include <utility>
 
 using namespace LAMMPS_NS;
 
@@ -677,12 +679,12 @@ int DumpAtom::convert_image(int n, double *mybuf)
     offset += snprintf(&sbuf[offset],
                       maxsbuf - offset,
                       format,
-                      static_cast<tagint> (mybuf[m]),
-                      static_cast<int> (mybuf[m+1]),
+                      static_cast<tagint>(mybuf[m]),
+                      static_cast<int>(mybuf[m+1]),
                       mybuf[m+2],mybuf[m+3],mybuf[m+4],
-                      static_cast<int> (mybuf[m+5]),
-                      static_cast<int> (mybuf[m+6]),
-                      static_cast<int> (mybuf[m+7]));
+                      static_cast<int>(mybuf[m+5]),
+                      static_cast<int>(mybuf[m+6]),
+                      static_cast<int>(mybuf[m+7]));
     m += size_one;
   }
 
@@ -705,8 +707,8 @@ int DumpAtom::convert_noimage(int n, double *mybuf)
     offset += snprintf(&sbuf[offset],
                       maxsbuf - offset,
                       format,
-                      static_cast<tagint> (mybuf[m]),
-                      static_cast<int> (mybuf[m+1]),
+                      static_cast<tagint>(mybuf[m]),
+                      static_cast<int>(mybuf[m+1]),
                       mybuf[m+2],mybuf[m+3],mybuf[m+4]);
     m += size_one;
   }
@@ -738,9 +740,9 @@ void DumpAtom::write_lines_image(int n, double *mybuf)
   int m = 0;
   for (int i = 0; i < n; i++) {
     fprintf(fp,format,
-            static_cast<tagint> (mybuf[m]), static_cast<int> (mybuf[m+1]),
-            mybuf[m+2],mybuf[m+3],mybuf[m+4], static_cast<int> (mybuf[m+5]),
-            static_cast<int> (mybuf[m+6]), static_cast<int> (mybuf[m+7]));
+            static_cast<tagint>(mybuf[m]), static_cast<int>(mybuf[m+1]),
+            mybuf[m+2],mybuf[m+3],mybuf[m+4], static_cast<int>(mybuf[m+5]),
+            static_cast<int>(mybuf[m+6]), static_cast<int>(mybuf[m+7]));
     m += size_one;
   }
 }
@@ -752,8 +754,8 @@ void DumpAtom::write_lines_noimage(int n, double *mybuf)
   int m = 0;
   for (int i = 0; i < n; i++) {
     fprintf(fp,format,
-            static_cast<tagint> (mybuf[m]), static_cast<int> (mybuf[m+1]),
-            mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+            static_cast<tagint>(mybuf[m]), static_cast<int>(mybuf[m+1]),
+            mybuf[m+2], mybuf[m+3], mybuf[m+4]);
     m += size_one;
   }
 }

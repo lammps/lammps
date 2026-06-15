@@ -45,6 +45,7 @@ GranSubMod::GranSubMod(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
   num_coeffs = 0;
   contact_radius_flag = 0;
   nsvector = 0;
+  index_svector = 0;
 
   // Currently only check tangential + rolling classes, which default to 0
   //   no conflicts/checks for other modes, can extend in future

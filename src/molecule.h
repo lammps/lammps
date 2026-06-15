@@ -16,6 +16,9 @@
 
 #include "pointers.h"
 
+#include "json_fwd.h"
+#include "safe_pointers.h"
+
 namespace LAMMPS_NS {
 
 class Molecule : protected Pointers {
@@ -46,6 +49,7 @@ class Molecule : protected Pointers {
 
   int xflag, typeflag, moleculeflag, fragmentflag, qflag, radiusflag, muflag, rmassflag;
   int bondflag, angleflag, dihedralflag, improperflag;
+  int auto_angleflag, auto_dihedralflag, auto_improperflag;
   int nspecialflag, specialflag;
   int shakeflag, shakeflagflag, shakeatomflag, shaketypeflag;
   int bodyflag, ibodyflag, dbodyflag;
@@ -53,6 +57,10 @@ class Molecule : protected Pointers {
   // 1 if attribute defined or computed, 0 if not
 
   int centerflag, massflag, comflag, inertiaflag;
+
+  // 1 if attribute defined in input, 0 if computed
+
+  int massflag_user, comflag_user, inertiaflag_user, specialflag_user;
 
   // 1 if molecule fields require atom IDs
 
@@ -122,8 +130,13 @@ class Molecule : protected Pointers {
   double *quat_external;    // orientation imposed by external class
                             // e.g. FixPour or CreateAtoms
 
-  Molecule(class LAMMPS *, int, char **, int &);
+  Molecule(class LAMMPS *);
   ~Molecule() override;
+
+  void command(int, char **, int &);
+  void from_json(const std::string &id, const json &);
+  [[nodiscard]] json to_json() const;
+
   void compute_center();
   void compute_mass();
   void compute_com();
@@ -131,12 +144,14 @@ class Molecule : protected Pointers {
   int findfragment(const char *);
   void check_attributes();
 
+  void print(FILE *fp=stdout);
+
  private:
-  int me;
-  FILE *fp;
+  SafeFilePtr fp;
   int *count;
   int toffset, boffset, aoffset, doffset, ioffset;
-  int autospecial;
+  int json_format;
+  int check_which_labels[4];
   double sizescale;
 
   void read(int);
@@ -155,6 +170,9 @@ class Molecule : protected Pointers {
   void nspecial_read(int, char *);
   void special_read(char *);
   void special_generate();
+  void generate_angles();
+  void generate_dihedrals();
+  void generate_impropers();
   void shakeflag_read(char *);
   void shakeatom_read(char *);
   void shaketype_read(char *);
@@ -168,7 +186,8 @@ class Molecule : protected Pointers {
   std::string parse_keyword(int, char *);
   void skip_lines(int, char *, const std::string &);
 
-  // void print();
+  void check_labels();
+  void stats();
 };
 
 }    // namespace LAMMPS_NS

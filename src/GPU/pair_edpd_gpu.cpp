@@ -132,12 +132,12 @@ void PairEDPDGPU::compute(int eflag, int vflag)
 
   int nlocal = atom->nlocal;
   if (acc_float) {
-    auto flux_ptr = (float *)flux_pinned;
+    auto *flux_ptr = (float *)flux_pinned;
     for (int i = 0; i < nlocal; i++)
       Q[i] = flux_ptr[i];
 
   } else {
-    auto flux_ptr = (double *)flux_pinned;
+    auto *flux_ptr = (double *)flux_pinned;
     for (int i = 0; i < nlocal; i++)
       Q[i] = flux_ptr[i];
   }

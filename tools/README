@@ -27,6 +27,7 @@ emacs                  add-ons to EMACS editor for editing LAMMPS input scripts
 fep                    scripts for free-energy perturbation with FEP pkg
 i-pi                   Python wrapper for performing path-integral MD (PIMD)
 ipp                    input pre-processor Perl tool for creating input scripts
+json                   tools and files for using JSON files in LAMMPS
 kate                   add-ons to Kate editor for editing LAMMPS input scripts
 lmp2arc                convert LAMMPS output to Accelrys Insight format
 lmp2cfg                convert LAMMPS output to CFG files for AtomEye viz

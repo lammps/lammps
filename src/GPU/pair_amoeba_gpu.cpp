@@ -24,17 +24,16 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_store_atom.h"
-#include "force.h"
 #include "gpu_extra.h"
 #include "info.h"
 #include "math_const.h"
-#include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
+
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -742,7 +741,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
 
   int nlocal = atom->nlocal;
   if (acc_float) {
-    auto field_ptr = (float *)fieldp_pinned;
+    auto *field_ptr = (float *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
       int idx = 3*i;
@@ -759,7 +758,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
       fieldp[i][2] += field_ptr[idx+2];
     }
   } else {
-    auto field_ptr = (double *)fieldp_pinned;
+    auto *field_ptr = (double *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
       int idx = 3*i;
@@ -973,7 +972,7 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
 
   int inum = atom->nlocal;
   if (acc_float) {
-    auto field_ptr = (float *)fieldp_pinned;
+    auto *field_ptr = (float *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
       int idx = 3*i;
@@ -990,7 +989,7 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
       fieldp[i][2] += field_ptr[idx+2];
     }
   } else {
-    auto field_ptr = (double *)fieldp_pinned;
+    auto *field_ptr = (double *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
       int idx = 3*i;
@@ -1055,7 +1054,7 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
 
   // gridpre = my portion of 4d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ****gridpre = (FFT_SCALAR ****) ic_kspace->zero();
+  auto ****gridpre = (FFT_SCALAR ****) ic_kspace->zero();
 
   // map 2 values to grid
 
@@ -1101,7 +1100,7 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
   // post-convolution operations including backward FFT
   // gridppost = my portion of 4d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ****gridpost = (FFT_SCALAR ****) ic_kspace->post_convolution();
+  auto ****gridpost = (FFT_SCALAR ****) ic_kspace->post_convolution();
 
   // get potential
 
@@ -1171,7 +1170,7 @@ void PairAmoebaGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
 
   int nlocal = atom->nlocal;
   if (acc_float) {
-    auto _fdip_phi1_ptr = (float *)fdip_phi1_pinned;
+    auto *_fdip_phi1_ptr = (float *)fdip_phi1_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 10; m++) {
@@ -1180,7 +1179,7 @@ void PairAmoebaGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
       }
     }
 
-    auto _fdip_phi2_ptr = (float *)fdip_phi2_pinned;
+    auto *_fdip_phi2_ptr = (float *)fdip_phi2_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 10; m++) {
@@ -1189,7 +1188,7 @@ void PairAmoebaGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
       }
     }
 
-    auto _fdip_sum_phi_ptr = (float *)fdip_sum_phi_pinned;
+    auto *_fdip_sum_phi_ptr = (float *)fdip_sum_phi_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 20; m++) {
@@ -1199,7 +1198,7 @@ void PairAmoebaGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
     }
 
   } else {
-    auto _fdip_phi1_ptr = (double *)fdip_phi1_pinned;
+    auto *_fdip_phi1_ptr = (double *)fdip_phi1_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 10; m++) {
@@ -1208,7 +1207,7 @@ void PairAmoebaGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
       }
     }
 
-    auto _fdip_phi2_ptr = (double *)fdip_phi2_pinned;
+    auto *_fdip_phi2_ptr = (double *)fdip_phi2_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 10; m++) {
@@ -1217,7 +1216,7 @@ void PairAmoebaGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
       }
     }
 
-    auto _fdip_sum_phi_ptr = (double *)fdip_sum_phi_pinned;
+    auto *_fdip_sum_phi_ptr = (double *)fdip_sum_phi_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
       for (int m = 0; m < 20; m++) {
@@ -1427,7 +1426,7 @@ void PairAmoebaGPU::polar_kspace()
 
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
 
-    FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
+    auto ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
     // map atoms to grid
 
@@ -1486,7 +1485,7 @@ void PairAmoebaGPU::polar_kspace()
     // post-convolution operations including backward FFT
     // gridppost = my portion of 3d grid in brick decomp w/ ghost values
 
-    FFT_SCALAR ***gridpost = (FFT_SCALAR ***) p_kspace->post_convolution();
+    auto ***gridpost = (FFT_SCALAR ***) p_kspace->post_convolution();
 
     // get potential
 
@@ -1502,7 +1501,7 @@ void PairAmoebaGPU::polar_kspace()
       void* fphi_pinned = nullptr;
       amoeba_gpu_fphi_mpole(gridpost, &fphi_pinned, felec);
       if (acc_float) {
-        auto _fphi_ptr = (float *)fphi_pinned;
+        auto *_fphi_ptr = (float *)fphi_pinned;
         for (int i = 0; i < nlocal; i++) {
           int idx = i;
           for (int m = 0; m < 20; m++) {
@@ -1511,7 +1510,7 @@ void PairAmoebaGPU::polar_kspace()
           }
         }
       } else {
-        auto _fphi_ptr = (double *)fphi_pinned;
+        auto *_fphi_ptr = (double *)fphi_pinned;
         for (int i = 0; i < nlocal; i++) {
           int idx = i;
           for (int m = 0; m < 20; m++) {
@@ -1544,7 +1543,7 @@ void PairAmoebaGPU::polar_kspace()
 
   // gridpre2 = my portion of 4d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ****gridpre2 = (FFT_SCALAR ****) pc_kspace->zero();
+  auto ****gridpre2 = (FFT_SCALAR ****) pc_kspace->zero();
 
   // map 2 values to grid
 
@@ -1576,7 +1575,7 @@ void PairAmoebaGPU::polar_kspace()
   // post-convolution operations including backward FFT
   // gridppost = my portion of 4d grid in brick decomp w/ ghost values
 
-  FFT_SCALAR ****gridpost = (FFT_SCALAR ****) pc_kspace->post_convolution();
+  auto ****gridpost = (FFT_SCALAR ****) pc_kspace->post_convolution();
 
   // get potential
 
@@ -1824,7 +1823,7 @@ void PairAmoebaGPU::polar_kspace()
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
   // zeroed by zero()
 
-  FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
+  auto ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
   // map atoms to grid
 
@@ -1920,7 +1919,7 @@ void PairAmoebaGPU::polar_kspace()
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
     // zeroed by zero()
 
-    FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
+    auto ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
     // map atoms to grid
 

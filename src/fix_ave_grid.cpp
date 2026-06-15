@@ -296,7 +296,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   if (modeatom) {
     for (int i = 0; i < nvalues; i++) {
       if (which[i] == ArgInfo::COMPUTE) {
-        auto icompute = modify->get_compute_by_id(ids[i]);
+        auto *icompute = modify->get_compute_by_id(ids[i]);
         if (!icompute)
           error->all(FLERR, iarg_orig[i], "Compute {} for fix ave/grid does not exist", ids[i]);
         if (icompute->peratom_flag == 0)
@@ -314,7 +314,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
                      utils::errorurl(20));
 
       } else if (which[i] == ArgInfo::FIX) {
-        auto ifix = modify->get_fix_by_id(ids[i]);
+        auto *ifix = modify->get_fix_by_id(ids[i]);
         if (!ifix)
           error->all(FLERR, iarg_orig[i], "Fix {} for fix ave/atom does not exist", ids[i]);
         if (ifix->peratom_flag == 0)
@@ -1275,7 +1275,7 @@ void FixAveGrid::normalize_atom(int numsamples, GridData *grid)
       for (iy = nylo_in; iy <= nyhi_in; iy++)
         for (ix = nxlo_in; ix <= nxhi_in; ix++) {
           count = count2d[iy][ix];
-          if (count) {
+          if (count != 0.0) {
             if (which[0] == ArgInfo::DENSITY_NUMBER)
               norm = density_number_norm;
             else if (which[0] == ArgInfo::DENSITY_MASS)
@@ -1295,7 +1295,7 @@ void FixAveGrid::normalize_atom(int numsamples, GridData *grid)
       for (iy = nylo_in; iy <= nyhi_in; iy++)
         for (ix = nxlo_in; ix <= nxhi_in; ix++) {
           count = count2d[iy][ix];
-          if (count) {
+          if (count != 0.0) {
             for (m = 0; m < nvalues; m++) {
               if (which[m] == ArgInfo::DENSITY_NUMBER)
                 norm = density_number_norm;
@@ -1322,7 +1322,7 @@ void FixAveGrid::normalize_atom(int numsamples, GridData *grid)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++) {
             count = count3d[iz][iy][ix];
-            if (count) {
+            if (count != 0.0) {
               if (which[0] == ArgInfo::DENSITY_NUMBER)
                 norm = density_number_norm;
               else if (which[0] == ArgInfo::DENSITY_MASS)
@@ -1343,7 +1343,7 @@ void FixAveGrid::normalize_atom(int numsamples, GridData *grid)
         for (iy = nylo_in; iy <= nyhi_in; iy++)
           for (ix = nxlo_in; ix <= nxhi_in; ix++) {
             count = count3d[iz][iy][ix];
-            if (count) {
+            if (count != 0.0) {
               for (m = 0; m < nvalues; m++) {
                 if (which[m] == ArgInfo::DENSITY_NUMBER)
                   norm = density_number_norm;
@@ -1488,7 +1488,7 @@ void FixAveGrid::allocate_grid()
 
 FixAveGrid::GridData *FixAveGrid::allocate_one_grid()
 {
-  GridData *grid = new GridData();
+  auto *grid = new GridData();
 
   grid->vec2d = nullptr;
   grid->array2d = nullptr;
@@ -1536,7 +1536,7 @@ FixAveGrid::GridData *FixAveGrid::allocate_one_grid()
 
 FixAveGrid::GridData *FixAveGrid::clone_one_grid(GridData *src)
 {
-  GridData *grid = new GridData();
+  auto *grid = new GridData();
 
   grid->vec2d = src->vec2d;
   grid->array2d = src->array2d;
@@ -1843,7 +1843,7 @@ void FixAveGrid::pack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *li
 {
   int i,j,m;
 
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
   double *count,*data,*values;
   m = 0;
 
@@ -1882,7 +1882,7 @@ void FixAveGrid::unpack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *
 {
   int i,j,m;
 
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
   double *count,*data,*values;
 
   if (dimension == 2) {
@@ -1918,7 +1918,7 @@ void FixAveGrid::unpack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *
 
 void FixAveGrid::pack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
 
   int running_flag = 0;
   if (aveflag == RUNNING || aveflag == WINDOW) running_flag = 1;
@@ -1943,7 +1943,7 @@ void FixAveGrid::pack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list
 
 void FixAveGrid::unpack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
-   auto buf = (double *) vbuf;
+   auto *buf = (double *) vbuf;
 
   int running_flag = 0;
   if (aveflag == RUNNING || aveflag == WINDOW) running_flag = 1;
@@ -2036,7 +2036,7 @@ void FixAveGrid::reset_grid()
 
   if (dimension == 2) {
     int tmp[8];
-    Grid2d *gridnew = new Grid2d(lmp, world, nxgrid, nygrid);
+    auto *gridnew = new Grid2d(lmp, world, nxgrid, nygrid);
     gridnew->set_distance(maxdist);
     gridnew->setup_grid(tmp[0], tmp[1], tmp[2], tmp[3],
                         tmp[4], tmp[5], tmp[6], tmp[7]);
@@ -2049,7 +2049,7 @@ void FixAveGrid::reset_grid()
   } else {
 
     int tmp[12];
-    Grid3d *gridnew = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
+    auto *gridnew = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
     gridnew->set_distance(maxdist);
     gridnew->setup_grid(tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5],
                         tmp[6], tmp[7], tmp[8], tmp[9], tmp[10], tmp[11]);

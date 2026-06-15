@@ -1,6 +1,10 @@
 RHEO or Reproducing Hydrodynamics and Elastic Objects is a package to model
-multiphase fluid systems. The authors include Joel Clemmer (Sandia), Thomas
-O'Connor (Carnegie Mellon), and Eric Palermo (Carnegie Mellon).
+multiphase fluid systems. The authors include Joel Clemmer (Sandia, jtclemm@sandia.gov),
+Thomas O'Connor (Carnegie Mellon), and Eric Palermo (Carnegie Mellon).
+
+Please see the relevant how to page in the LAMMPS documentation,
+https://docs.lammps.org/Howto_rheo.html
+for more background and details on what's included in the package.
 
 Bond style rheo/shell, compute style rheo/property/atom, and fix style
 rheo/temperature depend on the BPM package, so it is required to install

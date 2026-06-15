@@ -31,7 +31,7 @@ pair_style lj/cut/coul/long/dielectric command
 Accelerator Variants: *lj/cut/coul/long/dielectric/omp*
 
 pair_style lj/cut/coul/msm/dielectric command
-==============================================
+=============================================
 
 pair_style lj/long/coul/long/dielectric command
 ===============================================

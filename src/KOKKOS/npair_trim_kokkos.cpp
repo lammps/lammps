@@ -85,6 +85,7 @@ void NPairTrimKokkos<DeviceType>::trim_to_kokkos(NeighList *list)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NPairTrimKokkos<DeviceType>::operator()(TagNPairTrim, const int &ii) const {
   int n = 0;
@@ -126,7 +127,7 @@ void NPairTrimKokkos<DeviceType>::trim_to_cpu(NeighList *list)
   NeighList *listcopy = list->listcopy;
   NeighListKokkos<DeviceType>* listcopy_kk = (NeighListKokkos<DeviceType>*) listcopy;
 
-  listcopy_kk->k_ilist.template sync<LMPHostType>();
+  listcopy_kk->k_ilist.sync_host();
 
   double** x = atom->x;
 
@@ -134,7 +135,7 @@ void NPairTrimKokkos<DeviceType>::trim_to_cpu(NeighList *list)
   int gnum = listcopy->gnum;
   int inum_trim = inum;
   if (list->ghost) inum_trim += gnum;
-  auto h_ilist = listcopy_kk->k_ilist.h_view;
+  auto h_ilist = listcopy_kk->k_ilist.view_host();
   auto h_numneigh = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_numneigh);
   auto h_neighbors = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_neighbors);
 

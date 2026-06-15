@@ -65,6 +65,7 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   nz = nz_caller;
   order = order_caller;
   which = which_caller;
+  time_fft = 0.0;
 
   flag3d = 1;
   if (which == POLAR_GRIDC || which == INDUCE_GRIDC) flag3d = 0;
@@ -137,11 +138,8 @@ void AmoebaConvolution::allocate_grid()
   int me = comm->me;
   int nprocs = comm->nprocs;
 
-  int npey_fft,npez_fft;
-  if (nz >= nprocs) {
-    npey_fft = 1;
-    npez_fft = nprocs;
-  } else procs2grid2d(nprocs,ny,nz,npey_fft,npez_fft);
+  int npey_fft = 1, npez_fft = nprocs;
+  procs2grid2d(nprocs,ny,nz,npey_fft,npez_fft);
 
   int me_y = me % npey_fft;
   int me_z = me / npey_fft;
@@ -176,17 +174,17 @@ void AmoebaConvolution::allocate_grid()
   fft1 = new FFT3d(lmp,world,nx,ny,nz,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                   1,0,&tmp,0);
+                   1,0,&tmp,0,0);
 
   fft2 = new FFT3d(lmp,world,nx,ny,nz,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   0,0,&tmp,0);
+                   0,0,&tmp,0,0);
 
   remap = new Remap(lmp,world,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                    nqty,0,0,FFT_PRECISION,0);
+                    nqty,0,0,FFT_PRECISION,0,0);
 
   // memory allocations
 
@@ -547,8 +545,7 @@ void AmoebaConvolution::procs2grid2d(int nprocs, int nx, int ny, int &px, int &p
       boxy = ny/ipy;
       if (ny % ipy) boxy++;
       surf = boxx + boxy;
-      if (surf < bestsurf ||
-          (surf == bestsurf && boxx*boxy > bestboxx*bestboxy)) {
+      if ((surf < bestsurf) || ((surf == bestsurf) && (boxx*boxy > bestboxx*bestboxy))) {
         bestsurf = surf;
         bestboxx = boxx;
         bestboxy = boxy;

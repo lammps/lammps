@@ -54,7 +54,7 @@ static constexpr double SMALL = 1.0e-14;
 static constexpr double QSUMSMALL = 0.00001;
 
 static const char cite_fix_qeq_reaxff[] =
-  "fix qeq/reaxff command: doi:10.1016/j.parco.2011.08.005\n\n"
+  "fix qeq/reaxff command: https://doi.org/10.1016/j.parco.2011.08.005\n\n"
   "@Article{Aktulga12,\n"
   " author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},\n"
   " title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},\n"
@@ -89,16 +89,20 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   dual_enabled = 0;
 
+  // matrix-free support only available for Kokkos backend
+  matrix_free = 0; // default to false
+
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dual") == 0) dual_enabled = 1;
     else if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
+    else if (strcmp(arg[iarg],"matfree") == 0) matrix_free = 1;
     else if (strcmp(arg[iarg],"maxiter") == 0) {
       if (iarg+1 > narg-1)
-        error->all(FLERR,"Illegal fix {} command", style);
-      imax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        error->all(FLERR, iarg, "Illegal fix {} command", style);
+      imax = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg++;
-    } else error->all(FLERR,"Illegal fix {} command", style);
+    } else error->all(FLERR, iarg, "Illegal fix {} command", style);
     iarg++;
   }
   shld = nullptr;
@@ -187,7 +191,7 @@ void FixQEqReaxFF::post_constructor()
 
   pertype_parameters(pertype_option);
   if (dual_enabled)
-    error->all(FLERR,"Dual keyword only supported with fix qeq/reaxff/omp");
+    error->all(FLERR, Error::NOLASTLINE, "Dual keyword only supported with fix qeq/reaxff/omp");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -212,14 +216,15 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
   if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
     Pair *pair = force->pair_match("^reaxff",0);
-    if (!pair) error->all(FLERR,"No reaxff pair style for fix qeq/reaxff");
+    if (!pair) error->all(FLERR, Error::NOLASTLINE, "No reaxff pair style for fix qeq/reaxff");
 
     int tmp, tmp_all;
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
     if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
-      error->all(FLERR, "Fix qeq/reaxff could not extract all QEq parameters from pair reaxff");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Fix qeq/reaxff could not extract all QEq parameters from pair reaxff");
     tmp = tmp_all = 0;
     for (int i = 0; i < nlocal; ++i) {
       if (mask[i] & groupbit) {
@@ -229,10 +234,10 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
     }
     MPI_Allreduce(&tmp, &tmp_all, 1, MPI_INT, MPI_MAX, world);
     if (tmp_all)
-      error->all(FLERR, "No QEq parameters for atom type {} provided by pair reaxff", tmp_all);
+      error->all(FLERR, Error::NOLASTLINE, "No QEq parameters for atom type {} provided by pair reaxff", tmp_all);
     return;
   } else if (utils::strmatch(arg,"^reax/c")) {
-    error->all(FLERR, "Fix qeq/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
+    error->all(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
   } else if (platform::file_is_readable(arg)) {
     ; // arg is readable file. will read below
   } else {
@@ -270,7 +275,7 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
         gamma[itype] = values.next_double();
       }
     } catch (std::exception &e) {
-      error->one(FLERR,e.what());
+      error->one(FLERR, Error::NOLASTLINE, e.what());
     }
   }
 
@@ -361,9 +366,9 @@ void FixQEqReaxFF::allocate_matrix()
     i = ilist[ii];
     m += numneigh[i];
   }
-  bigint m_cap_big = (bigint)MAX(m * safezone, mincap * REAX_MIN_NBRS);
+  auto m_cap_big = (bigint)MAX(m * safezone, mincap * REAX_MIN_NBRS);
   if (m_cap_big > MAXSMALLINT)
-    error->one(FLERR,"Too many neighbors in fix {}",style);
+    error->one(FLERR, Error::NOLASTLINE, "Too many neighbors in fix {}",style);
   m_cap = m_cap_big;
 
   H.n = n_cap;
@@ -397,10 +402,10 @@ void FixQEqReaxFF::reallocate_matrix()
 void FixQEqReaxFF::init()
 {
   if (!atom->q_flag)
-    error->all(FLERR,"Fix {} requires atom attribute q", style);
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} requires atom attribute q", style);
 
   if (group->count(igroup) == 0)
-    error->all(FLERR,"Fix {} group has no atoms", style);
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} group has no atoms", style);
 
   // compute net charge and print warning if too large
 
@@ -412,7 +417,7 @@ void FixQEqReaxFF::init()
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
 
   if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
-    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}" + utils::errorurl(29), style, qsum);
+    error->warning(FLERR, "Fix {} group is not charge neutral, net charge = {:.8}" + utils::errorurl(29), style, qsum);
 
   // get pointer to fix efield if present. there may be at most one instance of fix efield in use.
 
@@ -420,26 +425,26 @@ void FixQEqReaxFF::init()
   auto fixes = modify->get_fix_by_style("^efield");
   if (fixes.size() == 1) efield = dynamic_cast<FixEfield *>(fixes.front());
   else if (fixes.size() > 1)
-    error->all(FLERR, "There may be only one fix efield instance used with fix {}", style);
+    error->all(FLERR, Error::NOLASTLINE, "There may be only one fix efield instance used with fix {}", style);
 
   // ensure that fix efield is properly initialized before accessing its data and check some settings
   if (efield) {
     efield->init();
     if (strcmp(update->unit_style,"real") != 0)
-      error->all(FLERR,"Must use unit_style real with fix {} and external fields", style);
+      error->all(FLERR, Error::NOLASTLINE, "Must use unit_style real with fix {} and external fields", style);
 
     if (efield->varflag == FixEfield::ATOM && efield->pstyle != FixEfield::ATOM)
-      error->all(FLERR,"Atom-style external electric field requires atom-style "
-                       "potential variable when used with fix {}", style);
+      error->all(FLERR, Error::NOLASTLINE, "Atom-style external electric field requires atom-style "
+                 "potential variable when used with fix {}", style);
     if (((efield->xstyle != FixEfield::CONSTANT) && domain->xperiodic) ||
          ((efield->ystyle != FixEfield::CONSTANT) && domain->yperiodic) ||
          ((efield->zstyle != FixEfield::CONSTANT) && domain->zperiodic))
-      error->all(FLERR,"Must not have electric field component in direction of periodic "
+      error->all(FLERR, Error::NOLASTLINE, "Must not have electric field component in direction of periodic "
                        "boundary when using charge equilibration with ReaxFF.");
     if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
          ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
          ((fabs(efield->ez) > SMALL) && domain->zperiodic))
-      error->all(FLERR,"Must not have electric field component in direction of periodic "
+      error->all(FLERR, Error::NOLASTLINE, "Must not have electric field component in direction of periodic "
                        "boundary when using charge equilibration with ReaxFF.");
   }
 
@@ -494,7 +499,7 @@ void FixQEqReaxFF::init_taper()
   if (fabs(swa) > 0.01 && comm->me == 0)
     error->warning(FLERR,"Fix qeq/reaxff has non-zero lower Taper radius cutoff");
   if (swb < 0)
-    error->all(FLERR, "Fix qeq/reaxff has negative upper Taper radius cutoff");
+    error->all(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff has negative upper Taper radius cutoff");
   else if (swb < 5 && comm->me == 0)
     error->warning(FLERR,"Fix qeq/reaxff has very low Taper radius cutoff");
 
@@ -720,7 +725,7 @@ void FixQEqReaxFF::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR,"Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+    error->all(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
                m_fill, H.m);
 }
 
@@ -1116,7 +1121,7 @@ void FixQEqReaxFF::get_chi_field()
   memset(&chi_field[0],0,atom->nmax*sizeof(double));
   if (!efield) return;
 
-  const auto x = (const double * const *)atom->x;
+  const auto *const x = (const double * const *)atom->x;
   const int *mask = atom->mask;
   const imageint *image = atom->image;
   const int nlocal = atom->nlocal;

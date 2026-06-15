@@ -6,7 +6,7 @@ Core Algorithms
 
 The paper mentioned below is the best overview of LAMMPS, but there are
 also publications describing particular models or algorithms implemented
-in LAMMPS or complementary software that is has interfaces to.  Please
+in LAMMPS or complementary software that it has interfaces to.  Please
 see below for how to cite contributions to LAMMPS.
 
 .. _lammps_paper:

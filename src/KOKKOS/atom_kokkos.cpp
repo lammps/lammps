@@ -47,6 +47,7 @@ AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
   h_tag_max = Kokkos::subview(h_tag_min_max,1);
 
   nprop_atom = 0;
+  hybrid_flag = 0;
   fix_prop_atom = nullptr;
 }
 
@@ -72,6 +73,7 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_omega, omega);
   memoryKK->destroy_kokkos(k_angmom, angmom);
   memoryKK->destroy_kokkos(k_torque, torque);
+  memoryKK->destroy_kokkos(k_ellipsoid, ellipsoid);
 
   memoryKK->destroy_kokkos(k_nspecial, nspecial);
   memoryKK->destroy_kokkos(k_special, special);
@@ -125,7 +127,7 @@ void AtomKokkos::init()
 {
   Atom::init();
 
-  sort_classic = lmp->kokkos->sort_classic;
+  sort_legacy = lmp->kokkos->sort_legacy;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -152,9 +154,15 @@ void AtomKokkos::update_property_atom()
 
 /* ---------------------------------------------------------------------- */
 
-void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
+void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
 {
-  if (space == Device && lmp->kokkos->auto_sync) {
+  if ((space == Device || space == HostKK) && lmp->kokkos->auto_sync) {
+
+    // sync HostKK -> Host if needed
+
+    avecKK->sync(Host, mask);
+    for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(Host, mask);
+
     avecKK->modified(Host, mask);
     for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(Host, mask);
   }
@@ -165,12 +173,12 @@ void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
+void AtomKokkos::modified(const ExecutionSpace space, uint64_t mask)
 {
   avecKK->modified(space, mask);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(space, mask);
 
-  if (space == Device && lmp->kokkos->auto_sync) {
+  if ((space == Device || space == HostKK) && lmp->kokkos->auto_sync) {
     avecKK->sync(Host, mask);
     for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(Host, mask);
   }
@@ -178,21 +186,20 @@ void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)
+void AtomKokkos::sync_pinned(const ExecutionSpace space, uint64_t mask, int async_flag)
 {
-  avecKK->sync_overlapping_device(space, mask);
-  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync_overlapping_device(space, mask);
+  avecKK->sync_pinned(space, mask, async_flag);
+  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync_pinned(space, mask, async_flag);
 }
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::allocate_type_arrays()
 {
   if (avec->mass_type == AtomVec::PER_TYPE) {
-    k_mass = DAT::tdual_float_1d("Mass", ntypes + 1);
-    mass = k_mass.h_view.data();
+    memoryKK->create_kokkos(k_mass,mass,ntypes + 1,"atom::mass");
     mass_setflag = new int[ntypes + 1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
-    k_mass.modify<LMPHostType>();
+    k_mass.modify_host();
   }
 }
 
@@ -202,32 +209,50 @@ void AtomKokkos::sort()
 {
   // check if all fixes with atom-based arrays support sort on device
 
-  // avoid permanent change to sort_classic based on current flags
-  int sort_classic = this->sort_classic;
-
-  if (!sort_classic) {
+  if (!sort_legacy) {
     int flag = 1;
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
       auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
       if (!fix_iextra->sort_device) {
         flag = 0;
         if (comm->me == 0)
-          error->warning(FLERR,"Fix {} not compatible with Kokkos sorting on device", fix_iextra->style);
+          error->warning(FLERR,"Fix {} not (yet) compatible with Kokkos sorting on device", fix_iextra->style);
         break;
       }
     }
     if (!flag) {
       if (comm->me == 0) {
-        error->warning(FLERR,"Fix with atom-based arrays not compatible with Kokkos sorting on device, "
-                           "switching to classic host sorting");
+        error->warning(FLERR,"Fix with atom-based arrays not (yet) compatible with Kokkos sorting on device, "
+                           "switching to legacy host sorting");
       }
-      sort_classic = true;
+      sort_legacy = true;
+    }
+
+    int bonus_flag = (ellipsoid_flag || line_flag || tri_flag || body_flag);
+
+    if (bonus_flag) {
+      if (comm->me == 0) {
+        error->warning(FLERR,"Atom bonus data not (yet) compatible with Kokkos sorting on device, "
+                           "switching to legacy host sorting");
+      }
+      sort_legacy = true;
+    }
+
+    if (hybrid_flag) {
+      if (comm->me == 0) {
+        error->warning(FLERR,"Atom_style hybrid not (yet) compatible with Kokkos sorting on device, "
+                           "switching to legacy host sorting");
+      }
+      sort_legacy = true;
     }
   }
 
-  if (sort_classic) {
+  if (sort_legacy) {
     sync(Host, ALL_MASK);
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    lmp->kokkos->auto_sync = 1;
     Atom::sort();
+    lmp->kokkos->auto_sync = prev_auto_sync;
     modified(Host, ALL_MASK);
   } else sort_device();
 }
@@ -249,7 +274,7 @@ void AtomKokkos::sort_device()
 
   if (domain->triclinic) domain->lamda2x(nlocal);
 
-  auto d_x = k_x.d_view;
+  auto d_x = k_x.view_device();
   sync(Device, X_MASK);
 
   // sort
@@ -259,7 +284,7 @@ void AtomKokkos::sort_device()
   max_bins[1] = nbiny;
   max_bins[2] = nbinz;
 
-  using KeyViewType = DAT::t_x_array;
+  using KeyViewType = DAT::t_kkfloat_1d_3_lr;
   using BinOp = BinOp3DLAMMPS<KeyViewType>;
   BinOp binner(max_bins, bboxlo, bboxhi);
   Kokkos::BinSort<KeyViewType, BinOp> Sorter(d_x, 0, nlocal, binner, false);
@@ -410,12 +435,12 @@ AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sfla
 {
   // check if avec already exists, if so this is a hybrid substyle
 
-  int hybrid_substyle_flag = (avec != nullptr);
+  hybrid_flag = (avec != nullptr);
 
   AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
   if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a Kokkos-enabled atom_style");
 
-  if (!hybrid_substyle_flag)
+  if (!hybrid_flag)
     avecKK = dynamic_cast<AtomVecKokkos*>(avec);
 
   return avec;

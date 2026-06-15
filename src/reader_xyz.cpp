@@ -19,6 +19,7 @@
 
 #include "atom.h"
 #include "error.h"
+#include "exceptions.h"
 #include "label_map.h"
 #include "memory.h"
 #include "tokenizer.h"

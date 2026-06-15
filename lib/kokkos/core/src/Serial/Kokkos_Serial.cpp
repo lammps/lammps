@@ -1,30 +1,23 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 #endif
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 #include <Serial/Kokkos_Serial.hpp>
-#include <impl/Kokkos_Traits.hpp>
+#include <impl/Kokkos_CheckUsage.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_ExecSpaceManager.hpp>
 #include <impl/Kokkos_SharedAlloc.hpp>
+#include <impl/Kokkos_Traits.hpp>
 
 #include <cstdlib>
 #include <iostream>
@@ -38,14 +31,10 @@ namespace Impl {
 std::vector<SerialInternal*> SerialInternal::all_instances;
 std::mutex SerialInternal::all_instances_mutex;
 
-bool SerialInternal::is_initialized() { return m_is_initialized; }
+HostSharedPtr<SerialInternal> SerialInternal::default_instance;
 
-void SerialInternal::initialize() {
-  if (is_initialized()) return;
-
+SerialInternal::SerialInternal() {
   Impl::SharedAllocationRecord<void, void>::tracking_enable();
-
-  m_is_initialized = true;
 
   // guard pushing to all_instances
   {
@@ -54,7 +43,27 @@ void SerialInternal::initialize() {
   }
 }
 
-void SerialInternal::finalize() {
+void SerialInternal::fence(const std::string& name) {
+#ifdef KOKKOS_ENABLE_ATOMICS_BYPASS
+  auto fence = []() {};
+#else
+  auto fence = [this]() { std::lock_guard<std::mutex> lock(m_instance_mutex); };
+#endif
+  if (Kokkos::Tools::profileLibraryLoaded()) {
+    Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(
+        name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1},
+        fence);  // TODO: correct device ID
+  } else {
+    fence();
+  }
+#ifndef KOKKOS_ENABLE_ATOMICS_BYPASS
+  Kokkos::memory_fence();
+#endif
+}
+
+SerialInternal::~SerialInternal() {
+  fence("Kokkos::SerialInternal: fence on destruction");
+
   if (m_thread_team_data.scratch_buffer()) {
     m_thread_team_data.disband_team();
     m_thread_team_data.disband_pool();
@@ -67,8 +76,6 @@ void SerialInternal::finalize() {
     m_thread_team_data.scratch_assign(nullptr, 0, 0, 0, 0, 0);
   }
 
-  m_is_initialized = false;
-
   // guard erasing from all_instances
   {
     std::scoped_lock lock(all_instances_mutex);
@@ -79,14 +86,6 @@ void SerialInternal::finalize() {
     std::swap(*it, all_instances.back());
     all_instances.pop_back();
   }
-}
-
-SerialInternal& SerialInternal::singleton() {
-  static SerialInternal* self = nullptr;
-  if (!self) {
-    self = new SerialInternal();
-  }
-  return *self;
 }
 
 // Resize thread team data scratch memory
@@ -156,17 +155,19 @@ void SerialInternal::resize_thread_team_data(size_t pool_reduce_bytes,
 }
 }  // namespace Impl
 
+Serial::~Serial() {
+  Impl::check_execution_space_destructor_precondition(name());
+}
+
 Serial::Serial()
-    : m_space_instance(&Impl::SerialInternal::singleton(),
-                       [](Impl::SerialInternal*) {}) {}
+    : m_space_instance(
+          (Impl::check_execution_space_constructor_precondition(name()),
+           Impl::SerialInternal::default_instance)) {}
 
 Serial::Serial(NewInstance)
-    : m_space_instance(new Impl::SerialInternal, [](Impl::SerialInternal* ptr) {
-        ptr->finalize();
-        delete ptr;
-      }) {
-  m_space_instance->initialize();
-}
+    : m_space_instance(
+          (Impl::check_execution_space_constructor_precondition(name()),
+           new Impl::SerialInternal)) {}
 
 void Serial::print_configuration(std::ostream& os, bool /*verbose*/) const {
   os << "Host Serial Execution Space:\n";
@@ -179,15 +180,14 @@ void Serial::print_configuration(std::ostream& os, bool /*verbose*/) const {
   os << "\nSerial Runtime Configuration:\n";
 }
 
-bool Serial::impl_is_initialized() {
-  return Impl::SerialInternal::singleton().is_initialized();
-}
-
 void Serial::impl_initialize(InitializationSettings const&) {
-  Impl::SerialInternal::singleton().initialize();
+  Impl::SerialInternal::default_instance =
+      Impl::HostSharedPtr(new Impl::SerialInternal);
 }
 
-void Serial::impl_finalize() { Impl::SerialInternal::singleton().finalize(); }
+void Serial::impl_finalize() {
+  Impl::SerialInternal::default_instance = nullptr;
+}
 
 const char* Serial::name() { return "Serial"; }
 

@@ -154,7 +154,7 @@ void KimQuery::command(int narg, char **arg)
     // if the model name is not provided by the user
     if (model_name.empty()) {
       // check if we had a kim init command by finding fix STORE/KIM
-      auto fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
+      auto *fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
       if (fix_store) {
         char *model_name_c = (char *) fix_store->getptr("model_name");
         model_name = model_name_c;
@@ -270,7 +270,7 @@ namespace {
 // copy data to the user provided data structure, optionally in increments
 size_t write_callback(void *data, size_t size, size_t nmemb, void *userp)
 {
-  auto buf = (WriteBuf *) userp;
+  auto *buf = (WriteBuf *) userp;
 
   // copy chunks into the buffer for as long as there is space left
   if (buf->sizeleft) {

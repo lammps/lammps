@@ -96,7 +96,7 @@ void EwaldDipoleSpin::init()
   pair_check();
 
   int itmp;
-  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
@@ -448,7 +448,7 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
     if (slabflag != 2) f[i][2] += spscale * ek[i][2];
     fm_long[i][0] += spscale2 * tk[i][0];
     fm_long[i][1] += spscale2 * tk[i][1];
-    if (slabflag != 2) fm_long[i][2] += spscale2 * tk[i][3];
+    if (slabflag != 2) fm_long[i][2] += spscale2 * tk[i][2];
   }
 
   // sum global energy across Kspace vevs and add in volume-dependent term

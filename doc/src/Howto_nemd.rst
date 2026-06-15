@@ -35,6 +35,14 @@ occur many times.
 In a NEMD simulation, the "remap" option of :doc:`fix deform <fix_deform>` should be set to "remap v", since that is what
 :doc:`fix nvt/sllod <fix_nvt_sllod>` assumes to generate a velocity
 profile consistent with the applied shear strain rate.
+Alternatively, if the laboratory-frame velocity is not required
+(e.g. if only calculating viscosity), atom velocities can be stored in the
+peculiar frame using the "peculiar yes" flag of :doc:`fix nvt/sllod <fix_nvt_sllod>`,
+which will typically give better performance.
+In this case, the velocity reported by LAMMPS is the velocity relative to the flow,
+the "remap" option of :doc:`fix deform <fix_deform>` should be set to "remap none",
+and :doc:`fix nvt/sllod <fix_nvt_sllod>` calculates temperature using
+:doc:`compute temp <compute_temp>`.
 
 An alternative method for calculating viscosities is provided via the
 :doc:`fix viscosity <fix_viscosity>` command.

@@ -26,6 +26,7 @@
 #include "error.h"
 
 #include <cstring>
+#include <map>
 
 using namespace LAMMPS_NS;
 
@@ -231,14 +232,6 @@ int DumpCFG::convert_string(int n, double *mybuf)
 void DumpCFG::write_data(int n, double *mybuf)
 {
   (this->*write_choice)(n,mybuf);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpCFG::write_string(int n, double *mybuf)
-{
-  if (mybuf)
-    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */

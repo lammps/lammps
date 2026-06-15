@@ -43,6 +43,7 @@ DihedralCosineShiftExp::DihedralCosineShiftExp(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralCosineShiftExp::~DihedralCosineShiftExp()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(umin);

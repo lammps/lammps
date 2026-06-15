@@ -338,7 +338,7 @@ void PairMEAMKokkos<DeviceType>::init_style()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairMEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_xfloat_1d &buf,
+int PairMEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_double_1d &buf,
                                 int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
@@ -350,6 +350,7 @@ int PairMEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackForwardComm, const int &i) const {
   int j = d_sendlist(i);
@@ -404,7 +405,7 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackForwardComm, const in
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairMEAMKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+void PairMEAMKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_double_1d &buf)
 {
   first = first_in;
   v_buf = buf.view<DeviceType>();
@@ -414,6 +415,7 @@ void PairMEAMKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMUnpackForwardComm, const int &i) const{
   //int m = i*38;
@@ -656,7 +658,7 @@ void PairMEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *b
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairMEAMKokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+int PairMEAMKokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first_in, DAT::tdual_double_1d &buf)
 {
   first = first_in;
   v_buf = buf.view<DeviceType>();
@@ -668,6 +670,7 @@ int PairMEAMKokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first_in, DA
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackReverseComm, const int &i) const {
   //int m = i*30;
@@ -781,7 +784,7 @@ int PairMEAMKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairMEAMKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_xfloat_1d &buf)
+void PairMEAMKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_double_1d &buf)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
   v_buf = buf.view<DeviceType>();
@@ -791,6 +794,7 @@ void PairMEAMKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_in
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMUnpackReverseComm, const int &i) const {
   int j = d_sendlist(i);
@@ -924,6 +928,7 @@ void PairMEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *b
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMNeighStrip, const int &ii) const {
 
@@ -939,6 +944,7 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMNeighStrip, const int &ii
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMOffsets, const int ii, int &n) const {
   const int i = d_ilist_half[ii];

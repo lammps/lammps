@@ -50,6 +50,23 @@ static constexpr double SMALL = 0.00001;
 static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
+static inline double auto_slab_volfactor(double accuracy, double two_charge_force,
+                                         double alpha, double xprd, double yprd, double zprd,
+                                         Error *error)
+{
+  if (alpha <= 0.0) error->all(FLERR, "kspace_modify slab auto requires a positive gewald");
+
+  const double force_tolerance = accuracy / two_charge_force;
+  if (!(force_tolerance > 0.0 && force_tolerance < 1.0))
+    error->all(FLERR,
+               "kspace_modify slab auto requires a normalized force tolerance between 0 and 1");
+
+  const double logeps = log(1.0 / force_tolerance);
+  const double lateral = MAX(xprd, yprd) * logeps / MY_2PI;
+  const double reciprocal = sqrt(logeps) / alpha;
+  return MAX((zprd + MAX(lateral, reciprocal)) / zprd, 1.0);
+}
+
 /* ---------------------------------------------------------------------- */
 
 PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
@@ -70,6 +87,7 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
   pppmflag = 1;
   group_group_enable = 1;
   triclinic = domain->triclinic;
+  g_ewald_ready = 0;
 
   nfactors = 3;
   factors = new int[nfactors];
@@ -167,7 +185,7 @@ PPPM::~PPPM()
 {
   if (copymode) return;
 
-  delete [] factors;
+  delete[] factors;
   PPPM::deallocate();
   if (peratom_allocate_flag) PPPM::deallocate_peratom();
   if (group_allocate_flag) PPPM::deallocate_groups();
@@ -221,7 +239,7 @@ void PPPM::init()
   pair_check();
 
   int itmp = 0;
-  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -234,7 +252,7 @@ void PPPM::init()
   if (tip4pflag) {
     if (me == 0) utils::logmesg(lmp,"  extracting TIP4P info from pair style\n");
 
-    auto p_qdist = (double *) force->pair->extract("qdist",itmp);
+    auto *p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
     int *p_typeH = (int *) force->pair->extract("typeH",itmp);
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
@@ -279,6 +297,29 @@ void PPPM::init()
   if (peratom_allocate_flag) deallocate_peratom();
   if (group_allocate_flag) deallocate_groups();
 
+  const double xprd = domain->xprd;
+  const double yprd = domain->yprd;
+  const double zprd = domain->zprd;
+  bigint natoms = atom->natoms;
+  if (natoms == 0) natoms = 1;
+
+  g_ewald_ready = 0;
+  if (!gewaldflag) {
+    if (accuracy <= 0.0)
+      error->all(FLERR,"KSpace accuracy must be > 0");
+    if (q2 == 0.0)
+      error->all(FLERR,"Must use 'kspace_modify gewald' for uncharged system");
+    g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
+    if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
+    else g_ewald = sqrt(-log(g_ewald)) / cutoff;
+    g_ewald_ready = 1;
+  }
+
+  const bool slab_auto_enabled = (slabflag == 1 && slab_auto);
+  if (slab_auto_enabled)
+    slab_volfactor = auto_slab_volfactor(accuracy, two_charge_force, g_ewald, xprd, yprd, zprd,
+                                         error);
+
   // setup FFT grid resolution and g_ewald
   // normally one iteration thru while loop is all that is required
   // if grid stencil does not extend beyond neighbor proc
@@ -286,48 +327,70 @@ void PPPM::init()
   // else reduce order and try again
 
   gc = nullptr;
-  int iteration = 0;
+  const int requested_order = order;
+  int slab_iterations = 0;
 
-  while (order >= minorder) {
-    if (iteration && me == 0)
-      error->warning(FLERR,"Reducing PPPM order b/c stencil extends "
-                     "beyond nearest neighbor processor");
+  while (true) {
+    int iteration = 0;
+    order = requested_order;
 
-    if (stagger_flag && !differentiation_flag) compute_gf_denom();
-    set_grid_global();
-    set_grid_local();
-    if (overlap_allowed) break;
+    while (order >= minorder) {
+      if (iteration && me == 0)
+        error->warning(FLERR,"Reducing PPPM order b/c stencil extends "
+                       "beyond nearest neighbor processor");
 
-    gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
-    gc->set_distance(0.5*neighbor->skin + qdist);
-    gc->set_stencil_atom(-nlower,nupper);
-    gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
-    gc->set_zfactor(slab_volfactor);
+      if (stagger_flag && !differentiation_flag) compute_gf_denom();
+      set_grid_global();
+      set_grid_local();
+      if (overlap_allowed) break;
 
-    gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+      gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
+      gc->set_distance(0.5*neighbor->skin + qdist);
+      gc->set_stencil_atom(-nlower,nupper);
+      gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
+      gc->set_zfactor(slab_volfactor);
 
-    int tmp1,tmp2;
-    gc->setup_comm(tmp1,tmp2);
-    if (gc->ghost_adjacent()) break;
-    delete gc;
+      gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                     nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
-    order--;
-    iteration++;
+      int tmp1,tmp2;
+      gc->setup_comm(tmp1,tmp2);
+      if (gc->ghost_adjacent()) break;
+      delete gc;
+      gc = nullptr;
+
+      order--;
+      iteration++;
+    }
+
+    if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
+    if (!overlap_allowed && !gc->ghost_adjacent())
+      error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
+    if (gc) {
+      delete gc;
+      gc = nullptr;
+    }
+
+    // adjust g_ewald
+
+    if (!gewaldflag) adjust_gewald();
+    if (!slab_auto_enabled) break;
+
+    const double old_slab_volfactor = slab_volfactor;
+    const double new_slab_volfactor = auto_slab_volfactor(accuracy, two_charge_force, g_ewald,
+                                                          xprd, yprd, zprd, error);
+    if (fabs(new_slab_volfactor - old_slab_volfactor) <= SMALL * new_slab_volfactor) break;
+    slab_volfactor = new_slab_volfactor;
+
+    slab_iterations++;
+    if (slab_iterations > 5)
+      error->all(FLERR, "Could not converge kspace_modify slab auto");
   }
-
-  if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
-  if (!overlap_allowed && !gc->ghost_adjacent())
-    error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
-  if (gc) delete gc;
-
-  // adjust g_ewald
-
-  if (!gewaldflag) adjust_gewald();
 
   // calculate the final accuracy
 
   double estimated_accuracy = final_accuracy();
+  g_ewald_ready = 0;
 
   // allocate K-space dependent memory
   // don't invoke allocate peratom() or group(), will be allocated when needed
@@ -351,6 +414,10 @@ void PPPM::init()
     std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
     mesg += fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
     mesg += fmt::format("  stencil order = {}\n",order);
+    if (slabflag == 1 && slab_auto) {
+      mesg += fmt::format("  auto slab volfactor = {:.8g}\n", slab_volfactor);
+      mesg += fmt::format("  auto slab extended z = {:.8g}\n", zprd * slab_volfactor);
+    }
     mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
                        estimated_accuracy);
     mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
@@ -837,17 +904,17 @@ void PPPM::allocate()
   fft1 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                   0,0,&tmp,collective_flag);
+                   0,0,&tmp,collective_flag,nonblocking_flag);
 
   fft2 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   0,0,&tmp,collective_flag);
+                   0,0,&tmp,collective_flag,nonblocking_flag);
 
   remap = new Remap(lmp,world,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                    1,0,0,FFT_PRECISION,collective_flag);
+                    1,0,0,FFT_PRECISION,collective_flag,nonblocking_flag);
 }
 
 /* ----------------------------------------------------------------------
@@ -984,12 +1051,13 @@ void PPPM::set_grid_global()
 
   double h;
   bigint natoms = atom->natoms;
+  if (natoms == 0) natoms = 1;
 
-  if (!gewaldflag) {
+  if (!gewaldflag && !g_ewald_ready) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
     if (q2 == 0.0)
-      error->all(FLERR,"Must use kspace_modify gewald for uncharged system");
+      error->all(FLERR,"Must use 'kspace_modify gewald' for uncharged system");
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
     if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
     else g_ewald = sqrt(-log(g_ewald)) / cutoff;
@@ -1382,20 +1450,12 @@ void PPPM::set_grid_local()
   // npey_fft,npez_fft = # of procs in y,z dims
   // if nprocs is small enough, proc can own 1 or more entire xy planes,
   //   else proc owns 2d sub-blocks of yz plane
-  //   NOTE: commented out lines support this
-  //     need to ensure fft3d.cpp and remap.cpp support 2D planes
   // me_y,me_z = which proc (0-npe_fft-1) I am in y,z dimensions
   // nlo_fft,nhi_fft = lower/upper limit of the section
   //   of the global FFT mesh that I own in x-pencil decomposition
 
-  int npey_fft,npez_fft;
-
-  //if (nz_pppm >= nprocs) {
-  //  npey_fft = 1;
-  //  npez_fft = nprocs;
-  //} else procs2grid2d(nprocs,ny_pppm,nz_pppm,&npey_fft,&npez_fft);
-
-  procs2grid2d(nprocs,ny_pppm,nz_pppm,&npey_fft,&npez_fft);
+  int npey_fft = 1, npez_fft = nprocs;
+  procs2grid2d(nprocs, ny_pppm, nz_pppm, npey_fft, npez_fft);
 
   int me_y = me % npey_fft;
   int me_z = me / npey_fft;
@@ -1732,21 +1792,21 @@ void PPPM::compute_sf_precoeff()
 
           qx0 = MY_2PI*(kper+nx_pppm*(i-2));
           qx1 = MY_2PI*(kper+nx_pppm*(i-1));
-          qx2 = MY_2PI*(kper+nx_pppm*(i  ));
+          qx2 = MY_2PI*(kper+nx_pppm*i);
           wx0[i] = powsinxx(0.5*qx0/nx_pppm,order);
           wx1[i] = powsinxx(0.5*qx1/nx_pppm,order);
           wx2[i] = powsinxx(0.5*qx2/nx_pppm,order);
 
           qy0 = MY_2PI*(lper+ny_pppm*(i-2));
           qy1 = MY_2PI*(lper+ny_pppm*(i-1));
-          qy2 = MY_2PI*(lper+ny_pppm*(i  ));
+          qy2 = MY_2PI*(lper+ny_pppm*i);
           wy0[i] = powsinxx(0.5*qy0/ny_pppm,order);
           wy1[i] = powsinxx(0.5*qy1/ny_pppm,order);
           wy2[i] = powsinxx(0.5*qy2/ny_pppm,order);
 
           qz0 = MY_2PI*(mper+nz_pppm*(i-2));
           qz1 = MY_2PI*(mper+nz_pppm*(i-1));
-          qz2 = MY_2PI*(mper+nz_pppm*(i  ));
+          qz2 = MY_2PI*(mper+nz_pppm*i);
 
           wz0[i] = powsinxx(0.5*qz0/nz_pppm,order);
           wz1[i] = powsinxx(0.5*qz1/nz_pppm,order);
@@ -2556,7 +2616,7 @@ void PPPM::fieldforce_peratom()
 
 void PPPM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2616,7 +2676,7 @@ void PPPM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2676,7 +2736,7 @@ void PPPM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO) {
     FFT_SCALAR *src = &density_brick[nzlo_out][nylo_out][nxlo_out];
@@ -2691,7 +2751,7 @@ void PPPM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPM::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO) {
     FFT_SCALAR *dest = &density_brick[nzlo_out][nylo_out][nxlo_out];
@@ -2704,7 +2764,7 @@ void PPPM::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
    map nprocs to NX by NY grid as PX by PY procs - return optimal px,py
 ------------------------------------------------------------------------- */
 
-void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
+void PPPM::procs2grid2d(int nprocs, int nx, int ny, int &px, int &py)
 {
   // loop thru all possible factorizations of nprocs
   // surf = surface area of largest proc sub-domain
@@ -2725,13 +2785,12 @@ void PPPM::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
       boxy = ny/ipy;
       if (ny % ipy) boxy++;
       surf = boxx + boxy;
-      if (surf < bestsurf ||
-          (surf == bestsurf && boxx*boxy > bestboxx*bestboxy)) {
+      if ((surf < bestsurf) || ((surf == bestsurf) && (boxx*boxy > bestboxx*bestboxy))) {
         bestsurf = surf;
         bestboxx = boxx;
         bestboxy = boxy;
-        *px = ipx;
-        *py = ipy;
+        px = ipx;
+        py = ipy;
       }
     }
     ipx++;

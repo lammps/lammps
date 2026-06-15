@@ -64,34 +64,34 @@ public:
   //Virtual functions overwriting the kokkos virtual functions in Pair. The
   //virtual functions call the templated versions using the work-around cache
   //variables below
-  int pack_forward_comm_kokkos(int nv, DAT::tdual_int_1d iii, DAT::tdual_xfloat_1d &fill,
+  int pack_forward_comm_kokkos(int nv, DAT::tdual_int_1d iii, DAT::tdual_double_1d &fill,
                                int int2, int *intp) override;
   template <typename CommType>
-  int pack_forward_comm_kokkos(int nv, DAT::tdual_int_1d iii, DAT::tdual_xfloat_1d &fill,
+  int pack_forward_comm_kokkos(int nv, DAT::tdual_int_1d iii, DAT::tdual_double_1d &fill,
                                int int2, int *intp, CommType *copy_to);
   int pack_forward_comm(int, int *, double *, int, int *) override;
   template <typename CommType>
   int pack_forward_comm(int, int *, double *, int, int *, CommType *copy_to) ;
 
-  void unpack_forward_comm_kokkos(int nv, int first_up, DAT::tdual_xfloat_1d& fill) override;
+  void unpack_forward_comm_kokkos(int nv, int first_up, DAT::tdual_double_1d& fill) override;
   template <typename CommType>
-  void unpack_forward_comm_kokkos(int nv, int first_up, DAT::tdual_xfloat_1d& fill, CommType *copy_to);
+  void unpack_forward_comm_kokkos(int nv, int first_up, DAT::tdual_double_1d& fill, CommType *copy_to);
 
   void unpack_forward_comm(int, int, double *) override;
   template <typename CommType>
   void unpack_forward_comm(int, int, double *, CommType *copy_to);
 
-  int pack_reverse_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  int pack_reverse_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
   template <typename CommType>
-  int pack_reverse_comm_kokkos(int, int, DAT::tdual_xfloat_1d&, CommType *copy_to);
+  int pack_reverse_comm_kokkos(int, int, DAT::tdual_double_1d&, CommType *copy_to);
 
   int pack_reverse_comm(int, int, double *) override;
   template <typename CommType>
   int pack_reverse_comm(int, int, double *,CommType *copy_to);
 
-  void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d idx,DAT::tdual_xfloat_1d& buf) override;
+  void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d idx,DAT::tdual_double_1d &buf) override;
   template <typename CommType>
-  void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d idx,DAT::tdual_xfloat_1d& buf, CommType *copy_to);
+  void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d idx,DAT::tdual_double_1d &buf, CommType *copy_to);
   void unpack_reverse_comm(int, int *, double *)override;
   template <typename CommType>
   void unpack_reverse_comm(int, int *, double *,CommType *copy_to);
@@ -104,15 +104,15 @@ public:
   enum class COMM_TYPE {FLOAT=0, DOUBLE, UNSET} comm_type;
   int vec_len;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_x_array_randomread v;
-  typename AT::t_f_array f;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkfloat_1d_3_randomread v;
+  typename AT::t_kkacc_1d_3 f;
   DAT::tdual_int_1d k_map;
-  DAT::tdual_double_2d k_cutsq;
-  DAT::tdual_double_2d k_cutghost;
-  DAT::tdual_int_2d k_setflag;
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_double_2d k_vatom;
+  DAT::tdual_double_2d_lr k_cutsq;
+  DAT::tdual_double_2d_lr k_cutghost;
+  DAT::tdual_int_2d_lr k_setflag;
+  DAT::tdual_double_1d k_eatom;
+  DAT::tdual_double_2d_lr k_vatom;
 
 
   friend void pair_virial_fdotr_compute<PairMLIAPKokkos>(PairMLIAPKokkos*);

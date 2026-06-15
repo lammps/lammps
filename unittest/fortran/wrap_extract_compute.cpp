@@ -1,11 +1,8 @@
 // unit tests for extracting compute data from a LAMMPS instance through the
 // Fortran wrapper
 
-#include "lammps.h"
 #include "library.h"
-#include <cstdint>
-#include <cstdlib>
-#include <mpi.h>
+
 #include <string>
 
 #include "gtest/gtest.h"
@@ -22,6 +19,11 @@ double f_lammps_extract_compute_global_vector(int);
 double f_lammps_extract_compute_global_array(int, int);
 double f_lammps_extract_compute_local_vector(int);
 double f_lammps_extract_compute_local_array(int, int);
+}
+
+// forward decl
+namespace LAMMPS_NS {
+class LAMMPS;
 }
 
 class LAMMPS_extract_compute : public ::testing::Test {

@@ -12,16 +12,12 @@ Syntax
 
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
-* keyword = *bodyforces* or *colname* or *dynamic/dof* or *energy* or *pad* or *press* or *respa* or *temp* or *virial*
+* keyword = *bodyforces* or *dynamic/dof* or *energy* or *pad* or *press* or *respa* or *temp* or *virial* or *kick*
 
   .. parsed-literal::
 
        *bodyforces* value = *early* or *late*
          early/late = compute rigid-body forces/torques early or late in the timestep
-       *colname* values =  ID string
-         string = new column header name
-         ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
-              *or* a fix output property keyword or reference to compute, fix, property or variable.
        *dynamic/dof* value = *yes* or *no*
          yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
        *energy* value = *yes* or *no*
@@ -30,6 +26,8 @@ Syntax
        *respa* value = *1* to *max respa level* or *0* (for outermost level)
        *temp* value = compute ID that calculates a temperature
        *virial* value = *yes* or *no*
+       *vizsteps* value = number of MD steps that generated graphics objects should remain visible for fixes that support it
+       *kick* value = *yes* or *no*
 
 Examples
 """"""""
@@ -39,7 +37,7 @@ Examples
    fix_modify 3 temp myTemp press myPress
    fix_modify 1 energy yes
    fix_modify tether respa 2
-   fix_modify ave colname c_thermo_press Pressure colname 1 Temperature
+   fix_modify myrxns vizsteps 100
 
 Description
 """""""""""
@@ -158,7 +156,7 @@ communicated among processors), or *late* at the final-integrate stage
 of each timestep (after any other fixes have finished their post-force
 tasks).  Only the rigid-body integration fixes use this option, which
 includes :doc:`fix rigid <fix_rigid>` and :doc:`fix rigid/small
-<fix_rigid>`, and their variants, and also :doc:`fix poems <fix_poems>`.
+<fix_rigid>`, and their variants.
 
 The default is *late*\ .  If there are other fixes that add forces to
 individual atoms, then the rigid-body constraints will include these
@@ -172,19 +170,6 @@ will have no effect on the motion of the rigid bodies if they are
 specified in the input script after the fix rigid command.  LAMMPS
 will give a warning if that is the case.
 
-
-The *colname* keyword can be used to change the default header keywords
-in output files of fix styles that support it: currently only :doc:`fix
-ave/time <fix_ave_time>` is supported.  The setting for *ID string*
-replaces the default text with the provided string.  *ID* can be a
-positive integer when it represents the column number counting from the
-left, a negative integer when it represents the column number from the
-right (i.e. -1 is the last column/keyword), or a custom fix output
-keyword (or compute, fix, property, or variable reference) and then it
-replaces the string for that specific keyword. The *colname* keyword can
-be used multiple times. If multiple *colname* settings refer to the same
-keyword, the last setting has precedence.
-
 .. versionadded:: 2Apr2025
 
 The *pad* keyword only applies when a fix produces a file and the output
@@ -197,6 +182,21 @@ is padded with leading zeroes so they are all the same length = *Nchar*\
 be useful so that post-processing programs can easily read the files in
 ascending timestep order.  Please see the documentation of the individual
 fix styles if this keyword is supported.
+
+.. versionadded:: 11Feb2026
+
+The *vizsteps* keyword only applies when a fix produces event based
+graphics objects, e.g. atoms that were involved in a reaction or a Monte
+Carlo swap, move, or insert.  It determines for how many time steps the
+graphics objects will remain visible in the corresponding :doc:`dump
+image output <dump_image>`.
+
+The *kick* keyword can only be used with :doc:`fix nvt/sllod <fix_nvt_sllod>`
+and :doc:`fix nvt/sllod/eff <fix_nvt_sllod_eff>`. If *kick* is *yes* and
+velocity is stored in the laboratory frame, the velocity profile consistent
+with :doc:`fix deform <fix_deform>` will be superimposed at the start of the
+next run.  If velocity is stored in the peculiar frame, the *kick* flag is
+ignored.
 
 Restrictions
 """"""""""""

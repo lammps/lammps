@@ -112,7 +112,7 @@ FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   nmax_previous = 0;
-  grow_arrays(atom->nmax);
+  FixAmoebaBiTorsion::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
@@ -730,22 +730,22 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
 
   FILE *fp = nullptr;
   if (me == 0) {
-    fp = utils::open_potential(bitorsion_file,lmp,nullptr);
+    fp = utils::open_potential(bitorsion_file, lmp, nullptr);
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open fix amoeba/bitorsion file {}: {}",
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open fix amoeba/bitorsion file {}: {}",
                  bitorsion_file, utils::getsyserror());
 
-    eof = fgets(line,MAXLINE,fp);
-    eof = fgets(line,MAXLINE,fp);
+    (void) fgets(line,MAXLINE,fp);
+    (void) fgets(line,MAXLINE,fp);
     eof = fgets(line,MAXLINE,fp);
     if (eof == nullptr)
-      error->one(FLERR,"Unexpected end of fix amoeba/bitorsion file");
+      error->one(FLERR, Error::NOLASTLINE, "Unexpected end of fix amoeba/bitorsion file");
 
     sscanf(line,"%d",&nbitypes);
   }
 
   MPI_Bcast(&nbitypes,1,MPI_INT,0,world);
-  if (nbitypes == 0) error->all(FLERR,"Fix amoeba/bitorsion file has no types");
+  if (nbitypes == 0) error->all(FLERR, Error::NOLASTLINE, "Fix amoeba/bitorsion file has no types");
 
   // allocate data structs
   // type index ranges from 1 to Nbitypes, so allocate one larger
@@ -763,10 +763,10 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
 
   for (int itype = 1; itype <= nbitypes; itype++) {
     if (me == 0) {
-      eof = fgets(line,MAXLINE,fp);
+      (void) fgets(line,MAXLINE,fp);
       eof = fgets(line,MAXLINE,fp);
       if (eof == nullptr)
-        error->one(FLERR,"Unexpected end of fix amoeba/bitorsion file");
+        error->one(FLERR, Error::NOLASTLINE, "Unexpected end of fix amoeba/bitorsion file");
       sscanf(line,"%d %d %d",&tmp,&nx,&ny);
     }
 

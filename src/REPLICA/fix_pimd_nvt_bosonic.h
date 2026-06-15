@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixPIMDBNVT : public FixPIMDNVT {
  public:
   FixPIMDBNVT(class LAMMPS *, int, char **);
-  ~FixPIMDBNVT();
+  ~FixPIMDBNVT() override;
   double compute_vector(int) override;
 
  protected:

@@ -45,7 +45,7 @@ class PairGayBerneIntel : public PairGayBerne {
   void compute(int eflag, int vflag, IntelBuffers<flt_t, acc_t> *buffers,
                const ForceConst<flt_t> &fc);
   template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
-  void eval(const int offload, const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
+  void eval(const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
             const ForceConst<flt_t> &fc, const int astart, const int aend);
 
   template <class flt_t, class acc_t>
@@ -76,13 +76,12 @@ class PairGayBerneIntel : public PairGayBerne {
     int **jtype_form, **jlist_form;
 
     ForceConst() : _ntypes(0) {}
-    ~ForceConst() noexcept(false) { set_ntypes(0, 0, 0, nullptr, _cop); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, 0, 0, nullptr); }
 
-    void set_ntypes(const int ntypes, const int one_length, const int nthreads, Memory *memory,
-                    const int cop);
+    void set_ntypes(const int ntypes, const int one_length, const int nthreads, Memory *memory);
 
    private:
-    int _ntypes, _cop;
+    int _ntypes;
     Memory *_memory;
   };
 
@@ -94,7 +93,6 @@ class PairGayBerneIntel : public PairGayBerne {
                      double *r12, const double rsq, double *fforce, double *ttor);
 
   FixIntel *fix;
-  int _cop;
 };
 
 }    // namespace LAMMPS_NS

@@ -39,7 +39,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_acks2_reax[] =
-  "fix acks2/reaxff command: doi:10.1137/18M1224684\n\n"
+  "fix acks2/reaxff command: https://doi.org/10.1137/18M1224684\n\n"
   "@Article{O'Hearn2020,\n"
   " author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},\n"
   " title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},\n"
@@ -136,7 +136,7 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
     bcut_acks2 = (double *) pair->extract("bcut_acks2",tmp);
-    auto  bond_softness_ptr = (double *) pair->extract("bond_softness",tmp);
+    auto *bond_softness_ptr = (double *) pair->extract("bond_softness",tmp);
 
     if (chi == nullptr || eta == nullptr || gamma == nullptr ||
         bcut_acks2 == nullptr || bond_softness_ptr == nullptr)
@@ -412,12 +412,12 @@ void FixACKS2ReaxFF::init_matvec()
 
 /* ---------------------------------------------------------------------- */
 
-void FixACKS2ReaxFF::compute_X()
+void FixACKS2ReaxFF::compute_X() // NOLINT
 {
   int jnum;
   int i, j, ii, jj, flag;
   double dx, dy, dz, r_sqr;
-  const double SMALL = 0.0001;
+  constexpr double SMALL = 0.0001;
 
   int *type = atom->type;
   tagint *tag = atom->tag;

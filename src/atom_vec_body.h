@@ -25,6 +25,7 @@ AtomStyle(body,AtomVecBody);
 namespace LAMMPS_NS {
 
 class AtomVecBody : public AtomVec {
+ friend class CreateAtoms;
  public:
   class Body *bptr;
 
@@ -77,7 +78,7 @@ class AtomVecBody : public AtomVec {
 
   int nlocal_bonus;
 
- private:
+ protected:
   int *body;
   double *rmass, *radius;
   double **angmom;

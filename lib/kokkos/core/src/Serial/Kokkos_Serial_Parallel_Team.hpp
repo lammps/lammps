@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SERIAL_PARALLEL_TEAM_HPP
 #define KOKKOS_SERIAL_PARALLEL_TEAM_HPP
@@ -122,8 +109,13 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
         m_league_size(league_size_request),
         m_chunk_size(32),
         m_space(space) {
-    if (team_size_request > 1)
-      Kokkos::abort("Kokkos::abort: Requested Team Size is too large!");
+    if (team_size_request > 1) {
+      std::stringstream error;
+      error << "Kokkos::TeamPolicy<Serial>: Requested too large team size. "
+               "Requested: "
+            << team_size_request << ", Maximum: 1";
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
   }
 
   TeamPolicyInternal(const execution_space& space, int league_size_request,
@@ -169,6 +161,12 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
       : TeamPolicyInternal(typename traits::execution_space(),
                            league_size_request, team_size_request,
                            vector_length_request) {}
+
+  TeamPolicyInternal(const PolicyUpdate, const TeamPolicyInternal& other,
+                     typename traits::execution_space space)
+      : TeamPolicyInternal(other) {
+    this->m_space = std::move(space);
+  }
 
   inline int chunk_size() const { return m_chunk_size; }
 
@@ -269,9 +267,32 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)
       : m_functor(arg_functor),
         m_policy(arg_policy),
-        m_league(arg_policy.league_size()),
-        m_shared(arg_policy.scratch_size(0) + arg_policy.scratch_size(1) +
-                 FunctorTeamShmemSize<FunctorType>::value(arg_functor, 1)) {}
+        m_league(m_policy.league_size()),
+        m_shared(m_policy.scratch_size(0) + m_policy.scratch_size(1) +
+                 FunctorTeamShmemSize<FunctorType>::value(
+                     m_functor, m_policy.team_size())) {
+    if ((m_policy.scratch_size(0) + FunctorTeamShmemSize<FunctorType>::value(
+                                        m_functor, m_policy.team_size())) >
+        static_cast<size_t>(TeamPolicy<Kokkos::Serial>::scratch_size_max(0))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<Serial>: Requested too much scratch "
+               "memory on level 0. Requested: "
+            << m_policy.scratch_size(0) +
+                   FunctorTeamShmemSize<FunctorType>::value(
+                       m_functor, m_policy.team_size())
+            << ", Maximum: " << TeamPolicy<Kokkos::Serial>::scratch_size_max(0);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
+    if (m_policy.scratch_size(1) >
+        static_cast<size_t>(TeamPolicy<Kokkos::Serial>::scratch_size_max(1))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<Serial>: Requested too much scratch "
+               "memory on level 1. Requested: "
+            << m_policy.scratch_size(1)
+            << ", Maximum: " << TeamPolicy<Kokkos::Serial>::scratch_size_max(1);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
+  }
 };
 
 /*--------------------------------------------------------------------------*/
@@ -364,7 +385,7 @@ class ParallelReduce<CombinedFunctorReducerType,
         m_result_ptr(arg_result.data()),
         m_shared(arg_policy.scratch_size(0) + arg_policy.scratch_size(1) +
                  FunctorTeamShmemSize<FunctorType>::value(
-                     m_functor_reducer.get_functor(), 1)) {
+                     m_functor_reducer.get_functor(), m_policy.team_size())) {
     static_assert(Kokkos::is_view<ViewType>::value,
                   "Reduction result on Kokkos::Serial must be a Kokkos::View");
 
@@ -373,6 +394,28 @@ class ParallelReduce<CombinedFunctorReducerType,
                                         Kokkos::HostSpace>::accessible,
         "Kokkos::Serial reduce result must be a View accessible from "
         "HostSpace");
+    if ((arg_policy.scratch_size(0) +
+         FunctorTeamShmemSize<FunctorType>::value(
+             m_functor_reducer.get_functor(), arg_policy.team_size())) >
+        static_cast<size_t>(TeamPolicy<Kokkos::Serial>::scratch_size_max(0))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_reduce<Serial>: Requested too much scratch "
+               "memory on level 0. Requested: "
+            << arg_policy.scratch_size(0) +
+                   FunctorTeamShmemSize<FunctorType>::value(
+                       m_functor_reducer.get_functor(), arg_policy.team_size())
+            << ", Maximum: " << TeamPolicy<Kokkos::Serial>::scratch_size_max(0);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
+    if (arg_policy.scratch_size(1) >
+        static_cast<size_t>(TeamPolicy<Kokkos::Serial>::scratch_size_max(1))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_reduce<Serial>: Requested too much scratch "
+               "memory on level 1. Requested: "
+            << arg_policy.scratch_size(1)
+            << ", Maximum: " << TeamPolicy<Kokkos::Serial>::scratch_size_max(1);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
   }
 };
 

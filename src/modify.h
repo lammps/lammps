@@ -105,7 +105,7 @@ class Modify : protected Pointers {
 
   Fix *add_fix(int, char **, int trysuffix = 1);
   Fix *add_fix(const std::string &, int trysuffix = 1);
-  Fix *replace_fix(const char *, int, char **, int trysuffix = 1);
+  Fix *replace_fix(const std::string &, int, char **, int trysuffix = 1);
   Fix *replace_fix(const std::string &, const std::string &, int trysuffix = 1);
   void modify_fix(int, char **);
   void delete_fix(const std::string &);
@@ -114,9 +114,9 @@ class Modify : protected Pointers {
   // deprecated API
   int find_fix(const std::string &);
   // new API
-  Fix *get_fix_by_id(const std::string &) const;
-  Fix *get_fix_by_index(int idx) const { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
-  const std::vector<Fix *> get_fix_by_style(const std::string &) const;
+  [[nodiscard]] Fix *get_fix_by_id(const std::string &) const;
+  [[nodiscard]] Fix *get_fix_by_index(int idx) const { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
+  [[nodiscard]] const std::vector<Fix *> get_fix_by_style(const std::string &) const;
   const std::vector<Fix *> &get_fix_list();
   int get_fix_mask(Fix *ifix) const
   {
@@ -135,12 +135,12 @@ class Modify : protected Pointers {
   // deprecated API
   int find_compute(const std::string &);
   // new API
-  Compute *get_compute_by_id(const std::string &) const;
-  Compute *get_compute_by_index(int idx) const
+  [[nodiscard]] Compute *get_compute_by_id(const std::string &) const;
+  [[nodiscard]] Compute *get_compute_by_index(int idx) const
   {
     return ((idx >= 0) && (idx < ncompute)) ? compute[idx] : nullptr;
   }
-  const std::vector<Compute *> get_compute_by_style(const std::string &) const;
+  [[nodiscard]] const std::vector<Compute *> get_compute_by_style(const std::string &) const;
   const std::vector<Compute *> &get_compute_list();
 
   void clearstep_compute();
@@ -210,12 +210,12 @@ class Modify : protected Pointers {
   void list_init_compute();
 
  public:
-  typedef Compute *(*ComputeCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string, ComputeCreator> ComputeCreatorMap;
+  using ComputeCreator = Compute *(*) (LAMMPS *, int, char **);
+  using ComputeCreatorMap = std::map<std::string, ComputeCreator>;
   ComputeCreatorMap *compute_map;
 
-  typedef Fix *(*FixCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string, FixCreator> FixCreatorMap;
+  using FixCreator = Fix *(*) (LAMMPS *, int, char **);
+  using FixCreatorMap = std::map<std::string, FixCreator>;
   FixCreatorMap *fix_map;
 
  protected:

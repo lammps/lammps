@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <fstream>
 #include <gtest/gtest.h>
@@ -29,7 +16,7 @@ struct TestExponentialIntergral1Function {
   using HostViewType = Kokkos::View<double*, Kokkos::HostSpace>;
 
   ViewType d_x, d_expint;
-  typename ViewType::HostMirror h_x, h_expint;
+  typename ViewType::host_mirror_type h_x, h_expint;
   HostViewType h_ref;
 
   void testit() {
@@ -105,11 +92,11 @@ struct TestComplexErrorFunction {
   using DblHostViewType = Kokkos::View<double*, Kokkos::HostSpace>;
 
   ViewType d_z, d_erf, d_erfcx;
-  typename ViewType::HostMirror h_z, h_erf, h_erfcx;
+  typename ViewType::host_mirror_type h_z, h_erf, h_erfcx;
   HostViewType h_ref_erf, h_ref_erfcx;
 
   DblViewType d_x, d_erfcx_dbl;
-  typename DblViewType::HostMirror h_x, h_erfcx_dbl;
+  typename DblViewType::host_mirror_type h_x, h_erfcx_dbl;
   DblHostViewType h_ref_erfcx_dbl;
 
   void testit() {
@@ -453,11 +440,11 @@ struct TestComplexBesselJ0Y0Function {
       Kokkos::View<Kokkos::complex<double>*, Kokkos::HostSpace>;
 
   ViewType d_z, d_cbj0, d_cby0;
-  typename ViewType::HostMirror h_z, h_cbj0, h_cby0;
+  typename ViewType::host_mirror_type h_z, h_cbj0, h_cby0;
   HostViewType h_ref_cbj0, h_ref_cby0;
 
   ViewType d_z_large, d_cbj0_large, d_cby0_large;
-  typename ViewType::HostMirror h_z_large, h_cbj0_large, h_cby0_large;
+  typename ViewType::host_mirror_type h_z_large, h_cbj0_large, h_cby0_large;
   HostViewType h_ref_cbj0_large, h_ref_cby0_large;
 
   void testit() {
@@ -505,12 +492,7 @@ struct TestComplexBesselJ0Y0Function {
     Kokkos::deep_copy(d_z, h_z);
 
     // Call Bessel functions
-#if (HIP_VERSION_MAJOR == 5) && (HIP_VERSION_MINOR == 4)
-    using Property =
-        Kokkos::Experimental::WorkItemProperty::ImplForceGlobalLaunch_t;
-#else
     using Property = Kokkos::Experimental::WorkItemProperty::None_t;
-#endif
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, Property>(0, N), *this);
     Kokkos::fence();
 
@@ -749,11 +731,11 @@ struct TestComplexBesselJ1Y1Function {
       Kokkos::View<Kokkos::complex<double>*, Kokkos::HostSpace>;
 
   ViewType d_z, d_cbj1, d_cby1;
-  typename ViewType::HostMirror h_z, h_cbj1, h_cby1;
+  typename ViewType::host_mirror_type h_z, h_cbj1, h_cby1;
   HostViewType h_ref_cbj1, h_ref_cby1;
 
   ViewType d_z_large, d_cbj1_large, d_cby1_large;
-  typename ViewType::HostMirror h_z_large, h_cbj1_large, h_cby1_large;
+  typename ViewType::host_mirror_type h_z_large, h_cbj1_large, h_cby1_large;
   HostViewType h_ref_cbj1_large, h_ref_cby1_large;
 
   void testit() {
@@ -801,12 +783,7 @@ struct TestComplexBesselJ1Y1Function {
     Kokkos::deep_copy(d_z, h_z);
 
     // Call Bessel functions
-#if (HIP_VERSION_MAJOR == 5) && (HIP_VERSION_MINOR == 4)
-    using Property =
-        Kokkos::Experimental::WorkItemProperty::ImplForceGlobalLaunch_t;
-#else
     using Property = Kokkos::Experimental::WorkItemProperty::None_t;
-#endif
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, Property>(0, N), *this);
     Kokkos::fence();
 
@@ -912,7 +889,9 @@ struct TestComplexBesselJ1Y1Function {
     }
 
 // FIXME_SYCL Failing for Intel GPUs
-#if !(defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU))
+#if !(defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)) || \
+    (defined(KOKKOS_COMPILER_INTEL_LLVM) &&                             \
+     KOKKOS_COMPILER_INTEL_LLVM >= 20250004)
     EXPECT_EQ(h_ref_cby1(0), h_cby1(0));
     for (int i = 1; i < N; i++) {
       EXPECT_LE(Kokkos::abs(h_cby1(i) - h_ref_cby1(i)),
@@ -1048,11 +1027,11 @@ struct TestComplexBesselI0K0Function {
       Kokkos::View<Kokkos::complex<double>*, Kokkos::HostSpace>;
 
   ViewType d_z, d_cbi0, d_cbk0;
-  typename ViewType::HostMirror h_z, h_cbi0, h_cbk0;
+  typename ViewType::host_mirror_type h_z, h_cbi0, h_cbk0;
   HostViewType h_ref_cbi0, h_ref_cbk0;
 
   ViewType d_z_large, d_cbi0_large, d_cbk0_large;
-  typename ViewType::HostMirror h_z_large, h_cbi0_large, h_cbk0_large;
+  typename ViewType::host_mirror_type h_z_large, h_cbi0_large, h_cbk0_large;
   HostViewType h_ref_cbi0_large, h_ref_cbk0_large;
 
   void testit() {
@@ -1099,12 +1078,7 @@ struct TestComplexBesselI0K0Function {
     Kokkos::deep_copy(d_z, h_z);
 
     // Call Bessel functions
-#if (HIP_VERSION_MAJOR == 5) && (HIP_VERSION_MINOR == 4)
-    using Property =
-        Kokkos::Experimental::WorkItemProperty::ImplForceGlobalLaunch_t;
-#else
     using Property = Kokkos::Experimental::WorkItemProperty::None_t;
-#endif
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, Property>(0, N), *this);
     Kokkos::fence();
 
@@ -1202,23 +1176,17 @@ struct TestComplexBesselI0K0Function {
         Kokkos::complex<double>(1.413897840559108e-27, -1.851678917759592e+25);
     h_ref_cbk0(25) = Kokkos::complex<double>(9.5496636116079915979, 0.);
 
-    // FIXME_HIP Disable the test when using ROCm 5.5 and 5.6 due to a known
-    // compiler bug
-#if !defined(KOKKOS_ENABLE_HIP) || (HIP_VERSION_MAJOR != 5) || \
-    ((HIP_VERSION_MAJOR == 5) &&                               \
-     !((HIP_VERSION_MINOR == 5) || (HIP_VERSION_MINOR == 6)))
     for (int i = 0; i < N; i++) {
       EXPECT_LE(Kokkos::abs(h_cbi0(i) - h_ref_cbi0(i)),
                 Kokkos::abs(h_ref_cbi0(i)) * 1e-13);
     }
 
     EXPECT_EQ(h_ref_cbk0(0), h_cbk0(0));
-    int upper_limit_0 = N;
-    // FIXME_SYCL Failing for Intel GPUs, 19 is the first failing test case
-#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)
-    if (std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>) upper_limit_0 = 19;
-#endif
-    for (int i = 1; i < upper_limit_0; i++) {
+    // FIXME_SYCL Failing for Intel GPUs highly dependent on optimization flags
+#if !(defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)) || \
+    (defined(KOKKOS_COMPILER_INTEL_LLVM) &&                             \
+     KOKKOS_COMPILER_INTEL_LLVM >= 20250004)
+    for (int i = 1; i < N; i++) {
       EXPECT_LE(Kokkos::abs(h_cbk0(i) - h_ref_cbk0(i)),
                 Kokkos::abs(h_ref_cbk0(i)) * 1e-13)
           << "at index " << i;
@@ -1304,11 +1272,11 @@ struct TestComplexBesselI1K1Function {
       Kokkos::View<Kokkos::complex<double>*, Kokkos::HostSpace>;
 
   ViewType d_z, d_cbi1, d_cbk1;
-  typename ViewType::HostMirror h_z, h_cbi1, h_cbk1;
+  typename ViewType::host_mirror_type h_z, h_cbi1, h_cbk1;
   HostViewType h_ref_cbi1, h_ref_cbk1;
 
   ViewType d_z_large, d_cbi1_large, d_cbk1_large;
-  typename ViewType::HostMirror h_z_large, h_cbi1_large, h_cbk1_large;
+  typename ViewType::host_mirror_type h_z_large, h_cbi1_large, h_cbk1_large;
   HostViewType h_ref_cbi1_large, h_ref_cbk1_large;
 
   void testit() {
@@ -1354,12 +1322,7 @@ struct TestComplexBesselI1K1Function {
     Kokkos::deep_copy(d_z, h_z);
 
     // Call Bessel functions
-#if (HIP_VERSION_MAJOR == 5) && (HIP_VERSION_MINOR == 4)
-    using Property =
-        Kokkos::Experimental::WorkItemProperty::ImplForceGlobalLaunch_t;
-#else
     using Property = Kokkos::Experimental::WorkItemProperty::None_t;
-#endif
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, Property>(0, N), *this);
     Kokkos::fence();
 
@@ -1455,22 +1418,26 @@ struct TestComplexBesselI1K1Function {
     h_ref_cbk1(24) =
         Kokkos::complex<double>(-1.425632026517104e-27, -1.836182865214478e+25);
 
+#if !(defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)) || \
+    (defined(KOKKOS_COMPILER_INTEL_LLVM) &&                             \
+     KOKKOS_COMPILER_INTEL_LLVM >= 20250004)
     for (int i = 0; i < N; i++) {
       EXPECT_LE(Kokkos::abs(h_cbi1(i) - h_ref_cbi1(i)),
-                Kokkos::abs(h_ref_cbi1(i)) * 1e-13);
+                Kokkos::abs(h_ref_cbi1(i)) * 1e-13 + 1e-15)
+          << "at index " << i;
     }
+#endif
 
     EXPECT_EQ(h_ref_cbk1(0), h_cbk1(0));
-    int upper_limit_1 = N;
-    // FIXME_SYCL Failing for Intel GPUs, 8 is the first failing test case
-#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)
-    if (std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>) upper_limit_1 = 8;
-#endif
-    for (int i = 1; i < upper_limit_1; i++) {
+#if !(defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)) || \
+    (defined(KOKKOS_COMPILER_INTEL_LLVM) &&                             \
+     KOKKOS_COMPILER_INTEL_LLVM >= 20250004)
+    for (int i = 1; i < N; i++) {
       EXPECT_LE(Kokkos::abs(h_cbk1(i) - h_ref_cbk1(i)),
                 Kokkos::abs(h_ref_cbk1(i)) * 1e-13)
           << "at index " << i;
     }
+#endif
 
     ////Test large arguments
     d_z_large        = ViewType("d_z_large", 6);
@@ -1551,7 +1518,7 @@ struct TestComplexBesselH1Function {
       Kokkos::View<Kokkos::complex<double>*, Kokkos::HostSpace>;
 
   ViewType d_z, d_ch10, d_ch11;
-  typename ViewType::HostMirror h_z, h_ch10, h_ch11;
+  typename ViewType::host_mirror_type h_z, h_ch10, h_ch11;
   HostViewType h_ref_ch10, h_ref_ch11;
 
   void testit() {
@@ -1597,12 +1564,7 @@ struct TestComplexBesselH1Function {
     Kokkos::deep_copy(d_z, h_z);
 
     // Call Hankel functions
-#if (HIP_VERSION_MAJOR == 5) && (HIP_VERSION_MINOR == 4)
-    using Property =
-        Kokkos::Experimental::WorkItemProperty::ImplForceGlobalLaunch_t;
-#else
     using Property = Kokkos::Experimental::WorkItemProperty::None_t;
-#endif
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, Property>(0, N), *this);
     Kokkos::fence();
 
@@ -1711,28 +1673,28 @@ struct TestComplexBesselH1Function {
         Kokkos::complex<double>(-5.430453818237824e-02, -1.530182458039000e-02);
 
     EXPECT_EQ(h_ref_ch10(0), h_ch10(0));
-    int upper_limit_10 = N;
-// FIXME_SYCL Failing for Intel GPUs, 17 is the first failing test case
-#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)
-    if (std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>) upper_limit_10 = 17;
-#endif
-    for (int i = 1; i < upper_limit_10; i++) {
+    // FIXME_SYCL Failing for Intel GPUs highly dependent on optimization flags
+#if !(defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)) || \
+    (defined(KOKKOS_COMPILER_INTEL_LLVM) &&                             \
+     KOKKOS_COMPILER_INTEL_LLVM >= 20250004)
+    for (int i = 1; i < N; i++) {
       EXPECT_LE(Kokkos::abs(h_ch10(i) - h_ref_ch10(i)),
                 Kokkos::abs(h_ref_ch10(i)) * 1e-13)
           << "at index " << i;
     }
+#endif
 
     EXPECT_EQ(h_ref_ch11(0), h_ch11(0));
-    int upper_limit_11 = N;
-    // FIXME_SYCL Failing for Intel GPUs, 2 is the first failing test case
-#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)
-    if (std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>) upper_limit_11 = 2;
-#endif
-    for (int i = 1; i < upper_limit_11; i++) {
+    // FIXME_SYCL Failing for Intel GPUs highly dependent on optimization flags
+#if !(defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)) || \
+    (defined(KOKKOS_COMPILER_INTEL_LLVM) &&                             \
+     KOKKOS_COMPILER_INTEL_LLVM >= 20250004)
+    for (int i = 1; i < N; i++) {
       EXPECT_LE(Kokkos::abs(h_ch11(i) - h_ref_ch11(i)),
                 Kokkos::abs(h_ref_ch11(i)) * 1e-13)
           << "at index " << i;
     }
+#endif
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -1749,7 +1711,7 @@ struct TestComplexBesselH2Function {
       Kokkos::View<Kokkos::complex<double>*, Kokkos::HostSpace>;
 
   ViewType d_z, d_ch20, d_ch21;
-  typename ViewType::HostMirror h_z, h_ch20, h_ch21;
+  typename ViewType::host_mirror_type h_z, h_ch20, h_ch21;
   HostViewType h_ref_ch20, h_ref_ch21;
 
   void testit() {
@@ -1902,35 +1864,32 @@ struct TestComplexBesselH2Function {
     h_ref_ch21(24) =
         Kokkos::complex<double>(1.629136145471347e-01, +1.530182458039000e-02);
 
-    // FIXME_HIP Disable the test when using ROCm 5.5, 5.6, and 6.2 due to a
-    // known compiler bug
-#if !(defined(KOKKOS_ENABLE_HIP) ||                          \
-      ((HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR == 5) || \
-       (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR == 6) || \
-       (HIP_VERSION_MAJOR == 6 && HIP_VERSION_MINOR == 2)))
+    // FIXME_HIP Disable the test when 6.2 due to a known compiler bug
+#if !(defined(KOKKOS_ENABLE_HIP) || \
+      (HIP_VERSION_MAJOR == 6 && HIP_VERSION_MINOR == 2))
     EXPECT_EQ(h_ref_ch20(0), h_ch20(0));
-    int upper_limit_20 = N;
-// FIXME_SYCL Failing for Intel GPUs, 16 is the first failing test case
-#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)
-    if (std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>) upper_limit_20 = 16;
-#endif
-    for (int i = 1; i < upper_limit_20; i++) {
+    // FIXME_SYCL Failing for Intel GPUs highly dependent on optimization flags
+#if !(defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)) || \
+    (defined(KOKKOS_COMPILER_INTEL_LLVM) &&                             \
+     KOKKOS_COMPILER_INTEL_LLVM >= 20250004)
+    for (int i = 1; i < N; i++) {
       EXPECT_LE(Kokkos::abs(h_ch20(i) - h_ref_ch20(i)),
                 Kokkos::abs(h_ref_ch20(i)) * 1e-13)
           << "at index " << i;
     }
+#endif
 
     EXPECT_EQ(h_ref_ch21(0), h_ch21(0));
-    int upper_limit_21 = N;
-    // FIXME_SYCL Failing for Intel GPUs, 1 is the first failing test case
-#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)
-    if (std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>) upper_limit_21 = 1;
-#endif
-    for (int i = 1; i < upper_limit_21; i++) {
+    // FIXME_SYCL Failing for Intel GPUs
+#if !(defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU)) || \
+    (defined(KOKKOS_COMPILER_INTEL_LLVM) &&                             \
+     KOKKOS_COMPILER_INTEL_LLVM >= 20250004)
+    for (int i = 1; i < N; i++) {
       EXPECT_LE(Kokkos::abs(h_ch21(i) - h_ref_ch21(i)),
                 Kokkos::abs(h_ref_ch21(i)) * 1e-13)
           << "at index " << i;
     }
+#endif
 #endif
   }
 
@@ -1942,92 +1901,73 @@ struct TestComplexBesselH2Function {
 };
 
 TEST(TEST_CATEGORY, mathspecialfunc_expint1) {
+#if __FINITE_MATH_ONLY__
+  GTEST_SKIP() << "skipping when compiling with -ffinite-math-only";
+#endif
   TestExponentialIntergral1Function<TEST_EXECSPACE> test;
   test.testit();
 }
 
-// FIXME_OPENMPTARGET: This unit test fails with a misaligned address error at
-// runtime with LLVM/13.
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
 TEST(TEST_CATEGORY, mathspecialfunc_errorfunc) {
+#if __FINITE_MATH_ONLY__
+  GTEST_SKIP() << "skipping when compiling with -ffinite-math-only";
+#endif
   TestComplexErrorFunction<TEST_EXECSPACE> test;
   test.testit();
 }
-#endif
 
 TEST(TEST_CATEGORY, mathspecialfunc_cbesselj0y0) {
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_ARCH_INTEL_GPU)
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP() << "skipping since test is known to fail with OpenMPTarget on "
-                    "Intel GPUs";  // FIXME_OPENMPTARGET
+#if __FINITE_MATH_ONLY__
+  GTEST_SKIP() << "skipping when compiling with -ffinite-math-only";
 #endif
   TestComplexBesselJ0Y0Function<TEST_EXECSPACE> test;
   test.testit();
 }
 
 TEST(TEST_CATEGORY, mathspecialfunc_cbesselj1y1) {
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_ARCH_INTEL_GPU)
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP() << "skipping since test is known to fail with OpenMPTarget on "
-                    "Intel GPUs";  // FIXME_OPENMPTARGET
-#endif
-#if defined(KOKKOS_ENABLE_HIP) &&                         \
-    (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR == 3) && \
-    defined(KOKKOS_ARCH_AMD_GFX908)
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::HIP>)
-    GTEST_SKIP()
-        << "skipping since test is known to fail on MI100 with ROCm 5.3";
+#if __FINITE_MATH_ONLY__
+  GTEST_SKIP() << "skipping when compiling with -ffinite-math-only";
 #endif
   TestComplexBesselJ1Y1Function<TEST_EXECSPACE> test;
   test.testit();
 }
 
 TEST(TEST_CATEGORY, mathspecialfunc_cbesseli0k0) {
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_ARCH_INTEL_GPU)
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP() << "skipping since test is known to fail with OpenMPTarget on "
-                    "Intel GPUs";  // FIXME_OPENMPTARGET
+#if __FINITE_MATH_ONLY__
+  GTEST_SKIP() << "skipping when compiling with -ffinite-math-only";
 #endif
   TestComplexBesselI0K0Function<TEST_EXECSPACE> test;
   test.testit();
 }
 
 TEST(TEST_CATEGORY, mathspecialfunc_cbesseli1k1) {
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_ARCH_INTEL_GPU)
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP() << "skipping since test is known to fail with OpenMPTarget on "
-                    "Intel GPUs";  // FIXME_OPENMPTARGET
+#if __FINITE_MATH_ONLY__
+  GTEST_SKIP() << "skipping when compiling with -ffinite-math-only";
 #endif
   TestComplexBesselI1K1Function<TEST_EXECSPACE> test;
   test.testit();
 }
 
 TEST(TEST_CATEGORY, mathspecialfunc_cbesselh1stkind) {
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_ARCH_INTEL_GPU)
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP() << "skipping since test is known to fail with OpenMPTarget on "
-                    "Intel GPUs";  // FIXME_OPENMPTARGET
-#endif
-    // Disable the test when using ROCm 5.5, 5.6, and 6.2 due to a
-    // known compiler bug. The test always fails on MI100.
-#if defined(KOKKOS_ENABLE_HIP) &&                            \
-    (((HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR == 5) ||  \
-      (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR == 6) ||  \
-      (HIP_VERSION_MAJOR == 6 && HIP_VERSION_MINOR == 2)) || \
+  // Disable the test when using 6.2 due to a known compiler bug. The test
+  // always fails on MI100.
+#if defined(KOKKOS_ENABLE_HIP) &&                          \
+    ((HIP_VERSION_MAJOR == 6 && HIP_VERSION_MINOR == 2) || \
      defined(KOKKOS_ARCH_AMD_GFX908))
   if (std::is_same_v<TEST_EXECSPACE, Kokkos::HIP>)
     GTEST_SKIP() << "skipping since test is known to fail on MI100 and for "
                     "some versions of ROCm";
+#endif
+#if __FINITE_MATH_ONLY__
+  GTEST_SKIP() << "skipping when compiling with -ffinite-math-only";
 #endif
   TestComplexBesselH1Function<TEST_EXECSPACE> test;
   test.testit();
 }
 
 TEST(TEST_CATEGORY, mathspecialfunc_cbesselh2ndkind) {
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_ARCH_INTEL_GPU)
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP() << "skipping since test is known to fail with OpenMPTarget on "
-                    "Intel GPUs";  // FIXME_OPENMPTARGET
+#if __FINITE_MATH_ONLY__
+  GTEST_SKIP() << "skipping when compiling with -ffinite-math-only";
 #endif
   TestComplexBesselH2Function<TEST_EXECSPACE> test;
   test.testit();

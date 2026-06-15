@@ -122,7 +122,7 @@ create_atoms 1 single &
         x = [ 1.0, 1.0, 1.0,  1.0, 1.0, 1.5 ]
         types = [1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        self.assertEqual(self.lmp.create_atoms(2, atomid=None, atype=types, x=x), 2)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 2)
 
@@ -167,7 +167,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -207,7 +207,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -237,7 +237,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -276,7 +276,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -310,7 +310,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 2, 2, 2]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -378,7 +378,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -522,7 +522,7 @@ create_atoms 1 single &
 
         types = [1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        self.assertEqual(self.lmp.create_atoms(2, atomid=None, atype=types, x=x), 2)
         self.lmp.command("variable a atom x*x+y*y+z*z")
         a = self.lmp.extract_variable("a", "all", LMP_VAR_ATOM)
         self.assertEqual(a[0], x[0]*x[0]+x[1]*x[1]+x[2]*x[2])
@@ -573,7 +573,7 @@ create_atoms 1 single &
         ]
 
         types = [1, 1]
-        self.lmp.create_atoms(2, id=None, type=types, x=x)
+        self.lmp.create_atoms(2, atomid=None, atype=types, x=x)
 
         state = {
             "step": 0,
@@ -611,7 +611,7 @@ create_atoms 1 single &
           1.5, 1.5, 1.5
         ]
         types = [1, 1]
-        self.lmp.create_atoms(2, id=None, type=types, x=x)
+        self.lmp.create_atoms(2, atomid=None, atype=types, x=x)
 
         self.assertEqual(self.lmp.last_thermo(), None)
         self.lmp.command("run 2 post no")

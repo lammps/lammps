@@ -21,6 +21,7 @@ FixStyle(ave/correlate,FixAveCorrelate);
 #define LMP_FIX_AVE_CORRELATE_H
 
 #include "fix.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -50,7 +51,7 @@ class FixAveCorrelate : public Fix {
 
   int nvalues, nrepeat, nfreq;
   bigint nvalid, nvalid_last;
-  FILE *fp;
+  SafeFilePtr fp;
 
   int type, ave, startstep, overwrite;
   double prefactor;

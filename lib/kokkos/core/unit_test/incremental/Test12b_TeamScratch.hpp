@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 // @Kokkos_Feature_Level_Required:12
 // Unit test for hierarchical parallelism
@@ -20,7 +7,12 @@
 // contributions of paticipating processing units corresponds to expected value
 // Use a scratch pad memory for each team
 #include <gtest/gtest.h>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace Test {
 
@@ -94,18 +86,9 @@ TEST(TEST_CATEGORY, IncrTest_12b_TeamScratch) {
 #endif
 
   TeamScratch<TEST_EXECSPACE> test;
-  // FIXME_OPENMPTARGET - team_size has to be a multiple of 32 for the tests to
-  // pass in the Release and RelWithDebInfo builds. Does not need the team_size
-  // to be a multiple of 32 for the Debug builds.
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  test.run(1, 32, 4);
-  test.run(4, 64, 10);
-  test.run(14, 128, 20);
-#else
   test.run(1, 4, 4);
   test.run(4, 7, 10);
   test.run(14, 277, 321);
-#endif
 }
 KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_POP()
 

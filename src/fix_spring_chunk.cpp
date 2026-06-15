@@ -181,7 +181,7 @@ void FixSpringChunk::post_force(int /*vflag*/)
     r = sqrt(dx*dx + dy*dy + dz*dz);
     r = MAX(r,SMALL);
 
-    if (masstotal[m]) {
+    if (masstotal[m] != 0.0) {
       fcom[m][0] = k_spring*dx/r / masstotal[m];
       fcom[m][1] = k_spring*dy/r / masstotal[m];
       fcom[m][2] = k_spring*dz/r / masstotal[m];
@@ -235,15 +235,16 @@ void FixSpringChunk::min_post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   writ number of chunks and position of original COM into restart
+   write number of chunks and positions of original COMs into restart
 ------------------------------------------------------------------------- */
 
 void FixSpringChunk::write_restart(FILE *fp)
 {
-  double n = nchunk;
-
   if (comm->me == 0) {
-    int size = (3*n+1) * sizeof(double);
+    // size in bytes of doubles data to follow in restart.
+    // first of data block is the number of chunks (for sanity check), then the COMs
+    int size = (3*nchunk + 1) * sizeof(double);
+    auto n = (double) nchunk;
     fwrite(&size,sizeof(int),1,fp);
     fwrite(&n,sizeof(double),1,fp);
     fwrite(&com0[0][0],3*sizeof(double),nchunk,fp);
@@ -256,8 +257,10 @@ void FixSpringChunk::write_restart(FILE *fp)
 
 void FixSpringChunk::restart(char *buf)
 {
-  auto list = (double *) buf;
-  int n = list[0];
+  // first entry of data buffer is the number of chunks, the rest the COMs of the chunks
+  auto *list = (double *) buf;
+  int n = (int) *list;
+  ++list;
 
   memory->destroy(com0);
   memory->destroy(fcom);
@@ -279,7 +282,7 @@ void FixSpringChunk::restart(char *buf)
     nchunk = 1;
   } else {
     cchunk->lock(this,update->ntimestep,-1);
-    memcpy(&com0[0][0],list+1,3*n*sizeof(double));
+    memcpy(&com0[0][0],list,3*n*sizeof(double));
   }
 }
 

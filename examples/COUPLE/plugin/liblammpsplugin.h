@@ -134,6 +134,7 @@ struct _liblammpsplugin {
   void (*mpi_finalize)();
   void (*kokkos_finalize)();
   void (*python_finalize)();
+  void (*plugin_finalize)();
 
   void (*error)(void *, int, const char *);
   char *(*expand)(void *, const char *);
@@ -206,6 +207,7 @@ struct _liblammpsplugin {
   int (*create_atoms)(void *, int, const int64_t *, const int *, const double *, const double *,
                       const int64_t *, int);
 #endif
+  int (*create_molecule)(void *, const char *, const char *);
 
   int (*find_pair_neighlist)(void *, const char *, int, int, int);
   int (*find_fix_neighlist)(void *, const char *, int);
@@ -218,6 +220,7 @@ struct _liblammpsplugin {
   void (*get_os_info)(char *, int);
 
   int (*config_has_mpi_support)();
+  int (*config_has_omp_support)();
   int (*config_has_gzip_support)();
   int (*config_has_png_support)();
   int (*config_has_jpeg_support)();

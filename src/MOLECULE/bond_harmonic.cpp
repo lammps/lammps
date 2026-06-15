@@ -27,11 +27,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonic::BondHarmonic(LAMMPS *_lmp) : Bond(_lmp)
+BondHarmonic::BondHarmonic(LAMMPS *_lmp) : Bond(_lmp), k(nullptr), r0(nullptr)
 {
   born_matrix_enable = 1;
 }
-
 /* ---------------------------------------------------------------------- */
 
 BondHarmonic::~BondHarmonic()

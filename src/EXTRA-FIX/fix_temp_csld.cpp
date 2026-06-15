@@ -295,10 +295,10 @@ double FixTempCSLD::compute_scalar()
 
 void FixTempCSLD::write_restart(FILE *fp)
 {
-  int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + energy
-  double *list = nullptr;
+  int nsize = PRNGSIZE*comm->nprocs + 2; // pRNG state per proc + nprocs + energy
+  auto *list = new double[nsize];
+
   if (comm->me == 0) {
-    list = new double[nsize];
     list[0] = energy;
     list[1] = comm->nprocs;
   }
@@ -310,8 +310,8 @@ void FixTempCSLD::write_restart(FILE *fp)
     int size = nsize * sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(list,sizeof(double),nsize,fp);
-    delete[] list;
   }
+  delete[] list;
 }
 
 /* ----------------------------------------------------------------------
@@ -320,7 +320,7 @@ void FixTempCSLD::write_restart(FILE *fp)
 
 void FixTempCSLD::restart(char *buf)
 {
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   energy = list[0];
   int nprocs = (int) list[1];

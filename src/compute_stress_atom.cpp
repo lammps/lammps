@@ -54,7 +54,7 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
     id_temp = nullptr;
   else {
     id_temp = utils::strdup(arg[3]);
-    auto icompute = modify->get_compute_by_id(id_temp);
+    auto *icompute = modify->get_compute_by_id(id_temp);
     if (!icompute)
       error->all(FLERR, "Could not find compute stress/atom temperature compute {}", id_temp);
     if (icompute->tempflag == 0)
@@ -220,7 +220,7 @@ void ComputeStressAtom::compute_peratom()
   //   and fix ave/chunk uses a per-atom stress from this compute as input
 
   if (fixflag) {
-    for (auto &ifix : modify->get_fix_list())
+    for (const auto &ifix : modify->get_fix_list())
       if (ifix->virial_peratom_flag && ifix->thermo_virial) {
         double **vatom = ifix->vatom;
         if (vatom)

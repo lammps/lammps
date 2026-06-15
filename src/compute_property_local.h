@@ -53,7 +53,7 @@ class ComputePropertyLocal : public Compute {
   int count_impropers(int);
   void reallocate(int);
 
-  typedef void (ComputePropertyLocal::*FnPtrPack)(int);
+  using FnPtrPack = void (ComputePropertyLocal::*)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_patom1(int);

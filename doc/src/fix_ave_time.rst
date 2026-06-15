@@ -345,9 +345,7 @@ Restart, fix_modify, output, run start/stop, minimize info
 .. versionadded:: 4May2022
 
 No information about this fix is written to :doc:`binary restart files
-<restart>`.  The :doc:`fix_modify colname <fix_modify>` option can be
-used to change the name of the column in the output file.  When writing
-a YAML format file this name will be in the list of keywords.
+<restart>`.
 
 This fix produces a global scalar or global vector or global array
 which can be accessed by various :doc:`output commands <Howto_output>`.
@@ -380,7 +378,7 @@ the :doc:`run <run>` command.  This fix is not invoked during
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

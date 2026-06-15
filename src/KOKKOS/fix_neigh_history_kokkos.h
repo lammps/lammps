@@ -38,8 +38,8 @@ template <class DeviceType>
 class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
  public:
   typedef DeviceType device_type;
-  typedef int value_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef int value_type;
 
   FixNeighHistoryKokkos(class LAMMPS *, int, char **);
   ~FixNeighHistoryKokkos() override;
@@ -53,30 +53,34 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   int unpack_exchange(int, double *) override;
   double memory_usage() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNeighHistoryPreExchange, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNeighHistoryPostNeighbor, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNeighHistoryPackExchange, const int&, int &, const bool &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNeighHistoryUnpackExchange, const int&) const;
 
-  int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_double_2d_lr &buf,
 			   DAT::tdual_int_1d k_sendlist,
 			   DAT::tdual_int_1d k_copylist,
 			   ExecutionSpace space) override;
 
-  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+  void unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
                               int nrecv1,int nrecv1extra,
                               ExecutionSpace space) override;
 
   typename DAT::tdual_int_2d k_firstflag;
-  typename DAT::tdual_float_2d k_firstvalue;
+  typename DAT::tdual_kkfloat_2d k_firstvalue;
 
  private:
   int nrecv1,nextrarecv1;
@@ -85,18 +89,18 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   typename AT::t_tagint_1d tag;
 
   typename AT::t_int_2d d_firstflag;
-  typename AT::t_float_2d d_firstvalue;
+  typename AT::t_kkfloat_2d d_firstvalue;
 
   DAT::tdual_int_1d k_npartner;
-  DAT::tdual_tagint_2d k_partner;
-  DAT::tdual_float_2d k_valuepartner;
+  DAT::ttransform_tagint_2d k_partner;
+  DAT::ttransform_kkfloat_2d k_valuepartner;
 
   typename AT::t_int_1d d_npartner;
   typename AT::t_tagint_2d d_partner;
-  typename AT::t_float_2d d_valuepartner;
+  typename AT::t_kkfloat_2d d_valuepartner;
 
   typename AT::t_int_1d d_sendlist;
-  typename AT::t_xfloat_1d d_buf;
+  typename AT::t_double_1d d_buf;
   typename AT::t_int_1d d_copylist;
   typename AT::t_int_1d d_indices;
 
@@ -110,6 +114,7 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   void pre_exchange_no_newton() override;
 
   // Shift by HISTBITS and check the first bit
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int histmask(int j) const { return j >> HISTBITS & 1; }
 };

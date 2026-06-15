@@ -27,17 +27,16 @@ GranSubModStyle(mdr,GranSubModDampingMDR,DAMPING);
 #define GRAN_SUB_MOD_DAMPING_H
 
 #include "gran_sub_mod.h"
-#include "pointers.h"
 
-namespace LAMMPS_NS {
-namespace Granular_NS {
+
+namespace LAMMPS_NS::Granular_NS {
 
   class GranSubModDamping : public GranSubMod {
    public:
     GranSubModDamping(class GranularModel *, class LAMMPS *);
     void init() override;
     virtual double calculate_forces() = 0;
-    double get_damp_prefactor() const { return damp_prefactor; }
+    [[nodiscard]] double get_damp_prefactor() const { return damp_prefactor; }
 
    protected:
     double damp_prefactor;
@@ -108,8 +107,8 @@ namespace Granular_NS {
 
   /* ---------------------------------------------------------------------- */
 
-}    // namespace Granular_NS
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::Granular_NS
+
 
 #endif /*GRAN_SUB_MOD_DAMPING_H */
 #endif /*GRAN_SUB_MOD_CLASS_H */

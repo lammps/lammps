@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CLAMP_HPP
 #define KOKKOS_CLAMP_HPP
@@ -25,6 +12,10 @@ template <class T>
 constexpr KOKKOS_INLINE_FUNCTION const T& clamp(const T& value, const T& lo,
                                                 const T& hi) {
   KOKKOS_EXPECTS(!(hi < lo));
+  // Capturing the result of std::clamp by reference produces a dangling
+  // reference if one of the parameters is a temporary and that parameter is
+  // returned.
+  // NOLINTNEXTLINE(bugprone-return-const-ref-from-parameter)
   return (value < lo) ? lo : (hi < value) ? hi : value;
 }
 
@@ -33,6 +24,10 @@ constexpr KOKKOS_INLINE_FUNCTION const T& clamp(const T& value, const T& lo,
                                                 const T& hi,
                                                 ComparatorType comp) {
   KOKKOS_EXPECTS(!comp(hi, lo));
+  // Capturing the result of std::clamp by reference produces a dangling
+  // reference if one of the parameters is a temporary and that parameter is
+  // returned.
+  // NOLINTNEXTLINE(bugprone-return-const-ref-from-parameter)
   return comp(value, lo) ? lo : comp(hi, value) ? hi : value;
 }
 

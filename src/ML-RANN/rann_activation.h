@@ -31,43 +31,23 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #ifndef LMP_RANN_ACTIVATION_H
 #define LMP_RANN_ACTIVATION_H
 
-namespace LAMMPS_NS {
-namespace RANN {
+
+namespace LAMMPS_NS::RANN {
   class Activation {
    public:
-    Activation(class PairRANN *);
-    virtual ~Activation();
-    virtual double activation_function(double);
-    virtual double dactivation_function(double);
-    virtual double ddactivation_function(double);
+    Activation(class PairRANN *)
+    {
+      empty = true;
+      style = "empty";
+    }
+    virtual ~Activation() = default;
+    //default is linear activation (no change).
+    virtual double activation_function(double A) { return A; };
+    virtual double dactivation_function(double) { return 1.0; };
+    virtual double ddactivation_function(double) { return 0.0; };
     bool empty;
     const char *style;
   };
+} // namespace LAMMPS_NS::RANN
 
-  Activation::Activation(PairRANN *)
-  {
-    empty = true;
-    style = "empty";
-  }
-
-  Activation::~Activation() {}
-
-  //default is linear activation (no change).
-  double Activation::activation_function(double A)
-  {
-    return A;
-  }
-
-  double Activation::dactivation_function(double)
-  {
-    return 1.0;
-  }
-
-  double Activation::ddactivation_function(double)
-  {
-    return 0.0;
-  }
-}    // namespace RANN
-}    // namespace LAMMPS_NS
-
-#endif /* RANN_ACTIVATION_H_ */
+#endif /* RANN_ACTIVATION_H */

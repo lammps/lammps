@@ -68,7 +68,7 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
   if (fix_rigid && neighbor->ago == 0) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body",tmp);
-    auto mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    auto *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;
@@ -475,6 +475,11 @@ double PairGranHertzHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
   svector[7] = vt1;
   svector[8] = vt2;
   svector[9] = vt3;
+  // TODO to LAMMPS:
+  // doc says The last 3 (8-10) the components of the relative velocity in the tangential direction
+  // `vt` is the relative translational velocity only, i.e., it ignores the angular velocity.
+  // the total relative tangent velocity should be `vtr`.
+  // Should that be corrected? That would break backward compatibility, and this is "legacy code" anyway
 
   return 0.0;
 }

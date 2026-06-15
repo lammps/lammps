@@ -44,9 +44,9 @@ Lowercase directories
 ---------------------
 
 +-------------+------------------------------------------------------------------+
-| accelerate  | run with various acceleration options (OpenMP, GPU, Phi)         |
-+-------------+------------------------------------------------------------------+
 | airebo      | polyethylene with AIREBO potential                               |
++-------------+------------------------------------------------------------------+
+| amoeba      | small water and bio models with AMOEBA and HIPPO potentials      |
 +-------------+------------------------------------------------------------------+
 | atm         | Axilrod-Teller-Muto potential example                            |
 +-------------+------------------------------------------------------------------+
@@ -78,13 +78,17 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | ellipse     | ellipsoidal particles in spherical solvent, 2d system            |
 +-------------+------------------------------------------------------------------+
+| fire        | examples for using minimization styles fire and quickmin         |
++-------------+------------------------------------------------------------------+
 | flow        | Couette and Poiseuille flow in a 2d channel                      |
 +-------------+------------------------------------------------------------------+
 | friction    | frictional contact of spherical asperities between 2d surfaces   |
 +-------------+------------------------------------------------------------------+
-| mc          | Monte Carlo features via fix gcmc, widom and other commands      |
+| gjf         | examples for Gronbech-Jensen thermostats with large time step    |
 +-------------+------------------------------------------------------------------+
 | granregion  | use of fix wall/region/gran as boundary on granular particles    |
++-------------+------------------------------------------------------------------+
+| grid        | use of commands which overlay grids on the simulation domain     |
 +-------------+------------------------------------------------------------------+
 | hugoniostat | Hugoniostat shock dynamics                                       |
 +-------------+------------------------------------------------------------------+
@@ -94,15 +98,21 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | kim         | use of potentials from the `OpenKIM Repository <openkim_>`_      |
 +-------------+------------------------------------------------------------------+
+| mc          | Monte Carlo features via fix gcmc, widom and other commands      |
++-------------+------------------------------------------------------------------+
 | mdi         | use of the MDI package and MolSSI MDI code coupling library      |
 +-------------+------------------------------------------------------------------+
 | meam        | MEAM test for SiC and shear (same as shear examples)             |
 +-------------+------------------------------------------------------------------+
 | melt        | rapid melt of 3d LJ system                                       |
 +-------------+------------------------------------------------------------------+
+| mesh        | create_atoms mesh command examples                               |
++-------------+------------------------------------------------------------------+
 | micelle     | self-assembly of small lipid-like molecules into 2d bilayers     |
 +-------------+------------------------------------------------------------------+
 | min         | energy minimization of 2d LJ melt                                |
++-------------+------------------------------------------------------------------+
+| mliap       | examples for using several bundled ML-IAP potentials             |
 +-------------+------------------------------------------------------------------+
 | msst        | MSST shock dynamics                                              |
 +-------------+------------------------------------------------------------------+
@@ -113,6 +123,8 @@ Lowercase directories
 | neb         | nudged elastic band (NEB) calculation for barrier finding        |
 +-------------+------------------------------------------------------------------+
 | nemd        | non-equilibrium MD of 2d sheared system                          |
++-------------+------------------------------------------------------------------+
+| numdiff     | get forces, virial, and Born matrix from numerical differences   |
 +-------------+------------------------------------------------------------------+
 | obstacle    | flow around two voids in a 2d channel                            |
 +-------------+------------------------------------------------------------------+
@@ -130,7 +142,9 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | rdf-adf     | computing radial and angle distribution functions for water      |
 +-------------+------------------------------------------------------------------+
-| reax        | RDX and TATB models using the ReaxFF                             |
+| reaxff      | RDX and TATB models and more using ReaxFF                        |
++-------------+------------------------------------------------------------------+
+| replicate   | use of replicate command                                         |
 +-------------+------------------------------------------------------------------+
 | rerun       | use of rerun and read_dump commands                              |
 +-------------+------------------------------------------------------------------+
@@ -144,19 +158,31 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | srd         | stochastic rotation dynamics (SRD) particles as solvent          |
 +-------------+------------------------------------------------------------------+
+| steinhardt  | Steinhardt-Nelson Q_l and W_l parameters using orientorder/atom  |
++-------------+------------------------------------------------------------------+
 | streitz     | use of Streitz/Mintmire potential with charge equilibration      |
 +-------------+------------------------------------------------------------------+
 | stress_vcm  | removing binned rigid body motion from binned stress profile     |
 +-------------+------------------------------------------------------------------+
 | tad         | temperature-accelerated dynamics of vacancy diffusion in bulk Si |
 +-------------+------------------------------------------------------------------+
+| tersoff     | regression test input for Tersoff potential variants             |
++-------------+------------------------------------------------------------------+
 | threebody   | regression test input for a variety of manybody potentials       |
 +-------------+------------------------------------------------------------------+
 | tracker     | track interactions in LJ melt                                    |
 +-------------+------------------------------------------------------------------+
+| triclinic   | general triclinic simulation boxes versus orthogonal boxes       |
++-------------+------------------------------------------------------------------+
+| ttm         | two-temperature model examples                                   |
++-------------+------------------------------------------------------------------+
 | vashishta   | use of the Vashishta potential                                   |
 +-------------+------------------------------------------------------------------+
 | voronoi     | Voronoi tesselation via compute voronoi/atom command             |
++-------------+------------------------------------------------------------------+
+| wall        | use of reflective walls with different stochastic models         |
++-------------+------------------------------------------------------------------+
+| yaml        | demonstrates use of yaml thermo and dump styles                  |
 +-------------+------------------------------------------------------------------+
 
 Here is how you can run and visualize one of the sample problems:
@@ -207,9 +233,13 @@ Uppercase directories
 +------------+--------------------------------------------------------------------------------------------------+
 | KAPPA      | compute thermal conductivity via several methods                                                 |
 +------------+--------------------------------------------------------------------------------------------------+
+| LEPTON     | use of fix efield/lepton                                                                         |
++------------+--------------------------------------------------------------------------------------------------+
 | MC-LOOP    | using LAMMPS in a Monte Carlo mode to relax the energy of a system in a input script loop        |
 +------------+--------------------------------------------------------------------------------------------------+
 | PACKAGES   | examples for specific packages and contributed commands                                          |
++------------+--------------------------------------------------------------------------------------------------+
+| QUANTUM    | how to use LAMMPS in tandem with several quantum codes via the MDI code coupling library         |
 +------------+--------------------------------------------------------------------------------------------------+
 | SPIN       | examples for features of the SPIN package                                                        |
 +------------+--------------------------------------------------------------------------------------------------+

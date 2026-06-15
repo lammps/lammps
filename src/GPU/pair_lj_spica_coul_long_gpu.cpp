@@ -47,7 +47,7 @@ int **spical_gpu_compute_n(const int ago, const int inum, const int nall, double
                            int **nspecial, tagint **special, const bool eflag, const bool vflag,
                            const bool eatom, const bool vatom, int &host_start, int **ilist,
                            int **jnum, const double cpu_time, bool &success, double *host_q,
-                           double *boxlo, double *prd);
+                           double *boxlo, double *prd, int *periodicity);
 void spical_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
                         const bool vflag, const bool eatom, const bool vatom, int &host_start,
@@ -107,7 +107,8 @@ void PairLJSPICACoulLongGPU::compute(int eflag, int vflag)
     firstneigh = spical_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
                                       atom->tag, atom->nspecial, atom->special, eflag, vflag,
                                       eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-                                      cpu_time, success, atom->q, domain->boxlo, domain->prd);
+                                      cpu_time, success, atom->q, domain->boxlo, domain->prd,
+                                      domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -261,7 +262,7 @@ void PairLJSPICACoulLongGPU::cpu_compute(int start, int inum, int *ilist, int *n
             rsq_lookup.f = rsq;
             int itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            const double fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            const double fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             const double table = ftable[itable] + fraction * dftable[itable];
             forcecoul = qtmp * q[j] * table;
             if (EFLAG) {

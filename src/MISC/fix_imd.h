@@ -129,7 +129,7 @@ class FixIMD : public Fix {
   pthread_t iothread;             // thread id for i/o thread.
   pthread_attr_t iot_attr;        // i/o thread attributes.
  public:
-  void ioworker(void);
+  void ioworker();
 #endif
 
  protected:

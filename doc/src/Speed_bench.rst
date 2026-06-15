@@ -6,7 +6,7 @@ where timings and parallel efficiency are listed.  The page has
 several sections, which are briefly described below:
 
 * CPU performance on 5 standard problems, strong and weak scaling
-* GPU and Xeon Phi performance on same and related problems
+* GPU performance on same and related problems
 * Comparison of cost of interatomic potentials
 * Performance of huge, billion-atom problems
 

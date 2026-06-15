@@ -763,8 +763,8 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 
         // vertex i interacts with a vertex of the edge, but does not contact
 
-        if (mode == VERTEXI) p2vertex = edge[jefirst+nj][0];
-        else if (mode == VERTEXJ) p2vertex = edge[jefirst+nj][1];
+        if (mode == VERTEXI) p2vertex = (int)edge[jefirst+nj][0];
+        else if (mode == VERTEXJ) p2vertex = (int)edge[jefirst+nj][1];
 
         // double xj[3];
         // p2.body2space(p2vertex, xj);

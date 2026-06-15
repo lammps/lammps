@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include "Kokkos_Core.hpp"
 #include <cstdio>
@@ -28,7 +15,7 @@
 
 using StreamDeviceArray =
     Kokkos::View<double*, Kokkos::MemoryTraits<Kokkos::Restrict>>;
-using StreamHostArray = typename StreamDeviceArray::HostMirror;
+using StreamHostArray = typename StreamDeviceArray::host_mirror_type;
 
 using StreamIndex = int;
 using Policy      = Kokkos::RangePolicy<Kokkos::IndexType<StreamIndex>>;
@@ -83,7 +70,7 @@ int perform_validation(StreamHostArray& a, StreamHostArray& b,
   double bi = 2.0;
   double ci = 0.0;
 
-  for (StreamIndex i = 0; i < arraySize; ++i) {
+  for (StreamIndex i = 0; i < STREAM_NTIMES; ++i) {
     ci = ai;
     bi = scalar * ci;
     ci = ai + bi;
@@ -235,7 +222,7 @@ int run_benchmark() {
   return rc;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {  // NOLINT(bugprone-exception-escape)
   printf(HLINE);
   printf("Kokkos STREAM Benchmark\n");
   printf(HLINE);

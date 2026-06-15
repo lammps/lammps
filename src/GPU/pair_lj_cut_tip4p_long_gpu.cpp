@@ -54,7 +54,8 @@ int **ljtip4p_long_gpu_compute_n(const int ago, const int inum, const int nall, 
                                  int **nspecial, tagint **special, const bool eflag,
                                  const bool vflag, const bool eatom, const bool vatom,
                                  int &host_start, int **ilist, int **jnum, const double cpu_time,
-                                 bool &success, double *host_q, double *boxlo, double *prd);
+                                 bool &success, double *host_q, double *boxlo, double *prd,
+                                 int *periodicity);
 void ljtip4p_long_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                               int *host_type, int *ilist, int *numj, int **firstneigh,
                               const bool eflag, const bool vflag, const bool eatom,
@@ -112,7 +113,7 @@ void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
         neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
         atom->get_map_array(), atom->get_map_size(), atom->sametag, atom->get_max_same(),
         atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom, host_start, &ilist,
-        &numneigh, cpu_time, success, atom->q, domain->boxlo, domain->prd);
+        &numneigh, cpu_time, success, atom->q, domain->boxlo, domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -198,8 +199,9 @@ void PairLJCutTIP4PLongGPU::init_style()
       atom->get_map_size(), atom->get_max_same());
   GPU_EXTRA::check_flag(success, error, world);
   if (gpu_mode == GPU_FORCE) {
-    auto req = neighbor->add_request(this, NeighConst::REQ_FULL);
-    req->set_cutoff(cut_coulplus + neighbor->skin);
+    auto *req = neighbor->add_request(this, NeighConst::REQ_FULL);
+    // NOTE: we must not add the neighbor list skin here. It is already added automatically.
+    req->set_cutoff(cut_coulplus);
   }
 }
 

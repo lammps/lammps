@@ -56,7 +56,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     id_temp = nullptr;
   } else {
     id_temp = utils::strdup(arg[3]);
-    auto icompute = modify->get_compute_by_id(id_temp);
+    auto *icompute = modify->get_compute_by_id(id_temp);
     if (!icompute)
       error->all(FLERR, 3, "Could not find compute pressure temperature ID {}", id_temp);
     if (!icompute->tempflag)
@@ -201,14 +201,14 @@ void ComputePressure::init()
     if (improperflag && force->improper) nvirial++;
   }
   if (fixflag)
-    for (auto &ifix : modify->get_fix_list())
+    for (const auto &ifix : modify->get_fix_list())
       if (ifix->thermo_virial) nvirial++;
 
   if (nvirial) {
     vptr = new double*[nvirial];
     nvirial = 0;
     if (pairhybridflag && force->pair) {
-      auto ph = dynamic_cast<PairHybrid *>(force->pair);
+      auto *ph = dynamic_cast<PairHybrid *>(force->pair);
       ph->no_virial_fdotr_compute = 1;
       vptr[nvirial++] = pairhybrid->virial;
     }
@@ -220,7 +220,7 @@ void ComputePressure::init()
     if (improperflag && force->improper)
       vptr[nvirial++] = force->improper->virial;
     if (fixflag)
-    for (auto &ifix : modify->get_fix_list())
+    for (const auto &ifix : modify->get_fix_list())
       if (ifix->virial_global_flag && ifix->thermo_virial)
           vptr[nvirial++] = ifix->virial;
   }

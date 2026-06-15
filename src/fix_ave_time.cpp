@@ -29,7 +29,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <stdexcept>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,7 +39,7 @@ enum { SCALAR, VECTOR };
 /* ---------------------------------------------------------------------- */
 
 FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), nvalues(0), fp(nullptr), offlist(nullptr), format(nullptr), vector(nullptr),
+    Fix(lmp, narg, arg), nvalues(0), offlist(nullptr), format(nullptr), vector(nullptr),
     vector_total(nullptr), vector_list(nullptr), column(nullptr), array(nullptr),
     array_total(nullptr), array_list(nullptr)
 {
@@ -83,7 +82,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   char **earg;
   int *amap = nullptr;
   nvalues = utils::expand_args(FLERR, nvalues, &arg[ioffset], mode, earg, lmp, &amap);
-  key2col.clear();
 
   if (earg != &arg[ioffset]) expand = 1;
   arg = earg;
@@ -97,7 +95,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     value_t val;
     val.keyword = arg[i];
     val.which = argi.get_type();
-    key2col[arg[i]] = i;
 
     val.argindex = argi.get_index1();
     if (expand) val.iarg = amap[i] + ioffset;
@@ -439,7 +436,7 @@ FixAveTime::~FixAveTime()
   if (any_variable_length && ((nrepeat > 1) || (ave == RUNNING) || (ave == WINDOW))) {
     for (auto &val : values) {
       if (val.varlen) {
-        auto icompute = modify->get_compute_by_id(val.id);
+        auto *icompute = modify->get_compute_by_id(val.id);
         if (icompute) {
           if ((ave == RUNNING) || (ave == WINDOW))
             icompute->unlock(this);
@@ -452,10 +449,8 @@ FixAveTime::~FixAveTime()
   delete[] format;
   delete[] extlist;
 
-  if (fp && comm->me == 0) {
-    if (yaml_flag) fputs("...\n", fp);
-    fclose(fp);
-  }
+  if (fp && (comm->me == 0) && yaml_flag) fputs("...\n", fp);
+
   memory->destroy(column);
 
   delete[] vector;
@@ -1009,34 +1004,6 @@ double FixAveTime::compute_array(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   modify settings
-------------------------------------------------------------------------- */
-
-int FixAveTime::modify_param(int narg, char **arg)
-{
-  if (strcmp(arg[0], "colname") == 0) {
-    if (narg < 3) utils::missing_cmd_args(FLERR, "fix_modify colname", error);
-    int icol = -1;
-    if (utils::is_integer(arg[1])) {
-      icol = utils::inumeric(FLERR, arg[1], false, lmp);
-      if (icol < 0) icol = values.size() + icol + 1;
-      icol--;
-    } else {
-      try {
-        icol = key2col.at(arg[1]);
-      } catch (std::out_of_range &) {
-        icol = -1;
-      }
-    }
-    if ((icol < 0) || (icol >= (int) values.size()))
-      error->all(FLERR, 1 + 1, "Thermo_modify colname column {} invalid", arg[1]);
-    values[icol].keyword = arg[2];
-    return 3;
-  }
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
    parse optional args
 ------------------------------------------------------------------------- */
 
@@ -1044,7 +1011,6 @@ void FixAveTime::options(int iarg, int narg, char **arg)
 {
   // option defaults
 
-  fp = nullptr;
   ave = ONE;
   startstep = 0;
   mode = SCALAR;

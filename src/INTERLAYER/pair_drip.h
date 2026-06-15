@@ -45,7 +45,7 @@ class PairDRIP : public Pair {
   void init_style() override;
 
   static constexpr int NPARAMS_PER_LINE = 15;
-  typedef double V3[3];
+  using V3 = double[3];
 
  protected:
   struct Param {

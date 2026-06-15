@@ -70,8 +70,8 @@ double ComputeERotateSphereKokkos<DeviceType>::compute_scalar()
         auto omega2 = l_omega(i,2);
         auto radius = l_radius(i);
         erotate +=
-            (omega0 * omega0 + omega1 * omega1 + omega2 * omega2) *
-            radius * radius * l_rmass[i];
+            static_cast<double>((omega0 * omega0 + omega1 * omega1 + omega2 * omega2) *
+            radius * radius * l_rmass[i]);
       }
     },erotate);
   }

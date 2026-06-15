@@ -2,11 +2,8 @@
 // Fortran wrapper
 #include <cstdio>
 
-#include "lammps.h"
 #include "library.h"
-#include <cstdint>
-#include <cstdlib>
-#include <mpi.h>
+
 #include <string>
 
 #include "gtest/gtest.h"
@@ -23,6 +20,11 @@ double f_lammps_extract_fix_peratom_vector(int);
 double f_lammps_extract_fix_peratom_array(int, int);
 double f_lammps_extract_fix_local_vector(int);
 double f_lammps_extract_fix_local_array(int, int);
+}
+
+// forward decl
+namespace LAMMPS_NS {
+class LAMMPS;
 }
 
 class LAMMPS_extract_fix : public ::testing::Test {

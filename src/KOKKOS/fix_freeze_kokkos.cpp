@@ -60,18 +60,19 @@ void FixFreezeKokkos<DeviceType>::post_force(int /*vflag*/)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixFreezeKokkos<DeviceType>::operator()(const int i, OriginalForce &original) const {
   if (mask[i] & groupbit) {
-    original.values[0] += f(i,0);
-    original.values[1] += f(i,1);
-    original.values[2] += f(i,2);
-    f(i,0) = 0.0;
-    f(i,1) = 0.0;
-    f(i,2) = 0.0;
-    torque(i,0) = 0.0;
-    torque(i,1) = 0.0;
-    torque(i,2) = 0.0;
+    original.values[0] += static_cast<double>(f(i,0));
+    original.values[1] += static_cast<double>(f(i,1));
+    original.values[2] += static_cast<double>(f(i,2));
+    f(i,0) = 0;
+    f(i,1) = 0;
+    f(i,2) = 0;
+    torque(i,0) = 0;
+    torque(i,1) = 0;
+    torque(i,2) = 0;
   }
 }
 

@@ -7,35 +7,11 @@ mode=$1
 LC_ALL=C
 export LC_ALL
 
-cat <<EOF
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-
-  Support for building the KOKKOS package with the legacy build system using GNU
-  make will be removed in Summer 2025.  Please switch to using CMake to build
-  LAMMPS as soon as possible and report any problems to developers@lammps.org
-  or post a bug report issue at https://github.com/lammps/lammps/issues
-
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-EOF
-
 # arg1 = file, arg2 = file it depends on
 
 action () {
   if (test $mode = 0) then
     rm -f ../$1
-  elif (! cmp -s $1 ../$1) then
-    if (test -z "$2" || test -e ../$2) then
-      cp $1 ..
-      if (test $mode = 2) then
-        echo "  updating src/$1"
-      fi
-    fi
-  elif (test -n "$2") then
-    if (test ! -e ../$2) then
-      rm -f ../$1
-    fi
   fi
 }
 
@@ -85,6 +61,8 @@ action atom_vec_dipole_kokkos.cpp atom_vec_dipole.cpp
 action atom_vec_dipole_kokkos.h atom_vec_dipole.h
 action atom_vec_dpd_kokkos.cpp atom_vec_dpd.cpp
 action atom_vec_dpd_kokkos.h atom_vec_dpd.h
+action atom_vec_ellipsoid_kokkos.cpp atom_vec_ellipsoid.cpp
+action atom_vec_ellipsoid_kokkos.h atom_vec_ellipsoid.h
 action atom_vec_full_kokkos.cpp atom_vec_full.cpp
 action atom_vec_full_kokkos.h atom_vec_full.h
 action atom_vec_hybrid_kokkos.cpp
@@ -113,6 +91,8 @@ action compute_ave_sphere_atom_kokkos.cpp compute_ave_sphere_atom.cpp
 action compute_ave_sphere_atom_kokkos.h compute_ave_sphere_atom.h
 action compute_coord_atom_kokkos.cpp
 action compute_coord_atom_kokkos.h
+action compute_erotate_asphere_kokkos.cpp compute_erotate_asphere.cpp
+action compute_erotate_asphere_kokkos.h compute_erotate_asphere.h
 action compute_erotate_sphere_kokkos.cpp
 action compute_erotate_sphere_kokkos.h
 action compute_composition_atom_kokkos.cpp compute_composition_atom.cpp
@@ -127,18 +107,26 @@ action compute_sna_grid_local_kokkos.h compute_sna_grid_local.h
 action compute_sna_grid_local_kokkos_impl.h compute_sna_grid_local.cpp
 action compute_gaussian_grid_local_kokkos.cpp compute_gaussian_grid_local.cpp
 action compute_gaussian_grid_local_kokkos.h compute_gaussian_grid_local.h
+action compute_temp_com_kokkos.cpp
+action compute_temp_com_kokkos.h
 action compute_temp_deform_kokkos.cpp
 action compute_temp_deform_kokkos.h
 action compute_temp_kokkos.cpp
 action compute_temp_kokkos.h
+action compute_temp_sphere_kokkos.cpp
+action compute_temp_sphere_kokkos.h
 action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp
 action dihedral_charmm_kokkos.h dihedral_charmm.h
 action dihedral_charmmfsw_kokkos.cpp dihedral_charmmfsw.cpp
 action dihedral_charmmfsw_kokkos.h dihedral_charmmfsw.h
 action dihedral_class2_kokkos.cpp dihedral_class2.cpp
 action dihedral_class2_kokkos.h dihedral_class2.h
+action dihedral_fourier_kokkos.cpp dihedral_fourier.cpp
+action dihedral_fourier_kokkos.h dihedral_fourier.h
 action dihedral_harmonic_kokkos.cpp dihedral_harmonic.cpp
 action dihedral_harmonic_kokkos.h dihedral_harmonic.h
+action dihedral_multi_harmonic_kokkos.cpp dihedral_multi_harmonic.cpp
+action dihedral_multi_harmonic_kokkos.h dihedral_multi_harmonic.h
 action dihedral_opls_kokkos.cpp dihedral_opls.cpp
 action dihedral_opls_kokkos.h dihedral_opls.h
 action dihedral_hybrid_kokkos.cpp dihedral_hybrid.cpp
@@ -152,28 +140,40 @@ action fft3d_kokkos.h fft3d.h
 action fftdata_kokkos.h fft3d.h
 action fix_acks2_reaxff_kokkos.cpp fix_acks2_reaxff.cpp
 action fix_acks2_reaxff_kokkos.h fix_acks2_reaxff.h
+action fix_addforce_kokkos.cpp
+action fix_addforce_kokkos.h
+action fix_aveforce_kokkos.cpp
+action fix_aveforce_kokkos.h
 action fix_cmap_kokkos.cpp fix_cmap.cpp
 action fix_cmap_kokkos.h fix_cmap.h
 action fix_colvars_kokkos.cpp fix_colvars.cpp
 action fix_colvars_kokkos.h fix_colvars.h
 action fix_deform_kokkos.cpp
 action fix_deform_kokkos.h
+action fix_drag_kokkos.cpp fix_drag.cpp
+action fix_drag_kokkos.h fix_drag.h
 action fix_dpd_energy_kokkos.cpp fix_dpd_energy.cpp
 action fix_dpd_energy_kokkos.h fix_dpd_energy.h
 action fix_dt_reset_kokkos.cpp
 action fix_dt_reset_kokkos.h
+action fix_electron_stopping_kokkos.cpp fix_electron_stopping.cpp
+action fix_electron_stopping_kokkos.h fix_electron_stopping.h
 action fix_enforce2d_kokkos.cpp
 action fix_enforce2d_kokkos.h
 action fix_efield_kokkos.cpp
 action fix_efield_kokkos.h
 action fix_eos_table_rx_kokkos.cpp fix_eos_table_rx.cpp
 action fix_eos_table_rx_kokkos.h fix_eos_table_rx.h
+action fix_external_kokkos.cpp
+action fix_external_kokkos.h
 action fix_freeze_kokkos.cpp fix_freeze.cpp
 action fix_freeze_kokkos.h fix_freeze.h
 action fix_gravity_kokkos.cpp
 action fix_gravity_kokkos.h
 action fix_langevin_kokkos.cpp
 action fix_langevin_kokkos.h
+action fix_lineforce_kokkos.cpp
+action fix_lineforce_kokkos.h
 action fix_minimize_kokkos.cpp
 action fix_minimize_kokkos.h
 action fix_momentum_kokkos.cpp
@@ -182,20 +182,36 @@ action fix_neigh_history_kokkos.cpp
 action fix_neigh_history_kokkos.h
 action fix_nh_kokkos.cpp
 action fix_nh_kokkos.h
+action fix_nh_sphere_kokkos.cpp
+action fix_nh_sphere_kokkos.h
 action fix_nph_kokkos.cpp
 action fix_nph_kokkos.h
+action fix_nph_sphere_kokkos.cpp
+action fix_nph_sphere_kokkos.h
 action fix_npt_kokkos.cpp
 action fix_npt_kokkos.h
+action fix_npt_sphere_kokkos.cpp
+action fix_npt_sphere_kokkos.h
 action fix_nve_kokkos.cpp
 action fix_nve_kokkos.h
 action fix_nve_limit_kokkos.cpp
 action fix_nve_limit_kokkos.h
 action fix_nve_sphere_kokkos.cpp
 action fix_nve_sphere_kokkos.h
+action fix_nve_asphere_kokkos.cpp fix_nve_asphere.cpp
+action fix_nve_asphere_kokkos.h fix_nve_asphere.h
+action fix_nve_noforce_kokkos.cpp
+action fix_nve_noforce_kokkos.h
 action fix_nvt_kokkos.cpp
 action fix_nvt_kokkos.h
+action fix_nvt_sphere_kokkos.cpp
+action fix_nvt_sphere_kokkos.h
 action fix_nvt_sllod_kokkos.cpp
 action fix_nvt_sllod_kokkos.h
+action fix_oneway_kokkos.cpp fix_oneway.cpp
+action fix_oneway_kokkos.h fix_oneway.h
+action fix_planeforce_kokkos.cpp
+action fix_planeforce_kokkos.h
 action fix_property_atom_kokkos.cpp
 action fix_property_atom_kokkos.h
 action fix_qeq_reaxff_kokkos.cpp fix_qeq_reaxff.cpp
@@ -208,16 +224,18 @@ action fix_reaxff_species_kokkos.cpp fix_reaxff_species.cpp
 action fix_reaxff_species_kokkos.h fix_reaxff_species.h
 action fix_recenter_kokkos.cpp
 action fix_recenter_kokkos.h
+action fix_rigid_small_kokkos.cpp fix_rigid_small.cpp
+action fix_rigid_small_kokkos.h fix_rigid_small.h
 action fix_rx_kokkos.cpp fix_rx.cpp
 action fix_rx_kokkos.h fix_rx.h
 action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
-action fix_rigid_small_kokkos.cpp fix_rigid_small.cpp
-action fix_rigid_small_kokkos.h fix_rigid_small.h
 action fix_shake_kokkos.cpp fix_shake.cpp
 action fix_shake_kokkos.h fix_shake.h
 action fix_shardlow_kokkos.cpp fix_shardlow.cpp
 action fix_shardlow_kokkos.h fix_shardlow.h
+action fix_spring_kokkos.cpp
+action fix_spring_kokkos.h
 action fix_spring_self_kokkos.cpp
 action fix_spring_self_kokkos.h
 action fix_temp_berendsen_kokkos.cpp
@@ -226,14 +244,24 @@ action fix_temp_rescale_kokkos.cpp
 action fix_temp_rescale_kokkos.h
 action fix_viscous_kokkos.cpp
 action fix_viscous_kokkos.h
+action fix_viscous_sphere_kokkos.cpp fix_viscous_sphere.cpp
+action fix_viscous_sphere_kokkos.h fix_viscous_sphere.h
 action fix_wall_flow_kokkos.cpp fix_wall_flow.cpp
 action fix_wall_flow_kokkos.h fix_wall_flow.h
 action fix_wall_gran_kokkos.cpp fix_wall_gran.cpp
 action fix_wall_gran_kokkos.h fix_wall_gran.h
 action fix_wall_gran_old.cpp fix_wall_gran.cpp
 action fix_wall_gran_old.h fix_wall_gran.h
+action fix_wall_harmonic_kokkos.cpp
+action fix_wall_harmonic_kokkos.h
+action fix_wall_lj126_kokkos.cpp
+action fix_wall_lj126_kokkos.h
+action fix_wall_lj1043_kokkos.cpp
+action fix_wall_lj1043_kokkos.h
 action fix_wall_lj93_kokkos.cpp
 action fix_wall_lj93_kokkos.h
+action fix_wall_morse_kokkos.cpp
+action fix_wall_morse_kokkos.h
 action fix_wall_reflect_kokkos.cpp
 action fix_wall_reflect_kokkos.h
 action fix_wall_region_kokkos.cpp
@@ -243,6 +271,8 @@ action grid3d_kokkos.h fft3d.h
 action group_kokkos.h
 action improper_class2_kokkos.cpp improper_class2.cpp
 action improper_class2_kokkos.h improper_class2.h
+action improper_cvff_kokkos.cpp improper_cvff.cpp
+action improper_cvff_kokkos.h improper_cvff.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
 action improper_harmonic_kokkos.h improper_harmonic.h
 action improper_hybrid_kokkos.cpp improper_hybrid.cpp
@@ -254,7 +284,6 @@ action kokkos_few.h
 action kokkos_type.h
 action kokkos.cpp
 action kokkos.h
-action math_extra_kokkos.cpp
 action math_extra_kokkos.h
 action math_special_kokkos.cpp
 action math_special_kokkos.h
@@ -315,22 +344,50 @@ action pair_adp_kokkos.cpp pair_adp.cpp
 action pair_adp_kokkos.h pair_adp.h
 action pair_brownian_kokkos.cpp pair_brownian.cpp
 action pair_brownian_kokkos.h pair_brownian.h
+action pair_born_gauss_kokkos.cpp pair_born_gauss.cpp
+action pair_born_gauss_kokkos.h pair_born_gauss.h
+action pair_born_coul_wolf_kokkos.cpp pair_born_coul_wolf.cpp
+action pair_born_coul_wolf_kokkos.h pair_born_coul_wolf.h
 action pair_buck_coul_cut_kokkos.cpp
 action pair_buck_coul_cut_kokkos.h
 action pair_buck_coul_long_kokkos.cpp pair_buck_coul_long.cpp
 action pair_buck_coul_long_kokkos.h pair_buck_coul_long.h
+action pair_beck_kokkos.cpp pair_beck.cpp
+action pair_beck_kokkos.h pair_beck.h
+action pair_born_coul_long_kokkos.cpp pair_born_coul_long.cpp
+action pair_born_coul_long_kokkos.h pair_born_coul_long.h
+action pair_born_kokkos.cpp
+action pair_born_kokkos.h
 action pair_buck_kokkos.cpp
 action pair_buck_kokkos.h
+action pair_colloid_kokkos.cpp pair_colloid.cpp
+action pair_colloid_kokkos.h pair_colloid.h
+action pair_buck_mdf_kokkos.cpp pair_buck_mdf.cpp
+action pair_buck_mdf_kokkos.h pair_buck_mdf.h
+action pair_buck6d_coul_gauss_dsf_kokkos.cpp pair_buck6d_coul_gauss_dsf.cpp
+action pair_buck6d_coul_gauss_dsf_kokkos.h pair_buck6d_coul_gauss_dsf.h
+action pair_buck6d_coul_gauss_long_kokkos.cpp pair_buck6d_coul_gauss_long.cpp
+action pair_buck6d_coul_gauss_long_kokkos.h pair_buck6d_coul_gauss_long.h
+action pair_coul_cut_global_kokkos.cpp pair_coul_cut_global.cpp
+action pair_coul_cut_global_kokkos.h pair_coul_cut_global.h
 action pair_coul_cut_kokkos.cpp
 action pair_coul_cut_kokkos.h
 action pair_coul_debye_kokkos.cpp
 action pair_coul_debye_kokkos.h
+action pair_coul_diel_kokkos.cpp pair_coul_diel.cpp
+action pair_coul_diel_kokkos.h pair_coul_diel.h
 action pair_coul_dsf_kokkos.cpp
 action pair_coul_dsf_kokkos.h
 action pair_coul_long_kokkos.cpp pair_coul_long.cpp
 action pair_coul_long_kokkos.h pair_coul_long.h
+action pair_coul_slater_long_kokkos.cpp pair_coul_slater_long.cpp
+action pair_coul_slater_long_kokkos.h pair_coul_slater_long.h
 action pair_coul_wolf_kokkos.cpp
 action pair_coul_wolf_kokkos.h
+action pair_coul_shield_kokkos.cpp pair_coul_shield.cpp
+action pair_coul_shield_kokkos.h pair_coul_shield.h
+action pair_cosine_squared_kokkos.cpp pair_cosine_squared.cpp
+action pair_cosine_squared_kokkos.h pair_cosine_squared.h
 action pair_dpd_ext_kokkos.cpp pair_dpd_ext.cpp
 action pair_dpd_ext_kokkos.h pair_dpd_ext.h
 action pair_dpd_ext_tstat_kokkos.cpp pair_dpd_ext_tstat.cpp
@@ -349,12 +406,20 @@ action pair_eam_kokkos.cpp pair_eam.cpp
 action pair_eam_kokkos.h pair_eam.h
 action pair_exp6_rx_kokkos.cpp pair_exp6_rx.cpp
 action pair_exp6_rx_kokkos.h pair_exp6_rx.h
+action pair_gauss_kokkos.cpp pair_gauss.cpp
+action pair_gauss_kokkos.h pair_gauss.h
 action pair_gran_hooke_history_kokkos.cpp pair_gran_hooke_history.cpp
 action pair_gran_hooke_history_kokkos.h pair_gran_hooke_history.h
+action pair_gauss_cut_kokkos.cpp pair_gauss_cut.cpp
+action pair_gauss_cut_kokkos.h pair_gauss_cut.h
 action pair_hybrid_kokkos.cpp
 action pair_hybrid_kokkos.h
 action pair_hybrid_overlay_kokkos.cpp
 action pair_hybrid_overlay_kokkos.h
+action pair_hybrid_scaled_kokkos.cpp
+action pair_hybrid_scaled_kokkos.h
+action pair_harmonic_cut_kokkos.cpp pair_harmonic_cut.cpp
+action pair_harmonic_cut_kokkos.h pair_harmonic_cut.h
 action pair_kokkos.h
 action pair_lj_charmm_coul_charmm_implicit_kokkos.cpp pair_lj_charmm_coul_charmm_implicit.cpp
 action pair_lj_charmm_coul_charmm_implicit_kokkos.h pair_lj_charmm_coul_charmm_implicit.h
@@ -376,12 +441,22 @@ action pair_lj_cut_coul_debye_kokkos.cpp pair_lj_cut_coul_debye.cpp
 action pair_lj_cut_coul_debye_kokkos.h pair_lj_cut_coul_debye.h
 action pair_lj_cut_coul_dsf_kokkos.cpp pair_lj_cut_coul_dsf.cpp
 action pair_lj_cut_coul_dsf_kokkos.h pair_lj_cut_coul_dsf.h
+action pair_lj_cut_coul_wolf_kokkos.cpp pair_lj_cut_coul_wolf.cpp
+action pair_lj_cut_coul_wolf_kokkos.h pair_lj_cut_coul_wolf.h
 action pair_lj_cut_coul_long_kokkos.cpp pair_lj_cut_coul_long.cpp
 action pair_lj_cut_coul_long_kokkos.h pair_lj_cut_coul_long.h
+action pair_lj_switch3_coulgauss_long_kokkos.cpp pair_lj_switch3_coulgauss_long.cpp
+action pair_lj_switch3_coulgauss_long_kokkos.h pair_lj_switch3_coulgauss_long.h
 action pair_lj_cut_dipole_cut_kokkos.cpp pair_lj_cut_dipole_cut.cpp
 action pair_lj_cut_dipole_cut_kokkos.h pair_lj_cut_dipole_cut.h
 action pair_lj_cut_kokkos.cpp
 action pair_lj_cut_kokkos.h
+action pair_lj_cut_sphere_kokkos.cpp pair_lj_cut_sphere.cpp
+action pair_lj_cut_sphere_kokkos.h pair_lj_cut_sphere.h
+action pair_lj_mdf_kokkos.cpp pair_lj_mdf.cpp
+action pair_lj_mdf_kokkos.h pair_lj_mdf.h
+action pair_lj_pirani_kokkos.cpp pair_lj_pirani.cpp
+action pair_lj_pirani_kokkos.h pair_lj_pirani.h
 action pair_lj_expand_coul_long_kokkos.cpp pair_lj_expand_coul_long.cpp
 action pair_lj_expand_coul_long_kokkos.h pair_lj_expand_coul_long.h
 action pair_lj_expand_kokkos.cpp
@@ -390,22 +465,42 @@ action pair_lj_gromacs_coul_gromacs_kokkos.cpp pair_lj_gromacs_coul_gromacs.cpp
 action pair_lj_gromacs_coul_gromacs_kokkos.h pair_lj_gromacs_coul_gromacs.h
 action pair_lj_gromacs_kokkos.cpp pair_lj_gromacs.cpp
 action pair_lj_gromacs_kokkos.h pair_lj_gromacs.h
+action pair_lj_smooth_kokkos.cpp pair_lj_smooth.cpp
+action pair_lj_smooth_kokkos.h pair_lj_smooth.h
 action pair_lj_spica_coul_long_kokkos.cpp pair_lj_spica_coul_long.cpp
 action pair_lj_spica_coul_long_kokkos.h pair_lj_spica_coul_long.h
 action pair_lj_spica_kokkos.cpp pair_lj_spica.cpp
 action pair_lj_spica_kokkos.h pair_lj_spica.h
+action pair_lennard_mdf_kokkos.cpp pair_lennard_mdf.cpp
+action pair_lennard_mdf_kokkos.h pair_lennard_mdf.h
 action pair_meam_kokkos.cpp pair_meam.cpp
 action pair_meam_kokkos.h pair_meam.h
 action pair_meam_ms_kokkos.cpp pair_meam_ms.cpp
 action pair_meam_ms_kokkos.h pair_meam_ms.h
+action pair_mie_cut_kokkos.cpp pair_mie_cut.cpp
+action pair_mie_cut_kokkos.h pair_mie_cut.h
+action pair_mm3_switch3_coulgauss_long_kokkos.cpp pair_mm3_switch3_coulgauss_long.cpp
+action pair_mm3_switch3_coulgauss_long_kokkos.h pair_mm3_switch3_coulgauss_long.h
 action pair_mliap_kokkos.cpp pair_mliap.cpp
 action pair_mliap_kokkos.h pair_mliap.h
+action pair_momb_kokkos.cpp pair_momb.cpp
+action pair_momb_kokkos.h pair_momb.h
 action pair_morse_kokkos.cpp
 action pair_morse_kokkos.h
+action pair_morse_smooth_linear_kokkos.cpp pair_morse_smooth_linear.cpp
+action pair_morse_smooth_linear_kokkos.h pair_morse_smooth_linear.h
 action pair_multi_lucy_rx_kokkos.cpp pair_multi_lucy_rx.cpp
 action pair_multi_lucy_rx_kokkos.h pair_multi_lucy_rx.h
+action pair_nm_cut_kokkos.cpp pair_nm_cut.cpp
+action pair_nm_cut_kokkos.h pair_nm_cut.h
+action pair_nm_cut_coul_cut_kokkos.cpp pair_nm_cut_coul_cut.cpp
+action pair_nm_cut_coul_cut_kokkos.h pair_nm_cut_coul_cut.h
+action pair_nm_cut_coul_long_kokkos.cpp pair_nm_cut_coul_long.cpp
+action pair_nm_cut_coul_long_kokkos.h pair_nm_cut_coul_long.h
 action pair_pace_extrapolation_kokkos.cpp pair_pace_extrapolation.cpp
 action pair_pace_extrapolation_kokkos.h pair_pace_extrapolation.h
+action pair_pedone_kokkos.cpp pair_pedone.cpp
+action pair_pedone_kokkos.h pair_pedone.h
 action pair_pod_kokkos.cpp pair_pod.cpp
 action pair_pod_kokkos.h pair_pod.h
 action pair_pace_kokkos.cpp pair_pace.cpp
@@ -425,6 +520,8 @@ action pair_table_rx_kokkos.cpp pair_table_rx.cpp
 action pair_table_rx_kokkos.h pair_table_rx.h
 action pair_tersoff_kokkos.cpp pair_tersoff.cpp
 action pair_tersoff_kokkos.h pair_tersoff.h
+action pair_ufm_kokkos.cpp pair_ufm.cpp
+action pair_ufm_kokkos.h pair_ufm.h
 action pair_tersoff_mod_kokkos.cpp pair_tersoff_mod.cpp
 action pair_tersoff_mod_kokkos.h pair_tersoff_mod.h
 action pair_tersoff_zbl_kokkos.cpp pair_tersoff_zbl.cpp
@@ -433,10 +530,14 @@ action pair_uf3_kokkos.cpp pair_uf3.cpp
 action pair_uf3_kokkos.h pair_uf3.h
 action pair_vashishta_kokkos.cpp pair_vashishta.cpp
 action pair_vashishta_kokkos.h pair_vashishta.h
+action pair_wf_cut_kokkos.cpp pair_wf_cut.cpp
+action pair_wf_cut_kokkos.h pair_wf_cut.h
 action pair_yukawa_kokkos.cpp
 action pair_yukawa_kokkos.h
 action pair_yukawa_colloid_kokkos.cpp pair_yukawa_colloid.cpp
 action pair_yukawa_colloid_kokkos.h pair_yukawa_colloid.h
+action pair_ylz_kokkos.cpp pair_ylz.cpp
+action pair_ylz_kokkos.h pair_ylz.h
 action pair_zbl_kokkos.cpp
 action pair_zbl_kokkos.h
 action pppm_kokkos.cpp pppm.cpp
@@ -463,40 +564,9 @@ action mliap_unified_couple_kokkos.pyx mliap_unified_couple.pyx
 
 # edit 2 Makefile.package files to include/exclude package info
 
-if (test $1 = 1) then
-
-  if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*kokkos[^ \t]* //g' ../Makefile.package
-    sed -i -e 's/[^ \t]*KOKKOS[^ \t]* //g' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_KOKKOS |' ../Makefile.package
-#    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/kokkos\/core\/src |' ../Makefile.package
-    sed -i -e 's|^PKG_CPP_DEPENDS =[ \t]*|&$(KOKKOS_CPP_DEPENDS) |' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|&$(KOKKOS_LIBS) |' ../Makefile.package
-    sed -i -e 's|^PKG_LINK_DEPENDS =[ \t]*|&$(KOKKOS_LINK_DEPENDS) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(KOKKOS_LDFLAGS) |' ../Makefile.package
-#    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(kokkos_SYSPATH) |' ../Makefile.package
-  fi
-
-  if (test -e ../Makefile.package.settings) then
-    sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
-    sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
-    # multiline form needed for BSD sed on Macs
-    sed -i -e '4 i \
-CXX = $(CC)
-' ../Makefile.package.settings
-    sed -i -e '5 i \
-include ..\/..\/lib\/kokkos\/Makefile.kokkos
-' ../Makefile.package.settings
-  fi
-
-  #  comb/omp triggers a persistent bug in nvcc. deleting it.
-  rm -f ../*_comb_omp.*
-
-elif (test $1 = 2) then
-
-  #  comb/omp triggers a persistent bug in nvcc. deleting it.
-  rm -f ../*_comb_omp.*
+if (test $1 = 1 || test $1 = 2) then
+  echo "The KOKKOS package no longer supports the legacy build system. Please build LAMMPS with CMake instead."
+  exit 1
 
 elif (test $1 = 0) then
 
@@ -510,27 +580,4 @@ elif (test $1 = 0) then
     sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
   fi
 
-fi
-
-# Python cython stuff. Only need to convert/remove sources.
-# Package settings were already done in ML-IAP package Install.sh script.
-
-if (test $1 = 1) then
-  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
-    cythonize -3 ../mliap_model_python_couple_kokkos.pyx
-    cythonize -3 ../mliap_unified_couple_kokkos.pyx
-  fi
-
-elif (test $1 = 0) then
-  rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
-  rm -f ../mliap_unified_couple_kokkos.cpp ../mliap_unified_couple_kokkos.h
-
-elif (test $1 = 2) then
-  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
-    cythonize -3 ../mliap_model_python_couple_kokkos.pyx
-    cythonize -3 ../mliap_unified_couple_kokkos.pyx
-  else
-    rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
-    rm -f ../mliap_unified_couple_kokkos.cpp ../mliap_unified_couple_kokkos.h
-  fi
 fi

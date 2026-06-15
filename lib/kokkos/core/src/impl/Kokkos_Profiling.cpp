@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -410,7 +397,7 @@ void popRegion() {
       Experimental::current_callbacks.pop_region);
 }
 
-void allocateData(const SpaceHandle space, const std::string label,
+void allocateData(const SpaceHandle space, const std::string& label,
                   const void* ptr, const uint64_t size) {
   Experimental::invoke_kokkosp_callback(
       Experimental::MayRequireGlobalFencing::No,
@@ -418,7 +405,7 @@ void allocateData(const SpaceHandle space, const std::string label,
       size);
 }
 
-void deallocateData(const SpaceHandle space, const std::string label,
+void deallocateData(const SpaceHandle space, const std::string& label,
                     const void* ptr, const uint64_t size) {
   Experimental::invoke_kokkosp_callback(
       Experimental::MayRequireGlobalFencing::No,
@@ -426,9 +413,9 @@ void deallocateData(const SpaceHandle space, const std::string label,
       ptr, size);
 }
 
-void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
+void beginDeepCopy(const SpaceHandle dst_space, const std::string& dst_label,
                    const void* dst_ptr, const SpaceHandle src_space,
-                   const std::string src_label, const void* src_ptr,
+                   const std::string& src_label, const void* src_ptr,
                    const uint64_t size) {
   Experimental::invoke_kokkosp_callback(
       Experimental::MayRequireGlobalFencing::No,
@@ -464,7 +451,7 @@ void endDeepCopy() {
 #endif
 }
 
-void beginFence(const std::string name, const uint32_t deviceId,
+void beginFence(const std::string& name, const uint32_t deviceId,
                 uint64_t* handle) {
   Experimental::invoke_kokkosp_callback(
       Experimental::MayRequireGlobalFencing::No,

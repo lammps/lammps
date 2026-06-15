@@ -40,10 +40,9 @@ static constexpr int FACESDELTA = 10000;
 /* ---------------------------------------------------------------------- */
 
 ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), con_mono(nullptr), con_poly(nullptr),
-  radstr(nullptr), voro(nullptr), edge(nullptr), sendvector(nullptr),
-  rfield(nullptr), tags(nullptr), occvec(nullptr), sendocc(nullptr),
-  lroot(nullptr), lnext(nullptr), faces(nullptr)
+  Compute(lmp, narg, arg), con_mono(nullptr), con_poly(nullptr), radstr(nullptr),
+  voro(nullptr), edge(nullptr), sendvector(nullptr), rfield(nullptr), tags(nullptr),
+  occvec(nullptr), lroot(nullptr), lnext(nullptr), faces(nullptr)
 {
   int sgroup;
 
@@ -156,9 +155,6 @@ ComputeVoronoi::~ComputeVoronoi()
   memory->destroy(lroot);
   memory->destroy(lnext);
   memory->destroy(occvec);
-#ifdef NOTINPLACE
-  memory->destroy(sendocc);
-#endif
   memory->destroy(tags);
   memory->destroy(faces);
 }
@@ -211,9 +207,6 @@ void ComputeVoronoi::compute_peratom()
       oldnatoms = atom->natoms;
       oldmaxtag = atom->map_tag_max;
       memory->create(occvec,oldmaxtag,"voronoi/atom:occvec");
-#ifdef NOTINPLACE
-      memory->create(sendocc,oldmaxtag,"voronoi/atom:sendocc");
-#endif
     }
 
     // get the occupation of each original voronoi cell
@@ -429,12 +422,7 @@ void ComputeVoronoi::checkOccupation()
 
   // MPI sum occupation
 
-#ifdef NOTINPLACE
-  memcpy(sendocc, occvec, oldnatoms*sizeof(*occvec));
-  MPI_Allreduce(sendocc, occvec, oldnatoms, MPI_INT, MPI_SUM, world);
-#else
   MPI_Allreduce(MPI_IN_PLACE, occvec, oldnatoms, MPI_INT, MPI_SUM, world);
-#endif
 
   // determine the total number of atoms in this atom's currently occupied cell
 

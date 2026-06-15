@@ -1,10 +1,11 @@
 .. index:: pair_style coul/diel
+.. index:: pair_style coul/diel/kk
 .. index:: pair_style coul/diel/omp
 
 pair_style coul/diel command
 ============================
 
-Accelerator Variants: *coul/diel/omp*
+Accelerator Variants: *coul/diel/kk*, *coul/diel/omp*
 
 Syntax
 """"""

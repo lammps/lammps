@@ -29,7 +29,11 @@ _texture( q_tex,int2);
 #define q_tex q_
 #endif
 
+#if defined _DOUBLE_DOUBLE
 #define EPSILON (acctyp)(1.0e-20)
+#else
+#define EPSILON (numtyp)(1.0e-7)
+#endif
 #define MY_PIS (acctyp)1.77245385090551602729
 
 __kernel void k_born_coul_wolf_cs(const __global numtyp4 *restrict x_,

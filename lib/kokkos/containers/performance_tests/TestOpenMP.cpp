@@ -1,26 +1,18 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <Kokkos_Macros.hpp>
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.unordered_map;
+#else
 #include <Kokkos_Core.hpp>
-
 #include <Kokkos_UnorderedMap.hpp>
+#endif
 
 #include <TestGlobal2LocalIds.hpp>
 #include <TestUnorderedMapPerformance.hpp>
@@ -35,13 +27,13 @@
 
 namespace Performance {
 
-TEST(TEST_CATEGORY, dynrankview_perf) {
+TEST(openmp, dynrankview_perf) {
   std::cout << "OpenMP" << std::endl;
   std::cout << " DynRankView vs View: Initialization Only " << std::endl;
   test_dynrankview_op_perf<Kokkos::OpenMP>(8192);
 }
 
-TEST(TEST_CATEGORY, global_2_local) {
+TEST(openmp, global_2_local) {
   std::cout << "OpenMP" << std::endl;
   std::cout << "size, create, generate, fill, find" << std::endl;
   for (unsigned i = Performance::begin_id_size; i <= Performance::end_id_size;
@@ -49,7 +41,7 @@ TEST(TEST_CATEGORY, global_2_local) {
     test_global_to_local_ids<Kokkos::OpenMP>(i);
 }
 
-TEST(TEST_CATEGORY, unordered_map_performance_near) {
+TEST(openmp, unordered_map_performance_near) {
   unsigned num_openmp = 4;
   if (Kokkos::hwloc::available()) {
     num_openmp = Kokkos::hwloc::get_available_numa_count() *
@@ -61,7 +53,7 @@ TEST(TEST_CATEGORY, unordered_map_performance_near) {
   Perf::run_performance_tests<Kokkos::OpenMP, true>(base_file_name.str());
 }
 
-TEST(TEST_CATEGORY, unordered_map_performance_far) {
+TEST(openmp, unordered_map_performance_far) {
   unsigned num_openmp = 4;
   if (Kokkos::hwloc::available()) {
     num_openmp = Kokkos::hwloc::get_available_numa_count() *
@@ -73,7 +65,7 @@ TEST(TEST_CATEGORY, unordered_map_performance_far) {
   Perf::run_performance_tests<Kokkos::OpenMP, false>(base_file_name.str());
 }
 
-TEST(TEST_CATEGORY, scatter_view) {
+TEST(openmp, scatter_view) {
   std::cout << "ScatterView data-duplicated test:\n";
   Perf::test_scatter_view<Kokkos::OpenMP, Kokkos::LayoutRight,
                           Kokkos::Experimental::ScatterDuplicated,

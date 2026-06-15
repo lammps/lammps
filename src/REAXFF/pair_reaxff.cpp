@@ -47,7 +47,7 @@ using namespace LAMMPS_NS;
 using namespace ReaxFF;
 
 static const char cite_pair_reax_c[] =
-  "pair reaxff command: doi:10.1016/j.parco.2011.08.005\n\n"
+  "pair reaxff command: https://doi.org/10.1016/j.parco.2011.08.005\n\n"
   "@Article{Aktulga12,\n"
   " author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},\n"
   " title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},\n"
@@ -469,7 +469,7 @@ void PairReaxFF::compute(int eflag, int vflag)
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
 
   if (api->system->acks2_flag) {
-    auto ifix = modify->get_fix_by_style("^acks2/reax").front();
+    auto *ifix = modify->get_fix_by_style("^acks2/reax").front();
     api->workspace->s = (dynamic_cast<FixACKS2ReaxFF*>(ifix))->get_s();
   }
 
@@ -548,7 +548,7 @@ void PairReaxFF::write_reax_atoms()
   int *num_hbonds = fix_reaxff->num_hbonds;
 
   if (api->system->N > api->system->total_cap)
-    error->all(FLERR,"Too many ghost atoms");
+    error->all(FLERR,"Too many ghost atoms in ReaxFF pair style");
 
   for (int i = 0; i < api->system->N; ++i) {
     api->system->my_atoms[i].orig_id = atom->tag[i];
@@ -665,7 +665,7 @@ int PairReaxFF::write_reax_lists()
       j &= NEIGHMASK;
       get_distance(x[j], x[i], &d_sqr, &dvec);
 
-      if (d_sqr <= (cutoff_sqr)) {
+      if (d_sqr <= cutoff_sqr) {
         dist[j] = sqrt(d_sqr);
         set_far_nbr(&far_list[num_nbrs], j, dist[j], dvec);
         ++num_nbrs;

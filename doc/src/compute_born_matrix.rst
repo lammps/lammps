@@ -67,7 +67,9 @@ as a 6x6 symmetric matrix:
 In the above expression, :math:`\sigma` stands for the virial stress
 tensor, :math:`\delta` is the Kronecker delta and the usual notation apply for
 the number of particle, the temperature and volume respectively :math:`N`,
-:math:`T` and :math:`V`. :math:`k_{B}` is the Boltzmann constant.
+:math:`T` and :math:`V`. :math:`k_{B}` is the Boltzmann constant. For a
+more detailed explanation of the terms appearing in the above equation,
+see :ref:`(Lutsko)<Lutsko>`.
 
 The Born term is a symmetric 6x6 matrix, as is the matrix of second derivatives
 of potential energy w.r.t strain,
@@ -90,7 +92,7 @@ of the derivatives of every contribution to the potential energy
 in the system as explained in :ref:`(VanWorkum)
 <VanWorkum>`.
 
-The output can be accessed using usual Lammps routines:
+The output can be accessed using the usual LAMMPS routines:
 
 .. code-block:: LAMMPS
 
@@ -99,15 +101,17 @@ The output can be accessed using usual Lammps routines:
    variable S1 equal -c_2[1]
    variable S2 equal -c_2[2]
    variable S3 equal -c_2[3]
-   variable S4 equal -c_2[4]
+   variable S4 equal -c_2[6]
    variable S5 equal -c_2[5]
-   variable S6 equal -c_2[6]
+   variable S6 equal -c_2[4]
    fix 1 all ave/time 1 1 1 v_S1 v_S2 v_S3 v_S4 v_S5 v_S6 c_1[*] file born.out
 
+Note interchange of 4th and 6th stress values to satisfy Voigt notation.
 In this example, the file *born.out* will contain the information needed to
 compute the first and second terms of the elastic constant matrix in a post
-processing procedure. The other required quantities can be accessed using any
-other *LAMMPS* usual method. Several examples of this method are
+processing procedure. The third term depends only on *T*, which can
+be specified directly or estimated by sampling the atom velocities.
+Several examples of this method are
 provided in the examples/ELASTIC_T/BORN_MATRIX directory
 described on the :doc:`Examples <Examples>` doc page.
 
@@ -210,7 +214,7 @@ none
 
 .. _VanWorkum:
 
-**(Van Workum)** K. Van Workum et al., J. Chem. Phys. 125 144506 (2006)
+**(Van Workum)** K. Van Workum et al., J Chem Phys, 125, 144506 (2006).
 
 .. _Clavier2:
 
@@ -218,4 +222,8 @@ none
 
 .. _Zhen:
 
-**(Zhen)** Y. Zhen, C. Chu, Computer Physics Communications 183(2012)261-265
+**(Zhen)** Y. Zhen, C. Chu, Comp Phys Comm, 183, 261-265 (2012).
+
+.. _Lutsko:
+
+**(Lutsko)** J. F. Lutsko, J Appl Phys, 65, 2991-2997 (1989).

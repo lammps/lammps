@@ -139,7 +139,7 @@ void PairLJClass2CoulLong::compute(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction * dftable[itable];
             forcecoul = qtmp * q[j] * table;
             if (factor_coul < 1.0) {
@@ -471,7 +471,7 @@ void PairLJClass2CoulLong::compute_outer(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction * dftable[itable];
             forcecoul = qtmp * q[j] * table;
             if (factor_coul < 1.0) {
@@ -666,7 +666,7 @@ void PairLJClass2CoulLong::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }
@@ -893,7 +893,7 @@ double PairLJClass2CoulLong::single(int i, int j, int itype, int jtype, double r
       rsq_lookup.f = rsq;
       itable = rsq_lookup.i & ncoulmask;
       itable >>= ncoulshiftbits;
-      fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+      fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
       table = ftable[itable] + fraction * dftable[itable];
       forcecoul = atom->q[i] * atom->q[j] * table;
       if (factor_coul < 1.0) {

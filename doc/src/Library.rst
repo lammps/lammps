@@ -93,23 +93,29 @@ run LAMMPS in serial mode.
 .. admonition:: Using the C library interface as a plugin
    :class: note
 
-   Rather than including the C library directly and link to the LAMMPS
-   library at compile time, you can use the ``liblammpsplugin.h`` header
-   file and the ``liblammpsplugin.c`` C code in the
-   ``examples/COUPLE/plugin`` folder for an interface to LAMMPS that is
-   largely identical to the regular library interface, only that it will
-   load a LAMMPS shared library file at runtime.  This can be useful for
-   applications where the interface to LAMMPS would be an optional
-   feature.
+   Rather than including the C library interface directly including the
+   ``library.h`` header file and linking to the LAMMPS (static or
+   shared) library at compile time, you can dynamically load LAMMPS at
+   runtime, provided you compiled LAMMPS using a shared library or DLL.
+   The ``liblammpsplugin.h`` header file and the ``liblammpsplugin.c`` C
+   code in the ``examples/COUPLE/plugin`` folder for an interface to
+   LAMMPS that is largely identical to the regular library interface,
+   only that it will load a LAMMPS shared library file at runtime.  This
+   can be useful for applications where the interface to LAMMPS would be
+   an optional feature or where you would like to load different versions
+   of the LAMMPS library (e.g. an updated one) without replacing the
+   executable.  The :ref:`LAMMPS-GUI <lammps_gui>` is an example for
+   such an application.  It has a wrapper class that supports both modes
+   and which is used can be changed at compile time.
 
 .. warning::
 
    No checks are made on the arguments of the function calls of the C
    library interface.  *All* function arguments must be non-NULL unless
-   *explicitly* allowed, and must point to consistent and valid data.  Buffers
-   for storing returned data must be allocated to a suitable size.
-   Passing invalid or unsuitable information will likely cause crashes
-   or corrupt data.
+   *explicitly* allowed, and must point to consistent and valid data.
+   Buffers for storing returned data must be allocated to a suitable
+   size.  Passing invalid or unsuitable information will likely cause
+   crashes or corrupt data.
 
 ------------------------------
 

@@ -219,9 +219,9 @@ namespace ReaxFF {
   }
 
 
-  void Init_Forces_noQEq_OMP(reax_system *system, control_params *control,
-                              simulation_data *data, storage *workspace,
-                              reax_list **lists) {
+  static void Init_Forces_noQEq_OMP(reax_system *system, control_params *control,
+                                    simulation_data *data, storage *workspace,
+                                    reax_list **lists) {
     int j, pj;
     int start_i, end_i;
     int type_i, type_j;

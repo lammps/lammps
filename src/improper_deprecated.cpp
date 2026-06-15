@@ -35,7 +35,7 @@ void ImproperDeprecated::settings(int, char **)
   // of the list of substyles
 
   if (utils::strmatch(my_style, "^hybrid")) {
-    auto hybrid = dynamic_cast<ImproperHybrid *>(force->improper);
+    auto *hybrid = dynamic_cast<ImproperHybrid *>(force->improper);
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 
@@ -44,5 +44,6 @@ void ImproperDeprecated::settings(int, char **)
       utils::logmesg(lmp, "\nImproper style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-  error->all(FLERR, "This improper style is no longer available");
+  error->all(FLERR, Error::ARGZERO, "Improper style {} is no longer available", my_style,
+             utils::errorurl(38));
 }

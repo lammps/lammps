@@ -2,15 +2,10 @@
 
 #include "force.h"
 #include "info.h"
-#include "lammps.h"
 #include "library.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-// #include <cstdint>
-// #include <cstdlib>
-#include <mpi.h>
-#include <string>
 
 #include "gtest/gtest.h"
 

@@ -53,7 +53,7 @@ class PythonCmdWrapper(unittest.TestCase):
 
         types = [1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        self.assertEqual(self.lmp.create_atoms(2, atomid=None, atype=types, x=x), 2)
         self.assertEqual(self.lmp.extract_global("natoms"), 2)
         pos = self.lmp.numpy.extract_atom("x")
         self.assertEqual(pos.shape[0], 2)

@@ -14,7 +14,6 @@
 #include "../testing/utils.h"
 #include "compressed_dump_test.h"
 #include "fmt/format.h"
-#include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 

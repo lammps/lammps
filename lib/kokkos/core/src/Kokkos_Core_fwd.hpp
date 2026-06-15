@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CORE_FWD_HPP
 #define KOKKOS_CORE_FWD_HPP
@@ -49,11 +36,9 @@ struct AUTO_t {
   constexpr const AUTO_t &operator()() const { return *this; }
 };
 
-namespace {
 /**\brief Token to indicate that a parameter's value is to be automatically
  * selected */
-constexpr AUTO_t AUTO = Kokkos::AUTO_t();
-}  // namespace
+inline constexpr AUTO_t AUTO{};
 
 struct InvalidType {};
 
@@ -83,7 +68,7 @@ class InitializationSettings;
 
 /// Define Kokkos::DefaultExecutionSpace as per configuration option
 /// or chosen from the enabled execution spaces in the following order:
-/// Kokkos::Cuda, Kokkos::Experimental::OpenMPTarget, Kokkos::OpenMP,
+/// Kokkos::Cuda, Kokkos::OpenMP,
 /// Kokkos::Threads, Kokkos::Serial
 
 #if defined(__clang_analyzer__)
@@ -100,9 +85,6 @@ namespace Kokkos {
 
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA)
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = Cuda;
-#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET)
-using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
-    Experimental::OpenMPTarget;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP)
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = HIP;
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL)
@@ -121,7 +103,7 @@ using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION =
 using DefaultExecutionSpace KOKKOS_IMPL_DEFAULT_EXEC_SPACE_ANNOTATION = Serial;
 #else
 #error \
-    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::HIP, Kokkos::SYCL, Kokkos::Experimental::OpenMPTarget, Kokkos::Experimental::OpenACC, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
+    "At least one of the following execution spaces must be defined in order to use Kokkos: Kokkos::Cuda, Kokkos::HIP, Kokkos::SYCL, Kokkos::Experimental::OpenACC, Kokkos::OpenMP, Kokkos::Threads, Kokkos::Experimental::HPX, or Kokkos::Serial."
 #endif
 
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
@@ -164,7 +146,7 @@ using SharedSpace = HIPManagedSpace;
 using SharedSpace = SYCLSharedUSMSpace;
 #define KOKKOS_HAS_SHARED_SPACE
 // if only host compile point to HostSpace
-#elif !defined(KOKKOS_ENABLE_OPENACC) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#elif !defined(KOKKOS_ENABLE_OPENACC)
 using SharedSpace               = HostSpace;
 #define KOKKOS_HAS_SHARED_SPACE
 #endif
@@ -185,7 +167,7 @@ using SharedHostPinnedSpace = HIPHostPinnedSpace;
 #elif defined(KOKKOS_ENABLE_SYCL)
     using SharedHostPinnedSpace = SYCLHostUSMSpace;
 #define KOKKOS_HAS_SHARED_HOST_PINNED_SPACE
-#elif !defined(KOKKOS_ENABLE_OPENACC) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#elif !defined(KOKKOS_ENABLE_OPENACC)
     using SharedHostPinnedSpace = HostSpace;
 #define KOKKOS_HAS_SHARED_HOST_PINNED_SPACE
 #endif

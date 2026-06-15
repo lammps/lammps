@@ -281,7 +281,8 @@ Here is more information about the extended XYZ format defined and
 used by Tinker, and links to programs that convert standard PDB files
 to the extended XYZ format:
 
-* `https://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html <https://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html>`_
+* `https://dasher.wustl.edu/tinker/distribution/doc/sphinx/tinker/_build/html/text/file-types.html <https://dasher.wustl.edu/tinker/distribution/doc/sphinx/tinker/_build/html/text/file-types.html>`_
+* `https://openbabel.org/docs/FileFormats/Tinker_XYZ_format.html <https://openbabel.org/docs/FileFormats/Tinker_XYZ_format.html>`_
 * `https://github.com/emleddin/pdbxyz-xyzpdb <https://github.com/emleddin/pdbxyz-xyzpdb>`_
 * `https://github.com/TinkerTools/tinker/blob/release/source/pdbxyz.f <https://github.com/TinkerTools/tinker/blob/release/source/pdbxyz.f>`_
 

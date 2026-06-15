@@ -34,12 +34,13 @@ class FixElectrodeThermo : public FixElectrodeConp {
  public:
   FixElectrodeThermo(class LAMMPS *, int, char **);
   ~FixElectrodeThermo() override;
-  void update_psi() override;
-  void pre_update() override;
 
  protected:
- private:
+  void update_psi() override;
+  void pre_update() override;
   void compute_macro_matrices() override;
+
+ private:
   class RanMars *thermo_random;
   double delta_psi_0;
   double group_q_old[2];

@@ -232,7 +232,7 @@ void ComputeDisplaceAtom::refresh()
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (varatom[i]) domain->unmap(x[i],image[i],xoriginal[i]);
+    if (varatom[i] != 0.0) domain->unmap(x[i],image[i],xoriginal[i]);
 }
 
 /* ----------------------------------------------------------------------

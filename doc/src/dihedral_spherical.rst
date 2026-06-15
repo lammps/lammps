@@ -1,7 +1,11 @@
 .. index:: dihedral_style spherical
+.. index:: dihedral_style spherical/kk
+.. index:: dihedral_style spherical/omp
 
 dihedral_style spherical command
 ================================
+
+Accelerator Variants: *spherical/kk*, *spherical/omp*
 
 Syntax
 """"""
@@ -30,7 +34,7 @@ The *spherical* dihedral style uses the potential:
 
 .. math::
 
-   E(\phi,\theta_1,\theta_2) & = \sum_{i=1}^N\nolimits\ C_i\ \Phi_i(\phi)\ \Theta_{1i}(\theta_1)\ \Theta_{2i}(\theta_2) \\
+   E(\phi,\theta_1,\theta_2) & = \sum_{i=1}^N C_i\ \Phi_i(\phi)\ \Theta_{1i}(\theta_1)\ \Theta_{2i}(\theta_2) \\
    \Phi_{i}(\phi)            & = u_i - \mathrm{cos}((\phi   - a_i)K_i) \\
    \Theta_{1i}(\theta_1)     & = v_i - \mathrm{cos}((\theta_1-b_i)L_i) \\
    \Theta_{2i}(\theta_2)     & = w_i - \mathrm{cos}((\theta_2-c_i)M_i)
@@ -82,6 +86,10 @@ the Dihedral Coeffs section of a data file read by the
 * :math:`M_n` (typically an integer)
 * :math:`c_n` (degrees, typically 0.0 or 90.0)
 * :math:`w_n` (typically 0.0 or 1.0)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

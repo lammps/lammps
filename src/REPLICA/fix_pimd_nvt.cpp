@@ -134,7 +134,7 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   atom->add_callback(Atom::GROW);       // Call LAMMPS to allocate memory for per-atom array
   atom->add_callback(Atom::RESTART);    // Call LAMMPS to re-assign restart-data for per-atom array
 
-  grow_arrays(atom->nmax);
+  FixPIMDNVT::grow_arrays(atom->nmax);
 
   // some initilizations
 
@@ -579,13 +579,13 @@ void FixPIMDNVT::spring_force()
     double dely1 = xlast[1] - x[i][1];
     double delz1 = xlast[2] - x[i][2];
     xlast += 3;
-    domain->minimum_image(delx1, dely1, delz1);
+    domain->minimum_image(FLERR, delx1, dely1, delz1);
 
     double delx2 = xnext[0] - x[i][0];
     double dely2 = xnext[1] - x[i][1];
     double delz2 = xnext[2] - x[i][2];
     xnext += 3;
-    domain->minimum_image(delx2, dely2, delz2);
+    domain->minimum_image(FLERR, delx2, dely2, delz2);
 
     double ff = fbond * _mass[type[i]];
 
@@ -593,9 +593,9 @@ void FixPIMDNVT::spring_force()
     double dy = dely1 + dely2;
     double dz = delz1 + delz2;
 
-    f[i][0] -= (dx) *ff;
-    f[i][1] -= (dy) *ff;
-    f[i][2] -= (dz) *ff;
+    f[i][0] -= dx*ff;
+    f[i][1] -= dy*ff;
+    f[i][2] -= dz*ff;
 
     spring_energy += -0.5 * ff * (delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
   }
@@ -687,7 +687,7 @@ void FixPIMDNVT::comm_exec(double **ptr)
 
     int nsend;
 
-    MPI_Sendrecv(&(nlocal), 1, MPI_INT, plan_send[iplan], 0, &(nsend), 1, MPI_INT, plan_recv[iplan],
+    MPI_Sendrecv(&nlocal, 1, MPI_INT, plan_send[iplan], 0, &nsend, 1, MPI_INT, plan_recv[iplan],
                  0, universe->uworld, MPI_STATUS_IGNORE);
 
     // allocate arrays
@@ -819,7 +819,6 @@ int FixPIMDNVT::pack_exchange(int i, double *buf)
   memcpy(buf + offset, nhc_eta_dotdot[pos], nhc_size_one_1);
   offset += nhc_offset_one_1;
   memcpy(buf + offset, nhc_eta_mass[pos], nhc_size_one_1);
-  offset += nhc_offset_one_1;
 
   return size_peratom_cols;
 }
@@ -838,7 +837,6 @@ int FixPIMDNVT::unpack_exchange(int nlocal, double *buf)
   memcpy(nhc_eta_dotdot[pos], buf + offset, nhc_size_one_1);
   offset += nhc_offset_one_1;
   memcpy(nhc_eta_mass[pos], buf + offset, nhc_size_one_1);
-  offset += nhc_offset_one_1;
 
   return size_peratom_cols;
 }
@@ -859,7 +857,6 @@ int FixPIMDNVT::pack_restart(int i, double *buf)
   memcpy(buf + offset, nhc_eta_dotdot[pos], nhc_size_one_1);
   offset += nhc_offset_one_1;
   memcpy(buf + offset, nhc_eta_mass[pos], nhc_size_one_1);
-  offset += nhc_offset_one_1;
 
   return size_peratom_cols + 1;
 }
@@ -886,7 +883,6 @@ void FixPIMDNVT::unpack_restart(int nlocal, int nth)
   memcpy(nhc_eta_dotdot[pos], extra[nlocal] + m, nhc_size_one_1);
   m += nhc_offset_one_1;
   memcpy(nhc_eta_mass[pos], extra[nlocal] + m, nhc_size_one_1);
-  m += nhc_offset_one_1;
 
   nhc_ready = true;
 }

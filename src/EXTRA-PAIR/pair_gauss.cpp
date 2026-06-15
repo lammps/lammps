@@ -25,6 +25,7 @@
 #include "neigh_list.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -41,6 +42,8 @@ PairGauss::PairGauss(LAMMPS *lmp) : Pair(lmp)
 
 PairGauss::~PairGauss()
 {
+  if (copymode) return;
+
   delete[] pvector;
 
   if (allocated) {

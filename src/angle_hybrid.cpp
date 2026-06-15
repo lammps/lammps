@@ -48,7 +48,7 @@ AngleHybrid::~AngleHybrid()
     delete[] keywords;
   }
 
-  deallocate();
+  AngleHybrid::deallocate();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -167,7 +167,9 @@ cutoffs are set in the :doc:`pair_style lj/cut/tip4p/long
 Below is the code for a LAMMPS input file using the implicit method and
 the :ref:`TIP3P molecule file <tip3p_molecule>`.  Because the TIP4P
 charges are different from TIP3P they need to be reset (or the molecule
-file changed):
+file changed).  For simplicity and speed the example uses a cutoff
+Coulomb.  Most production simulations require long-range Coulomb
+instead.
 
 .. code-block:: LAMMPS
 

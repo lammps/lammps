@@ -48,6 +48,8 @@ class FixDrude : public Fix {
   int pack_border(int n, int *list, double *buf) override;
   int unpack_border(int n, int first, double *buf) override;
 
+  void rebuild_special() override;
+
  private:
   int rebuildflag;
   std::set<tagint> *partner_set;
@@ -55,7 +57,6 @@ class FixDrude : public Fix {
   void build_drudeid();
   static void ring_search_drudeid(int size, char *cbuf, void *ptr);
   static void ring_build_partner(int size, char *cbuf, void *ptr);
-  void rebuild_special() override;
   static void ring_remove_drude(int size, char *cbuf, void *ptr);
   static void ring_add_drude(int size, char *cbuf, void *ptr);
   static void ring_copy_drude(int size, char *cbuf, void *ptr);

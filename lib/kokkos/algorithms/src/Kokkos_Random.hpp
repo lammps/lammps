@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_RANDOM_HPP
 #define KOKKOS_RANDOM_HPP
@@ -21,7 +8,13 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_RANDOM
 #endif
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <Kokkos_Complex.hpp>
 #include <cstdio>
 #include <cstdlib>
@@ -77,13 +70,24 @@ namespace Kokkos {
       //Default constructor: does not initialize a pool
       Pool();
 
-      //Initializing constructor: calls init(seed,Device_Specific_Number);
-      Pool(unsigned int seed);
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed
+      Pool(uint64_t seed);
 
-      //Initialize Pool with seed as a starting seed with a pool_size of num_states
-      //The Random_XorShift64 generator is used in serial to initialize all states,
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed and a pool_size of num_states
+      //Note: The generator is used in serial to initialize all states,
       //thus the initialization process is platform independent and deterministic.
-      void init(unsigned int seed, int num_states);
+      Pool(uint64_t seed, uint64_t num_states);
+
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed using the specified execution space instance
+      Pool(const execution_space& exec, uint64_t seed);
+
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed with a pool_size of num_states using the
+      //specified execution space instance
+      Pool(const execution_space& exec, uint64_t seed, uint64_t num_states);
 
       //Get a generator. This will lock one of the states, guaranteeing that each thread
       //will have its private generator. Note: on Cuda getting a state involves atomics,
@@ -580,12 +584,12 @@ struct Random_XorShift1024_State<false> {
   uint64_t* state_;
   const int stride_;
   KOKKOS_FUNCTION
-  Random_XorShift1024_State() : state_(nullptr), stride_(1){};
+  Random_XorShift1024_State() : state_(nullptr), stride_(1) {}
 
   template <class StateViewType>
   KOKKOS_FUNCTION Random_XorShift1024_State(const StateViewType& v,
                                             int state_idx)
-      : state_(&v(state_idx, 0)), stride_(v.stride_1()) {}
+      : state_(&v(state_idx, 0)), stride_(v.stride(1)) {}
 
   // NOLINTBEGIN(bugprone-implicit-widening-of-multiplication-result)
   KOKKOS_FUNCTION
@@ -607,9 +611,9 @@ struct Random_XorShift1024_UseCArrayState<Kokkos::Cuda> : std::false_type {};
 template <>
 struct Random_XorShift1024_UseCArrayState<Kokkos::HIP> : std::false_type {};
 #endif
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
+#ifdef KOKKOS_ENABLE_OPENACC
 template <>
-struct Random_XorShift1024_UseCArrayState<Kokkos::Experimental::OpenMPTarget>
+struct Random_XorShift1024_UseCArrayState<Kokkos::Experimental::OpenACC>
     : std::false_type {};
 #endif
 
@@ -676,7 +680,7 @@ struct Random_UniqueIndex<Kokkos::Device<Kokkos::SYCL, MemorySpace>> {
     KOKKOS_COMPILER_INTEL_LLVM >= 20250000
     auto item = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
 #else
-    auto item = sycl::ext::oneapi::experimental::this_nd_item<3>();
+    auto item           = sycl::ext::oneapi::experimental::this_nd_item<3>();
 #endif
     std::size_t threadIdx[3] = {item.get_local_id(2), item.get_local_id(1),
                                 item.get_local_id(0)};
@@ -707,19 +711,28 @@ struct Random_UniqueIndex<Kokkos::Device<Kokkos::SYCL, MemorySpace>> {
 };
 #endif
 
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
+#ifdef KOKKOS_ENABLE_OPENACC
 template <class MemorySpace>
 struct Random_UniqueIndex<
-    Kokkos::Device<Kokkos::Experimental::OpenMPTarget, MemorySpace>> {
+    Kokkos::Device<Kokkos::Experimental::OpenACC, MemorySpace>> {
   using locks_view_type =
-      View<int**,
-           Kokkos::Device<Kokkos::Experimental::OpenMPTarget, MemorySpace>>;
+      View<int**, Kokkos::Device<Kokkos::Experimental::OpenACC, MemorySpace>>;
   KOKKOS_FUNCTION
   static int get_state_idx(const locks_view_type& locks) {
+#ifdef KOKKOS_COMPILER_NVHPC
+    const int team_size =
+        Kokkos::Impl::OpenACCTeamMember::DEFAULT_TEAM_SIZE_REC;
+    int i = __pgi_gangidx() * team_size + __pgi_vectoridx();
+#elif defined(KOKKOS_COMPILER_CLANG)
     const int team_size = omp_get_num_threads();
     int i               = omp_get_team_num() * team_size + omp_get_thread_num();
+#else
+    static_assert(false,
+                  "The current OpenACC backend implementation supports "
+                  "Random_UniqueIndex only when compiled with NVHPC or CLACC.");
+#endif
     const int lock_size = locks.extent_int(0);
-
+    i %= lock_size;
     while (Kokkos::atomic_compare_exchange(&locks(i, 0), 0, 1)) {
       i = (i + 1) % lock_size;
     }
@@ -894,41 +907,66 @@ class Random_XorShift64_Pool {
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   KOKKOS_DEFAULTED_FUNCTION Random_XorShift64_Pool() = default;
-
-  KOKKOS_DEFAULTED_FUNCTION Random_XorShift64_Pool(
-      Random_XorShift64_Pool const&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION Random_XorShift64_Pool& operator=(
-      Random_XorShift64_Pool const&) = default;
 #else
   Random_XorShift64_Pool()   = default;
 #endif
-  Random_XorShift64_Pool(uint64_t seed) {
-    num_states_ = 0;
 
-    init(seed, execution_space().concurrency());
+  Random_XorShift64_Pool(uint64_t seed) {
+    init_impl(execution_space(), seed, execution_space().concurrency());
+    execution_space().fence("Random_XorShift64_Pool: Constructor");
   }
 
-  void init(uint64_t seed, int num_states) {
+  Random_XorShift64_Pool(uint64_t seed, uint64_t num_states) {
+    init_impl(execution_space(), seed, num_states);
+    execution_space().fence("Random_XorShift64_Pool: Constructor");
+  }
+
+  Random_XorShift64_Pool(const execution_space& exec, uint64_t seed) {
+    init_impl(exec, seed, exec.concurrency());
+  }
+
+  Random_XorShift64_Pool(const execution_space& exec, uint64_t seed,
+                         uint64_t num_states) {
+    init_impl(exec, seed, num_states);
+  }
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  KOKKOS_DEPRECATED void init(uint64_t seed, uint64_t num_states) {
+    init_impl(execution_space(), seed, num_states);
+    execution_space().fence("Random_XorShift64_Pool::init");
+  }
+#endif
+
+ private:
+  void init_impl(execution_space const& exec, uint64_t seed,
+                 uint64_t num_states) {
+    num_states_ = num_states;
+
     if (seed == 0) seed = uint64_t(1318319);
     // I only want to pad on CPU like archs (less than 1000 threads). 64 is a
     // magic number, or random number I just wanted something not too large and
     // not too small. 64 sounded fine.
-    padding_    = num_states < 1000 ? 64 : 1;
-    num_states_ = num_states;
+    padding_ = num_states_ < 1000 ? 64 : 1;
 
-    locks_ =
-        locks_type("Kokkos::Random_XorShift64::locks", num_states, padding_);
-    state_ = state_data_type("Kokkos::Random_XorShift64::state", num_states_,
-                             padding_);
+    locks_ = locks_type(view_alloc(exec, "Kokkos::Random_XorShift64::locks"),
+                        num_states_, padding_);
+    state_ =
+        state_data_type(view_alloc(exec, "Kokkos::Random_XorShift64::state"),
+                        num_states_, padding_);
 
-    typename state_data_type::HostMirror h_state =
+    typename state_data_type::host_mirror_type h_state =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, state_);
-    typename locks_type::HostMirror h_lock =
+    typename locks_type::host_mirror_type h_lock =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, locks_);
 
-    // Execute on the HostMirror's default execution space.
-    Random_XorShift64<typename state_data_type::HostMirror::execution_space>
+    // if the host mirror is the device view, need to fence here
+    // since the init was async.
+    if (state_.data() == h_state.data())
+      exec.fence("Random_XorShift64_Pool::init UnifiedMemory");
+
+    // Execute on the host_mirror_type's default execution space.
+    Random_XorShift64<
+        typename state_data_type::host_mirror_type::execution_space>
         gen(seed, 0);
     for (int i = 0; i < 17; i++) gen.rand();
     for (int i = 0; i < num_states_; i++) {
@@ -942,11 +980,13 @@ class Random_XorShift64_Pool {
                       (((static_cast<uint64_t>(n4)) & 0xffff) << 48);
       h_lock(i, 0) = 0;
     }
-    deep_copy(state_, h_state);
-    deep_copy(locks_, h_lock);
+    deep_copy(exec, state_, h_state);
+    deep_copy(exec, locks_, h_lock);
   }
 
-  KOKKOS_INLINE_FUNCTION Random_XorShift64<DeviceType> get_state() const {
+ public:
+  KOKKOS_INLINE_FUNCTION
+  Random_XorShift64<DeviceType> get_state() const {
     KOKKOS_EXPECTS(num_states_ > 0);
     const int i = Impl::Random_UniqueIndex<device_type>::get_state_idx(locks_);
     return Random_XorShift64<DeviceType>(state_(i, 0), i);
@@ -1141,43 +1181,68 @@ class Random_XorShift1024_Pool {
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   KOKKOS_DEFAULTED_FUNCTION Random_XorShift1024_Pool() = default;
-
-  KOKKOS_DEFAULTED_FUNCTION Random_XorShift1024_Pool(
-      Random_XorShift1024_Pool const&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION Random_XorShift1024_Pool& operator=(
-      Random_XorShift1024_Pool const&) = default;
 #else
   Random_XorShift1024_Pool() = default;
 #endif
 
   Random_XorShift1024_Pool(uint64_t seed) {
-    num_states_ = 0;
-
-    init(seed, execution_space().concurrency());
+    init_impl(execution_space(), seed, execution_space().concurrency());
+    execution_space().fence("Random_XorShift1024_Pool: Constructor");
   }
 
-  void init(uint64_t seed, int num_states) {
+  Random_XorShift1024_Pool(uint64_t seed, uint64_t num_states) {
+    init_impl(execution_space(), seed, num_states);
+    execution_space().fence("Random_XorShift1024_Pool: Constructor");
+  }
+
+  Random_XorShift1024_Pool(const execution_space& exec, uint64_t seed) {
+    init_impl(exec, seed, exec.concurrency());
+  }
+
+  Random_XorShift1024_Pool(const execution_space& exec, uint64_t seed,
+                           uint64_t num_states) {
+    init_impl(exec, seed, num_states);
+  }
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  void init(uint64_t seed, uint64_t num_states) {
+    init_impl(execution_space(), seed, num_states);
+    execution_space().fence("Random_XorShift1024_Pool::init");
+  }
+#endif
+
+ private:
+  void init_impl(execution_space const& exec, uint64_t seed,
+                 uint64_t num_states) {
+    num_states_ = num_states;
+
     if (seed == 0) seed = uint64_t(1318319);
     // I only want to pad on CPU like archs (less than 1000 threads). 64 is a
     // magic number, or random number I just wanted something not too large and
     // not too small. 64 sounded fine.
-    padding_    = num_states < 1000 ? 64 : 1;
-    num_states_ = num_states;
-    locks_ =
-        locks_type("Kokkos::Random_XorShift1024::locks", num_states_, padding_);
-    state_ = state_data_type("Kokkos::Random_XorShift1024::state", num_states_);
-    p_ = int_view_type("Kokkos::Random_XorShift1024::p", num_states_, padding_);
+    padding_ = num_states_ < 1000 ? 64 : 1;
+    locks_ = locks_type(view_alloc(exec, "Kokkos::Random_XorShift1024::locks"),
+                        num_states_, padding_);
+    state_ = state_data_type(
+        view_alloc(exec, "Kokkos::Random_XorShift1024::state"), num_states_);
+    p_ = int_view_type(view_alloc(exec, "Kokkos::Random_XorShift1024::p"),
+                       num_states_, padding_);
 
-    typename state_data_type::HostMirror h_state =
+    typename state_data_type::host_mirror_type h_state =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, state_);
-    typename locks_type::HostMirror h_lock =
+    typename locks_type::host_mirror_type h_lock =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, locks_);
-    typename int_view_type::HostMirror h_p =
+    typename int_view_type::host_mirror_type h_p =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, p_);
 
-    // Execute on the HostMirror's default execution space.
-    Random_XorShift64<typename state_data_type::HostMirror::execution_space>
+    // if the host mirror is the device view, need to fence here
+    // since the init was async.
+    if (state_.data() == h_state.data())
+      exec.fence("Random_XorShift1024_Pool::init UnifiedMemory");
+
+    // Execute on the host_mirror_type's default execution space.
+    Random_XorShift64<
+        typename state_data_type::host_mirror_type::execution_space>
         gen(seed, 0);
     for (int i = 0; i < 17; i++) gen.rand();
     for (int i = 0; i < num_states_; i++) {
@@ -1194,16 +1259,17 @@ class Random_XorShift1024_Pool {
       h_p(i, 0)    = 0;
       h_lock(i, 0) = 0;
     }
-    deep_copy(state_, h_state);
-    deep_copy(locks_, h_lock);
+    deep_copy(exec, state_, h_state);
+    deep_copy(exec, locks_, h_lock);
   }
 
+ public:
   KOKKOS_INLINE_FUNCTION
   Random_XorShift1024<DeviceType> get_state() const {
     KOKKOS_EXPECTS(num_states_ > 0);
     const int i = Impl::Random_UniqueIndex<device_type>::get_state_idx(locks_);
     return Random_XorShift1024<DeviceType>(state_, p_(i, 0), i);
-  };
+  }
 
   // NOTE: state_idx MUST be unique and less than num_states
   KOKKOS_INLINE_FUNCTION
@@ -1533,7 +1599,9 @@ template <class ExecutionSpace, class ViewType, class RandomPool,
 void fill_random(const ExecutionSpace& exec, ViewType a, RandomPool g,
                  typename ViewType::const_value_type begin,
                  typename ViewType::const_value_type end) {
-  Impl::apply_to_view_of_static_rank(
+  // Using Impl::apply_to_view_of_static_rank function here
+  // is not compatible with modules. Using the partial specialization works.
+  Impl::ApplyToViewOfStaticRank<ViewType>::apply(
       [&](auto dst) { Kokkos::Impl::fill_random(exec, dst, g, begin, end); },
       a);
 }

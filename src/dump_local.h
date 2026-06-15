@@ -66,14 +66,14 @@ class DumpLocal : public Dump {
   int add_compute(const char *);
   int add_fix(const char *);
 
-  typedef void (DumpLocal::*FnPtrWrite)(int, double *);
+  using FnPtrWrite = void (DumpLocal::*)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
   void write_string(int, double *);
   void write_lines(int, double *);
 
   // customize by adding a method prototype
 
-  typedef void (DumpLocal::*FnPtrPack)(int);
+  using FnPtrPack = void (DumpLocal::*)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_index(int);

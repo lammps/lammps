@@ -22,12 +22,12 @@ void LUPSolve(int n, double *A, double *B, int *P);
 
 using namespace MathEigen;
 
-typedef Jacobi<double, double *, double **, double const *const *> Jacobi_v2;
+using Jacobi_v2 = Jacobi<double, double *, double **, double const *const *>;
 inline int SO3Math::jacobin(int n, double const *const *mat, double *eval, double **evec)
 {
-  int *midx = new int[n];
-  double **M = new double *[n];
-  double **mat_cpy = new double *[n];
+  auto *midx = new int[n];
+  auto **M = new double *[n];
+  auto **mat_cpy = new double *[n];
 
   for (int i = 0; i < n; i++) {
     mat_cpy[i] = new double[n];
@@ -55,12 +55,9 @@ inline int SO3Math::invert_matrix(int n, double *A, double *Ainv)
   int i, j;
   double dtol = 1.e-30;
 
-  int *P;
-  double *b, *Atemp;
-
-  P = new int[n];
-  b = new double[n];
-  Atemp = new double[n * n];
+  auto *P = new int[n];
+  auto *b = new double[n];
+  auto *Atemp = new double[n * n];
 
   for (i = 0; i < n * n; i++) Atemp[i] = A[i];
 
@@ -88,12 +85,11 @@ inline int SO3Math::invert_matrix(int n, double *A, double *Ainv)
 
 inline int SO3Math::LUPdecompose(int n, double dtol, double *A, int *P)
 {
-  int i, j, k, maxi;
+  int i, j, k;
   double maxA, Atemp;
-  double *normi;
 
-  maxi = 0;
-  normi = new double[n];
+  int maxi = 0;
+  auto *normi = new double[n];
 
   for (i = 0; i < n; i++) {
     maxA = 0.0;
@@ -170,4 +166,4 @@ inline void SO3Math::LUPSolve(int n, double *A, double *B, int *P)
   }
 }
 
-#endif /* LMP_MLIAP_SO3_MATH_H_ */
+#endif /* LMP_MLIAP_SO3_MATH_H */

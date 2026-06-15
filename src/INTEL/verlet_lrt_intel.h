@@ -25,14 +25,14 @@ IntegrateStyle(verlet/lrt/intel,VerletLRTIntel);
 #include "verlet.h"
 
 #ifdef LMP_INTEL_USELRT
-#if defined(LMP_INTEL_LRT11) || defined(__APPLE__)
-#if __cplusplus > 199711L
-#define _LMP_INTEL_LRT_11
+#if defined(LMP_INTEL_LRT17) || defined(__APPLE__)
+#if __cplusplus > 201103L
+#define _LMP_INTEL_LRT_17
 #include <thread>
 #else
 #undef LMP_INTEL_USELRT
-#ifdef LMP_INTEL_LRT11
-#error C++11 support required for LMP_INTEL_LRT11 define
+#ifdef LMP_INTEL_LRT17
+#error C++17 support required for LMP_INTEL_LRT17 define
 #endif
 #endif
 #else

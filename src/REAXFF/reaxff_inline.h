@@ -29,34 +29,22 @@ struct LR_data {
   double e_vdW, CEvd;
   double e_ele, CEclmb;
 
-  LAMMPS_INLINE
-  LR_data() {}
-
-  LAMMPS_INLINE
-  void operator=(const LR_data &rhs)
-  {
-    H = rhs.H;
-    e_vdW = rhs.e_vdW;
-    CEvd = rhs.CEvd;
-    e_ele = rhs.e_ele;
-    CEclmb = rhs.CEclmb;
-  }
-  LAMMPS_INLINE
-  void operator=(const LR_data &rhs) volatile
-  {
-    H = rhs.H;
-    e_vdW = rhs.e_vdW;
-    CEvd = rhs.CEvd;
-    e_ele = rhs.e_ele;
-    CEclmb = rhs.CEclmb;
-  }
+  LR_data() = default;
+  ~LR_data() = default;
+  LR_data(LR_data &&) = delete;
+  LR_data(const LR_data &) = delete;
+  LR_data &operator=(const LR_data &) = delete;
+  LR_data &operator=(LR_data &&) = delete;
+  void swap(LR_data &) = delete;
 };
 
 struct cubic_spline_coef {
   double a, b, c, d;
 
-  LAMMPS_INLINE
-  cubic_spline_coef() {}
+  cubic_spline_coef() = default;
+  cubic_spline_coef(cubic_spline_coef &&) = default;
+  cubic_spline_coef &operator=(cubic_spline_coef &&) = default;
+  ~cubic_spline_coef() = default;
 
   LAMMPS_INLINE
   cubic_spline_coef(const cubic_spline_coef &_c)
@@ -68,21 +56,13 @@ struct cubic_spline_coef {
   }
 
   LAMMPS_INLINE
-  void operator=(const cubic_spline_coef &rhs)
+  cubic_spline_coef &operator=(const cubic_spline_coef &rhs) // NOLINT
   {
     a = rhs.a;
     b = rhs.b;
     c = rhs.c;
     d = rhs.d;
-  }
-
-  LAMMPS_INLINE
-  void operator=(const cubic_spline_coef &rhs) volatile
-  {
-    a = rhs.a;
-    b = rhs.b;
-    c = rhs.c;
-    d = rhs.d;
+    return *this;
   }
 };
 }    // namespace ReaxFF

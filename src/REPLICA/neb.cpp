@@ -32,6 +32,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -83,7 +84,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in, int n2step
     delx = buf_final[ii] - buf_init[ii];
     dely = buf_final[ii + 1] - buf_init[ii + 1];
     delz = buf_final[ii + 2] - buf_init[ii + 2];
-    domain->minimum_image(delx, dely, delz);
+    domain->minimum_image(FLERR, delx, dely, delz);
     x[i][0] = buf_init[ii] + fraction * delx;
     x[i][1] = buf_init[ii + 1] + fraction * dely;
     x[i][2] = buf_init[ii + 2] + fraction * delz;
@@ -473,7 +474,7 @@ void NEB::readfile(char *file, int flag)
     if (nlines < 0) error->universe_all(FLERR, "Incorrectly formatted NEB file");
   }
 
-  auto buffer = new char[CHUNK * MAXLINE];
+  auto *buffer = new char[CHUNK * MAXLINE];
   double fraction = ireplica / (nreplica - 1.0);
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -529,7 +530,7 @@ void NEB::readfile(char *file, int flag)
           dely = values.next_double() - x[m][1];
           delz = values.next_double() - x[m][2];
 
-          domain->minimum_image(delx, dely, delz);
+          domain->minimum_image(FLERR, delx, dely, delz);
 
           if (flag == 0) {
             x[m][0] += fraction * delx;

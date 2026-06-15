@@ -13,32 +13,32 @@
 
 #ifdef NSTENCIL_CLASS
 // clang-format off
-typedef NStencilMulti<0, 0, 0> NStencilFullMulti2d;
+using NStencilFullMulti2d = NStencilMulti<0, 0, 0>;
 NStencilStyle(full/multi/2d,
               NStencilFullMulti2d,
               NS_FULL | NS_MULTI | NS_2D | NS_ORTHO | NS_TRI);
 
-typedef NStencilMulti<0, 1, 0> NStencilFullMulti3d;
+using NStencilFullMulti3d = NStencilMulti<0, 1, 0>;
 NStencilStyle(full/multi/3d,
               NStencilFullMulti3d,
               NS_FULL | NS_MULTI | NS_3D | NS_ORTHO | NS_TRI);
 
-typedef NStencilMulti<1, 0, 0> NStencilHalfMulti2d;
+using NStencilHalfMulti2d = NStencilMulti<1, 0, 0>;
 NStencilStyle(half/multi/2d,
               NStencilHalfMulti2d,
               NS_HALF | NS_MULTI | NS_2D | NS_ORTHO);
 
-typedef NStencilMulti<1, 0, 1> NStencilHalfMulti2dTri;
+using NStencilHalfMulti2dTri = NStencilMulti<1, 0, 1>;
 NStencilStyle(half/multi/2d/tri,
               NStencilHalfMulti2dTri,
               NS_HALF | NS_MULTI | NS_2D | NS_TRI);
 
-typedef NStencilMulti<1, 1, 0> NStencilHalfMulti3d;
+using NStencilHalfMulti3d = NStencilMulti<1, 1, 0>;
 NStencilStyle(half/multi/3d,
               NStencilHalfMulti3d,
               NS_HALF | NS_MULTI | NS_3D | NS_ORTHO);
 
-typedef NStencilMulti<1, 1, 1> NStencilHalfMulti3dTri;
+using NStencilHalfMulti3dTri = NStencilMulti<1, 1, 1>;
 NStencilStyle(half/multi/3d/tri,
               NStencilHalfMulti3dTri,
               NS_HALF | NS_MULTI | NS_3D | NS_TRI);

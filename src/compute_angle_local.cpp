@@ -108,7 +108,8 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
 
     if (tstr) {
       tvar = input->variable->find(tstr);
-      if (tvar < 0) error->all(FLERR, "Variable name for compute angle/local does not exist");
+      if (tvar < 0) tvar = input->variable->internal_create(tstr, 0.0);
+
       if (!input->variable->internalstyle(tvar))
         error->all(FLERR, "Variable for compute angle/local is invalid style");
     }
@@ -263,7 +264,7 @@ int ComputeAngleLocal::compute_angles(int flag)
         delx1 = x[atom1][0] - x[atom2][0];
         dely1 = x[atom1][1] - x[atom2][1];
         delz1 = x[atom1][2] - x[atom2][2];
-        domain->minimum_image(delx1, dely1, delz1);
+        domain->minimum_image(FLERR, delx1, dely1, delz1);
 
         rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
         r1 = sqrt(rsq1);
@@ -271,7 +272,7 @@ int ComputeAngleLocal::compute_angles(int flag)
         delx2 = x[atom3][0] - x[atom2][0];
         dely2 = x[atom3][1] - x[atom2][1];
         delz2 = x[atom3][2] - x[atom2][2];
-        domain->minimum_image(delx2, dely2, delz2);
+        domain->minimum_image(FLERR, delx2, dely2, delz2);
 
         rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
         r2 = sqrt(rsq2);

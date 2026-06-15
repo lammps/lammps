@@ -16,6 +16,7 @@
 #ifndef LMP_LABEL_MAP_H
 #define LMP_LABEL_MAP_H
 
+#include "molecule.h"
 #include "pointers.h"    // IWYU pragma: export
 
 #include <array>
@@ -47,6 +48,7 @@ class LabelMap : protected Pointers {
   friend class DumpCustom;
   friend class DumpExtXYZ;
   friend class DumpXYZ;
+  friend class Molecule;
   friend class ReadData;
 
  public:

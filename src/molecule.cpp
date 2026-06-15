@@ -13,11 +13,14 @@
 
 #include "molecule.h"
 
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
 #include "body.h"
+#include "bond.h"
 #include "comm.h"
+#include "dihedral.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -28,6 +31,7 @@
 #include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
+#include "pair.h"
 #include "tokenizer.h"
 #include "update.h"
 
@@ -43,6 +47,7 @@ static constexpr int MAXLINE = 1024;
 static constexpr double EPSILON = 1.0e-7;
 static constexpr double BIG = 1.0e20;
 
+static constexpr int DELTA = 4;       // must be 2 or larger
 static constexpr double SINERTIA = 0.4;    // moment of inertia prefactor for sphere
 
 /* ---------------------------------------------------------------------- */
@@ -57,7 +62,7 @@ Molecule::Molecule(LAMMPS *lmp) :
     improper_atom2(nullptr), improper_atom3(nullptr), improper_atom4(nullptr), nspecial(nullptr),
     special(nullptr), shake_flag(nullptr), shake_atom(nullptr), shake_type(nullptr),
     avec_body(nullptr), ibodyparams(nullptr), dbodyparams(nullptr), fragmentmask(nullptr),
-    dx(nullptr), dxcom(nullptr), dxbody(nullptr), quat_external(nullptr), count(nullptr)
+    dx(nullptr), dxcom(nullptr), dxbody(nullptr), quat_external(nullptr), count(nullptr), coeffarg(nullptr)
 {
   // parse args until reach unknown arg (next file)
 
@@ -398,6 +403,20 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   JSON_INIT_FIELD(angles, nangles, angleflag, false, 0);
   JSON_INIT_FIELD(dihedrals, ndihedrals, dihedralflag, false, 0);
   JSON_INIT_FIELD(impropers, nimpropers, improperflag, false, 0);
+  JSON_INIT_FIELD(atom_type_masses, npaircoeffs, typemassflag, false, 0);
+  JSON_INIT_FIELD(pair_coeffs, npaircoeffs, paircoeffsflag, false, 0);
+  JSON_INIT_FIELD(bond_coeffs, nbondcoeffs, bondcoeffsflag, false, 0);
+  JSON_INIT_FIELD(angle_coeffs, nanglecoeffs, anglecoeffsflag, false, 0);
+  JSON_INIT_FIELD(dihedral_coeffs, ndihedralcoeffs, dihedralcoeffsflag, false, 0);
+  JSON_INIT_FIELD(improper_coeffs, nimpropercoeffs, impropercoeffsflag, false, 0);
+  JSON_INIT_FIELD(bondbond_coeffs, nanglecoeffs, bondbondcoeffsflag, false, 0);
+  JSON_INIT_FIELD(bondangle_coeffs, nanglecoeffs, bondanglecoeffsflag, false, 0);
+  JSON_INIT_FIELD(middlebondtorsion_coeffs, ndihedralcoeffs, middlebondtorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(endbondtorsion_coeffs, ndihedralcoeffs, endbondtorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(angletorsion_coeffs, ndihedralcoeffs, angletorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(angleangletorsion_coeffs, ndihedralcoeffs, angleangletorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(bondbond13_coeffs, ndihedralcoeffs, bondbond13coeffsflag, false, 0);
+  JSON_INIT_FIELD(angleangle_coeffs, nimpropercoeffs, angleanglecoeffsflag, false, 0);
 
 #undef JSON_INIT_FIELD
   // special is nested
@@ -723,10 +742,10 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
           error->all(FLERR, Error::NOLASTLINE,
                      "Molecule template {}: invalid atom type in \"types\" JSON section", id,
                      typestr);
-        type[iatom] = atom->lmap->find_type(typestr, Atom::ATOM);
+        type[iatom] = atom->lmap->find_or_create(typestr, atom->lmap->typelabel, atom->lmap->typelabel_map);
         if (type[iatom] == -1)
           error->all(FLERR, Error::NOLASTLINE,
-                     "Molecule template {}: Unknown atom type {} in \"types\" JSON section", id,
+                     "Molecule template {}: Unable to find or create atom type {} in \"types\" JSON section", id,
                      typestr);
       }
       count[iatom]++;
@@ -1067,6 +1086,30 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     }
   }
 
+  // atom type masses
+
+  if (typemassflag) {
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning atom type masses.");
+
+    for (int i = 0; i < npaircoeffs; i++) {
+      const auto &item = moldata["atom_type_masses"]["data"][i];
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in atom_type_masses section of JSON file: {}", to_string(item));
+
+      std::string typestr = item[0];
+      int itype = atom->lmap->find_type(typestr, Atom::ATOM);
+      if (itype == -1)
+        error->all(FLERR, fileiarg, "Unknown type {} in atom_type_masses JSON data", typestr);
+
+      double value = item[1];
+      if (atom->mass_setflag[itype])
+        error->warning(FLERR, "Overwriting mass for type {} in atom_type_masses section.", typestr);
+      atom->set_mass(FLERR, itype, value);
+    }
+  }
+
   // bonds
 
   if (bondflag) {
@@ -1108,10 +1151,10 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
               error->all(FLERR, Error::NOLASTLINE,
                          "Molecule template {}: invalid bond type in \"bonds\" JSON section", id,
                          typestr);
-            itype = atom->lmap->find_type(typestr, Atom::BOND);
+            itype = atom->lmap->find_or_create(typestr, atom->lmap->btypelabel, atom->lmap->btypelabel_map);
             if (itype == -1)
               error->all(FLERR, Error::NOLASTLINE,
-                         "Molecule template {}: Unknown bond type {} in \"bonds\" JSON section", id,
+                         "Molecule template {}: Unable to find or create bond type {} in \"bonds\" JSON section", id,
                          typestr);
           }
 
@@ -1200,10 +1243,10 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
               error->all(FLERR, Error::NOLASTLINE,
                          "Molecule template {}: invalid angle type in \"angles\" JSON section", id,
                          typestr);
-            itype = atom->lmap->find_type(typestr, Atom::ANGLE);
+            itype = atom->lmap->find_or_create(typestr, atom->lmap->atypelabel, atom->lmap->atypelabel_map);
             if (itype == -1)
               error->all(FLERR, Error::NOLASTLINE,
-                         "Molecule template {}: Unknown angle type {} in \"angles\" JSON section",
+                         "Molecule template {}: Unable to find or create angle type {} in \"angles\" JSON section",
                          id, typestr);
           }
 
@@ -1311,11 +1354,11 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                   FLERR, Error::NOLASTLINE,
                   "Molecule template {}: invalid dihedral type in \"dihedrals\" JSON section", id,
                   typestr);
-            itype = atom->lmap->find_type(typestr, Atom::DIHEDRAL);
+            itype = atom->lmap->find_or_create(typestr, atom->lmap->dtypelabel, atom->lmap->dtypelabel_map);
             if (itype == -1)
               error->all(
                   FLERR, Error::NOLASTLINE,
-                  "Molecule template {}: Unknown dihedral type {} in \"dihedrals\" JSON section",
+                  "Molecule template {}: Unable to find or create dihedral type {} in \"dihedrals\" JSON section",
                   id, typestr);
           }
 
@@ -1436,11 +1479,11 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                   FLERR, Error::NOLASTLINE,
                   "Molecule template {}: invalid improper type in \"impropers\" JSON section", id,
                   typestr);
-            itype = atom->lmap->find_type(typestr, Atom::IMPROPER);
+            itype = atom->lmap->find_or_create(typestr, atom->lmap->itypelabel, atom->lmap->itypelabel_map);
             if (itype == -1)
               error->all(
                   FLERR, Error::NOLASTLINE,
-                  "Molecule template {}: Unknown improper type {} in \"impropers\" JSON section",
+                  "Molecule template {}: Unable to find or create improper type {} in \"impropers\" JSON section",
                   id, typestr);
           }
 
@@ -1610,6 +1653,470 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                  "Molecule template {}: Expected \"special:bonds\" format "
                  "[\"atom-id\",\"atom-id-list\"] but found [\"{}\",\"{}\"]",
                  id, secfmt[0], secfmt[1]);
+    }
+  }
+
+  // pair coeffs
+
+  if (paircoeffsflag) {
+    const auto &paircoeffs = moldata["pair_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (force->pair == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define pair_style before Pair Coeffs");
+    if (comm->me == 0 && !atom->style_match(force->pair_style))
+      error->warning(
+          FLERR, "Pair style {} in molecule JSON differs from currently defined pair style {}",
+          atom->get_style(), force->pair_style);
+
+    for (auto item : paircoeffs) {
+      if (item.size() != 3)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for pair_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in pair_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f\n", type.c_str(), coeff1, coeff2);
+      parse_coeffs(buf, nullptr, 1, 2, toffset, Atom::ATOM);
+      force->pair->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // bond coeffs
+
+  if (bondcoeffsflag) {
+    const auto &bondcoeffs = moldata["bond_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (comm->me == 0 && !atom->style_match(force->bond_style))
+      error->warning(
+          FLERR, "bond style {} in molecule JSON differs from currently defined bond style {}",
+          atom->get_style(), force->bond_style);
+
+    for (auto item : bondcoeffs) {
+      if (item.size() != 5)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for bond_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in bond_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+      parse_coeffs(buf, nullptr, 0, 1, boffset, Atom::BOND);
+      force->bond->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // angle coeffs
+
+  if (anglecoeffsflag) {
+    const auto &anglecoeffs = moldata["angle_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->angles_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: angle_coeffs");
+    if (force->angle == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define angle_style before angle coeffs");
+    if (comm->me == 0 && !atom->style_match(force->angle_style))
+      error->warning(
+          FLERR, "Angle style {} in molecule template JSON file differs from currently defined angle style {}",
+          atom->get_style(), force->angle_style);
+
+    for (auto item : anglecoeffs) {
+      if (item.size() != 5)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for angle_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in angle_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+      parse_coeffs(buf, nullptr, 0, 1, aoffset, Atom::ANGLE);
+      force->angle->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // bondbond coeffs
+
+  if (bondbondcoeffsflag) {
+    const auto &bondbondcoeffs = moldata["bondbond_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->angles_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: bondbond_coeffs");
+    if (force->angle == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondBond Coeffs");
+
+    for (auto item : bondbondcoeffs) {
+      if (item.size() != 4)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for bondbond_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in bondbond_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
+      parse_coeffs(buf, "bb", 0, 1, aoffset, Atom::ANGLE);
+      force->angle->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // bondangle coeffs
+
+  if (bondanglecoeffsflag) {
+    const auto &bondanglecoeffs = moldata["bondangle_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->angles_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: bondangle_coeffs");
+    if (force->angle == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondAngle Coeffs");
+
+    for (auto item : bondanglecoeffs) {
+      if (item.size() != 5)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for bondangle_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in bondangle_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+      parse_coeffs(buf, "ba", 0, 1, aoffset, Atom::ANGLE);
+      force->angle->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // dihedral coeffs
+
+  if (dihedralcoeffsflag) {
+    const auto &dihedralcoeffs = moldata["dihedral_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: dihedral_coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before Dihedral Coeffs");
+
+    for (auto item : dihedralcoeffs) {
+      if (item.size() != 7)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for dihedral_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in dihedral_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      double coeff5 = item[5];
+      double coeff6 = item[6];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4, coeff5, coeff6);
+      parse_coeffs(buf, nullptr, 0, 1, doffset, Atom::DIHEDRAL);
+      force->dihedral->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // middlebondtorsion coeffs
+
+  if (middlebondtorsioncoeffsflag) {
+    const auto &middlebondtorsioncoeffs = moldata["middlebondtorsion_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: middlebondtorsion_coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO,
+                 "Must define dihedral_style before MiddleBondTorsion Coeffs");
+
+    for (auto item : middlebondtorsioncoeffs) {
+      if (item.size() != 5)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for middlebondtorsion_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in middlebondtorsion_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+      parse_coeffs(buf, "mbt", 0, 1, doffset, Atom::DIHEDRAL);
+      force->dihedral->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // endbondtorsion coeffs
+
+  if (endbondtorsioncoeffsflag) {
+    const auto &endbondtorsioncoeffs = moldata["endbondtorsion_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: endbondtorsion_coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO,
+                 "Must define dihedral_style before EndBondTorsion Coeffs");
+
+    for (auto item : endbondtorsioncoeffs) {
+      if (item.size() != 9)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for endbondtorsion_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in endbondtorsion_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      double coeff5 = item[5];
+      double coeff6 = item[6];
+      double coeff7 = item[7];
+      double coeff8 = item[8];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f %f %f\n", type.c_str(),
+          coeff1, coeff2, coeff3, coeff4, coeff5, coeff6, coeff7, coeff8);
+      parse_coeffs(buf, "ebt", 0, 1, doffset, Atom::DIHEDRAL);
+      force->dihedral->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // angletorsion coeffs
+
+  if (angletorsioncoeffsflag) {
+    const auto &angletorsioncoeffs = moldata["angletorsion_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: angletorsion_coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO,
+                 "Must define dihedral_style before angleTorsion Coeffs");
+
+    for (auto item : angletorsioncoeffs) {
+      if (item.size() != 9)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for angletorsion_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in angletorsion_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      double coeff5 = item[5];
+      double coeff6 = item[6];
+      double coeff7 = item[7];
+      double coeff8 = item[8];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f %f %f\n", type.c_str(),
+          coeff1, coeff2, coeff3, coeff4, coeff5, coeff6, coeff7, coeff8);
+      parse_coeffs(buf, "at", 0, 1, doffset, Atom::DIHEDRAL);
+      force->dihedral->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // angleangletorsion coeffs
+
+  if (angleangletorsioncoeffsflag) {
+    const auto &angleangletorsioncoeffs = moldata["angleangletorsion_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file JSON section: angleangletorsion_coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO,
+                 "Must define dihedral_style before AngleTorsion Coeffs");
+
+    for (auto item : angleangletorsioncoeffs) {
+      if (item.size() != 4)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for angleangletorsion_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in angleangletorsion_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
+      parse_coeffs(buf, "aat", 0, 1, doffset, Atom::DIHEDRAL);
+      force->dihedral->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // bondbond13 coeffs
+
+  if (bondbond13coeffsflag) {
+    const auto &bondbond13coeffs = moldata["bondbond13_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: bondbond13_coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before BondBond13 Coeffs");
+
+    for (auto item : bondbond13coeffs) {
+      if (item.size() != 4)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for bondbond13_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in bondbond13_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
+      parse_coeffs(buf, "bb13", 0, 1, doffset, Atom::DIHEDRAL);
+      force->dihedral->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // improper coeffs
+
+  if (impropercoeffsflag) {
+    const auto &impropercoeffs = moldata["improper_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->impropers_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: improper_coeffs");
+    if (force->improper == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define improper_style before Improper Coeffs");
+    if (comm->me == 0 && !atom->style_match(force->improper_style))
+      error->warning(
+          FLERR,
+          "Improper style {} in molecule template file differs from currently defined improper style {}",
+          atom->get_style(), force->improper_style);
+
+    for (auto item : impropercoeffs) {
+      if (item.size() != 3)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for improper_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in improper_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f\n", type.c_str(), coeff1, coeff2);
+      parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER);
+      force->improper->coeff(ncoeffarg, coeffarg);
+    }
+  }
+
+  // angleangle coeffs
+
+  if (angleanglecoeffsflag) {
+    const auto &angleanglecoeffs = moldata["angleangle_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->impropers_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: angleangle_coeffs");
+    if (force->improper == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define improper_style before AngleAngle Coeffs");
+
+    for (auto item : angleanglecoeffs) {
+      if (item.size() != 7)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for angleangle_coeff {}.",
+                   id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in angleangle_coeffs section of JSON file: {}", to_string(item));
+
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      double coeff5 = item[5];
+      double coeff6 = item[6];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4, coeff5, coeff6);
+      parse_coeffs(buf, "aa", 0, 1, ioffset, Atom::IMPROPER);
+      force->improper->coeff(ncoeffarg, coeffarg);
     }
   }
 
@@ -2456,6 +2963,9 @@ void Molecule::read(int flag)
         natoms = values.next_int();
         nwant = 2;
         has_atoms = true;
+      } else if (values.matches(R"(^\s*\d+\s+angles\s*$)")) {
+        nangles = values.next_int();
+        nwant = 2;
       } else if (values.matches(R"(^\s*\d+\s+bonds\s*$)")) {
         nbonds = values.next_int();
         nwant = 2;
@@ -2468,6 +2978,21 @@ void Molecule::read(int flag)
       } else if (values.matches(R"(^\s*\d+\s+impropers\s*$)")) {
         nimpropers = values.next_int();
         nwant = 2;
+      } else if (values.matches(R"(^\s*\d+\s+pair\s+coeffs\s*$)")) {
+        npaircoeffs = values.next_int();
+        nwant = 3;
+      } else if (values.matches(R"(^\s*\d+\s+bond\s+coeffs\s*$)")) {
+        nbondcoeffs = values.next_int();
+        nwant = 3;
+      } else if (values.matches(R"(^\s*\d+\s+angle\s+coeffs\s*$)")) {
+        nanglecoeffs = values.next_int();
+        nwant = 3;
+      } else if (values.matches(R"(^\s*\d+\s+dihedral\s+coeffs\s*$)")) {
+        ndihedralcoeffs = values.next_int();
+        nwant = 3;
+      } else if (values.matches(R"(^\s*\d+\s+improper\s+coeffs\s*$)")) {
+        nimpropercoeffs = values.next_int();
+        nwant = 3;
       } else if (values.matches(R"(^\s*\d+\s+fragments\s*$)")) {
         nfragments = values.next_int();
         nwant = 2;
@@ -2601,6 +3126,12 @@ void Molecule::read(int flag)
         masses(line);
       else
         skip_lines(natoms, line, keyword);
+    } else if (keyword == "Atom Type Masses") {
+      typemassflag = 1;
+      if (flag)
+        type_masses(line);
+      else
+        skip_lines(npaircoeffs, line, keyword);
 
     } else if (keyword == "Bonds") {
       if (nbonds == 0)
@@ -2671,9 +3202,150 @@ void Molecule::read(int flag)
         error->all(FLERR, fileiarg, "Found Body Doubles section but no setting in header");
       dbodyflag = 1;
       body(flag, 1, line);
-    } else if ((keyword == "Atoms") || (keyword == "Velocities") || (keyword == "Pair Coeffs") ||
-               (keyword == "Bond Coeffs") || (keyword == "Angle Coeffs") ||
-               (keyword == "Dihedral Coeffs") || (keyword == "Improper Coeffs")) {
+
+    } else if (keyword == "Pair Coeffs") {
+      if (force->pair == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define pair_style before Pair Coeffs");
+      if (flag) {
+        if (comm->me == 0 && !atom->style_match(force->pair_style))
+          error->warning(
+              FLERR, "Pair style {} in molecule file differs from currently defined pair style {}",
+              atom->get_style(), force->pair_style);
+        paircoeffs();
+      } else
+        skip_lines(npaircoeffs, line, keyword);
+    } else if (keyword == "Bond Coeffs") {
+      if (atom->avec->bonds_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Bond Coeffs");
+      if (force->bond == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define bond_style before Bond Coeffs");
+      if (flag) {
+        if (comm->me == 0 && !atom->style_match(force->bond_style))
+          error->warning(
+              FLERR, "Bond style {} in molecule template file differs from currently defined bond style {}",
+              atom->get_style(), force->bond_style);
+        bondcoeffs();
+      } else
+        skip_lines(nbondcoeffs, line, keyword);
+    } else if (keyword == "Angle Coeffs") {
+      if (atom->avec->angles_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Angle Coeffs");
+      if (force->angle == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define angle_style before Angle Coeffs");
+      if (flag) {
+        if (comm->me == 0 && !atom->style_match(force->angle_style))
+          error->warning(
+              FLERR, "Angle style {} in molecule template file differs from currently defined angle style {}",
+              atom->get_style(), force->angle_style);
+        anglecoeffs(0);
+      } else
+        skip_lines(nanglecoeffs, line, keyword);
+    } else if (keyword == "BondBond Coeffs") {
+      if (atom->avec->angles_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondBond Coeffs");
+      if (force->angle == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondBond Coeffs");
+      if (flag)
+        anglecoeffs(1);
+      else
+        skip_lines(nanglecoeffs, line, keyword);
+    } else if (keyword == "BondAngle Coeffs") {
+      if (atom->avec->angles_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondAngle Coeffs");
+      if (force->angle == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondAngle Coeffs");
+      if (flag)
+        anglecoeffs(2);
+      else
+        skip_lines(nanglecoeffs, line, keyword);
+    } else if (keyword == "Dihedral Coeffs") {
+      if (atom->avec->dihedrals_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Dihedral Coeffs");
+      if (force->dihedral == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before Dihedral Coeffs");
+      if (flag) {
+        if (comm->me == 0 && !atom->style_match(force->dihedral_style))
+          error->warning(
+              FLERR,
+              "Dihedral style {} in molecule template file differs from currently defined dihedral style {}",
+              atom->get_style(), force->dihedral_style);
+        dihedralcoeffs(0);
+      } else
+        skip_lines(ndihedralcoeffs, line, keyword);
+    } else if (keyword == "MiddleBondTorsion Coeffs") {
+      if (atom->avec->dihedrals_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: MiddleBondTorsion Coeffs");
+      if (force->dihedral == nullptr)
+        error->all(FLERR, Error::ARGZERO,
+                   "Must define dihedral_style before MiddleBondTorsion Coeffs");
+      if (flag)
+        dihedralcoeffs(1);
+      else
+        skip_lines(ndihedralcoeffs, line, keyword);
+    } else if (keyword == "EndBondTorsion Coeffs") {
+      if (atom->avec->dihedrals_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: EndBondTorsion Coeffs");
+      if (force->dihedral == nullptr)
+        error->all(FLERR, Error::ARGZERO,
+                   "Must define dihedral_style before EndBondTorsion Coeffs");
+      if (flag)
+        dihedralcoeffs(2);
+      else
+        skip_lines(ndihedralcoeffs, line, keyword);
+    } else if (keyword == "AngleTorsion Coeffs") {
+      if (atom->avec->dihedrals_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleTorsion Coeffs");
+      if (force->dihedral == nullptr)
+        error->all(FLERR, Error::ARGZERO,
+                   "Must define dihedral_style before AngleTorsion Coeffs");
+      if (flag)
+        dihedralcoeffs(3);
+      else
+        skip_lines(ndihedralcoeffs, line, keyword);
+    } else if (keyword == "AngleAngleTorsion Coeffs") {
+      if (atom->avec->dihedrals_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleAngleTorsion Coeffs");
+      if (force->dihedral == nullptr)
+        error->all(FLERR, Error::ARGZERO,
+                   "Must define dihedral_style before AngleAngleTorsion Coeffs");
+      if (flag)
+        dihedralcoeffs(4);
+      else
+        skip_lines(ndihedralcoeffs, line, keyword);
+    } else if (keyword == "BondBond13 Coeffs") {
+      if (atom->avec->dihedrals_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondBond13 Coeffs");
+      if (force->dihedral == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before BondBond13 Coeffs");
+      if (flag)
+        dihedralcoeffs(5);
+      else
+        skip_lines(ndihedralcoeffs, line, keyword);
+    } else if (keyword == "Improper Coeffs") {
+      if (atom->avec->impropers_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Improper Coeffs");
+      if (force->improper == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define improper_style before Improper Coeffs");
+      if (flag) {
+        if (comm->me == 0 && !atom->style_match(force->improper_style))
+          error->warning(
+              FLERR,
+              "Improper style {} in molecule template file differs from currently defined improper style {}",
+              atom->get_style(), force->improper_style);
+        impropercoeffs(0);
+      } else
+        skip_lines(nimpropercoeffs, line, keyword);
+    } else if (keyword == "AngleAngle Coeffs") {
+      if (atom->avec->impropers_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleAngle Coeffs");
+      if (force->improper == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define improper_style before AngleAngle Coeffs");
+      if (flag)
+        impropercoeffs(1);
+      else
+        skip_lines(nimpropercoeffs, line, keyword);
+
+    } else if ((keyword == "Atoms") || (keyword == "Velocities")) {
       error->all(FLERR, fileiarg, "Found data file section '{}' in molecule file\n", keyword);
     } else {
 
@@ -2832,9 +3504,9 @@ void Molecule::types(char *line)
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid atom type {} in {}: {}", typestr, location,
                      utils::trim(line));
-        type[iatom] = atom->lmap->find_type(typestr, Atom::ATOM);
+        type[iatom] = atom->lmap->find_or_create(typestr, atom->lmap->typelabel, atom->lmap->typelabel_map);
         if (type[iatom] == -1)
-          error->all(FLERR, fileiarg, "Unknown atom type {} in {}: {}", typestr, location,
+          error->all(FLERR, fileiarg, "Unable to find or create atom type {} in {}: {}", typestr, location,
                      utils::trim(line));
         break;
       }
@@ -3068,6 +3740,45 @@ void Molecule::masses(char *line)
 }
 
 /* ----------------------------------------------------------------------
+   read atom type masses from file
+------------------------------------------------------------------------- */
+
+void Molecule::type_masses(char *line)
+{
+  const std::string location = "Atom Type Masses section of molecule file";
+  std::string typestr;
+
+  int tlabelflag = atom->labelmapflag;
+  if (!tlabelflag)
+    error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning atom type masses.");
+
+  for (int i = 0; i < npaircoeffs; i++) {
+    readline(line);
+    auto values = Tokenizer(utils::trim(line)).as_vector();
+    if (values.size() != 2)
+      error->all(FLERR, fileiarg, "Invalid line in {}: {}", location, line);
+
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        int itype = atom->lmap->find_type(typestr, Atom::ATOM);
+        if (itype == -1)
+          error->all(FLERR, fileiarg, "Unknown type {} in {}.", typestr, location);
+
+        double value = utils::numeric(FLERR, values[1], false, lmp);
+        if (atom->mass_setflag[itype])
+          error->warning(FLERR, "Overwriting mass for type {} in {}.", typestr, location);
+        atom->set_mass(FLERR, itype, value);
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(line));
+        break;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    read bonds from file
    set nbondtypes = max type of any bond
    store each with both atoms if newton_bond = 0
@@ -3110,9 +3821,9 @@ void Molecule::bonds(int flag, char *line)
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid bond type {} in {}: {}", typestr, location, utils::trim(line));
-        itype = atom->lmap->find_type(typestr, Atom::BOND);
+        itype = atom->lmap->find_or_create(typestr, atom->lmap->btypelabel, atom->lmap->btypelabel_map);
         if (itype == -1)
-          error->all(FLERR, fileiarg, "Unknown bond type {} in {}: {}", typestr, location, utils::trim(line));
+          error->all(FLERR, fileiarg, "Unable to find or create bond type {} in {}: {}", typestr, location, utils::trim(line));
         break;
       }
       default:    // invalid
@@ -3196,9 +3907,9 @@ void Molecule::angles(int flag, char *line)
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid angle type {} in {}: {}", typestr, location, utils::trim(line));
-        itype = atom->lmap->find_type(typestr, Atom::ANGLE);
+        itype = atom->lmap->find_or_create(typestr, atom->lmap->atypelabel, atom->lmap->atypelabel_map);
         if (itype == -1)
-          error->all(FLERR, fileiarg, "Unknown angle type {} in {}: {}", typestr, location, utils::trim(line));
+          error->all(FLERR, fileiarg, "Unable to find or create angle type {} in {}: {}", typestr, location, utils::trim(line));
         break;
       }
       default:    // invalid
@@ -3297,9 +4008,9 @@ void Molecule::dihedrals(int flag, char *line)
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid dihedral type {} in {}: {}", typestr, location, utils::trim(line));
-        itype = atom->lmap->find_type(typestr, Atom::DIHEDRAL);
+        itype = atom->lmap->find_or_create(typestr, atom->lmap->dtypelabel, atom->lmap->dtypelabel_map);
         if (itype == -1)
-          error->all(FLERR, fileiarg, "Unknown dihedral type {} in {}: {}", typestr, location, utils::trim(line));
+          error->all(FLERR, fileiarg, "Unable to find or create edihedral type {} in {}: {}", typestr, location, utils::trim(line));
         break;
       }
       default:    // invalid
@@ -3412,9 +4123,9 @@ void Molecule::impropers(int flag, char *line)
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid improper type {} in {}: {}", typestr, location, utils::trim(line));
-        itype = atom->lmap->find_type(typestr, Atom::IMPROPER);
+        itype = atom->lmap->find_or_create(typestr, atom->lmap->itypelabel, atom->lmap->itypelabel_map);
         if (itype == -1)
-          error->all(FLERR, fileiarg, "Unknown improper type {} in {}: {}", typestr, location, utils::trim(line));
+          error->all(FLERR, fileiarg, "Unable to find or create improper type {} in {}: {}", typestr, location, utils::trim(line));
         break;
       }
       default:    // invalid
@@ -4281,6 +4992,304 @@ void Molecule::body(int flag, int pflag, char *line)
 }
 
 /* ----------------------------------------------------------------------
+   read pair coeffs from molecule template
+------------------------------------------------------------------------- */
+
+void Molecule::paircoeffs()
+{
+  if (!npaircoeffs) return;
+
+  const char* location = "Pair Coeffs section in molecule template file";
+  char *next;
+  auto *buf = new char[npaircoeffs * MAXLINE];
+  std::string typestr;
+
+  int eof = utils::read_lines_from_file(fp, npaircoeffs, MAXLINE, buf, comm->me, world);
+  if (eof) error->all(FLERR, "Unexpected end of data file");
+
+  int tlabelflag = atom->labelmapflag;
+  if (!tlabelflag)
+    error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning pair coeffs.");
+
+  for (int i = 0; i < npaircoeffs; i++) {
+    next = strchr(buf, '\n');
+    *next = '\0';
+    auto values = Tokenizer(utils::trim(buf)).as_vector();
+    if (values.size() != 3)
+      error->all(FLERR, fileiarg, "Invalid line in {}: {}", location, buf);
+
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        parse_coeffs(buf, nullptr, 1, 2, toffset, Atom::ATOM);
+        if (ncoeffarg == 0)
+          error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", npaircoeffs);
+        force->pair->coeff(ncoeffarg, coeffarg);
+        buf = next + 1;
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(buf));
+        break;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   read bond coeffs sections from molecule template
+------------------------------------------------------------------------- */
+
+void Molecule::bondcoeffs()
+{
+  if (!nbondcoeffs) return;
+
+  const char* location = "Bond Coeffs section in molecule template file";
+  char *next;
+  auto *buf = new char[nbondcoeffs * MAXLINE];
+  std::string typestr;
+
+  int eof = utils::read_lines_from_file(fp, nbondcoeffs, MAXLINE, buf, comm->me, world);
+  if (eof) error->all(FLERR, "Unexpected end of data file");
+
+  int tlabelflag = atom->labelmapflag;
+  if (!tlabelflag)
+    error->all(FLERR, "Label map is not enabled: bond type labels must be defined before assigning bond coeffs.");
+
+  char *original = buf;
+  for (int i = 0; i < nbondcoeffs; i++) {
+    next = strchr(buf, '\n');
+    *next = '\0';
+    auto values = Tokenizer(utils::trim(buf)).as_vector();
+    if (values.size() != 5)
+      error->all(FLERR, fileiarg, "Invalid line in {}: {}", location, buf);
+
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        parse_coeffs(buf, nullptr, 0, 1, boffset, Atom::BOND);
+        if (ncoeffarg == 0)
+          error->all(FLERR, "Unexpected empty line in BondCoeffs section. Expected {} lines.",
+                     nbondcoeffs);
+        force->bond->coeff(ncoeffarg, coeffarg);
+        buf = next + 1;
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(buf));
+        break;
+    }
+  }
+  delete[] original;
+}
+
+/* ----------------------------------------------------------------------
+   read angle coeffs sections from molecule template
+------------------------------------------------------------------------- */
+
+void Molecule::anglecoeffs(int which)
+{
+  if (!nanglecoeffs) return;
+
+  const char* location = "Angle Coeffs section in molecule template file";
+  char *next;
+  auto *buf = new char[nanglecoeffs * MAXLINE];
+  std::string typestr;
+
+  int eof = utils::read_lines_from_file(fp, nanglecoeffs, MAXLINE, buf, comm->me, world);
+  if (eof) error->all(FLERR, "Unexpected end of data file");
+
+  int tlabelflag = atom->labelmapflag;
+  if (!tlabelflag)
+    error->all(FLERR, "Label map is not enabled: angle type labels must be defined before assigning angle coeffs.");
+
+  char *original = buf;
+  for (int i = 0; i < nanglecoeffs; i++) {
+    next = strchr(buf, '\n');
+    *next = '\0';
+    auto values = Tokenizer(utils::trim(buf)).as_vector();
+
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        if (which == 0)
+          parse_coeffs(buf, nullptr, 0, 1, aoffset, Atom::ANGLE);
+        else if (which == 1)
+          parse_coeffs(buf, "bb", 0, 1, aoffset, Atom::ANGLE);
+        else if (which == 2)
+          parse_coeffs(buf, "ba", 0, 1, aoffset, Atom::ANGLE);
+        else if (which == 3)
+          parse_coeffs(buf, "ub", 0, 1, aoffset, Atom::ANGLE);
+        if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in AngleCoeffs section");
+        force->angle->coeff(ncoeffarg, coeffarg);
+        buf = next + 1;
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(buf));
+        break;
+    }
+  }
+  delete[] original;
+}
+
+/* ----------------------------------------------------------------------
+   read dihedral coeffs sections from molecule template
+------------------------------------------------------------------------- */
+
+void Molecule::dihedralcoeffs(int which)
+{
+  if (!ndihedralcoeffs) return;
+
+  const char* location = "Dihedral Coeffs section in molecule template file";
+  char *next;
+  auto *buf = new char[ndihedralcoeffs * MAXLINE];
+  std::string typestr;
+
+  int eof = utils::read_lines_from_file(fp, ndihedralcoeffs, MAXLINE, buf, comm->me, world);
+  if (eof) error->all(FLERR, "Unexpected end of molecule template file");
+
+  int tlabelflag = atom->labelmapflag;
+  if (!tlabelflag)
+    error->all(FLERR, "Label map is not enabled: dihedral type labels must be defined before assigning dihedral coeffs.");
+
+  char *original = buf;
+  for (int i = 0; i < ndihedralcoeffs; i++) {
+    next = strchr(buf, '\n');
+    *next = '\0';
+    auto values = Tokenizer(utils::trim(buf)).as_vector();
+
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        if (which == 0)
+          parse_coeffs(buf, nullptr, 0, 1, doffset, Atom::DIHEDRAL);
+        else if (which == 1)
+          parse_coeffs(buf, "mbt", 0, 1, doffset, Atom::DIHEDRAL);
+        else if (which == 2)
+          parse_coeffs(buf, "ebt", 0, 1, doffset, Atom::DIHEDRAL);
+        else if (which == 3)
+          parse_coeffs(buf, "at", 0, 1, doffset, Atom::DIHEDRAL);
+        else if (which == 4)
+          parse_coeffs(buf, "aat", 0, 1, doffset, Atom::DIHEDRAL);
+        else if (which == 5)
+          parse_coeffs(buf, "bb13", 0, 1, doffset, Atom::DIHEDRAL);
+        if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in DihedralCoeffs section");
+        force->dihedral->coeff(ncoeffarg, coeffarg);
+        buf = next + 1;
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(buf));
+        break;
+    }
+  }
+  delete[] original;
+}
+
+/* ----------------------------------------------------------------------
+   read improper coeffs sections from molecule template
+------------------------------------------------------------------------- */
+
+void Molecule::impropercoeffs(int which)
+{
+  if (!nimpropercoeffs) return;
+
+  const char* location = "Improper Coeffs section in molecule template file";
+  char *next;
+  auto *buf = new char[nimpropercoeffs * MAXLINE];
+  std::string typestr;
+
+  int eof = utils::read_lines_from_file(fp, nimpropercoeffs, MAXLINE, buf, comm->me, world);
+  if (eof) error->all(FLERR, "Unexpected end of molecule template file");
+
+  int tlabelflag = atom->labelmapflag;
+  if (!tlabelflag)
+    error->all(FLERR, "Label map is not enabled: improper type labels must be defined before assigning improper coeffs.");
+
+  char *original = buf;
+  for (int i = 0; i < nimpropercoeffs; i++) {
+    next = strchr(buf, '\n');
+    *next = '\0';
+    auto values = Tokenizer(utils::trim(buf)).as_vector();
+
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        if (which == 0)
+          parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER);
+        else if (which == 1)
+          parse_coeffs(buf, "aa", 0, 1, ioffset, Atom::IMPROPER);
+        if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in ImproperCoeffs section");
+        force->improper->coeff(ncoeffarg, coeffarg);
+        buf = next + 1;
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(buf));
+        break;
+    }
+  }
+  delete[] original;
+}
+
+/* ----------------------------------------------------------------------
+   parse a line of coeffs into words, storing them in ncoeffarg,coeffarg
+   trim anything from '#' onward
+   word strings remain in line, are not copied
+   if addstr != nullptr, add addstr as extra arg for class2 angle/dihedral/improper
+     if 2nd word starts with letter, then is hybrid style, add addstr after it
+     else add addstr before 2nd word
+   if dupflag, duplicate 1st word, so pair_coeff "2" becomes "2 2"
+   if noffset, add offset to first noffset args, which are atom/bond/etc types
+------------------------------------------------------------------------- */
+
+void Molecule::parse_coeffs(char *line, const char *addstr, int dupflag, int noffset, int offset,
+                            int labelmode)
+{
+  char *ptr;
+  if ((ptr = strchr(line, '#'))) *ptr = '\0';
+
+  ncoeffarg = 0;
+  char *word = line;
+  char *end = line + strlen(line) + 1;
+
+  while (word < end) {
+    word += strspn(word, " \t\r\n\f");
+    word[strcspn(word, " \t\r\n\f")] = '\0';
+    if (strlen(word) == 0) break;
+    if (ncoeffarg == maxcoeffarg) {
+      maxcoeffarg += DELTA;
+      coeffarg =
+          (char **) memory->srealloc(coeffarg, maxcoeffarg * sizeof(char *), "molecule:coeffarg");
+    }
+    if (addstr && ncoeffarg == 1 && !islower(word[0])) coeffarg[ncoeffarg++] = (char *) addstr;
+    coeffarg[ncoeffarg++] = word;
+    if (addstr && ncoeffarg == 2 && islower(word[0])) coeffarg[ncoeffarg++] = (char *) addstr;
+    if (dupflag && ncoeffarg == 1) coeffarg[ncoeffarg++] = word;
+    word += strlen(word) + 1;
+  }
+
+  // to avoid segfaults on empty lines
+
+  if (ncoeffarg == 0) return;
+
+  if (noffset) {
+    int itype = atom->lmap->find_type(coeffarg[0], labelmode);
+    if (itype == -1)
+      error->all(FLERR, fileiarg, "Unknown type {} in Coeffs section: {}", coeffarg[0], utils::trim(line));
+    argoffset1 = std::to_string(itype + offset);
+    coeffarg[0] = (char *) argoffset1.c_str();
+    if (noffset == 2) {
+      itype = atom->lmap->find_type(coeffarg[1], labelmode);
+      if (itype == -1)
+        error->all(FLERR, fileiarg, "Unknown type {} in Coeffs section: {}", coeffarg[0], utils::trim(line));
+      argoffset2 = std::to_string(itype + offset);
+      coeffarg[1] = (char *) argoffset2.c_str();
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    return fragment index if name matches existing fragment, -1 if no such fragment
 ------------------------------------------------------------------------- */
 
@@ -4355,6 +5364,7 @@ void Molecule::initialize()
   ntypes = 0;
   nmolecules = 1;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
+  nbondcoeffs = nanglecoeffs = ndihedralcoeffs = nimpropercoeffs = 0;
   nibody = ndbody = 0;
   nfragments = 0;
   masstotal = 0.0;
@@ -4376,10 +5386,19 @@ void Molecule::initialize()
   nspecialflag = specialflag = 0;
   shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
   bodyflag = ibodyflag = dbodyflag = 0;
+  typemassflag = 0;
 
   centerflag = massflag = comflag = inertiaflag = 0;
   massflag_user = comflag_user = inertiaflag_user = specialflag_user = 0;
   tag_require = 0;
+
+  paircoeffsflag = bondcoeffsflag = anglecoeffsflag = dihedralcoeffsflag = impropercoeffsflag = 0;
+  bondbondcoeffsflag = bondanglecoeffsflag = 0;
+  middlebondtorsioncoeffsflag = endbondtorsioncoeffsflag = angletorsioncoeffsflag = 0;
+  angleangletorsioncoeffsflag = bondbond13coeffsflag = 0;
+  angleanglecoeffsflag = 0;
+
+  ncoeffarg = maxcoeffarg = 0;
 
   x = nullptr;
   type = nullptr;
@@ -4552,6 +5571,8 @@ void Molecule::deallocate()
 
   memory->destroy(ibodyparams);
   memory->destroy(dbodyparams);
+
+  memory->sfree(coeffarg);
 }
 
 /* ----------------------------------------------------------------------

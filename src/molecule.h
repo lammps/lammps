@@ -39,6 +39,7 @@ class Molecule : protected Pointers {
   int ntypes, nmolecules, nfragments;
   int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
   int nibody, ndbody;
+  int npaircoeffs, nbondcoeffs, nanglecoeffs, ndihedralcoeffs, nimpropercoeffs;
 
   // max bond,angle,etc per atom
 
@@ -53,6 +54,7 @@ class Molecule : protected Pointers {
   int nspecialflag, specialflag;
   int shakeflag, shakeflagflag, shakeatomflag, shaketypeflag;
   int bodyflag, ibodyflag, dbodyflag;
+  int typemassflag;
 
   // 1 if attribute defined or computed, 0 if not
 
@@ -65,6 +67,14 @@ class Molecule : protected Pointers {
   // 1 if molecule fields require atom IDs
 
   int tag_require;
+
+  // 1 if molecule fields defined in JSON file, 0 if not
+
+  int paircoeffsflag, bondcoeffsflag, anglecoeffsflag, dihedralcoeffsflag, impropercoeffsflag;
+  int bondbondcoeffsflag, bondanglecoeffsflag;
+  int middlebondtorsioncoeffsflag, endbondtorsioncoeffsflag, angletorsioncoeffsflag;
+  int angleangletorsioncoeffsflag, bondbond13coeffsflag;
+  int angleanglecoeffsflag;
 
   // attributes
 
@@ -155,6 +165,10 @@ class Molecule : protected Pointers {
   int check_which_labels[4];
   double sizescale;
 
+  int ncoeffarg, maxcoeffarg;
+  char **coeffarg;
+  std::string argoffset1, argoffset2;
+
   void read(int);
   void coords(char *);
   void types(char *);
@@ -164,6 +178,7 @@ class Molecule : protected Pointers {
   void diameters(char *);
   void dipoles(char *);
   void masses(char *);
+  void type_masses(char *);
   void bonds(int, char *);
   void angles(int, char *);
   void dihedrals(int, char *);
@@ -178,6 +193,13 @@ class Molecule : protected Pointers {
   void shakeatom_read(char *);
   void shaketype_read(char *);
   void body(int, int, char *);
+
+  void paircoeffs();
+  void bondcoeffs();
+  void anglecoeffs(int);
+  void dihedralcoeffs(int);
+  void impropercoeffs(int);
+  void parse_coeffs(char *, const char *, int, int, int, int);
 
   void initialize();
   void allocate();

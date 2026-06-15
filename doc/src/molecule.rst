@@ -300,6 +300,26 @@ defining a *body* particle, which requires setting the number of
         - impropers
         - # of impropers Ni in molecule
         - 0
+      * - Npc
+        - pair coeffs
+        - # of pair type coefficients Nac in molecule file
+        - 0
+      * - Nbc
+        - bond coeffs
+        - # of bond type coefficients Nbc in molecule file
+        - 0
+      * - Nac
+        - angle coeffs
+        - # of angle type coefficients Nac in molecule file
+        - 0
+      * - Ndc
+        - dihedral coeffs
+        - # of dihedral type coefficients Ndc in molecule file
+        - 0
+      * - Nic
+        - improper coeffs
+        - # of improper type coefficients Nic in molecule file
+        - 0
       * - Nf
         - fragments
         - # of fragments Nf in molecule
@@ -340,6 +360,8 @@ internally.
 These are the allowed section keywords for the body of the file.
 
 * *Coords, Types, Molecules, Fragments, Charges, Diameters, Dipoles, Masses* = atom-property sections
+* *Atom Type Masses, Pair Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs, Improper Coeffs* = per-type and force field coefficients sections
+* *BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs, EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs, BondBond13 Coeffs, AngleAngle Coeffs* = class 2 force field sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info
@@ -383,14 +405,26 @@ cores and Drude electrons in a different manner.
    diameter of 1.0.  See the doc pages for LAMMPS commands that use
    molecule templates for more details.
 
-Each section is listed below in alphabetic order.  The format of each
-section is described including the number of lines it must contain and
-rules (if any) for whether it can appear in the data file.  For per-
-atom sections, entries should be numbered from 1 to Natoms (where
-Natoms is the number of atoms in the template), indicating which atom
-(or bond, etc) the entry applies to.  Per-atom sections need to
-include a setting for every atom, but the atoms can be listed in any
-order.
+Force field parameters can be added to the simulation by the molecule
+command via the coefficients sections.  Within coefficients sections,
+:doc:`type labels<Howto_type_labels>` must be used for all atom types,
+bond types, etc. If the type label already exists, the previous
+coefficients are overwritten.  If the type label has not been previously
+defined, a new type is added to the simulation.  The number of newly
+added types must exactly match how many have been reserved, e.g., via the
+'extra/*/types' keywords of the :doc:`read data<read_data>` command.  The
+type coefficients defined in a molecule template do not necessarily have
+to match the atom types listed in other sections.  The coefficients
+sections must come before other sections that utilize newly defined
+interaction types.
+
+Each section is listed below.  The format of each section is described
+including the number of lines it must contain and rules (if any) for
+whether it can appear in the data file.  For per- atom sections, entries
+should be numbered from 1 to Natoms (where Natoms is the number of atoms in
+the template), indicating which atom (or bond, etc) the entry applies to.
+Per-atom sections need to include a setting for every atom, but the atoms
+can be listed in any order.
 
 ----------
 
@@ -535,6 +569,249 @@ Natoms, where Natoms = # of atoms in the molecule.  The ordering of
 the 4 atoms determines the definition of the improper angle used in
 the formula for the defined :doc:`improper style <improper_style>`.  See
 the doc pages for individual styles for details.
+
+----------
+
+*Atom Type Masses* section:
+
+* one line per pair coefficient
+* line syntax: type-label mass
+* type-label = atom type label
+* mass = mass of atom type
+
+The first column of this section must be a :doc:`type
+label<Howto_type_labels>`. There must be one line for each line of pair
+coefficients defined in the 'Pair Coeffs' section.
+
+----------
+
+*Pair Coeffs* section:
+
+* one line per pair coefficient
+* 'pair coeffs' header keyword defines the number of pair coefficients
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = atom type label
+       coeffs = list of coeffs
+
+* example:
+
+  .. parsed-literal::
+
+       c1 0.022 2.35197 0.022 2.35197
+
+The first column of this section must be a :doc:`type
+label<Howto_type_labels>`.  The number and meaning of the coefficients
+are specific to the defined pair style.  See the :doc:`pair_style
+<pair_style>` and :doc:`pair_coeff <pair_coeff>` commands for details.
+Since pair coefficients for types I != J are not specified, these will be
+generated automatically by the pair style's mixing rule.  See the
+individual pair_style doc pages and the :doc:`pair_modify mix
+<pair_modify>` command for details.  Pair coefficients can also be set
+via a data file or :doc:`pair_coeff <pair_coeff>` command in the input
+script.
+
+----------
+
+*Bond Coeffs* section:
+
+* one line per bond coefficient
+* 'bond coeffs' header keyword defines the number of bond coefficients
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = bond type label
+       coeffs = list of coeffs
+
+* example:
+
+  .. parsed-literal::
+
+       c1-c2 250 1.49
+
+The first column of this section must be a :doc:`type
+label<Howto_type_labels>`.  The number and meaning of the coefficients
+are specific to the defined bond style.  See the :doc:`bond_style
+<bond_style>` and :doc:`bond_coeff <bond_coeff>` commands for details.
+Coefficients can also be set via a data file or the :doc:`bond_coeff
+<bond_coeff>` command in the input script.
+
+----------
+
+*Angle Coeffs* section:
+
+* one line per angle coefficient
+* 'angle coeffs' header keyword defines the number of angle coefficients
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = angle type label
+       coeffs = list of coeffs
+
+* example:
+
+  .. parsed-literal::
+
+       c1-c2-c1 70 108.5 0 0
+
+The first column of this section must be a :doc:`type
+label<Howto_type_labels>`.  The number and meaning of the coefficients
+are specific to the defined angle style.  See the :doc:`angle_style
+<angle_style>` and :doc:`angle_coeff <angle_coeff>` commands for details.
+Coefficients can also be set via a data file or the :doc:`angle_coeff
+<angle_coeff>` command in the input script.
+
+----------
+
+*Dihedral Coeffs* section:
+
+* one line per dihedral type
+* 'dihedral coeffs' header keyword defines the number of dihedral coefficients
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = dihedral type label
+       coeffs = list of coeffs
+
+* example:
+
+  .. parsed-literal::
+
+       c1-c2-c1-c2 0.6 1 0 1
+
+The first column of this section must be a :doc:`type
+label<Howto_type_labels>`.  The number and meaning of the coefficients
+are specific to the defined dihedral style.  See the :doc:`dihedral_style
+<dihedral_style>` and :doc:`dihedral_coeff <dihedral_coeff>` commands for
+details. Coefficients can also be set via a data file or the
+:doc:`dihedral_coeff <dihedral_coeff>` command in the input script.
+
+----------
+
+*Improper Coeffs* section:
+
+* one line per improper type
+* 'improper coeffs' header keyword defines the number of improper coefficients
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = improper type label
+       coeffs = list of coeffs
+
+* example:
+
+  .. parsed-literal::
+
+       hn-n-hn-hn 20 0.0548311
+
+The first column of this section must be a :doc:`type
+label<Howto_type_labels>`.  The number and meaning of the coefficients
+are specific to the defined improper style.  See the :doc:`improper_style
+<improper_style>` and :doc:`improper_coeff <improper_coeff>` commands for
+details. Coefficients can also be set via a data file or the
+:doc:`improper_coeff <improper_coeff>` command in the input script.
+
+----------
+
+*BondAngle Coeffs* section:
+
+* one line per angle coefficient
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = angle type label
+       coeffs = list of coeffs (see class 2 section of :doc:`angle_coeff <angle_coeff>`)
+
+----------
+
+*BondBond Coeffs* section:
+
+* one line per angle coefficient
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = angle type label
+       coeffs = list of coeffs (see class 2 section of :doc:`angle_coeff <angle_coeff>`)
+
+----------
+
+*MiddleBondTorsion Coeffs* section:
+
+* one line per dihedral coefficient
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = dihedral type label
+       coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
+
+----------
+
+*EndBondTorsion Coeffs* section:
+
+* one line per dihedral coefficient
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = dihedral type label
+       coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
+
+----------
+
+*AngleTorsion Coeffs* section:
+
+* one line per dihedral coefficient
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = dihedral type label
+       coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
+
+----------
+
+*AngleAngleTorsion Coeffs* section:
+
+* one line per dihedral coefficient
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = dihedral type label
+       coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
+
+----------
+
+*BondBond13 Coeffs* section:
+
+* one line per dihedral coefficient
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = dihedral type label
+       coeffs = list of coeffs (see class 2 section of :doc:`dihedral_coeff <dihedral_coeff>`)
+
+----------
+
+*AngleAngle Coeffs* section:
+
+* one line per improper coefficient
+* line syntax: type-label coeffs
+
+  .. parsed-literal::
+
+       type-label = improper type label
+       coeffs = list of coeffs (see :doc:`improper_coeff <improper_coeff>`)
 
 ----------
 
@@ -932,6 +1209,62 @@ for the "native" molecule file format.
      - a data block
      - no
      - defines impropers in the molecule template with the format "improper-type", "atom1", "atom2", "atom3", "atom4" (same as Impropers without improper-ID)
+   * - atom_type_masses
+     - a data block
+     - no
+     - defines per-type masses with the format "atom-type-label", "mass" (same as Atom Type Masses)
+   * - pair_coeffs
+     - a data block
+     - no
+     - defines pair coefficients with the format "atom-type-label", "coeff-list" (same as Pair Coeffs)
+   * - bond_coeffs
+     - a data block
+     - no
+     - defines bond coefficients with the format "bond-type-label", "coeff-list" (same as Bond Coeffs)
+   * - angle_coeffs
+     - a data block
+     - no
+     - defines angle coefficients with the format "angle-type-label", "coeff-list" (same as Angle Coeffs)
+   * - dihedral_coeffs
+     - a data block
+     - no
+     - defines dihedral coefficients with the format "dihedral-type-label", "coeff-list" (same as Dihedral Coeffs)
+   * - improper_coeffs
+     - a data block
+     - no
+     - defines improper coefficients with the format "improper-type-label", "coeff-list" (same as Improper Coeffs)
+   * - bondbond_coeffs
+     - a data block
+     - no
+     - defines :doc:`class2 angle<angle_class2>` coefficients with the format "angle-type-label", "coeff-list" (same as BondBond Coeffs)
+   * - bondangle_coeffs
+     - a data block
+     - no
+     - defines :doc:`class2 angle<angle_class2>` coefficients with the format "angle-type-label", "coeff-list" (same as BondAngle Coeffs)
+   * - middlebondtorsion_coeffs
+     - a data block
+     - no
+     - defines :doc:`class2 dihedral<dihedral_class2>` coefficients with the format "dihedral-type-label", "coeff-list" (same as MiddleBondTorsion Coeffs)
+   * - endbondtorsion_coeffs
+     - a data block
+     - no
+     - defines :doc:`class2 dihedral<dihedral_class2>` coefficients with the format "dihedral-type-label", "coeff-list" (same as EndBondTorsion Coeffs)
+   * - angletorsion_coeffs
+     - a data block
+     - no
+     - defines :doc:`class2 dihedral<dihedral_class2>` coefficients with the format "dihedral-type-label", "coeff-list" (same as AngleAngle Coeffs)
+   * - angleangletorsion_coeffs
+     - a data block
+     - no
+     - defines :doc:`class2 dihedral<dihedral_class2>` coefficients with the format "dihedral-type-label", "coeff-list" (same as AngleAngleTorsion Coeffs)
+   * - bondbond13_coeffs
+     - a data block
+     - no
+     - defines :doc:`class2 dihedral<dihedral_class2>` coefficients with the format "dihedral-type-label", "coeff-list" (same as BondBond13 Coeffs)
+   * - angleangle_coeffs
+     - a data block
+     - no
+     - defines :doc:`class2 improper<improper_class2>` coefficients with the format "improper-type-label", "coeff-list" (same as AngleAngle Coeffs)
    * - shake
      - 3 JSON objects
      - no

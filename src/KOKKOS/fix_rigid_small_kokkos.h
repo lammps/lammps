@@ -49,7 +49,8 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 
   FixRigidSmallKokkos(class LAMMPS *, int, char **);
   ~FixRigidSmallKokkos();
-  //int setmask() override; use super
+  int setmask() override;
+  void pre_exchange() override;
   void init() override;
   void setup(int) override;
   void initial_integrate(int) override;

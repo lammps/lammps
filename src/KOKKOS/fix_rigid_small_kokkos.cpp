@@ -119,6 +119,38 @@ void FixRigidSmallKokkos<DeviceType>::init()
 }
 
 /* ----------------------------------------------------------------------
+   add PRE_EXCHANGE so the tied DualViews can be flushed to the host before
+   the (host) atom migration in Comm::exchange
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixRigidSmallKokkos<DeviceType>::setmask()
+{
+  return FixRigidSmall::setmask() | PRE_EXCHANGE;
+}
+
+/* ----------------------------------------------------------------------
+   flush body and per-atom state to the host before host atom exchange
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::pre_exchange()
+{
+  if (!setupflag) return;
+
+  // device kernels/comm hold the current state; copy it to the host so the
+  // base-class (host) pack_exchange/copy_arrays/unpack_exchange operate on
+  // valid data during Comm::exchange
+  copy_body_host();
+  k_bodytag.sync_host();
+  k_bodyown.sync_host();
+  k_atom2body.sync_host();
+  k_xcmimage.sync_host();
+  k_displace.sync_host();
+  k_vatom.sync_host();
+}
+
+/* ----------------------------------------------------------------------
    setup static/dynamic properties of rigid bodies, using current atom info.
    if reinitflag is not set, do the initialization only once, b/c properties
    may not be re-computable especially if overlapping particles or bodies
@@ -208,8 +240,14 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
   // command-line override is needed and other fixes may use their own setting.
   // (The rigid/small/host instantiation keeps host comm/sort, execution_space
   // == Host, which CommKokkos already forces.)
+  // Atom exchange (migration of body-owning atoms between subdomains) runs on
+  // the host: the device pack/unpack_exchange path does not correctly migrate
+  // the per-body Body data, which loses bodies (and then atoms) at np>1.  The
+  // host FixRigidSmall::pack_exchange path is proven correct; pre_exchange()
+  // and pre_neighbor() sync the tied DualViews around it.  Forward/reverse comm
+  // and sorting remain on the device.
   if (std::is_same<DeviceType,LMPDeviceType>::value) {
-    exchange_comm_device = 1;
+    exchange_comm_device = 0;
     forward_comm_device = 1;
     sort_device = 1;
     reverse_comm_device = 1;
@@ -235,6 +273,25 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
     return;
   }
   Kokkos::Profiling::pushRegion("rigid/small pre_neighbor");
+
+  // Comm::exchange just migrated atoms (and bodies) on the host; push the
+  // updated state back to the device.  Stale ghost bodies are dropped here and
+  // rebuilt by the BODY_SENDLIST/FULL_BODY comm below.
+  nghost_body = 0;
+  k_bodytag.modify_host();
+  k_bodyown.modify_host();
+  k_atom2body.modify_host();
+  k_xcmimage.modify_host();
+  k_displace.modify_host();
+  k_vatom.modify_host();
+  k_bodytag.template sync<DeviceType>();
+  k_bodyown.template sync<DeviceType>();
+  k_atom2body.template sync<DeviceType>();
+  k_xcmimage.template sync<DeviceType>();
+  k_displace.template sync<DeviceType>();
+  k_vatom.template sync<DeviceType>();
+  refresh_atom_views();
+  copy_body_device();
 
   int triclinic = domain->triclinic;
   int xperiodic = domain->xperiodic;

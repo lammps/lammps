@@ -171,7 +171,8 @@ FixRigidNHSmallKokkos<DeviceType>::~FixRigidNHSmallKokkos()
 template<class DeviceType>
 int FixRigidNHSmallKokkos<DeviceType>::setmask()
 {
-  return FixRigidSmall::setmask();
+  // inherit the kk base mask (adds PRE_EXCHANGE for host atom migration)
+  return FixRigidSmallKokkos<DeviceType>::setmask();
 }
 
 /* ---------------------------------------------------------------------- */

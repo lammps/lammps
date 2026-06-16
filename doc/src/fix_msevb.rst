@@ -3,6 +3,8 @@
 fix msevb command
 =================
 
+.. versionadded: TBD
+
 Syntax
 """"""
 

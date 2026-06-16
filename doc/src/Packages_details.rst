@@ -2171,7 +2171,7 @@ MSEVB package
 
 A fix style for performing multi-state empirical valence bond (MSEVB)
 molecular dynamics.  MSEVB is a method for modeling chemical reactivity
-with classical force fields (e.g., proton transfer, charge-transfer, radicalisation)
+with classical force fields (e.g., proton transfer, charge-transfer, radicalization)
 by representing the system as a superposition of multiple reactive states.
 
 **Supporting info:**

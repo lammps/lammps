@@ -5,6 +5,7 @@
 .. index:: pair_style airebo/morse/intel
 .. index:: pair_style airebo/morse/omp
 .. index:: pair_style airebo/bc
+.. index:: pair_style airebo/bc/omp
 .. index:: pair_style rebo
 .. index:: pair_style rebo/intel
 .. index:: pair_style rebo/omp
@@ -21,6 +22,8 @@ Accelerator Variants: *airebo/morse/intel*, *airebo/morse/omp*
 
 pair_style airebo/bc command
 ============================
+
+Accelerator Variants: *airebo/bc/omp*
 
 pair_style rebo command
 =======================

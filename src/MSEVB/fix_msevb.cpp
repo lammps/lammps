@@ -60,12 +60,13 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), commbuf(nullptr), pe(nullptr), epot(nullptr), my_epot(nullptr),
-    hamiltonian(nullptr), H_work(nullptr), eigenvalues(nullptr), eigenvectors(nullptr),
-    amplitudes(nullptr), fd_occ(nullptr), eigensys_nmax(0), my_nlocal(nullptr), all_nlocal(nullptr),
-    weights(nullptr), weights_nmax(0), saved_forces(nullptr), excess_forces(nullptr),
-    excess_forces_nmax(0), excess_forces_nmax_serial(0), excess_force_mode(0), reaction_enabled(0),
-    nsites(0), nsites_parallel(0), nsites_serial(0), nstates(1), sites(nullptr), sites_nmax(0),
+    Fix(lmp, narg, arg), samerank(MPI_COMM_NULL), commbuf(nullptr), pe(nullptr), epot(nullptr),
+    my_epot(nullptr), epot_request(MPI_REQUEST_NULL), hamiltonian(nullptr), H_work(nullptr),
+    eigenvalues(nullptr), eigenvectors(nullptr), amplitudes(nullptr), fd_occ(nullptr),
+    eigensys_nmax(0), my_nlocal(nullptr), all_nlocal(nullptr), weights(nullptr), weights_nmax(0),
+    saved_forces(nullptr), excess_forces(nullptr), excess_forces_nmax(0),
+    excess_forces_nmax_serial(0), excess_force_mode(0), reaction_enabled(0), nsites(0),
+    nsites_parallel(0), nsites_serial(0), nstates(1), sites(nullptr), sites_nmax(0),
     chain_H_flat(nullptr), chain_X_flat(nullptr), chain_Y_flat(nullptr), chain_rxn_flat(nullptr),
     chain_glove_flat(nullptr), glove_flat(nullptr), glove_nmax(0), epot_nmax(0), ref_type(nullptr),
     ref_charge(nullptr), ref_molecule(nullptr), ref_num_bond(nullptr), ref_bond_type_flat(nullptr),
@@ -394,6 +395,9 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
   epot_ground = 0.0;
 
   // ---- Inter-partition communicator -----------------------------------
+  // init() runs at the start of every run; free the previous communicator
+  // before re-splitting so repeated runs do not leak MPI handles.
+  if (samerank != MPI_COMM_NULL) MPI_Comm_free(&samerank);
   int color = comm->me;
   int key = ipartition;
   MPI_Comm_split(universe->uworld, color, key, &samerank);
@@ -418,19 +422,27 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // ---- Computes -------------------------------------------------------
-  id_pe = std::string(id) + "_pe";
-  // Exclude fix energies to avoid circular dependency: our compute_scalar()
-  // correction would contaminate the diagonal PE used for the Hamiltonian.
-  // The standard thermo "pe" compute includes fix energies → shows mixed PE.
-  pe = modify->add_compute(id_pe + " all pe pair bond angle dihedral improper kspace");
+  // init() runs at the start of every run; create the computes only once and
+  // reuse them, otherwise add_compute() errors on a duplicate ID on rerun.
+  if (!pe) {
+    id_pe = std::string(id) + "_pe";
+    // Exclude fix energies to avoid circular dependency: our compute_scalar()
+    // correction would contaminate the diagonal PE used for the Hamiltonian.
+    // The standard thermo "pe" compute includes fix energies → shows mixed PE.
+    pe = modify->add_compute(id_pe + " all pe pair bond angle dihedral improper kspace");
+  }
   pe->addstep(update->ntimestep);
 
-  id_temp = std::string(id) + "_temp";
-  temp_compute = modify->add_compute(id_temp + " all temp");
+  if (!temp_compute) {
+    id_temp = std::string(id) + "_temp";
+    temp_compute = modify->add_compute(id_temp + " all temp");
+  }
   temp_compute->addstep(update->ntimestep);
 
-  id_press = std::string(id) + "_press";
-  press_compute = modify->add_compute(id_press + " all pressure " + id_temp);
+  if (!press_compute) {
+    id_press = std::string(id) + "_press";
+    press_compute = modify->add_compute(id_press + " all pressure " + id_temp);
+  }
   press_compute->addstep(update->ntimestep);
 
   for (int i = 0; i < 6; i++) pressure[i] = 0.0;
@@ -467,10 +479,12 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
 
 FixMSEVB::~FixMSEVB()
 {
-  MPI_Comm_free(&samerank);
-  modify->delete_compute(id_pe);
-  modify->delete_compute(id_temp);
-  modify->delete_compute(id_press);
+  if (samerank != MPI_COMM_NULL) MPI_Comm_free(&samerank);
+  // Computes are created in init(); guard deletes in case the fix is
+  // destroyed before init() ran (e.g. an input error after the fix command).
+  if (pe) modify->delete_compute(id_pe);
+  if (temp_compute) modify->delete_compute(id_temp);
+  if (press_compute) modify->delete_compute(id_press);
   memory->destroy(commbuf);
   memory->destroy(epot);
   memory->destroy(my_epot);

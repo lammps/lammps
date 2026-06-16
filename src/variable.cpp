@@ -5399,13 +5399,20 @@ void Variable::parse_vector(int ivar, char *str)
   std::vector<std::string> args = Tokenizer(std::string(str+1, str+nstr), ",").as_vector();
 
   auto &var = variables[ivar];
-  var.vec.n = var.vec.nmax = args.size();
-  var.vec.currentstep = -1;
-  delete[] var.vec.values;
-  var.vec.values = new double[var.vec.nmax];
+  int nvec = args.size();
 
-  for (int i = 0; i < var.vec.nmax; i++)
-    var.vec.values[i] = utils::numeric(FLERR, utils::trim(args[i]), false, lmp);
+  // parse into a fresh buffer first, then replace the old one.  this keeps
+  // var.vec intact if a token fails to parse, and the new buffer is never
+  // aliased with the freed pointer (avoids a use-after-free warning).
+
+  auto *newvalues = new double[nvec];
+  for (int i = 0; i < nvec; i++)
+    newvalues[i] = utils::numeric(FLERR, utils::trim(args[i]), false, lmp);
+
+  delete[] var.vec.values;
+  var.vec.values = newvalues;
+  var.vec.n = var.vec.nmax = nvec;
+  var.vec.currentstep = -1;
 }
 
 /* ----------------------------------------------------------------------

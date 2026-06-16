@@ -3729,10 +3729,17 @@ int Variable::find_matching_paren(char *str, int i, char *&contents, int ivar)
   int istop = i;
 
   int n = istop - istart - 1;
+
+  // copy into a fresh buffer first, then replace the old one, so the new
+  // buffer is never aliased with the freed pointer (avoids a use-after-free
+  // warning) and contents is left intact if the copy were to fail.
+
+  char *newcontents = new char[n+1];
+  strncpy(newcontents,&str[istart+1],n);
+  newcontents[n] = '\0';
+
   delete[] contents;
-  contents = new char[n+1];
-  strncpy(contents,&str[istart+1],n);
-  contents[n] = '\0';
+  contents = newcontents;
 
   return istop;
 }

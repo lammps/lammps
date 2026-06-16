@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* -*- c++ -*- -------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -11,35 +11,31 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef INTEGRATE_CLASS
 // clang-format off
-FixStyle(langevin/eff,FixLangevinEff);
+IntegrateStyle(verlet/split/rk,VerletSplitRK);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_LANGEVIN_EFF_H
-#define LMP_FIX_LANGEVIN_EFF_H
+#ifndef LMP_VERLET_SPLIT_RK_H
+#define LMP_VERLET_SPLIT_RK_H
 
-#include "fix_langevin.h"
+#include "verlet.h"
 
 namespace LAMMPS_NS {
 
-class FixLangevinEff : public FixLangevin {
+class VerletSplitRK : public Verlet {
  public:
-  FixLangevinEff(class LAMMPS *, int, char **);
-  ~FixLangevinEff() override;
-  void end_of_step() override;
-  double compute_scalar() override;
-  void post_force(int) override;
-  double memory_usage() override;
+  VerletSplitRK(class LAMMPS *, int, char **);
+  ~VerletSplitRK() override;
+  void init() override;
+  void setup(int) override;
+  void setup_minimal(int) override;
+  void run(int) override;
 
  private:
-  double *erforcelangevin;
-
-  void post_force_no_tally();
-  void post_force_tally();
+  int rproc;
 };
-
 }    // namespace LAMMPS_NS
 
 #endif

@@ -518,3 +518,14 @@ int PairDSMC::convert_double_to_equivalent_int(double input_double)
   int output_int = static_cast<int>(input_double + random->uniform());
   return output_int;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairDSMC::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) max_particles * sizeof(int);                             // next_particle[max_particles]
+  bytes += (double) (atom->ntypes + 1) * max_particle_list * sizeof(int);   // particle_list[ntypes+1][max_particle_list]
+  bytes += (double) (atom->ntypes + 1) * total_ncells * 2 * sizeof(int);    // first + number [ntypes+1][total_ncells]
+  return bytes;
+}

@@ -1463,6 +1463,12 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H, int
     if (local_owner < 0 || local_owner >= nlocal)
       continue;    // owner is on another rank; that rank will store the bond
 
+    if (num_bond_arr[local_owner] >= atom->bond_per_atom)
+      error->one(FLERR,
+                 "Fix msevb: bond count on an atom exceeds bond_per_atom during a "
+                 "template transfer; increase it via the data file 'extra/bond/per/atom' "
+                 "keyword (or create_box's bond/per/atom setting)");
+
     bond_atom_arr[local_owner][num_bond_arr[local_owner]] = partner_tag;
     bond_type_arr[local_owner][num_bond_arr[local_owner]] = bc.bond_type;
     num_bond_arr[local_owner]++;
@@ -1550,7 +1556,11 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H, int
         int local_r2 = atom->map(r2);
         if (local_r2 < 0 || local_r2 >= nlocal) continue;
         int na = num_angle_arr[local_r2];
-        if (na >= atom->angle_per_atom) continue;    // safety: don't overflow
+        if (na >= atom->angle_per_atom)
+          error->one(FLERR,
+                     "Fix msevb: angle count on an atom exceeds angle_per_atom during a "
+                     "template transfer; increase it via the data file 'extra/angle/per/atom' "
+                     "keyword (or create_box's angle/per/atom setting)");
         angle_type_arr[local_r2][na] = rxn.post_mol->angle_type[m][k];
         angle_atom1_arr[local_r2][na] = r1;
         angle_atom2_arr[local_r2][na] = r2;
@@ -1602,7 +1612,11 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H, int
         int local_r2 = atom->map(r2);
         if (local_r2 < 0 || local_r2 >= nlocal) continue;
         int nd = num_dihedral_arr[local_r2];
-        if (nd >= atom->dihedral_per_atom) continue;
+        if (nd >= atom->dihedral_per_atom)
+          error->one(FLERR,
+                     "Fix msevb: dihedral count on an atom exceeds dihedral_per_atom during a "
+                     "template transfer; increase it via the data file 'extra/dihedral/per/atom' "
+                     "keyword (or create_box's dihedral/per/atom setting)");
         dihedral_type_arr[local_r2][nd] = rxn.post_mol->dihedral_type[m][k];
         dihedral_atom1_arr[local_r2][nd] = r1;
         dihedral_atom2_arr[local_r2][nd] = r2;
@@ -1653,7 +1667,11 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H, int
         int local_r2 = atom->map(r2);
         if (local_r2 < 0 || local_r2 >= nlocal) continue;
         int ni = num_improper_arr[local_r2];
-        if (ni >= atom->improper_per_atom) continue;
+        if (ni >= atom->improper_per_atom)
+          error->one(FLERR,
+                     "Fix msevb: improper count on an atom exceeds improper_per_atom during a "
+                     "template transfer; increase it via the data file 'extra/improper/per/atom' "
+                     "keyword (or create_box's improper/per/atom setting)");
         improper_type_arr[local_r2][ni] = rxn.post_mol->improper_type[m][k];
         improper_atom1_arr[local_r2][ni] = r1;
         improper_atom2_arr[local_r2][ni] = r2;

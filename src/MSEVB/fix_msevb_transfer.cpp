@@ -32,11 +32,37 @@ using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
    Broadcast all ref_* topology arrays from partition 0 to all others.
-   Requires snapshot_reference_topology() to have been called first.
+   Requires snapshot_reference_topology() to have been called on partition 0.
 ---------------------------------------------------------------------- */
 
 void FixMSEVB::broadcast_reference_topology()
 {
+  // snapshot_reference_topology() sizes the ref_* arrays from per-partition
+  // values (notably atom->maxspecial), which can differ between partitions
+  // because each partition rebuilt special bonds for a different EVB state.
+  // Broadcast partition 0's sizes first and reallocate ref_* on the other
+  // partitions to match, so every partition enters the MPI_Bcast calls below
+  // with identical counts (mismatched counts are undefined behavior).
+  tagint meta_maxtag = ref_maxtag;
+  int meta[5] = {ref_bond_per_atom, ref_angle_per_atom, ref_dihedral_per_atom,
+                 ref_improper_per_atom, ref_maxspecial};
+  MPI_Bcast(&meta_maxtag, 1, MPI_LMP_TAGINT, 0, samerank);
+  MPI_Bcast(meta, 5, MPI_INT, 0, samerank);
+
+  if (ipartition != 0 &&
+      (meta_maxtag != ref_maxtag || meta[0] != ref_bond_per_atom || meta[1] != ref_angle_per_atom ||
+       meta[2] != ref_dihedral_per_atom || meta[3] != ref_improper_per_atom ||
+       meta[4] != ref_maxspecial)) {
+    destroy_ref_topology();
+    allocate_ref_topology(meta_maxtag + 1, meta[0], meta[1], meta[2], meta[3], meta[4]);
+    ref_maxtag = meta_maxtag;
+    ref_bond_per_atom = meta[0];
+    ref_angle_per_atom = meta[1];
+    ref_dihedral_per_atom = meta[2];
+    ref_improper_per_atom = meta[3];
+    ref_maxspecial = meta[4];
+  }
+
   const tagint sz = ref_maxtag + 1;
   MPI_Bcast(ref_type, sz, MPI_INT, 0, samerank);
   MPI_Bcast(ref_charge, sz, MPI_DOUBLE, 0, samerank);
@@ -160,8 +186,8 @@ bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp)
         const ReactionDef &rxn_c = rxndefs[chain_rxn_flat[comp * max_shells + 0]];
         tagint tH = chain_H_flat[comp * max_shells + 0];
         tagint tY = chain_Y_flat[comp * max_shells + 0];
-        msg += fmt::format("  reaction {}: {} -> {} between atom IDs {} and {}\n",
-                           ci + 1, rxn_c.pre_mol_id, rxn_c.post_mol_id, tH, tY);
+        msg += fmt::format("  reaction {}: {} -> {} between atom IDs {} and {}\n", ci + 1,
+                           rxn_c.pre_mol_id, rxn_c.post_mol_id, tH, tY);
       }
       utils::logmesg(lmp, msg);
     } else {
@@ -176,9 +202,12 @@ bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp)
   }
 
   // Partition 0 now has the new reference topology (apply_state_change
-  // above). Non-0 partitions still have their per-state modified topology.
-  // Snapshot partition 0's new topology and broadcast to all.
-  snapshot_reference_topology();
+  // above). Non-0 partitions still have their per-state modified topology, so
+  // snapshot ONLY on partition 0; broadcast_reference_topology() then syncs the
+  // array sizes and contents to the other partitions.  Snapshotting on non-0
+  // partitions would size ref_* from their per-state topology (e.g. a different
+  // atom->maxspecial), giving mismatched MPI_Bcast counts in the broadcast.
+  if (ipartition == 0) snapshot_reference_topology();
 
   broadcast_reference_topology();
 

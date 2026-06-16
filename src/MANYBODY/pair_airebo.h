@@ -122,6 +122,24 @@ class PairAIREBO : public Pair {
   {
     return PijSpline(thisC, thisH, typei, typej, dN2);
   }
+
+  // ----------------------------------------------------------------------
+  // Bond-centric P cross force.
+  //
+  // When Pij_eval() forms a bond-averaged P (see AIREBO-BC), the P term
+  // depends on the coordination on BOTH sides of the i-j bond and enters
+  // both pij and pji.  The atom-centric P-coordination forces in bondorder()
+  // and bondorderLJ() then miss two pieces -- the pji term acting on i's
+  // neighbors and the pij term acting on j's neighbors -- which this helper
+  // adds.  Pij_bond_averaged() reports whether the i-j bond uses a bond
+  // average; for stock atom-centric P it returns false and the helper is a
+  // no-op, leaving AIREBO/REBO/AIREBO-M results bit-for-bit unchanged.
+  // ----------------------------------------------------------------------
+  virtual bool Pij_bond_averaged(int /*itype*/, int /*jtype*/) { return false; }
+  void bondorder_Pij_cross(int i, int j, int itype, int jtype, double VA, double tmppij,
+                           double tmppji, const double dN2PIJ[2], const double dN2PJI[2],
+                           double **f);
+
   double piRCSpline(double, double, double, int, int, double *);
   double TijSpline(double, double, double, double *);
 

@@ -1335,6 +1335,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3], double rijmag, double 
   PijS = Pij_eval(NijC,NijH,NjiC,NjiH,itype,jtype,dN2);
   pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmp = -0.5*cube(pij);
+  const double dN2PIJ_bc[2] = {dN2[0], dN2[1]};   // saved for bond-centric cross force
 
   // pij forces
 
@@ -1480,6 +1481,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3], double rijmag, double 
   PjiS = Pij_eval(NjiC,NjiH,NijC,NijH,jtype,itype,dN2);
   pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmp = -0.5*cube(pji);
+  const double dN2PJI_bc[2] = {dN2[0], dN2[1]};   // saved for bond-centric cross force
 
   REBO_neighs = REBO_firstneigh[j];
   for (l = 0; l < REBO_numneigh[j]; l++) {
@@ -1581,6 +1583,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3], double rijmag, double 
       }
     }
   }
+
+  // bond-centric P cross forces (no-op for atom-centric P; see header)
+  bondorder_Pij_cross(i,j,itype,jtype,VA,-0.5*cube(pij),-0.5*cube(pji),
+                      dN2PIJ_bc,dN2PJI_bc,f);
 
   // evaluate Nij conj
 
@@ -2078,6 +2084,71 @@ double PairAIREBO::bondorder(int i, int j, double rij[3], double rijmag, double 
 }
 
 /* ----------------------------------------------------------------------
+   bond-centric P cross force.
+
+   For a bond-averaged P (see Pij_eval / AIREBO-BC) the P_CC correction
+   depends on the coordination on both sides of the i-j bond and appears in
+   both pij and pji.  The atom-centric P-coordination forces in bondorder()
+   and bondorderLJ() then leave out two contributions:
+     - the pji term acting on i's neighbors k, and
+     - the pij term acting on j's neighbors l.
+   Each is a pairwise central force along the i-k (resp. j-l) bond carried by
+   the coordination cutoff derivative dwik (resp. dwjl); it is tallied with
+   v_tally2 exactly like the LJ coordination forces.  For stock atom-centric
+   P, Pij_bond_averaged() is false and this is a no-op, so AIREBO/REBO/
+   AIREBO-M forces, energies and stresses are unchanged.
+------------------------------------------------------------------------- */
+
+void PairAIREBO::bondorder_Pij_cross(int i, int j, int itype, int jtype, double VA,
+                                     double tmppij, double tmppji, const double dN2PIJ[2],
+                                     const double dN2PJI[2], double **f)
+{
+  if (!Pij_bond_averaged(itype,jtype)) return;
+
+  double **x = atom->x;
+  int *type = atom->type;
+  int *REBO_neighs;
+  int k,l,atomk,atoml,ktype,ltype;
+  double rik[3],rjl[3],rikmag,rjlmag,dwik,dwjl,tmp2;
+
+  // pji term: P-force on i's neighbors k (cutoff derivative on the i-k bond)
+
+  REBO_neighs = REBO_firstneigh[i];
+  for (k = 0; k < REBO_numneigh[i]; k++) {
+    atomk = REBO_neighs[k];
+    if (atomk == j) continue;
+    ktype = map[type[atomk]];
+    rik[0] = x[i][0]-x[atomk][0];
+    rik[1] = x[i][1]-x[atomk][1];
+    rik[2] = x[i][2]-x[atomk][2];
+    rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
+    Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
+    tmp2 = VA*0.5*(tmppji*dN2PJI[ktype]*dwik)/rikmag;
+    f[i][0] -= tmp2*rik[0];     f[i][1] -= tmp2*rik[1];     f[i][2] -= tmp2*rik[2];
+    f[atomk][0] += tmp2*rik[0]; f[atomk][1] += tmp2*rik[1]; f[atomk][2] += tmp2*rik[2];
+    if (vflag_either) v_tally2(i,atomk,-tmp2,rik);
+  }
+
+  // pij term: P-force on j's neighbors l (cutoff derivative on the j-l bond)
+
+  REBO_neighs = REBO_firstneigh[j];
+  for (l = 0; l < REBO_numneigh[j]; l++) {
+    atoml = REBO_neighs[l];
+    if (atoml == i) continue;
+    ltype = map[type[atoml]];
+    rjl[0] = x[j][0]-x[atoml][0];
+    rjl[1] = x[j][1]-x[atoml][1];
+    rjl[2] = x[j][2]-x[atoml][2];
+    rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
+    Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
+    tmp2 = VA*0.5*(tmppij*dN2PIJ[ltype]*dwjl)/rjlmag;
+    f[j][0] -= tmp2*rjl[0];     f[j][1] -= tmp2*rjl[1];     f[j][2] -= tmp2*rjl[2];
+    f[atoml][0] += tmp2*rjl[0]; f[atoml][1] += tmp2*rjl[1]; f[atoml][2] += tmp2*rjl[2];
+    if (vflag_either) v_tally2(j,atoml,-tmp2,rjl);
+  }
+}
+
+/* ----------------------------------------------------------------------
    Bij* function
 -------------------------------------------------------------------------
 
@@ -2545,6 +2616,9 @@ double PairAIREBO::bondorderLJ(int i, int j, double /* rij_mod */[3], double rij
         }
       }
     }
+
+    // bond-centric P cross forces (no-op for atom-centric P; see header)
+    bondorder_Pij_cross(i,j,itype,jtype,VA,tmppij,tmppji,dN2PIJ,dN2PJI,f);
 
     // piRC forces
 

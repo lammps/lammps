@@ -59,6 +59,8 @@ class PairAIREBObc : public PairAIREBO {
   // bond-centric overrides of the AIREBO bond-order machinery
   double Pij_eval(double thisC, double thisH, double othC, double othH,
                   int typei, int typej, double dN2[2]) override;
+  // only C-C uses a bond-averaged P, so only C-C needs the cross force
+  bool Pij_bond_averaged(int itype, int jtype) override { return itype == 0 && jtype == 0; }
   double PijSpline(double, double, int, int, double *) override;
   void spline_init() override;
   void read_file_extra(class PotentialFileReader &reader) override;

@@ -472,6 +472,8 @@
 /bond_bpm_spring.h
 /bond_bpm_spring_plastic.cpp
 /bond_bpm_spring_plastic.h
+/bond_bpm_zero.cpp
+/bond_bpm_zero.h
 /compute_nbond_atom.cpp
 /compute_nbond_atom.h
 /fix_nve_bpm_sphere.cpp

@@ -193,6 +193,7 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
 void FixNeighHistoryOMP::pre_exchange_newton()
 {
   const int nthreads = comm->nthreads;
+
   maxpartner = 0;
   for (int i = 0; i < nall_neigh; i++) npartner[i] = 0;
 
@@ -210,6 +211,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     int i, j, ii, jj, m, n, inum, jnum;
     int *ilist, *jlist, *numneigh, **firstneigh;
     int *allflags;
+    int *type = atom->type;
     double *allvalues, *onevalues, *jvalues;
 
     MyPage<tagint> &ipg = ipage_atom[tid];
@@ -229,10 +231,12 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     firstneigh = list->firstneigh;
 
     // each thread works on a fixed chunk of local and ghost atoms.
-    const int ldelta = 1 + nlocal_neigh / nthreads;
+    // Ensure npartner is zeroed across all atoms, nall_neigh can be less than nall
+    // when restart files are written that involve communication calls but modify->post_neighbor() isn't called
+    const int ldelta = 1 + nall_neigh / nthreads;
     const int lfrom = tid * ldelta;
     const int lmax = lfrom + ldelta;
-    const int lto = (lmax > nlocal_neigh) ? nlocal_neigh : lmax;
+    const int lto = (lmax > nall_neigh) ? nall_neigh : lmax;
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
@@ -282,7 +286,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
 #pragma omp master
 #endif
     {
-      for (i = nlocal_neigh; i < nall_neigh; i++) {
+      for (i = lfrom; i < lto; i++) {
         n = npartner[i];
         partner[i] = ipg.get(n);
         valuepartner[i] = dpg.get(dnum * n);
@@ -321,7 +325,10 @@ void FixNeighHistoryOMP::pre_exchange_newton()
             m = npartner[j]++;
             partner[j][m] = tag[i];
             jvalues = &valuepartner[j][dnum * m];
-            for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
+            if (pair->nondefault_history_transfer)
+              pair->transfer_history(onevalues, jvalues, type[i], type[j]);
+            else
+              for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
           }
         }
       }
@@ -347,7 +354,8 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     // set maxpartner = max # of partners of any owned atom
     // maxexchange = max # of values for any Comm::exchange() atom
     m = 0;
-    for (i = lfrom; i < lto; i++) m = MAX(m, npartner[i]);
+    for (i = lfrom; i < lto; i++)
+      if (i < nlocal_neigh) m = MAX(m, npartner[i]);
 
 #if defined(_OPENMP)
 #pragma omp critical
@@ -386,6 +394,7 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
     int *ilist, *jlist, *numneigh, **firstneigh;
     int *allflags;
     double *allvalues, *onevalues, *jvalues;
+    int *type = atom->type;
 
     MyPage<tagint> &ipg = ipage_atom[tid];
     MyPage<double> &dpg = dpage_atom[tid];
@@ -473,7 +482,10 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
             m = npartner[j]++;
             partner[j][m] = tag[i];
             jvalues = &valuepartner[j][dnum * m];
-            for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
+            if (pair->nondefault_history_transfer)
+              pair->transfer_history(onevalues, jvalues, type[i], type[j]);
+            else
+              for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
           }
         }
       }
@@ -567,13 +579,23 @@ void FixNeighHistoryOMP::post_neighbor()
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        rflag = histmask(j);
+
+        if (use_bit_flag) {
+          rflag = histmask(j) | pair->beyond_contact;
+          j &= HISTMASK;
+          jlist[jj] = j;
+        } else {
+          rflag = 1;
+        }
+
         j &= NEIGHMASK;
         jlist[jj] = j;
 
         // rflag = 1 if r < radsum in npair_size() method
         // preserve neigh history info if tag[j] is in old-neigh partner list
         // this test could be more geometrically precise for two sphere/line/tri
+        // if use_bit_flag is turned off, always record data since not all npair classes
+        // apply a mask for history (and they could use the bits for special bonds)
 
         if (rflag) {
           jtag = tag[j];

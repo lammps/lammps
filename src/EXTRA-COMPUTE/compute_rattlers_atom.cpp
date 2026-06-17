@@ -308,3 +308,12 @@ void ComputeRattlersAtom::unpack_forward_comm(int n, int first, double *buf)
     rattler[i] = buf[m++];
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeRattlersAtom::memory_usage()
+{
+  double bytes = (double) nmax * sizeof(int);       // ncontacts[nmax]
+  bytes += (double) nmax * sizeof(double);          // rattler[nmax]
+  return bytes;
+}

@@ -1,10 +1,11 @@
 .. index:: compute ave/sphere/atom
 .. index:: compute ave/sphere/atom/kk
+.. index:: compute ave/sphere/atom/omp
 
 compute ave/sphere/atom command
 ================================
 
-Accelerator Variants: *ave/sphere/atom/kk*
+Accelerator Variants: *ave/sphere/atom/kk*, *ave/sphere/atom/omp*
 
 Syntax
 """"""

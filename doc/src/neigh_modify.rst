@@ -53,6 +53,9 @@ Syntax
        *collection/interval* values = N arg1 ... argN
          N = number of custom collections
          arg = N separate cutoffs for intervals (see below)
+       *bin/hash* value = *yes* or *no*
+         *yes* = use a hash table to store atoms in bins
+         *no* = use a linked list to store atoms in bins
 
 Examples
 """"""""
@@ -87,6 +90,18 @@ only occurs if at least one atom has moved more than half the neighbor
 skin distance (specified in the :doc:`neighbor <neighbor>` command)
 since the last neighbor list build.
 
+Regardless of the *every*, *delay*, *check*, and *once* settings, a
+neighbor list rebuild is always forced on any timestep when a
+:doc:`restart <restart>` file is written, and on timesteps when a fix
+requests reneighboring (e.g. fixes that create or delete atoms, such as
+:doc:`fix deposit <fix_deposit>` or :doc:`fix evaporate
+<fix_evaporate>`).  This ensures that all atoms are correctly assigned
+to their owning subdomains before the operation is performed.  A
+consequence is that enabling :doc:`restart <restart>` output can change
+the total number of neighbor list builds reported at the end of a run
+(and thus, as noted below, subtly alter the trajectory) relative to an
+otherwise identical run without restart output.
+
 .. admonition:: Impact of neighbor list settings
    :class: note
 
@@ -110,10 +125,9 @@ since the last neighbor list build.
    - due to the limitations of floating-point math - the trajectory.
 
 If the *once* setting is yes, then the neighbor list is only built once
-at the beginning of each run, and never rebuilt, except on steps when a
-restart file is written, or steps when a fix forces a rebuild to occur
-(e.g. fixes that create or delete atoms, such as :doc:`fix deposit
-<fix_deposit>` or :doc:`fix evaporate <fix_evaporate>`).  This setting
+at the beginning of each run, and never rebuilt, except for the forced
+rebuilds described above (when a restart file is written or a fix
+requests reneighboring).  This setting
 should only be made if you are certain atoms will not move far enough
 that the neighbor list should be rebuilt, e.g. running a simulation of a
 cold crystal.  Note that it is not that expensive to check if neighbor
@@ -258,6 +272,27 @@ This command is particularly useful for granular pair styles where the
 interaction distance of particles depends on their radius and may not
 depend on their atom type.
 
+.. versionadded:: TBD
+
+The *bin/hash* option toggles whether the atoms in a bin are stored in
+a linked list (default) or a hash table where each bin is a key that
+maps to a set of all atoms contained in that bin. This may be required
+when the simulation box is too large relative to the size of a neighbor
+bin (which will cause LAMMPS to error), but will also reduce memory usage
+and can improve performance in systems with lots of bins that do not
+contain atoms. For instance, in a binary system with a large disparity
+in atom sizes/cutoffs. Here, the total number of bins will be determined
+by the size of the smallest particle. However, almost all bins that lie
+within the span of the largest particle will be empty. The hash option
+is only available for the *multi* neighbor mode.
+
+If this option is used to avoid errors regarding the number of bins used
+to construct neighbor lists, one may need to additionally increase the
+size of the bin used to sort atoms using the :doc:`atom_modify
+<atom_modify>` command. If adjusted, it is recommended to keep the increase
+conservative such that bins are still reasonably small to preserve
+performance.
+
 Restrictions
 """"""""""""
 
@@ -283,4 +318,4 @@ Default
 
 The option defaults are delay = 0, every = 1, check = yes, once = no,
 cluster = no, include = all (same as no include option defined),
-exclude = none, page = 100000, one = 2000, and binsize = 0.0.
+exclude = none, page = 100000, one = 2000, bin/hash no, and binsize = 0.0.

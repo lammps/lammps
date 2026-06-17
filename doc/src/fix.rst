@@ -259,7 +259,8 @@ accelerated styles exist.
 * :doc:`filter/corotate <fix_filter_corotate>` - implement corotation filter to allow larger timesteps with r-RESPA
 * :doc:`flow/gauss <fix_flow_gauss>` - Gaussian dynamics for constant mass flux
 * :doc:`freeze <fix_freeze>` - freeze atoms in a granular simulation
-* :doc:`gcmc <fix_gcmc>` - grand canonical insertions/deletions
+* :doc:`gcmc <fix_gcmc>` - grand canonical Monte Carlo insertions/deletions/translations/rotations
+* :doc:`gemc <fix_gemc>` - Gibbs ensemble Monte Carlo exchanges/volumes/translations/rotations
 * :doc:`gjf <fix_gjf>` - statistically correct Langevin temperature control using the GJ methods
 * :doc:`gld <fix_gld>` - generalized Langevin dynamics integrator
 * :doc:`gle <fix_gle>` - generalized Langevin equation thermostat

@@ -84,8 +84,8 @@ whether an extra library is needed to build and use the package:
      - ellipse
      - no
    * - :ref:`BOCS <PKG-BOCS>`
-     - BOCS bottom up coarse graining
-     - :doc:`fix bocs <fix_bocs>`
+     - BOCS bottom up coarse graining and Local Density Dependent potentials
+     - :doc:`fix bocs <fix_bocs>`, :doc:`pair_ldd <pair_ldd>`, :doc:`LDD Howto <Howto_ldd>`
      - ``PACKAGES/bocs``
      - no
    * - :ref:`BODY <PKG-BODY>`
@@ -244,7 +244,7 @@ whether an extra library is needed to build and use the package:
      - n/a
      - ext
    * - :ref:`INTEL <PKG-INTEL>`
-     - optimized Intel CPU and KNL styles
+     - optimized Intel CPU styles
      - :doc:`Speed intel <Speed_intel>`
      - `Benchmarks <https://www.lammps.org/bench.html>`_
      - no

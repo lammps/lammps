@@ -733,3 +733,12 @@ void FixNVESpin::final_integrate()
   }
 
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixNVESpin::memory_usage()
+{
+  double bytes = (double) nlocal_max * 2 * sizeof(int);     // backward_stacks + forward_stacks
+  bytes += (double) nsectors * 2 * sizeof(int);             // stack_head + stack_foot
+  return bytes;
+}

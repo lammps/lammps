@@ -31,6 +31,7 @@ class FixTFMC : public Fix {
   int setmask() override;
   void init() override;
   void initial_integrate(int) override;
+  double memory_usage() override;
 
  private:
   double d_max;

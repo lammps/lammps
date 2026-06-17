@@ -732,3 +732,12 @@ void PairSRP::read_restart_settings(FILE *fp)
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairSRP::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) maxcount * 2 * sizeof(int);    // segment[maxcount][2]
+  return bytes;
+}

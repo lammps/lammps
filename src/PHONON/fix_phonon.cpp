@@ -219,10 +219,8 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   // default temperature is from thermo
   TempSum = new double[sysdim];
   id_temp = utils::strdup("thermo_temp");
-  int icompute = modify->find_compute(id_temp);
-  temperature = modify->compute[icompute];
+  temperature = modify->get_compute_by_id(id_temp);
   inv_nTemp = 1.0/group->count(temperature->igroup);
-
 } // end of constructor
 
 /* ---------------------------------------------------------------------- */
@@ -439,9 +437,8 @@ int FixPhonon::modify_param(int narg, char **arg)
     delete [] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify temp ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature) error->all(FLERR,"Could not find fix_modify temp ID");
 
     if (temperature->tempflag == 0)
       error->all(FLERR,"Fix_modify temp ID does not compute temperature");

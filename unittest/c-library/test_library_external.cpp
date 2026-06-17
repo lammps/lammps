@@ -239,6 +239,8 @@ TEST(lammps_external, callback_kokkos_omp)
 
     const char *args[] = {"liblammps", "-log", "none", "-nocite", "-k",   "on",
                           "t",         "4",    "-sf",  "kk",      nullptr};
+    // fall back to a single thread if the OpenMP backend is not available
+    if (!LAMMPS_NS::Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[7] = "1";
     char **argv        = (char **)args;
     int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
@@ -333,6 +335,8 @@ TEST(lammps_external, array_kokkos_omp)
 
     const char *args[] = {"liblammps", "-log", "none", "-nocite", "-k",   "on",
                           "t",         "4",    "-sf",  "kk",      nullptr};
+    // fall back to a single thread if the OpenMP backend is not available
+    if (!LAMMPS_NS::Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[7] = "1";
     char **argv        = (char **)args;
     int argc           = (sizeof(args) / sizeof(char *)) - 1;
 

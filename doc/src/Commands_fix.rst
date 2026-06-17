@@ -82,6 +82,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`flow/gauss <fix_flow_gauss>`
    * :doc:`freeze (k) <fix_freeze>`
    * :doc:`gcmc <fix_gcmc>`
+   * :doc:`gemc <fix_gemc>`
    * :doc:`gjf <fix_gjf>`
    * :doc:`gld <fix_gld>`
    * :doc:`gle <fix_gle>`
@@ -172,9 +173,9 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nvt/sphere (ko) <fix_nvt_sphere>`
    * :doc:`nvt/uef <fix_nh_uef>`
    * :doc:`oneway (k) <fix_oneway>`
-   * :doc:`orient/bcc <fix_orient>`
-   * :doc:`orient/fcc <fix_orient>`
-   * :doc:`orient/eco <fix_orient_eco>`
+   * :doc:`orient/bcc (o) <fix_orient>`
+   * :doc:`orient/fcc (o) <fix_orient>`
+   * :doc:`orient/eco (o) <fix_orient_eco>`
    * :doc:`pafi <fix_pafi>`
    * :doc:`pair <fix_pair>`
    * :doc:`phonon <fix_phonon>`
@@ -198,14 +199,14 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`python/move <fix_python_move>`
    * :doc:`qbmsst <fix_qbmsst>`
    * :doc:`qeq/comb (o) <fix_qeq_comb>`
-   * :doc:`qeq/ctip <fix_qeq>`
-   * :doc:`qeq/dynamic <fix_qeq>`
-   * :doc:`qeq/fire <fix_qeq>`
-   * :doc:`qeq/point <fix_qeq>`
+   * :doc:`qeq/ctip (o) <fix_qeq>`
+   * :doc:`qeq/dynamic (o) <fix_qeq>`
+   * :doc:`qeq/fire (o) <fix_qeq>`
+   * :doc:`qeq/point (o) <fix_qeq>`
    * :doc:`qeq/reaxff (ko) <fix_qeq_reaxff>`
    * :doc:`qeq/rel/reaxff <fix_qeq_rel_reaxff>`
-   * :doc:`qeq/shielded <fix_qeq>`
-   * :doc:`qeq/slater <fix_qeq>`
+   * :doc:`qeq/shielded (o) <fix_qeq>`
+   * :doc:`qeq/slater (o) <fix_qeq>`
    * :doc:`qmmm <fix_qmmm>`
    * :doc:`qtb <fix_qtb>`
    * :doc:`qtpie/reaxff <fix_qtpie_reaxff>`

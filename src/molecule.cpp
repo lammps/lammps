@@ -4741,6 +4741,65 @@ void Molecule::check_labels()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+double Molecule::memory_usage()
+{
+  double bytes = 0.0;
+
+  // per-atom coordinate and property arrays
+  if (xflag) bytes += (double) natoms * 3 * sizeof(double);
+  if (typeflag) bytes += (double) natoms * sizeof(int);
+  if (moleculeflag) bytes += (double) natoms * sizeof(tagint);
+  if (qflag) bytes += (double) natoms * sizeof(double);
+  if (radiusflag) bytes += (double) natoms * sizeof(double);
+  if (rmassflag) bytes += (double) natoms * sizeof(double);
+  if (muflag) bytes += (double) natoms * 3 * sizeof(double);
+
+  // connectivity counts (always allocated)
+  bytes += (double) natoms * 4 * sizeof(int);    // num_bond/angle/dihedral/improper
+  bytes += (double) natoms * 3 * sizeof(int);    // nspecial[natoms][3]
+
+  if (specialflag) bytes += (double) natoms * maxspecial * sizeof(tagint);
+
+  if (bondflag) {
+    bytes += (double) natoms * bond_per_atom * sizeof(int);
+    bytes += (double) natoms * bond_per_atom * sizeof(tagint);
+  }
+  if (angleflag) {
+    bytes += (double) natoms * angle_per_atom * sizeof(int);
+    bytes += (double) natoms * angle_per_atom * 3 * sizeof(tagint);
+  }
+  if (dihedralflag) {
+    bytes += (double) natoms * dihedral_per_atom * sizeof(int);
+    bytes += (double) natoms * dihedral_per_atom * 4 * sizeof(tagint);
+  }
+  if (improperflag) {
+    bytes += (double) natoms * improper_per_atom * sizeof(int);
+    bytes += (double) natoms * improper_per_atom * 4 * sizeof(tagint);
+  }
+
+  if (shakeflag) {
+    bytes += (double) natoms * sizeof(int);          // shake_flag
+    bytes += (double) natoms * 4 * sizeof(tagint);   // shake_atom[natoms][4]
+    bytes += (double) natoms * 3 * sizeof(int);      // shake_type[natoms][3]
+  }
+
+  if (bodyflag) {
+    bytes += (double) nibody * sizeof(int);
+    bytes += (double) ndbody * sizeof(double);
+  }
+
+  if (fragmentflag) bytes += (double) nfragments * natoms * sizeof(int);
+
+  // geometric displacement arrays (allocated lazily by compute_center/com/inertia)
+  if (centerflag) bytes += (double) natoms * 3 * sizeof(double);   // dx
+  if (comflag) bytes += (double) natoms * 3 * sizeof(double);      // dxcom
+  if (inertiaflag) bytes += (double) natoms * 3 * sizeof(double);  // dxbody
+
+  return bytes;
+}
+
 /* ------------------------------------------------------------------------------ */
 
 void Molecule::stats()

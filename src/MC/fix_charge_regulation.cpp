@@ -202,8 +202,7 @@ void FixChargeRegulation::init() {
     error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
 
   triclinic = domain->triclinic;
-  int ipe = modify->find_compute("thermo_pe");
-  c_pe = modify->compute[ipe];
+  c_pe = modify->get_compute_by_id("thermo_pe");
 
   if (pHstr) {
     pHvar = input->variable->find(pHstr);

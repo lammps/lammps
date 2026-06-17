@@ -23,8 +23,8 @@ Syntax
                              q, mux, muy, muz, mu,
                              radius, diameter, omegax, omegay, omegaz,
                              angmomx, angmomy, angmomz, tqx, tqy, tqz,
-                             c_ID, c_ID[I], f_ID, f_ID[I], v_name,
-                             d_name, i_name, i2_name[I], d2_name[I],
+                             c_ID, c_ID[\*], c_ID[I], f_ID,  f_ID[\*], f_ID[I], v_name,
+                             d_name, i_name, i2_name[\*], i2_name[I], d2_name[\*], d2_name[I]
 
   .. parsed-literal::
 
@@ -47,13 +47,17 @@ Syntax
            angmomx,angmomy,angmomz = angular momentum of aspherical particle
            tqx,tqy,tqz = torque on finite-size particles
            *c_ID* = per-atom vector calculated by a compute with ID
+           *c_ID[\*]* = per-atom array calculated by a compute with ID
            *c_ID[I]* = Ith column of per-atom array calculated by a compute with ID
            *f_ID* = per-atom vector calculated by a fix with ID
+           *f_ID[\*]* = per-atom array calculated by a fix with ID
            *f_ID[I]* = Ith column of per-atom array calculated by a fix with ID
            *v_name* = per-atom vector calculated by an atom-style variable with name
            *i_name* = custom integer vector with name
            *d_name* = custom floating point vector with name
+           *i2_name[\*]* = custom integer array with name
            *i2_name[I]* = Ith column of custom integer array with name
+           *d2_name[\*]* = custom floating-point array with name
            *d2_name[I]* = Ith column of custom floating-point array with name
 
 * zero or more keyword/value pairs may be appended

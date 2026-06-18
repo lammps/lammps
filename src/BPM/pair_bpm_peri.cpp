@@ -133,7 +133,11 @@ void PairBPMPeri::compute(int eflag, int vflag)
       }
 
       if (eflag) evdwl = 0.5 * rk * dr;
-      if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
+      // the peridynamic stress integrates over both nodal volumes, so the virial
+      // carries one more vfrac factor than the (one-vfrac) contact force/energy
+      // (matches legacy PERI's fpair*vfrac[i]); consistent with bond_style bpm/peri
+      if (evflag)
+        ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair * vfrac_eff, delx, dely, delz);
     }
   }
 

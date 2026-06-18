@@ -28,6 +28,7 @@
 #include "fix_bond_history.h"
 #include "force.h"
 #include "lattice.h"
+#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -47,10 +48,11 @@ using namespace LAMMPS_NS;
 
 BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
     BondBPM(_lmp), model(nullptr), c(nullptr), kbulk(nullptr), gshear(nullptr), lambda(nullptr),
-    tau(nullptr), cut(nullptr), s00(nullptr), alpha(nullptr), id_fix_property_peri(nullptr),
-    index_vfrac(-1), index_s0(-1),
-    index_smin(-1), smin_new(nullptr), s0_new(nullptr), nmax(0), state_based(0), wvolume_setup(0),
-    kbulk_rep(0.0), wvolume(nullptr), theta(nullptr), commflag(COMM_SMIN)
+    tau(nullptr), yieldstress(nullptr), cut(nullptr), s00(nullptr), alpha(nullptr),
+    id_fix_property_peri(nullptr), index_vfrac(-1), index_s0(-1), index_smin(-1), index_lambda(-1),
+    smin_new(nullptr), s0_new(nullptr), nmax(0), state_based(0), wvolume_setup(0), kbulk_rep(0.0),
+    wvolume(nullptr), theta(nullptr), commflag(COMM_SMIN), plastic(0), tdnorm(nullptr),
+    deltalambda(nullptr), pointwise_yield(0.0), gshear_rep(0.0)
 {
   partial_flag = 1;
   writedata = 0;
@@ -78,6 +80,8 @@ BondBPMPeri::~BondBPMPeri()
   memory->destroy(s0_new);
   memory->destroy(wvolume);
   memory->destroy(theta);
+  memory->destroy(tdnorm);
+  memory->destroy(deltalambda);
 
   if (id_fix_property_peri && modify->nfix) {
     modify->delete_fix(id_fix_property_peri);
@@ -91,6 +95,7 @@ BondBPMPeri::~BondBPMPeri()
     memory->destroy(gshear);
     memory->destroy(lambda);
     memory->destroy(tau);
+    memory->destroy(yieldstress);
     memory->destroy(cut);
     memory->destroy(s00);
     memory->destroy(alpha);
@@ -161,6 +166,12 @@ void BondBPMPeri::compute(int eflag, int vflag)
       memory->create(theta, nmax, "bond:theta");
       wvolume_setup = 0;    // arrays reallocated -> rebuild the weighted volume
     }
+    if (plastic) {
+      memory->destroy(tdnorm);
+      memory->destroy(deltalambda);
+      memory->create(tdnorm, nmax, "bond:tdnorm");
+      memory->create(deltalambda, nmax, "bond:deltalambda");
+    }
   }
 
   int i1, i2, itmp, n, type;
@@ -210,6 +221,10 @@ void BondBPMPeri::compute(int eflag, int vflag)
         if (eflag_atom) eatom[i] += evol;
       }
     }
+
+    // EPS plasticity: per-atom deviatoric force-state norm, yield check, and the
+    // plastic-multiplier update, published to ghosts for the force loop
+    if (plastic) compute_plastic_state();
   }
 
   // reset the per-step accumulators (MIN for smin, MAX for s0)
@@ -321,6 +336,39 @@ void BondBPMPeri::compute(int eflag, int vflag)
         bondstore[n][2] = edb;
       }
       fbond = (r > 0.0) ? -(rk / r) : 0.0;
+    } else if (model[type] == EPS) {
+      // elastic-plastic: elastic dilatation (3K*theta) plus a deviatoric force
+      // state projected onto the yield surface (the per-atom return-mapping is
+      // done in compute_plastic_state); the per-bond plastic extension evolves
+      const double wv1 = wvolume[i1], wv2 = wvolume[i2];
+      const double rinv0 = 1.0 / r0;
+      double rk = 0.0;
+      ebond = 0.0;
+      if ((wv1 > 0.0) && (wv2 > 0.0)) {
+        const double dev = dr - 0.5 * (theta[i1] + theta[i2]) * r0 / 3.0;
+        const double edp = bondstore[n][1];
+        rk = 3.0 * kbulk[type] * (theta[i1] / wv1 + theta[i2] / wv2);
+
+        // trial deviatoric force state (the same intensive expression the per-atom
+        // norm uses) and its yield-surface projection when the atom has yielded
+        const double tdtrial = 15.0 * gshear[type] * rinv0 * (1.0 / wv1 + 1.0 / wv2) * (dev - edp);
+        double rkdev = tdtrial;
+        double edp_new = edp;
+        if ((deltalambda[i1] > 0.0) || (deltalambda[i2] > 0.0)) {
+          const double tdnorm_b = 0.5 * (tdnorm[i1] + tdnorm[i2]);
+          const double dlam_b = 0.5 * (deltalambda[i1] + deltalambda[i2]);
+          if (tdnorm_b > 0.0) rkdev = sqrt(2.0 * pointwise_yield) * tdtrial / tdnorm_b;
+          edp_new = edp + rkdev * dlam_b;
+        }
+        rk += rkdev;
+        ebond = 0.25 * 15.0 * gshear[type] * rinv0 * (1.0 / wv1 + 1.0 / wv2) * (dev - edp) *
+            (dev - edp) * vfrac_eff * vfrac_scale;
+
+        // write back the evolving plastic deviator extension for the next step
+        bondstore[n][1] = edp_new;
+      }
+      // elastic + projected-plastic force state, weighted by the nodal volume
+      fbond = (r > 0.0) ? -((rk / r) * vfrac_eff * vfrac_scale) : 0.0;
     } else {    // PMB
       fbond = (r > 0.0) ? -(c[type] * vfrac_eff * vfrac_scale * stretch) / r : 0.0;
       ebond = 0.5 * c[type] * vfrac_eff * vfrac_scale * stretch * dr;
@@ -337,7 +385,13 @@ void BondBPMPeri::compute(int eflag, int vflag)
       f[i2][2] -= delz * fbond;
     }
 
-    if (evflag) ev_tally(i1, i2, nlocal, newton_bond, ebond, fbond, delx, dely, delz);
+    // The peridynamic stress integrates over BOTH nodal volumes, so the virial
+    // carries one more vfrac factor than the (one-vfrac) bond force and energy.
+    // fbond already holds vfrac_eff (matching the force); the extra vfrac_eff
+    // here reproduces legacy PERI's fbond*vfrac[i] virial (exact for uniform
+    // nodal volume, symmetric otherwise). Energy keeps a single vfrac (ebond).
+    if (evflag)
+      ev_tally(i1, i2, nlocal, newton_bond, ebond, fbond * vfrac_eff, delx, dely, delz);
 
     // accumulate this step's minimum stretch (for breaking) and the diagnostic
     // critical stretch on each owned endpoint (newton bond off: each atom sees
@@ -432,7 +486,8 @@ void BondBPMPeri::compute_dilatation()
     int i1 = bondlist[n][0];
     int i2 = bondlist[n][1];
     int type = bondlist[n][2];
-    if ((model[type] != LPS) && (model[type] != VES)) continue;
+    // all state-based models (LPS/VES/EPS) carry a dilatation; PMB does not
+    if ((model[type] != LPS) && (model[type] != VES) && (model[type] != EPS)) continue;
 
     double delx = x[i1][0] - x[i2][0];
     double dely = x[i1][1] - x[i2][1];
@@ -458,6 +513,80 @@ void BondBPMPeri::compute_dilatation()
   comm->forward_comm(this);
 }
 
+/* ----------------------------------------------------------------------
+   EPS per-atom plastic state: the deviatoric force-state norm tdnorm[i], the
+   yield check, and the plastic-multiplier increment deltalambda[i] (accumulated
+   into lambdaValue). tdnorm and deltalambda are published to ghosts so the force
+   loop can read both endpoints. NOTE: the norm uses the same intensive trial
+   force state the force loop applies; legacy PERI's norm carries an extra
+   dilatation factor theta (a likely bug), deliberately dropped here.
+------------------------------------------------------------------------- */
+
+void BondBPMPeri::compute_plastic_state()
+{
+  int **bondlist = neighbor->bondlist;
+  int nbondlist = neighbor->nbondlist;
+  int nlocal = atom->nlocal;
+  int ntotal = nlocal + atom->nghost;
+
+  double **x = atom->x;
+  double **bondstore = fix_bond_history->bondstore;
+  double *vfrac = atom->dvector[index_vfrac];
+  double *lambdaValue = atom->dvector[index_lambda];
+  const double half_lc = 0.5 * domain->lattice->xlattice;
+
+  for (int i = 0; i < ntotal; i++) tdnorm[i] = 0.0;
+
+  // accumulate the squared deviatoric force-state norm over each atom's EPS bonds
+  for (int n = 0; n < nbondlist; n++) {
+    if (bondlist[n][2] <= 0) continue;
+    int i1 = bondlist[n][0];
+    int i2 = bondlist[n][1];
+    int type = bondlist[n][2];
+    if (model[type] != EPS) continue;
+
+    const double wv1 = wvolume[i1], wv2 = wvolume[i2];
+    if ((wv1 <= 0.0) || (wv2 <= 0.0)) continue;
+
+    double delx = x[i1][0] - x[i2][0];
+    double dely = x[i1][1] - x[i2][1];
+    double delz = x[i1][2] - x[i2][2];
+    double r = sqrt(delx * delx + dely * dely + delz * delz);
+    double r0 = bondstore[n][0];
+    double dr = r - r0;
+    if (fabs(dr) < NEAR_ZERO) dr = 0.0;
+
+    double delta = cut[type];
+    double scale = 1.0;
+    if (fabs(r0 - delta) <= half_lc)
+      scale = (-1.0 / (2.0 * half_lc)) * r0 + (1.0 + (delta - half_lc) / (2.0 * half_lc));
+
+    double dev = dr - 0.5 * (theta[i1] + theta[i2]) * r0 / 3.0;
+    double edp = bondstore[n][1];
+    double tdtrial = 15.0 * gshear[type] * (1.0 / r0) * (1.0 / wv1 + 1.0 / wv2) * (dev - edp);
+
+    if (i1 < nlocal) tdnorm[i1] += tdtrial * tdtrial * vfrac[i2] * scale;
+    if (i2 < nlocal) tdnorm[i2] += tdtrial * tdtrial * vfrac[i1] * scale;
+  }
+
+  // per-atom yield-surface check and plastic-multiplier update
+  for (int i = 0; i < nlocal; i++) {
+    double norm = sqrt(tdnorm[i]);
+    tdnorm[i] = norm;
+    deltalambda[i] = 0.0;
+    if (0.5 * norm * norm - pointwise_yield > 0.0) {
+      deltalambda[i] =
+          (norm / sqrt(2.0 * pointwise_yield) - 1.0) * wvolume[i] / (15.0 * gshear_rep);
+      lambdaValue[i] += deltalambda[i];
+    }
+  }
+
+  commflag = COMM_TDNORM;
+  comm->forward_comm(this);
+  commflag = COMM_DELTALAMBDA;
+  comm->forward_comm(this);
+}
+
 /* ---------------------------------------------------------------------- */
 
 void BondBPMPeri::allocate()
@@ -471,6 +600,7 @@ void BondBPMPeri::allocate()
   memory->create(gshear, np1, "bond:gshear");
   memory->create(lambda, np1, "bond:lambda");
   memory->create(tau, np1, "bond:tau");
+  memory->create(yieldstress, np1, "bond:yieldstress");
   memory->create(cut, np1, "bond:cut");
   memory->create(s00, np1, "bond:s00");
   memory->create(alpha, np1, "bond:alpha");
@@ -494,7 +624,7 @@ void BondBPMPeri::coeff(int narg, char **arg)
 
   int model_one;
   double c_one = 0.0, kbulk_one = 0.0, gshear_one = 0.0, lambda_one = 0.0, tau_one = 0.0;
-  double cut_one = 0.0, s00_one = 0.0, alpha_one = 0.0;
+  double yieldstress_one = 0.0, cut_one = 0.0, s00_one = 0.0, alpha_one = 0.0;
 
   if (strcmp(arg[1], "pmb") == 0) {
     // pmb <c> <horizon> <s00> <alpha>
@@ -535,6 +665,21 @@ void BondBPMPeri::coeff(int narg, char **arg)
     alpha_one = utils::numeric(FLERR, arg[8], false, lmp);
     if (tau_one <= 0.0)
       error->all(FLERR, 5, "Invalid relaxation time {} for bond_style bpm/peri ves", tau_one);
+  } else if (strcmp(arg[1], "eps") == 0) {
+    // eps <K> <G> <yieldstress> <horizon> <s00> <alpha>
+    if (narg != 8)
+      error->all(FLERR, 1,
+                 "Incorrect args for bond_style bpm/peri eps model (expected: <type> eps K G "
+                 "yieldstress horizon s00 alpha)");
+    model_one = EPS;
+    kbulk_one = utils::numeric(FLERR, arg[2], false, lmp);
+    gshear_one = utils::numeric(FLERR, arg[3], false, lmp);
+    yieldstress_one = utils::numeric(FLERR, arg[4], false, lmp);
+    cut_one = utils::numeric(FLERR, arg[5], false, lmp);
+    s00_one = utils::numeric(FLERR, arg[6], false, lmp);
+    alpha_one = utils::numeric(FLERR, arg[7], false, lmp);
+    if (yieldstress_one <= 0.0)
+      error->all(FLERR, 4, "Invalid yield stress {} for bond_style bpm/peri eps", yieldstress_one);
   } else {
     error->all(FLERR, 1, "Unknown bond_style bpm/peri model: {}", arg[1]);
   }
@@ -548,6 +693,7 @@ void BondBPMPeri::coeff(int narg, char **arg)
     gshear[i] = gshear_one;
     lambda[i] = lambda_one;
     tau[i] = tau_one;
+    yieldstress[i] = yieldstress_one;
     cut[i] = cut_one;
     s00[i] = s00_one;
     alpha[i] = alpha_one;
@@ -584,8 +730,12 @@ void BondBPMPeri::init_style()
   nhistory = 1;
   update_flag = 0;
   for (int i = 1; i <= atom->nbondtypes; i++) {
-    if (setflag[i] && (model[i] == VES)) {
+    if (!setflag[i]) continue;
+    if (model[i] == VES) {
       nhistory = MAX(nhistory, 3);
+      update_flag = 1;
+    } else if (model[i] == EPS) {
+      nhistory = MAX(nhistory, 2);
       update_flag = 1;
     }
   }
@@ -600,15 +750,27 @@ void BondBPMPeri::init_style()
     error->all(FLERR, Error::NOLASTLINE,
                "Bond style bpm/peri requires equal lattice spacing in x, y, and z");
 
-  // detect a state-based model (LPS or VES) and pick a representative bulk
-  // modulus for the per-atom volumetric energy; the weighted volume is rebuilt
+  // detect a state-based model (LPS/VES/EPS) and pick a representative bulk
+  // modulus for the per-atom volumetric energy; the weighted volume is rebuilt.
+  // For EPS, also precompute the pointwise yield value and a representative shear
+  // modulus used by the per-atom return-mapping.
   state_based = 0;
+  plastic = 0;
   kbulk_rep = 0.0;
+  pointwise_yield = 0.0;
+  gshear_rep = 0.0;
   wvolume_setup = 0;
   for (int i = 1; i <= atom->nbondtypes; i++) {
-    if (setflag[i] && ((model[i] == LPS) || (model[i] == VES))) {
+    if (!setflag[i]) continue;
+    if ((model[i] == LPS) || (model[i] == VES) || (model[i] == EPS)) {
       state_based = 1;
       kbulk_rep = kbulk[i];
+    }
+    if (model[i] == EPS) {
+      plastic = 1;
+      gshear_rep = gshear[i];
+      pointwise_yield =
+          25.0 / (8.0 * MathConst::MY_PI * pow(cut[i], 5.0)) * yieldstress[i] * yieldstress[i];
     }
   }
 
@@ -622,33 +784,45 @@ void BondBPMPeri::init_style()
                "'fix <ID> all property/atom d_vfrac ghost yes' before bond_style");
 
   // internal critical-stretch bookkeeping: s0 (diagnostic) and smin (break
-  // state); auto-create the fix property/atom if it does not already exist
-  bool created = false;
-  index_s0 = atom->find_custom("s0", flag, cols);
-  if (index_s0 < 0) {
-    if (!id_fix_property_peri) {
-      id_fix_property_peri = utils::strdup("BPM_PERI_PROPERTY_ATOM");
-      modify->add_fix(fmt::format("{} all property/atom d_s0 d_smin ghost yes writedata no",
-                                  id_fix_property_peri));
-      created = true;
-    }
-    index_s0 = atom->find_custom("s0", flag, cols);
+  // state), plus the EPS accumulated plastic multiplier lambdaValue (d_lambda).
+  // Auto-create each field that does not already exist, so a user may pre-declare
+  // any of them -- e.g. d_lambda for dumping -- and the bond style reuses it. On
+  // restart the property/atom fix is restored before init_style, so the stored
+  // s0/smin values are kept and only freshly created fields get the sentinels.
+  bool need_s0 = (atom->find_custom("s0", flag, cols) < 0);
+  bool need_smin = (atom->find_custom("smin", flag, cols) < 0);
+  bool need_lambda = (plastic && (atom->find_custom("lambda", flag, cols) < 0));
+  if ((need_s0 || need_smin || need_lambda) && !id_fix_property_peri) {
+    std::string fields;
+    if (need_s0) fields += " d_s0";
+    if (need_smin) fields += " d_smin";
+    if (need_lambda) fields += " d_lambda";
+    id_fix_property_peri = utils::strdup("BPM_PERI_PROPERTY_ATOM");
+    modify->add_fix(fmt::format("{} all property/atom{} ghost yes writedata no",
+                                id_fix_property_peri, fields));
   }
-  index_smin = atom->find_custom("smin", flag, cols);
-  if (index_smin < 0)
-    error->all(FLERR, Error::NOLASTLINE,
-               "Bond style bpm/peri internal error: missing d_smin storage");
 
-  // initialize the no-breaking sentinels on first creation (s0 = +DBL_MAX and
-  // smin = -DBL_MAX, so the implied critical stretch is +infinity); on restart
-  // the stored values are restored, so only initialize when freshly created
-  if (created) {
+  index_s0 = atom->find_custom("s0", flag, cols);
+  index_smin = atom->find_custom("smin", flag, cols);
+  if ((index_s0 < 0) || (index_smin < 0))
+    error->all(FLERR, Error::NOLASTLINE,
+               "Bond style bpm/peri internal error: missing d_s0/d_smin storage");
+  if (plastic) {
+    index_lambda = atom->find_custom("lambda", flag, cols);
+    if (index_lambda < 0)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Bond style bpm/peri internal error: missing d_lambda storage");
+  }
+
+  // initialize the no-breaking sentinels on the freshly created s0/smin (s0 =
+  // +DBL_MAX and smin = -DBL_MAX, so the implied critical stretch is +infinity)
+  if (need_s0) {
     double *s0 = atom->dvector[index_s0];
+    for (int i = 0; i < atom->nlocal; i++) s0[i] = DBL_MAX;
+  }
+  if (need_smin) {
     double *smin = atom->dvector[index_smin];
-    for (int i = 0; i < atom->nlocal; i++) {
-      s0[i] = DBL_MAX;
-      smin[i] = -DBL_MAX;
-    }
+    for (int i = 0; i < atom->nlocal; i++) smin[i] = -DBL_MAX;
   }
 
   // peridynamics needs the short-range contact pair; require pair_style bpm/peri.
@@ -706,6 +880,7 @@ void BondBPMPeri::write_restart(FILE *fp)
   fwrite(&gshear[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&lambda[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&tau[1], sizeof(double), atom->nbondtypes, fp);
+  fwrite(&yieldstress[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&cut[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&s00[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&alpha[1], sizeof(double), atom->nbondtypes, fp);
@@ -727,6 +902,7 @@ void BondBPMPeri::read_restart(FILE *fp)
     utils::sfread(FLERR, &gshear[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &lambda[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &tau[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
+    utils::sfread(FLERR, &yieldstress[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &cut[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &s00[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &alpha[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
@@ -737,6 +913,7 @@ void BondBPMPeri::read_restart(FILE *fp)
   MPI_Bcast(&gshear[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&lambda[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&tau[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&yieldstress[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&cut[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&s00[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&alpha[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
@@ -754,6 +931,8 @@ int BondBPMPeri::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag
   double *src;
   if (commflag == COMM_THETA) src = theta;
   else if (commflag == COMM_WVOLUME) src = wvolume;
+  else if (commflag == COMM_TDNORM) src = tdnorm;
+  else if (commflag == COMM_DELTALAMBDA) src = deltalambda;
   else src = atom->dvector[index_smin];
 
   int m = 0;
@@ -768,6 +947,8 @@ void BondBPMPeri::unpack_forward_comm(int n, int first, double *buf)
   double *dst;
   if (commflag == COMM_THETA) dst = theta;
   else if (commflag == COMM_WVOLUME) dst = wvolume;
+  else if (commflag == COMM_TDNORM) dst = tdnorm;
+  else if (commflag == COMM_DELTALAMBDA) dst = deltalambda;
   else dst = atom->dvector[index_smin];
 
   int m = 0;

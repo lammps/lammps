@@ -40,38 +40,48 @@ class BondBPMPeri : public BondBPM {
 
  protected:
   // peridynamic constitutive models (internal ids; lower-case keywords in input)
-  enum { PMB, LPS, VES };
+  enum { PMB, LPS, VES, EPS };
   // tags selecting which per-atom array the next forward_comm carries
-  enum { COMM_SMIN, COMM_THETA, COMM_WVOLUME };
+  enum { COMM_SMIN, COMM_THETA, COMM_WVOLUME, COMM_TDNORM, COMM_DELTALAMBDA };
 
   int *model;             // per bond type: constitutive model id
   double *c;              // PMB micromodulus c = 18 K / (pi delta^4)
-  double *kbulk, *gshear; // LPS/VES bulk and shear moduli (per bond type)
+  double *kbulk, *gshear; // LPS/VES/EPS bulk and shear moduli (per bond type)
   double *lambda, *tau;   // VES viscoelastic modulus ratio and relaxation time
+  double *yieldstress;    // EPS yield stress (per bond type)
   double *cut;            // horizon delta (per bond type)
   double *s00, *alpha;    // critical-stretch bond-break parameters (#984 rule)
 
-  // per-atom property/atom storage: vfrac (user-supplied nodal volume) and the
-  // internal critical-stretch bookkeeping s0 (diagnostic) / smin (break state)
+  // per-atom property/atom storage: vfrac (user-supplied nodal volume), the
+  // critical-stretch bookkeeping s0 (diagnostic) / smin (break state), and the
+  // EPS accumulated plastic multiplier lambdaValue (public diagnostic)
   char *id_fix_property_peri;
-  int index_vfrac, index_s0, index_smin;
+  int index_vfrac, index_s0, index_smin, index_lambda;
 
   // per-step scratch for the break bookkeeping (committed to smin/s0 each step)
   double *smin_new, *s0_new;
   int nmax;
 
-  // state-based (LPS) machinery: weighted volume (static) and dilatation theta
-  // (per step), both ghost-communicated; allocated only when LPS is in use
+  // state-based (LPS/VES/EPS) machinery: weighted volume (static) and dilatation
+  // theta (per step), both ghost-communicated; allocated only when in use
   int state_based;        // 1 if any bond type uses a state-based model
   int wvolume_setup;      // 1 once the static weighted volume has been computed
   double kbulk_rep;       // bulk modulus for the per-atom volumetric energy
   double *wvolume, *theta;
   int commflag;           // selects the array packed by the next forward_comm
 
+  // EPS plasticity: per-atom deviatoric force-state norm and plastic increment
+  // (both ghost-communicated), plus a representative yield/shear for the
+  // per-atom return-mapping
+  int plastic;            // 1 if any bond type uses EPS
+  double *tdnorm, *deltalambda;
+  double pointwise_yield, gshear_rep;
+
   void allocate();
   void store_data() override;
   void compute_wvolume();
   void compute_dilatation();
+  void compute_plastic_state();
 };
 
 }    // namespace LAMMPS_NS

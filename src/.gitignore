@@ -466,6 +466,8 @@
 /atom_vec_bpm_sphere.h
 /bond_bpm.cpp
 /bond_bpm.h
+/bond_bpm_peri.cpp
+/bond_bpm_peri.h
 /bond_bpm_rotational.cpp
 /bond_bpm_rotational.h
 /bond_bpm_spring.cpp

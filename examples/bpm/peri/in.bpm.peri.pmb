@@ -1,0 +1,41 @@
+# Stage 0 scaffold for bond_style bpm/peri (PMB model)
+# Builds the peridynamic bond set on the BPM framework, stores the reference
+# configuration, and applies zero force (run 0). No new atom style: per-atom
+# nodal volume lives in a fix property/atom (d_vfrac); mass is uniform per-type.
+
+units           si
+dimension       3
+boundary        s s s
+atom_style      bond
+atom_modify     map array
+
+special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+newton          on off
+neighbor        0.0005 bin
+
+lattice         sc 0.0005
+region          box block 0 7 0 7 0 7 units lattice
+create_box      1 box bond/types 1 extra/bond/per/atom 60 extra/special/per/atom 100
+create_atoms    1 box
+
+# uniform nodal mass (density 2200 * nodal volume 1.25e-10) and nodal volume
+mass            * 2.75e-7
+fix             vol all property/atom d_vfrac ghost yes
+set             group all d_vfrac 1.25e-10
+
+# no short-range contact in this scaffold (pair_style bpm/peri arrives in Stage 2)
+pair_style      zero 0.0012
+pair_coeff      * *
+
+# create the peridynamic bond set within the horizon
+create_bonds    many all all 1 0.0 0.0011
+
+# BPM bonds censor pair forces between bonded atoms via the 1-2 special weights
+special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+bond_style      bpm/peri
+bond_coeff      1 pmb 1.6863e22 0.0011 0.0005 0.25
+
+fix             1 all nve
+thermo          1
+run             0

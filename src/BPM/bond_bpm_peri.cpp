@@ -46,8 +46,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
-    BondBPM(_lmp), model(nullptr), c(nullptr), kbulk(nullptr), gshear(nullptr), cut(nullptr),
-    s00(nullptr), alpha(nullptr), id_fix_property_peri(nullptr), index_vfrac(-1), index_s0(-1),
+    BondBPM(_lmp), model(nullptr), c(nullptr), kbulk(nullptr), gshear(nullptr), lambda(nullptr),
+    tau(nullptr), cut(nullptr), s00(nullptr), alpha(nullptr), id_fix_property_peri(nullptr),
+    index_vfrac(-1), index_s0(-1),
     index_smin(-1), smin_new(nullptr), s0_new(nullptr), nmax(0), state_based(0), wvolume_setup(0),
     kbulk_rep(0.0), wvolume(nullptr), theta(nullptr), commflag(COMM_SMIN)
 {
@@ -88,6 +89,8 @@ BondBPMPeri::~BondBPMPeri()
     memory->destroy(c);
     memory->destroy(kbulk);
     memory->destroy(gshear);
+    memory->destroy(lambda);
+    memory->destroy(tau);
     memory->destroy(cut);
     memory->destroy(s00);
     memory->destroy(alpha);
@@ -125,6 +128,9 @@ void BondBPMPeri::store_data()
       r = sqrt(delx * delx + dely * dely + delz * delz);
 
       fix_bond_history->update_atom_value(i, m, 0, r);
+
+      // zero any evolving history slots (e.g. the VES deviator extensions)
+      for (int a = 1; a < nhistory; a++) fix_bond_history->update_atom_value(i, m, a, 0.0);
     }
   }
 }
@@ -237,7 +243,7 @@ void BondBPMPeri::compute(int eflag, int vflag)
 
     // capture the reference length on the first visit
     r0 = bondstore[n][0];
-    if (r0 < EPSILON || std::isnan(r0)) {
+    if ((r0 < EPSILON) || std::isnan(r0)) {
       r0 = bondstore[n][0] = r;
       process_new(n, i1, i2);
     }
@@ -250,7 +256,7 @@ void BondBPMPeri::compute(int eflag, int vflag)
     // s00 - alpha*smin, evaluated per bond, using the more tensile (max) of the
     // two endpoints' previous-step smin. A broken bond exerts no force and does
     // not contribute to the new smin/s0.
-    if (allow_breaks && stretch > s00[type] - alpha[type] * MAX(smin[i1], smin[i2])) {
+    if (allow_breaks && (stretch > s00[type] - alpha[type] * MAX(smin[i1], smin[i2]))) {
       bondlist[n][2] = 0;
       process_broken(i1, i2);
       continue;
@@ -273,7 +279,7 @@ void BondBPMPeri::compute(int eflag, int vflag)
       const double rinv0 = 1.0 / r0;    // isotropic influence function omega = 1/r0
       double rk = 0.0;
       ebond = 0.0;
-      if (wv1 > 0.0 && wv2 > 0.0) {
+      if ((wv1 > 0.0) && (wv2 > 0.0)) {
         rk = (3.0 * kbulk[type] - 5.0 * gshear[type]) * vfrac_eff * vfrac_scale *
             (theta[i1] / wv1 + theta[i2] / wv2);
         rk += 15.0 * gshear[type] * vfrac_eff * vfrac_scale * rinv0 *
@@ -285,17 +291,47 @@ void BondBPMPeri::compute(int eflag, int vflag)
             (dev1 * dev1 / wv1 + dev2 * dev2 / wv2);
       }
       fbond = (r > 0.0) ? -(rk / r) : 0.0;
+    } else if (model[type] == VES) {
+      // viscoelastic: elastic dilatation (3K*theta) plus a relaxing deviatoric
+      // term with a per-bond back-extension recurrence (one symmetric history)
+      const double wv1 = wvolume[i1], wv2 = wvolume[i2];
+      const double rinv0 = 1.0 / r0;
+      double rk = 0.0;
+      ebond = 0.0;
+      if ((wv1 > 0.0) && (wv2 > 0.0)) {
+        rk = 3.0 * kbulk[type] * vfrac_eff * vfrac_scale * (theta[i1] / wv1 + theta[i2] / wv2);
+
+        const double dev = dr - 0.5 * (theta[i1] + theta[i2]) * r0 / 3.0;
+        const double c1 = tau[type] / update->dt;
+        const double decay = exp(-1.0 / c1);
+        const double beta = 1.0 - c1 * (1.0 - decay);
+        const double dev_prior = bondstore[n][1];
+        const double devback_prior = bondstore[n][2];
+        const double edb =
+            dev_prior * (1.0 - decay) + devback_prior * decay + beta * (dev - dev_prior);
+
+        const double lam = lambda[type];
+        const double gfac =
+            15.0 * gshear[type] * vfrac_eff * vfrac_scale * rinv0 * (1.0 / wv1 + 1.0 / wv2);
+        rk += gfac * ((1.0 - lam) * dev + lam * (dev - edb));
+        ebond = 0.25 * gfac * ((1.0 - lam) * dev * dev + lam * (dev - edb) * (dev - edb));
+
+        // write back the evolving deviator history for the next step
+        bondstore[n][1] = dev;
+        bondstore[n][2] = edb;
+      }
+      fbond = (r > 0.0) ? -(rk / r) : 0.0;
     } else {    // PMB
       fbond = (r > 0.0) ? -(c[type] * vfrac_eff * vfrac_scale * stretch) / r : 0.0;
       ebond = 0.5 * c[type] * vfrac_eff * vfrac_scale * stretch * dr;
     }
 
-    if (newton_bond || i1 < nlocal) {
+    if (newton_bond || (i1 < nlocal)) {
       f[i1][0] += delx * fbond;
       f[i1][1] += dely * fbond;
       f[i1][2] += delz * fbond;
     }
-    if (newton_bond || i2 < nlocal) {
+    if (newton_bond || (i2 < nlocal)) {
       f[i2][0] -= delx * fbond;
       f[i2][1] -= dely * fbond;
       f[i2][2] -= delz * fbond;
@@ -396,7 +432,7 @@ void BondBPMPeri::compute_dilatation()
     int i1 = bondlist[n][0];
     int i2 = bondlist[n][1];
     int type = bondlist[n][2];
-    if (model[type] != LPS) continue;
+    if ((model[type] != LPS) && (model[type] != VES)) continue;
 
     double delx = x[i1][0] - x[i2][0];
     double dely = x[i1][1] - x[i2][1];
@@ -433,6 +469,8 @@ void BondBPMPeri::allocate()
   memory->create(c, np1, "bond:c");
   memory->create(kbulk, np1, "bond:kbulk");
   memory->create(gshear, np1, "bond:gshear");
+  memory->create(lambda, np1, "bond:lambda");
+  memory->create(tau, np1, "bond:tau");
   memory->create(cut, np1, "bond:cut");
   memory->create(s00, np1, "bond:s00");
   memory->create(alpha, np1, "bond:alpha");
@@ -455,7 +493,7 @@ void BondBPMPeri::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
   int model_one;
-  double c_one = 0.0, kbulk_one = 0.0, gshear_one = 0.0;
+  double c_one = 0.0, kbulk_one = 0.0, gshear_one = 0.0, lambda_one = 0.0, tau_one = 0.0;
   double cut_one = 0.0, s00_one = 0.0, alpha_one = 0.0;
 
   if (strcmp(arg[1], "pmb") == 0) {
@@ -481,6 +519,22 @@ void BondBPMPeri::coeff(int narg, char **arg)
     cut_one = utils::numeric(FLERR, arg[4], false, lmp);
     s00_one = utils::numeric(FLERR, arg[5], false, lmp);
     alpha_one = utils::numeric(FLERR, arg[6], false, lmp);
+  } else if (strcmp(arg[1], "ves") == 0) {
+    // ves <K> <G> <lambda> <tau> <horizon> <s00> <alpha>
+    if (narg != 9)
+      error->all(FLERR, 1,
+                 "Incorrect args for bond_style bpm/peri ves model (expected: <type> ves K G lambda "
+                 "tau horizon s00 alpha)");
+    model_one = VES;
+    kbulk_one = utils::numeric(FLERR, arg[2], false, lmp);
+    gshear_one = utils::numeric(FLERR, arg[3], false, lmp);
+    lambda_one = utils::numeric(FLERR, arg[4], false, lmp);
+    tau_one = utils::numeric(FLERR, arg[5], false, lmp);
+    cut_one = utils::numeric(FLERR, arg[6], false, lmp);
+    s00_one = utils::numeric(FLERR, arg[7], false, lmp);
+    alpha_one = utils::numeric(FLERR, arg[8], false, lmp);
+    if (tau_one <= 0.0)
+      error->all(FLERR, 5, "Invalid relaxation time {} for bond_style bpm/peri ves", tau_one);
   } else {
     error->all(FLERR, 1, "Unknown bond_style bpm/peri model: {}", arg[1]);
   }
@@ -492,6 +546,8 @@ void BondBPMPeri::coeff(int narg, char **arg)
     c[i] = c_one;
     kbulk[i] = kbulk_one;
     gshear[i] = gshear_one;
+    lambda[i] = lambda_one;
+    tau[i] = tau_one;
     cut[i] = cut_one;
     s00[i] = s00_one;
     alpha[i] = alpha_one;
@@ -522,23 +578,35 @@ void BondBPMPeri::settings(int narg, char **arg)
 
 void BondBPMPeri::init_style()
 {
+  // resolve the bond-history size and evolution flag from the active models
+  // before the base class creates the bond-history fix; VES stores two evolving
+  // deviator values per bond in addition to the reference length r0
+  nhistory = 1;
+  update_flag = 0;
+  for (int i = 1; i <= atom->nbondtypes; i++) {
+    if (setflag[i] && (model[i] == VES)) {
+      nhistory = MAX(nhistory, 3);
+      update_flag = 1;
+    }
+  }
+
   BondBPM::init_style();
 
   // the partial-volume correction needs a uniform cubic lattice spacing
   if (!domain->lattice)
     error->all(FLERR, Error::NOLASTLINE, "Bond style bpm/peri requires a lattice be defined");
-  if (domain->lattice->xlattice != domain->lattice->ylattice ||
-      domain->lattice->xlattice != domain->lattice->zlattice)
+  if ((domain->lattice->xlattice != domain->lattice->ylattice) ||
+      (domain->lattice->xlattice != domain->lattice->zlattice))
     error->all(FLERR, Error::NOLASTLINE,
                "Bond style bpm/peri requires equal lattice spacing in x, y, and z");
 
-  // detect a state-based model (LPS) and pick a representative bulk modulus for
-  // the per-atom volumetric energy; the weighted volume is rebuilt on next use
+  // detect a state-based model (LPS or VES) and pick a representative bulk
+  // modulus for the per-atom volumetric energy; the weighted volume is rebuilt
   state_based = 0;
   kbulk_rep = 0.0;
   wvolume_setup = 0;
   for (int i = 1; i <= atom->nbondtypes; i++) {
-    if (setflag[i] && model[i] == LPS) {
+    if (setflag[i] && ((model[i] == LPS) || (model[i] == VES))) {
       state_based = 1;
       kbulk_rep = kbulk[i];
     }
@@ -548,7 +616,7 @@ void BondBPMPeri::init_style()
   // via fix property/atom d_vfrac (uniform with set, or per-atom with read_data)
   int flag, cols;
   index_vfrac = atom->find_custom("vfrac", flag, cols);
-  if (index_vfrac < 0 || flag != 1 || cols != 0)
+  if ((index_vfrac < 0) || (flag != 1) || (cols != 0))
     error->all(FLERR, Error::NOLASTLINE,
                "Bond style bpm/peri requires a per-atom vfrac property; add "
                "'fix <ID> all property/atom d_vfrac ghost yes' before bond_style");
@@ -636,6 +704,8 @@ void BondBPMPeri::write_restart(FILE *fp)
   fwrite(&c[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&kbulk[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&gshear[1], sizeof(double), atom->nbondtypes, fp);
+  fwrite(&lambda[1], sizeof(double), atom->nbondtypes, fp);
+  fwrite(&tau[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&cut[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&s00[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&alpha[1], sizeof(double), atom->nbondtypes, fp);
@@ -655,6 +725,8 @@ void BondBPMPeri::read_restart(FILE *fp)
     utils::sfread(FLERR, &c[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &kbulk[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &gshear[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
+    utils::sfread(FLERR, &lambda[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
+    utils::sfread(FLERR, &tau[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &cut[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &s00[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &alpha[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
@@ -663,6 +735,8 @@ void BondBPMPeri::read_restart(FILE *fp)
   MPI_Bcast(&c[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&kbulk[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&gshear[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&lambda[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&tau[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&cut[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&s00[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&alpha[1], atom->nbondtypes, MPI_DOUBLE, 0, world);

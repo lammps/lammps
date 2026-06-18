@@ -40,13 +40,14 @@ class BondBPMPeri : public BondBPM {
 
  protected:
   // peridynamic constitutive models (internal ids; lower-case keywords in input)
-  enum { PMB, LPS };
+  enum { PMB, LPS, VES };
   // tags selecting which per-atom array the next forward_comm carries
   enum { COMM_SMIN, COMM_THETA, COMM_WVOLUME };
 
   int *model;             // per bond type: constitutive model id
   double *c;              // PMB micromodulus c = 18 K / (pi delta^4)
-  double *kbulk, *gshear; // LPS bulk and shear moduli (per bond type)
+  double *kbulk, *gshear; // LPS/VES bulk and shear moduli (per bond type)
+  double *lambda, *tau;   // VES viscoelastic modulus ratio and relaxation time
   double *cut;            // horizon delta (per bond type)
   double *s00, *alpha;    // critical-stretch bond-break parameters (#984 rule)
 

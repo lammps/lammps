@@ -126,7 +126,7 @@ void PairBPMPeri::compute(int eflag, int vflag)
       f[i][0] += delx * fpair;
       f[i][1] += dely * fpair;
       f[i][2] += delz * fpair;
-      if (newton_pair || j < nlocal) {
+      if (newton_pair || (j < nlocal)) {
         f[j][0] -= delx * fpair;
         f[j][1] -= dely * fpair;
         f[j][2] -= delz * fpair;
@@ -207,15 +207,15 @@ void PairBPMPeri::init_style()
   // the contact onset distance needs a uniform cubic lattice spacing
   if (!domain->lattice)
     error->all(FLERR, Error::NOLASTLINE, "Pair style bpm/peri requires a lattice be defined");
-  if (domain->lattice->xlattice != domain->lattice->ylattice ||
-      domain->lattice->xlattice != domain->lattice->zlattice)
+  if ((domain->lattice->xlattice != domain->lattice->ylattice) ||
+      (domain->lattice->xlattice != domain->lattice->zlattice))
     error->all(FLERR, Error::NOLASTLINE,
                "Pair style bpm/peri requires equal lattice spacing in x, y, and z");
 
   // per-atom nodal volume (vfrac), supplied by the user via fix property/atom
   int flag, cols;
   index_vfrac = atom->find_custom("vfrac", flag, cols);
-  if (index_vfrac < 0 || flag != 1 || cols != 0)
+  if ((index_vfrac < 0) || (flag != 1) || (cols != 0))
     error->all(FLERR, Error::NOLASTLINE,
                "Pair style bpm/peri requires a per-atom vfrac property; add "
                "'fix <ID> all property/atom d_vfrac ghost yes'");

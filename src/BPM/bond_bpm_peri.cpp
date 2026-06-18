@@ -46,9 +46,10 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
-    BondBPM(_lmp), model(nullptr), c(nullptr), cut(nullptr), s00(nullptr), alpha(nullptr),
-    id_fix_property_peri(nullptr), index_vfrac(-1), index_s0(-1), index_smin(-1),
-    smin_new(nullptr), s0_new(nullptr), nmax(0)
+    BondBPM(_lmp), model(nullptr), c(nullptr), kbulk(nullptr), gshear(nullptr), cut(nullptr),
+    s00(nullptr), alpha(nullptr), id_fix_property_peri(nullptr), index_vfrac(-1), index_s0(-1),
+    index_smin(-1), smin_new(nullptr), s0_new(nullptr), nmax(0), state_based(0), wvolume_setup(0),
+    kbulk_rep(0.0), wvolume(nullptr), theta(nullptr), commflag(COMM_SMIN)
 {
   partial_flag = 1;
   writedata = 0;
@@ -74,6 +75,8 @@ BondBPMPeri::~BondBPMPeri()
 
   memory->destroy(smin_new);
   memory->destroy(s0_new);
+  memory->destroy(wvolume);
+  memory->destroy(theta);
 
   if (id_fix_property_peri && modify->nfix) {
     modify->delete_fix(id_fix_property_peri);
@@ -83,6 +86,8 @@ BondBPMPeri::~BondBPMPeri()
   if (allocated) {
     memory->destroy(model);
     memory->destroy(c);
+    memory->destroy(kbulk);
+    memory->destroy(gshear);
     memory->destroy(cut);
     memory->destroy(s00);
     memory->destroy(alpha);
@@ -125,9 +130,10 @@ void BondBPMPeri::store_data()
 }
 
 /* ----------------------------------------------------------------------
-   PMB (prototype microelastic brittle) pairwise force. Bonds do not break
-   yet (Stage 1a); the per-type-pair (#984) critical-stretch breaking and the
-   smin/s0 bookkeeping arrive in Stage 1b.
+   PMB and LPS bond forces with per-type-pair (#984) breaking. State-based
+   models (LPS) run a three-pass scheme inside this single compute(): build the
+   weighted volume (once), accumulate and publish the dilatation theta, then the
+   force loop reads theta/wvolume of both endpoints of each bond.
 ------------------------------------------------------------------------- */
 
 void BondBPMPeri::compute(int eflag, int vflag)
@@ -135,13 +141,20 @@ void BondBPMPeri::compute(int eflag, int vflag)
   // rearrange stored bond values for hybrid bond styles, handled by parent
   pre_compute();
 
-  // grow the per-step break-bookkeeping scratch if needed
+  // grow the per-step break scratch (and the state-based per-atom arrays) if needed
   if (atom->nmax > nmax) {
     memory->destroy(smin_new);
     memory->destroy(s0_new);
     nmax = atom->nmax;
     memory->create(smin_new, nmax, "bond:smin_new");
     memory->create(s0_new, nmax, "bond:s0_new");
+    if (state_based) {
+      memory->destroy(wvolume);
+      memory->destroy(theta);
+      memory->create(wvolume, nmax, "bond:wvolume");
+      memory->create(theta, nmax, "bond:theta");
+      wvolume_setup = 0;    // arrays reallocated -> rebuild the weighted volume
+    }
   }
 
   int i1, i2, itmp, n, type;
@@ -168,7 +181,30 @@ void BondBPMPeri::compute(int eflag, int vflag)
 
   // sync ghost smin to last step's committed values so the break criterion can
   // read a neighbor's previous-step smin even when the neighbor is a ghost
+  commflag = COMM_SMIN;
   comm->forward_comm(this);
+
+  // state-based (LPS) prep: weighted volume (static) then this step's dilatation,
+  // each published to ghosts so the force loop can read both bond endpoints
+  if (state_based) {
+    if (!wvolume_setup)
+      compute_wvolume();
+    else if (neighbor->ago == 0) {
+      commflag = COMM_WVOLUME;
+      comm->forward_comm(this);
+    }
+    compute_dilatation();
+
+    // volumetric part of the LPS energy (per atom); the deviatoric part is
+    // tallied per bond in the force loop below
+    if (eflag) {
+      for (int i = 0; i < nlocal; i++) {
+        double evol = 0.5 * kbulk_rep * theta[i] * theta[i];
+        if (eflag_global) energy += evol;
+        if (eflag_atom) eatom[i] += evol;
+      }
+    }
+  }
 
   // reset the per-step accumulators (MIN for smin, MAX for s0)
   for (int i = 0; i < nlocal; i++) {
@@ -228,15 +264,31 @@ void BondBPMPeri::compute(int eflag, int vflag)
     else
       vfrac_scale = 1.0;
 
-    // PMB bond force. Use the mean nodal volume so the bond is Newton-third-law
-    // balanced (equal and opposite); this reduces to legacy's vfrac[j] form when
-    // the nodal volume is uniform (the validated regime). Legacy applies vfrac[j]
-    // to i and vfrac[i] to j, which conserves momentum only for uniform volumes.
+    // bond force and energy. The mean nodal volume keeps the bond Newton-third-
+    // law balanced (equal and opposite); for uniform nodal volume this reduces to
+    // legacy's vfrac[j] convention (which conserves momentum only when uniform).
     vfrac_eff = 0.5 * (vfrac[i1] + vfrac[i2]);
-    if (r > 0.0)
-      fbond = -(c[type] * vfrac_eff * vfrac_scale * stretch) / r;
-    else
-      fbond = 0.0;
+    if (model[type] == LPS) {
+      const double wv1 = wvolume[i1], wv2 = wvolume[i2];
+      const double rinv0 = 1.0 / r0;    // isotropic influence function omega = 1/r0
+      double rk = 0.0;
+      ebond = 0.0;
+      if (wv1 > 0.0 && wv2 > 0.0) {
+        rk = (3.0 * kbulk[type] - 5.0 * gshear[type]) * vfrac_eff * vfrac_scale *
+            (theta[i1] / wv1 + theta[i2] / wv2);
+        rk += 15.0 * gshear[type] * vfrac_eff * vfrac_scale * rinv0 *
+            (1.0 / wv1 + 1.0 / wv2) * dr;
+        // deviatoric energy per bond (vanishes for a pure dilatation)
+        const double dev1 = dr - theta[i1] * r0 / 3.0;
+        const double dev2 = dr - theta[i2] * r0 / 3.0;
+        ebond = 0.25 * 15.0 * gshear[type] * vfrac_eff * vfrac_scale * rinv0 *
+            (dev1 * dev1 / wv1 + dev2 * dev2 / wv2);
+      }
+      fbond = (r > 0.0) ? -(rk / r) : 0.0;
+    } else {    // PMB
+      fbond = (r > 0.0) ? -(c[type] * vfrac_eff * vfrac_scale * stretch) / r : 0.0;
+      ebond = 0.5 * c[type] * vfrac_eff * vfrac_scale * stretch * dr;
+    }
 
     if (newton_bond || i1 < nlocal) {
       f[i1][0] += delx * fbond;
@@ -249,7 +301,6 @@ void BondBPMPeri::compute(int eflag, int vflag)
       f[i2][2] -= delz * fbond;
     }
 
-    ebond = 0.5 * c[type] * vfrac_eff * vfrac_scale * stretch * dr;
     if (evflag) ev_tally(i1, i2, nlocal, newton_bond, ebond, fbond, delx, dely, delz);
 
     // accumulate this step's minimum stretch (for breaking) and the diagnostic
@@ -279,6 +330,98 @@ void BondBPMPeri::compute(int eflag, int vflag)
   post_compute();
 }
 
+/* ----------------------------------------------------------------------
+   weighted volume of each atom from the reference configuration (static).
+   wvolume[i] = sum_j omega * |xi|^2 * vfrac[j] * vfrac_scale = sum_j r0*vfrac[j]*scale
+   for the isotropic influence function omega = 1/r0. Built once, then
+   forward-communicated (refreshed to ghosts on each reneighbor).
+------------------------------------------------------------------------- */
+
+void BondBPMPeri::compute_wvolume()
+{
+  int **bondlist = neighbor->bondlist;
+  int nbondlist = neighbor->nbondlist;
+  int nlocal = atom->nlocal;
+  int ntotal = nlocal + atom->nghost;
+
+  double **bondstore = fix_bond_history->bondstore;
+  double *vfrac = atom->dvector[index_vfrac];
+  const double half_lc = 0.5 * domain->lattice->xlattice;
+
+  for (int i = 0; i < ntotal; i++) wvolume[i] = 0.0;
+
+  for (int n = 0; n < nbondlist; n++) {
+    if (bondlist[n][2] <= 0) continue;
+    int i1 = bondlist[n][0];
+    int i2 = bondlist[n][1];
+    int type = bondlist[n][2];
+
+    double r0 = bondstore[n][0];
+    double delta = cut[type];
+    double scale = 1.0;
+    if (fabs(r0 - delta) <= half_lc)
+      scale = (-1.0 / (2.0 * half_lc)) * r0 + (1.0 + (delta - half_lc) / (2.0 * half_lc));
+
+    if (i1 < nlocal) wvolume[i1] += r0 * vfrac[i2] * scale;
+    if (i2 < nlocal) wvolume[i2] += r0 * vfrac[i1] * scale;
+  }
+
+  wvolume_setup = 1;
+  commflag = COMM_WVOLUME;
+  comm->forward_comm(this);
+}
+
+/* ----------------------------------------------------------------------
+   dilatation theta of each atom (per step), then publish to ghosts.
+   theta[i] = (3/wvolume[i]) * sum_j omega*r0*dr*vfrac[j]*scale
+            = (3/wvolume[i]) * sum_j dr*vfrac[j]*scale   (omega = 1/r0)
+------------------------------------------------------------------------- */
+
+void BondBPMPeri::compute_dilatation()
+{
+  int **bondlist = neighbor->bondlist;
+  int nbondlist = neighbor->nbondlist;
+  int nlocal = atom->nlocal;
+  int ntotal = nlocal + atom->nghost;
+
+  double **x = atom->x;
+  double **bondstore = fix_bond_history->bondstore;
+  double *vfrac = atom->dvector[index_vfrac];
+  const double half_lc = 0.5 * domain->lattice->xlattice;
+
+  for (int i = 0; i < ntotal; i++) theta[i] = 0.0;
+
+  for (int n = 0; n < nbondlist; n++) {
+    if (bondlist[n][2] <= 0) continue;
+    int i1 = bondlist[n][0];
+    int i2 = bondlist[n][1];
+    int type = bondlist[n][2];
+    if (model[type] != LPS) continue;
+
+    double delx = x[i1][0] - x[i2][0];
+    double dely = x[i1][1] - x[i2][1];
+    double delz = x[i1][2] - x[i2][2];
+    double r = sqrt(delx * delx + dely * dely + delz * delz);
+    double r0 = bondstore[n][0];
+    double dr = r - r0;
+    if (fabs(dr) < NEAR_ZERO) dr = 0.0;
+
+    double delta = cut[type];
+    double scale = 1.0;
+    if (fabs(r0 - delta) <= half_lc)
+      scale = (-1.0 / (2.0 * half_lc)) * r0 + (1.0 + (delta - half_lc) / (2.0 * half_lc));
+
+    if (i1 < nlocal) theta[i1] += dr * vfrac[i2] * scale;
+    if (i2 < nlocal) theta[i2] += dr * vfrac[i1] * scale;
+  }
+
+  for (int i = 0; i < nlocal; i++)
+    theta[i] = (wvolume[i] > 0.0) ? (3.0 / wvolume[i]) * theta[i] : 0.0;
+
+  commflag = COMM_THETA;
+  comm->forward_comm(this);
+}
+
 /* ---------------------------------------------------------------------- */
 
 void BondBPMPeri::allocate()
@@ -288,6 +431,8 @@ void BondBPMPeri::allocate()
 
   memory->create(model, np1, "bond:model");
   memory->create(c, np1, "bond:c");
+  memory->create(kbulk, np1, "bond:kbulk");
+  memory->create(gshear, np1, "bond:gshear");
   memory->create(cut, np1, "bond:cut");
   memory->create(s00, np1, "bond:s00");
   memory->create(alpha, np1, "bond:alpha");
@@ -310,7 +455,8 @@ void BondBPMPeri::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
   int model_one;
-  double c_one = 0.0, cut_one = 0.0, s00_one = 0.0, alpha_one = 0.0;
+  double c_one = 0.0, kbulk_one = 0.0, gshear_one = 0.0;
+  double cut_one = 0.0, s00_one = 0.0, alpha_one = 0.0;
 
   if (strcmp(arg[1], "pmb") == 0) {
     // pmb <c> <horizon> <s00> <alpha>
@@ -323,16 +469,29 @@ void BondBPMPeri::coeff(int narg, char **arg)
     cut_one = utils::numeric(FLERR, arg[3], false, lmp);
     s00_one = utils::numeric(FLERR, arg[4], false, lmp);
     alpha_one = utils::numeric(FLERR, arg[5], false, lmp);
-    if (cut_one <= 0.0)
-      error->all(FLERR, 3, "Invalid horizon value {} for bond_style bpm/peri", cut_one);
+  } else if (strcmp(arg[1], "lps") == 0) {
+    // lps <K> <G> <horizon> <s00> <alpha>
+    if (narg != 7)
+      error->all(FLERR, 1,
+                 "Incorrect args for bond_style bpm/peri lps model (expected: <type> lps K G horizon "
+                 "s00 alpha)");
+    model_one = LPS;
+    kbulk_one = utils::numeric(FLERR, arg[2], false, lmp);
+    gshear_one = utils::numeric(FLERR, arg[3], false, lmp);
+    cut_one = utils::numeric(FLERR, arg[4], false, lmp);
+    s00_one = utils::numeric(FLERR, arg[5], false, lmp);
+    alpha_one = utils::numeric(FLERR, arg[6], false, lmp);
   } else {
     error->all(FLERR, 1, "Unknown bond_style bpm/peri model: {}", arg[1]);
   }
+  if (cut_one <= 0.0) error->all(FLERR, "Invalid horizon value {} for bond_style bpm/peri", cut_one);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     model[i] = model_one;
     c[i] = c_one;
+    kbulk[i] = kbulk_one;
+    gshear[i] = gshear_one;
     cut[i] = cut_one;
     s00[i] = s00_one;
     alpha[i] = alpha_one;
@@ -372,6 +531,18 @@ void BondBPMPeri::init_style()
       domain->lattice->xlattice != domain->lattice->zlattice)
     error->all(FLERR, Error::NOLASTLINE,
                "Bond style bpm/peri requires equal lattice spacing in x, y, and z");
+
+  // detect a state-based model (LPS) and pick a representative bulk modulus for
+  // the per-atom volumetric energy; the weighted volume is rebuilt on next use
+  state_based = 0;
+  kbulk_rep = 0.0;
+  wvolume_setup = 0;
+  for (int i = 1; i <= atom->nbondtypes; i++) {
+    if (setflag[i] && model[i] == LPS) {
+      state_based = 1;
+      kbulk_rep = kbulk[i];
+    }
+  }
 
   // peridynamics needs a per-atom nodal volume (vfrac); the user supplies it
   // via fix property/atom d_vfrac (uniform with set, or per-atom with read_data)
@@ -463,6 +634,8 @@ void BondBPMPeri::write_restart(FILE *fp)
 
   fwrite(&model[1], sizeof(int), atom->nbondtypes, fp);
   fwrite(&c[1], sizeof(double), atom->nbondtypes, fp);
+  fwrite(&kbulk[1], sizeof(double), atom->nbondtypes, fp);
+  fwrite(&gshear[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&cut[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&s00[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&alpha[1], sizeof(double), atom->nbondtypes, fp);
@@ -480,12 +653,16 @@ void BondBPMPeri::read_restart(FILE *fp)
   if (comm->me == 0) {
     utils::sfread(FLERR, &model[1], sizeof(int), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &c[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
+    utils::sfread(FLERR, &kbulk[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
+    utils::sfread(FLERR, &gshear[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &cut[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &s00[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &alpha[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
   }
   MPI_Bcast(&model[1], atom->nbondtypes, MPI_INT, 0, world);
   MPI_Bcast(&c[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&kbulk[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&gshear[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&cut[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&s00[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&alpha[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
@@ -494,14 +671,19 @@ void BondBPMPeri::read_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   forward communication of smin to ghost atoms (read by the break test)
+   forward communication of one per-atom array to ghosts, selected by commflag:
+   smin (break test), theta (LPS dilatation), or wvolume (LPS weighted volume)
 ------------------------------------------------------------------------- */
 
 int BondBPMPeri::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
-  double *smin = atom->dvector[index_smin];
+  double *src;
+  if (commflag == COMM_THETA) src = theta;
+  else if (commflag == COMM_WVOLUME) src = wvolume;
+  else src = atom->dvector[index_smin];
+
   int m = 0;
-  for (int i = 0; i < n; i++) buf[m++] = smin[list[i]];
+  for (int i = 0; i < n; i++) buf[m++] = src[list[i]];
   return m;
 }
 
@@ -509,8 +691,12 @@ int BondBPMPeri::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag
 
 void BondBPMPeri::unpack_forward_comm(int n, int first, double *buf)
 {
-  double *smin = atom->dvector[index_smin];
+  double *dst;
+  if (commflag == COMM_THETA) dst = theta;
+  else if (commflag == COMM_WVOLUME) dst = wvolume;
+  else dst = atom->dvector[index_smin];
+
   int m = 0;
   int last = first + n;
-  for (int i = first; i < last; i++) smin[i] = buf[m++];
+  for (int i = first; i < last; i++) dst[i] = buf[m++];
 }

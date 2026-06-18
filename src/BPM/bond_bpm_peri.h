@@ -40,10 +40,13 @@ class BondBPMPeri : public BondBPM {
 
  protected:
   // peridynamic constitutive models (internal ids; lower-case keywords in input)
-  enum { PMB };
+  enum { PMB, LPS };
+  // tags selecting which per-atom array the next forward_comm carries
+  enum { COMM_SMIN, COMM_THETA, COMM_WVOLUME };
 
   int *model;             // per bond type: constitutive model id
   double *c;              // PMB micromodulus c = 18 K / (pi delta^4)
+  double *kbulk, *gshear; // LPS bulk and shear moduli (per bond type)
   double *cut;            // horizon delta (per bond type)
   double *s00, *alpha;    // critical-stretch bond-break parameters (#984 rule)
 
@@ -56,8 +59,18 @@ class BondBPMPeri : public BondBPM {
   double *smin_new, *s0_new;
   int nmax;
 
+  // state-based (LPS) machinery: weighted volume (static) and dilatation theta
+  // (per step), both ghost-communicated; allocated only when LPS is in use
+  int state_based;        // 1 if any bond type uses a state-based model
+  int wvolume_setup;      // 1 once the static weighted volume has been computed
+  double kbulk_rep;       // bulk modulus for the per-atom volumetric energy
+  double *wvolume, *theta;
+  int commflag;           // selects the array packed by the next forward_comm
+
   void allocate();
   void store_data() override;
+  void compute_wvolume();
+  void compute_dilatation();
 };
 
 }    // namespace LAMMPS_NS

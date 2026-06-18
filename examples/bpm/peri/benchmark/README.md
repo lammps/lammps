@@ -46,7 +46,7 @@ compute the bond force and the short-range contact in the same pass.  The BPM
 implementation walks the bond list **once** (single visit, ~122/node, tag
 ordered) and the contact `pair_style bpm/peri` has its own short-range neighbor
 list, which on a fully bonded lattice is almost empty (all near pairs are
-censored as bonded).  So BPM does roughly half the bond work plus a nearly free
+excluded as bonded).  So BPM does roughly half the bond work plus a nearly free
 contact pass.  The breakdown (BPM, pmb): bond 0.69 s, pair 0.11 s, comm 0.02 s
 -- the forward communication of the dilatation/break state for the state-based
 models is a negligible fraction, not the bottleneck.

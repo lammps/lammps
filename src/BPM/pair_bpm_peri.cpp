@@ -17,7 +17,7 @@
 
    Short-range contact pair style for the BPM peridynamics model. It supplies
    the repulsive contact force between non-bonded near pairs (bonded pairs are
-   censored via the 1-2 special weight and handled by bond_style bpm/peri).
+   excluded via the 1-2 special weight and handled by bond_style bpm/peri).
    Companion to bond_style bpm/peri. Derived from the contact term in the PERI
    package pair_peri_pmb.cpp (Mike Parks, SNL).
 ------------------------------------------------------------------------- */
@@ -109,7 +109,7 @@ void PairBPMPeri::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
 
-      // skip bonded pairs (censored via the 1-2 special weight) and 1-3/1-4
+      // skip bonded pairs (excluded via the 1-2 special weight) and 1-3/1-4
       if (special_lj[sbmask(j)] == 0.0) continue;
       j &= NEIGHMASK;
 

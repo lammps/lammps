@@ -76,6 +76,16 @@ static const char cite_bpm_peri_plastic[] =
     " pages =   {1242--1258}\n"
     "}\n\n";
 
+// Linear partial-volume taper (Silling 2007): a bond whose reference length r0
+// is within half a lattice spacing of the horizon delta "sees" only part of the
+// partner's nodal volume.  Returns 1 well inside the horizon and 0.5 at delta.
+static inline double vfrac_taper(double r0, double delta, double half_lc)
+{
+  if (fabs(r0 - delta) <= half_lc)
+    return (-1.0 / (2.0 * half_lc)) * r0 + (1.0 + (delta - half_lc) / (2.0 * half_lc));
+  return 1.0;
+}
+
 /* ---------------------------------------------------------------------- */
 
 BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
@@ -117,8 +127,8 @@ BondBPMPeri::~BondBPMPeri()
   memory->destroy(theta);
   memory->destroy(tdnorm);
 
-  if (id_fix_property_peri && modify->nfix) {
-    modify->delete_fix(id_fix_property_peri);
+  if (id_fix_property_peri) {
+    if (modify->nfix) modify->delete_fix(id_fix_property_peri);
     delete[] id_fix_property_peri;
   }
 
@@ -218,7 +228,7 @@ void BondBPMPeri::compute(int eflag, int vflag)
 
   int i1, i2, itmp, n, type;
   double delx, dely, delz, rsq, r, r0, dr, stretch, fbond, ebond;
-  double delta, vfrac_scale, vfrac_eff;
+  double vfrac_scale, vfrac_eff;
 
   ev_init(eflag, vflag);
 
@@ -321,11 +331,7 @@ void BondBPMPeri::compute(int eflag, int vflag)
 
     // partial-volume correction: taper the nodal volume for bonds whose
     // reference length is within half a lattice spacing of the horizon
-    delta = cut[type];
-    if (fabs(r0 - delta) <= half_lc)
-      vfrac_scale = (-1.0 / (2.0 * half_lc)) * r0 + (1.0 + (delta - half_lc) / (2.0 * half_lc));
-    else
-      vfrac_scale = 1.0;
+    vfrac_scale = vfrac_taper(r0, cut[type], half_lc);
 
     // bond force and energy. The mean nodal volume keeps the bond Newton-third-
     // law balanced (equal and opposite); for uniform nodal volume this reduces to
@@ -498,10 +504,7 @@ void BondBPMPeri::compute_wvolume()
     int type = bondlist[n][2];
 
     double r0 = bondstore[n][0];
-    double delta = cut[type];
-    double scale = 1.0;
-    if (fabs(r0 - delta) <= half_lc)
-      scale = (-1.0 / (2.0 * half_lc)) * r0 + (1.0 + (delta - half_lc) / (2.0 * half_lc));
+    double scale = vfrac_taper(r0, cut[type], half_lc);
 
     if (i1 < nlocal) wvolume[i1] += r0 * vfrac[i2] * scale;
     if (i2 < nlocal) wvolume[i2] += r0 * vfrac[i1] * scale;
@@ -548,10 +551,7 @@ void BondBPMPeri::compute_dilatation()
     double dr = r - r0;
     if (fabs(dr) < NEAR_ZERO) dr = 0.0;
 
-    double delta = cut[type];
-    double scale = 1.0;
-    if (fabs(r0 - delta) <= half_lc)
-      scale = (-1.0 / (2.0 * half_lc)) * r0 + (1.0 + (delta - half_lc) / (2.0 * half_lc));
+    double scale = vfrac_taper(r0, cut[type], half_lc);
 
     if (i1 < nlocal) theta[i1] += dr * vfrac[i2] * scale;
     if (i2 < nlocal) theta[i2] += dr * vfrac[i1] * scale;
@@ -607,10 +607,7 @@ void BondBPMPeri::compute_plastic_state()
     double dr = r - r0;
     if (fabs(dr) < NEAR_ZERO) dr = 0.0;
 
-    double delta = cut[type];
-    double scale = 1.0;
-    if (fabs(r0 - delta) <= half_lc)
-      scale = (-1.0 / (2.0 * half_lc)) * r0 + (1.0 + (delta - half_lc) / (2.0 * half_lc));
+    double scale = vfrac_taper(r0, cut[type], half_lc);
 
     double dev = dr - 0.5 * (theta[i1] + theta[i2]) * r0 / 3.0;
     double edp = bondstore[n][1];
@@ -907,12 +904,8 @@ double BondBPMPeri::single(int type, double rsq, int i, int j, double &fforce)
   if (fabs(dr) < NEAR_ZERO) dr = 0.0;
   double stretch = (r0 > 0.0) ? dr / r0 : 0.0;
 
-  const double lc = domain->lattice->xlattice;
-  const double half_lc = 0.5 * lc;
-  double delta = cut[type];
-  double vfrac_scale = 1.0;
-  if (fabs(r0 - delta) <= half_lc)
-    vfrac_scale = (-1.0 / (2.0 * half_lc)) * r0 + (1.0 + (delta - half_lc) / (2.0 * half_lc));
+  const double half_lc = 0.5 * domain->lattice->xlattice;
+  double vfrac_scale = vfrac_taper(r0, cut[type], half_lc);
 
   double *vfrac = atom->dvector[index_vfrac];
   double vfrac_eff = 0.5 * (vfrac[i] + vfrac[j]);

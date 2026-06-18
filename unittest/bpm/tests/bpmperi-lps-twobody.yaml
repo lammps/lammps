@@ -38,6 +38,7 @@ variables: ! |
   c 1.0
   vfrac 1.0
   r0 1.0
+  kbulk 1.0
 pair_style: bpm/peri
 pair_coeff: ! |
   * * ${c} 1.5
@@ -46,6 +47,10 @@ bond_coeff: ! |
   1 lps 1.0 0.5 1.5 0.5 0.25
 run_segments: ! |-
   5 5 5
+analytic_enable: yes
+analytic_model: lps_force
+analytic_tol: 1e-09
+analytic_segment: -1
 run_pos: ! |2
     0   1  1.7932053270008376e-05  0.0000000000000000e+00  0.0000000000000000e+00
     0   2  1.0024820679467299e+00  0.0000000000000000e+00  0.0000000000000000e+00

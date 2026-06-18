@@ -139,6 +139,47 @@ static void check_lps_dilatation(const TestConfig &cfg, LAMMPS *lmp)
     expect_rel(expected, custom_value(lmp, "theta", 2), cfg.analytic_tol, "lps_dilatation atom 2");
 }
 
+// LPS single-bond force: for one bond the weighted volume cancels the nodal
+// volume, so the deviatoric (shear) term contributes nothing and the force
+// magnitude reduces to the purely volumetric |f| = 18*K*|stretch|/r0 (the shear
+// modulus G drops out for a single colinear bond -- there is no shear).  This
+// complements check_lps_dilatation: that one validates the dilatation theta,
+// this one validates the force assembled from theta and the weighted volume.
+// Variables provide the bulk modulus kbulk and the reference length r0.
+static void check_lps_force(const TestConfig &cfg, LAMMPS *lmp)
+{
+    const auto vars    = as_doubles(cfg);
+    const double kbulk = var_or(vars, "kbulk", 0.0);
+    const double r0    = var_or(vars, "r0", 0.0);
+    if (r0 <= 0.0) {
+        ADD_FAILURE() << "lps_force requires a positive r0 variable";
+        return;
+    }
+    const double stretch  = (separation(lmp, 1, 2) - r0) / r0;
+    const double expected = 18.0 * kbulk * std::fabs(stretch) / r0;
+
+    expect_rel(expected, force_mag(lmp, 1), cfg.analytic_tol, "lps_force atom 1");
+    expect_rel(expected, force_mag(lmp, 2), cfg.analytic_tol, "lps_force atom 2");
+}
+
+// bond_style bpm/zero: the defining property is that the bond exerts *no* force
+// regardless of stretch, while still tracking and breaking bonds.  This checks
+// both halves: the force on each bonded node is identically zero, and the live
+// global bond count matches the expected value (variable nbonds_expect) so that
+// the breaking machinery is exercised -- a run tuned to break the bond sets
+// nbonds_expect 0, an intact run sets it to the initial bond count.
+static void check_bpm_zero(const TestConfig &cfg, LAMMPS *lmp)
+{
+    const auto vars  = as_doubles(cfg);
+    const double tol = cfg.analytic_tol;
+    EXPECT_LE(force_mag(lmp, 1), tol) << "bpm_zero: force on atom 1 must be zero";
+    EXPECT_LE(force_mag(lmp, 2), tol) << "bpm_zero: force on atom 2 must be zero";
+
+    const double expect = var_or(vars, "nbonds_expect", -1.0);
+    if (expect >= 0.0)
+        EXPECT_EQ((double) lmp->atom->nbonds, expect) << "bpm_zero: unexpected surviving bond count";
+}
+
 void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
 {
     if (!cfg.analytic_enable) return;
@@ -151,6 +192,10 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         check_pmb_force(cfg, lmp);
     } else if (cfg.analytic_model == "lps_dilatation") {
         check_lps_dilatation(cfg, lmp);
+    } else if (cfg.analytic_model == "lps_force") {
+        check_lps_force(cfg, lmp);
+    } else if (cfg.analytic_model == "bpm_zero") {
+        check_bpm_zero(cfg, lmp);
     } else {
         ADD_FAILURE() << "unknown analytic_model: " << cfg.analytic_model;
     }

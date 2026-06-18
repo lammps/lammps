@@ -80,3 +80,8 @@ endfunction()
 add_executable(test_bpm_peri test_bpm_peri.cpp)
 target_link_libraries(test_bpm_peri PRIVATE lammps bpm_tests)
 register_bpm_tests(test_bpm_peri bpmperi BpmPeri)
+
+# BPM zero bond style: force-free topology/breaking style (same shared driver)
+add_executable(test_bpm_zero test_bpm_zero.cpp)
+target_link_libraries(test_bpm_zero PRIVATE lammps bpm_tests)
+register_bpm_tests(test_bpm_zero bpmzero BpmZero)

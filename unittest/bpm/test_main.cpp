@@ -15,7 +15,6 @@
 
 #include "atom.h"
 #include "../error_stats.h"
-#include "library.h"
 #include "pointers.h"
 #include "test_config.h"
 #include "test_config_reader.h"
@@ -114,6 +113,40 @@ void EXPECT_TORQUES(const std::string &name, Atom *atom, const std::vector<coord
         EXPECT_FP_LE_WITH_EPS(t[i][0], t_ref[tag[i]].x, epsilon);
         EXPECT_FP_LE_WITH_EPS(t[i][1], t_ref[tag[i]].y, epsilon);
         EXPECT_FP_LE_WITH_EPS(t[i][2], t_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
+}
+
+void EXPECT_OMEGA(const std::string &name, Atom *atom, const std::vector<coord_t> &w_ref,
+                  double epsilon)
+{
+    SCOPED_TRACE("EXPECT_OMEGA: " + name);
+    double **w       = atom->omega;
+    tagint *tag      = atom->tag;
+    const int nlocal = atom->nlocal;
+    ASSERT_EQ(nlocal + 1, w_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(w[i][0], w_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(w[i][1], w_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(w[i][2], w_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
+}
+
+void EXPECT_ANGMOM(const std::string &name, Atom *atom, const std::vector<coord_t> &l_ref,
+                   double epsilon)
+{
+    SCOPED_TRACE("EXPECT_ANGMOM: " + name);
+    double **angmom  = atom->angmom;
+    tagint *tag      = atom->tag;
+    const int nlocal = atom->nlocal;
+    ASSERT_EQ(nlocal + 1, l_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(angmom[i][0], l_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(angmom[i][1], l_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(angmom[i][2], l_ref[tag[i]].z, epsilon);
     }
     if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
 }
@@ -281,17 +314,6 @@ int main(int argc, char **argv)
     }
 
     int rv = RUN_ALL_TESTS();
-
-    // release global resources (Kokkos, embedded Python, plugins) like the
-    // standalone executable does. without this, a test that initialized
-    // Kokkos leaves its teardown to static destructors at program exit,
-    // which run in undefined order and crash (e.g. host-only KOKKOS builds
-    // segfault in a fence call during static destruction).
-
-    lammps_kokkos_finalize();
-    lammps_python_finalize();
-    lammps_plugin_finalize();
-
     MPI_Finalize();
     return rv;
 }

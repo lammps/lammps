@@ -1,18 +1,5 @@
 # -*- CMake -*- file for tests of classes computing or modifying forces
 
-find_package(YAML)
-if(NOT YAML_FOUND)
-  set(YAML_URL "https://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz" CACHE STRING "URL for libyaml tarball")
-  set(YAML_SHA256 "c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4" CACHE STRING "SHA256 checksum of libyaml tarball")
-  mark_as_advanced(YAML_URL)
-  mark_as_advanced(YAML_SHA256)
-
-  # download and build a local copy of libyaml
-  include(ExternalCMakeProject)
-  ExternalCMakeProject(libyaml ${YAML_URL} ${YAML_SHA256} yaml . CMakeLists.libyaml)
-  add_library(Yaml::Yaml ALIAS yaml)
-endif()
-
 function(extract_tags out yaml_file)
   file(STRINGS ${yaml_file} TAGS_LINE REGEX "^tags:")
   string(REPLACE "tags:" "" TAGS_LINE "${TAGS_LINE}")
@@ -33,7 +20,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 else()
   set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 endif()
-add_library(style_tests STATIC yaml_writer.cpp error_stats.cpp test_config_reader.cpp test_main.cpp)
+add_library(style_tests STATIC ../yaml_writer.cpp ../error_stats.cpp test_config_reader.cpp test_main.cpp)
 if(YAML_FOUND)
   target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
 else()

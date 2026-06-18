@@ -1,0 +1,127 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS Development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+// Closed-form ("analytic") reference solutions for the BPM verification tests.
+// Each model is selected by name from the YAML 'analytic_model' key and reads
+// its parameters from the 'variables' block, so new functional forms can be
+// exercised purely from YAML once implemented here.
+
+#include "test_analytic_models.h"
+
+#include "atom.h"
+#include "lammps.h"
+
+#include "gtest/gtest.h"
+
+#include <cmath>
+#include <map>
+#include <string>
+
+using namespace LAMMPS_NS;
+
+// parse the variables block into name->double (non-numeric values are skipped)
+static std::map<std::string, double> as_doubles(const TestConfig &cfg)
+{
+    std::map<std::string, double> vars;
+    for (const auto &v : cfg.variables) {
+        try {
+            vars[v.first] = std::stod(v.second);
+        } catch (std::exception &) {
+            // ignore non-numeric variables
+        }
+    }
+    return vars;
+}
+
+static double var_or(const std::map<std::string, double> &vars, const std::string &name,
+                     double fallback)
+{
+    auto it = vars.find(name);
+    return (it != vars.end()) ? it->second : fallback;
+}
+
+// local index of the atom with the given tag, or -1 if not present on this rank
+static int find_local(LAMMPS *lmp, tagint id)
+{
+    for (int i = 0; i < lmp->atom->nlocal; ++i)
+        if (lmp->atom->tag[i] == id) return i;
+    return -1;
+}
+
+// magnitude of the force on the atom with the given tag (0 if not on this rank)
+static double force_mag(LAMMPS *lmp, tagint id)
+{
+    const int i = find_local(lmp, id);
+    if (i < 0) return 0.0;
+    double *f = lmp->atom->f[i];
+    return std::sqrt(f[0] * f[0] + f[1] * f[1] + f[2] * f[2]);
+}
+
+// current separation between atoms with tags id1 and id2 (single rank)
+static double separation(LAMMPS *lmp, tagint id1, tagint id2)
+{
+    const int i = find_local(lmp, id1);
+    const int j = find_local(lmp, id2);
+    if ((i < 0) || (j < 0)) return 0.0;
+    double **x = lmp->atom->x;
+    const double dx = x[i][0] - x[j][0];
+    const double dy = x[i][1] - x[j][1];
+    const double dz = x[i][2] - x[j][2];
+    return std::sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+static void expect_rel(double expected, double actual, double tol, const std::string &what)
+{
+    const double denom  = std::max(std::fabs(expected), 1.0e-300);
+    const double relerr = std::fabs(actual - expected) / denom;
+    EXPECT_LE(relerr, tol) << what << ": expected " << expected << " got " << actual;
+}
+
+// PMB single-bond force: for one bond between atoms 1 and 2 the equal-and-
+// opposite force magnitude on each node is |f| = c * vfrac * |stretch|, with
+// stretch = (r - r0)/r0 (the bond-direction normalization cancels the 1/r).
+// The reference length r0 is the initial separation (variable r0); the current
+// separation r is read live, so the law is checked at any run segment as the
+// two nodes oscillate.  Variables provide c, vfrac and r0.
+static void check_pmb_force(const TestConfig &cfg, LAMMPS *lmp)
+{
+    const auto vars    = as_doubles(cfg);
+    const double c     = var_or(vars, "c", 0.0);
+    const double vfrac = var_or(vars, "vfrac", 0.0);
+    const double r0    = var_or(vars, "r0", 0.0);
+    if (r0 <= 0.0) {
+        ADD_FAILURE() << "pmb_force requires a positive r0 variable";
+        return;
+    }
+    const double r        = separation(lmp, 1, 2);
+    const double stretch  = (r - r0) / r0;
+    const double expected = c * vfrac * std::fabs(stretch);
+
+    expect_rel(expected, force_mag(lmp, 1), cfg.analytic_tol, "pmb_force atom 1");
+    expect_rel(expected, force_mag(lmp, 2), cfg.analytic_tol, "pmb_force atom 2");
+}
+
+void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
+{
+    if (!cfg.analytic_enable) return;
+    // a negative analytic_segment means "the last segment"
+    const int target =
+        (cfg.analytic_segment < 0) ? (int) cfg.run_segments.size() - 1 : cfg.analytic_segment;
+    if (segment != target) return;
+
+    if (cfg.analytic_model == "pmb_force") {
+        check_pmb_force(cfg, lmp);
+    } else {
+        ADD_FAILURE() << "unknown analytic_model: " << cfg.analytic_model;
+    }
+}

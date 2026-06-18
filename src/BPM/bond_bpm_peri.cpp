@@ -98,7 +98,7 @@ void BondBPMPeri::store_data()
       if (type <= 0) continue;
 
       j = atom->map(atom->bond_atom[i][m]);
-      if (j == -1) error->one(FLERR, "Atom missing in BPM bond");
+      if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Atom missing in BPM bond");
 
       delx = x[i][0] - x[j][0];
       dely = x[i][1] - x[j][1];
@@ -226,17 +226,18 @@ void BondBPMPeri::coeff(int narg, char **arg)
   if (strcmp(arg[1], "pmb") == 0) {
     // pmb <c> <horizon> <s00> <alpha>
     if (narg != 6)
-      error->all(FLERR,
-                 "Incorrect args for bond_style bpm/peri pmb model "
-                 "(expected: <type> pmb c horizon s00 alpha)");
+      error->all(FLERR, 1,
+                 "Incorrect args for bond_style bpm/peri pmb model (expected: <type> pmb c horizon "
+                 "s00 alpha)");
     model_one = PMB;
     c_one = utils::numeric(FLERR, arg[2], false, lmp);
     cut_one = utils::numeric(FLERR, arg[3], false, lmp);
     s00_one = utils::numeric(FLERR, arg[4], false, lmp);
     alpha_one = utils::numeric(FLERR, arg[5], false, lmp);
-    if (cut_one <= 0.0) error->all(FLERR, "Invalid horizon for bond_style bpm/peri");
+    if (cut_one <= 0.0)
+      error->all(FLERR, 3, "Invalid horizon value {} for bond_style bpm/peri", cut_one);
   } else {
-    error->all(FLERR, "Unknown bond_style bpm/peri model: {}", arg[1]);
+    error->all(FLERR, 1, "Unknown bond_style bpm/peri model: {}", arg[1]);
   }
 
   int count = 0;
@@ -264,7 +265,7 @@ void BondBPMPeri::settings(int narg, char **arg)
 
   // bpm/peri has no extra style keywords yet; reject anything left over
   for (auto iarg : leftover_iarg)
-    error->all(FLERR, "Illegal bond_style bpm/peri argument: {}", arg[iarg]);
+    error->all(FLERR, iarg, "Illegal bond_style bpm/peri argument: {}", arg[iarg]);
 }
 
 /* ----------------------------------------------------------------------
@@ -280,7 +281,7 @@ void BondBPMPeri::init_style()
   int flag, cols;
   int index_vfrac = atom->find_custom("vfrac", flag, cols);
   if (index_vfrac < 0 || flag != 1 || cols != 0)
-    error->all(FLERR,
+    error->all(FLERR, Error::NOLASTLINE,
                "Bond style bpm/peri requires a per-atom vfrac property; add "
                "'fix <ID> <group> property/atom d_vfrac ghost yes' before bond_style");
 
@@ -296,15 +297,16 @@ void BondBPMPeri::init_style()
     index_s0 = atom->find_custom("s0", flag, cols);
   }
   index_smin = atom->find_custom("smin", flag, cols);
-  if (index_smin < 0) error->all(FLERR, "Bond style bpm/peri internal error: missing d_smin storage");
+  if (index_smin < 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Bond style bpm/peri internal error: missing d_smin storage");
 
-  // compatibility handshake: warn (do not error) when the matching contact pair
-  // style is absent -- a pure-bond peridynamics run is legal
-  if (comm->me == 0)
-    if (!force->pair || !utils::strmatch(force->pair_style, "^bpm/peri"))
-      error->warning(FLERR,
-                     "Bond style bpm/peri used without pair style bpm/peri; "
-                     "running without short-range peridynamic contact");
+  // peridynamics needs the short-range contact pair; require pair_style bpm/peri.
+  // A deliberate pair_style zero is also accepted so the bond style can be driven
+  // in isolation by the test harness (and the explicit no-contact regime). This
+  // blocks accidental misuse without forbidding a deliberate opt-out.
+  if (!force->pair || (!force->pair_match("bpm/peri", 0) && !force->pair_match("zero", 1)))
+    error->all(FLERR, Error::NOLASTLINE, "Bond style bpm/peri requires pair style bpm/peri");
 }
 
 /* ---------------------------------------------------------------------- */

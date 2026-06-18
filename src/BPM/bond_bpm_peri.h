@@ -45,10 +45,10 @@ class BondBPMPeri : public BondBPM {
   double *cut;            // horizon delta (per bond type)
   double *s00, *alpha;    // critical-stretch bond-break parameters (#984 rule)
 
-  // internal per-atom storage (fix property/atom), created on demand:
-  // s0   = diagnostic critical stretch, smin = min (most compressive) stretch
+  // per-atom property/atom storage: vfrac (user-supplied nodal volume) and the
+  // internal critical-stretch bookkeeping s0 (diagnostic) / smin (break state)
   char *id_fix_property_peri;
-  int index_s0, index_smin;
+  int index_vfrac, index_s0, index_smin;
 
   void allocate();
   void store_data() override;

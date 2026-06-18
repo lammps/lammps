@@ -27,6 +27,7 @@
 #include "error.h"
 #include "fix_bond_history.h"
 #include "force.h"
+#include "lattice.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -37,6 +38,7 @@
 #include <cstring>
 
 static constexpr double EPSILON = 1e-10;
+static constexpr double NEAR_ZERO = 2.2204e-16;
 
 using namespace LAMMPS_NS;
 
@@ -114,8 +116,9 @@ void BondBPMPeri::store_data()
 }
 
 /* ----------------------------------------------------------------------
-   Stage 0 scaffold: build/store bonds and apply ZERO force.
-   Forces, energies, and #984 breaking arrive in later stages.
+   PMB (prototype microelastic brittle) pairwise force. Bonds do not break
+   yet (Stage 1a); the per-type-pair (#984) critical-stretch breaking and the
+   smin/s0 bookkeeping arrive in Stage 1b.
 ------------------------------------------------------------------------- */
 
 void BondBPMPeri::compute(int eflag, int vflag)
@@ -124,7 +127,8 @@ void BondBPMPeri::compute(int eflag, int vflag)
   pre_compute();
 
   int i1, i2, itmp, n, type;
-  double delx, dely, delz, rsq, r, r0, fbond, ebond;
+  double delx, dely, delz, rsq, r, r0, dr, stretch, fbond, ebond;
+  double delta, vfrac_scale, vfrac_eff;
 
   ev_init(eflag, vflag);
 
@@ -137,6 +141,10 @@ void BondBPMPeri::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   double **bondstore = fix_bond_history->bondstore;
+  double *vfrac = atom->dvector[index_vfrac];
+
+  const double lc = domain->lattice->xlattice;
+  const double half_lc = 0.5 * lc;
 
   for (n = 0; n < nbondlist; n++) {
 
@@ -168,9 +176,27 @@ void BondBPMPeri::compute(int eflag, int vflag)
       process_new(n, i1, i2);
     }
 
-    // Stage 0: no force, no breaking yet
-    fbond = 0.0;
-    ebond = 0.0;
+    dr = r - r0;
+    if (fabs(dr) < NEAR_ZERO) dr = 0.0;    // avoid roundoff noise
+    stretch = dr / r0;
+
+    // partial-volume correction: taper the nodal volume for bonds whose
+    // reference length is within half a lattice spacing of the horizon
+    delta = cut[type];
+    if (fabs(r0 - delta) <= half_lc)
+      vfrac_scale = (-1.0 / (2.0 * half_lc)) * r0 + (1.0 + (delta - half_lc) / (2.0 * half_lc));
+    else
+      vfrac_scale = 1.0;
+
+    // PMB bond force. Use the mean nodal volume so the bond is Newton-third-law
+    // balanced (equal and opposite); this reduces to legacy's vfrac[j] form when
+    // the nodal volume is uniform (the validated regime). Legacy applies vfrac[j]
+    // to i and vfrac[i] to j, which conserves momentum only for uniform volumes.
+    vfrac_eff = 0.5 * (vfrac[i1] + vfrac[i2]);
+    if (r > 0.0)
+      fbond = -(c[type] * vfrac_eff * vfrac_scale * stretch) / r;
+    else
+      fbond = 0.0;
 
     if (newton_bond || i1 < nlocal) {
       f[i1][0] += delx * fbond;
@@ -183,6 +209,7 @@ void BondBPMPeri::compute(int eflag, int vflag)
       f[i2][2] -= delz * fbond;
     }
 
+    ebond = 0.5 * c[type] * vfrac_eff * vfrac_scale * stretch * dr;
     if (evflag) ev_tally(i1, i2, nlocal, newton_bond, ebond, fbond, delx, dely, delz);
   }
 
@@ -276,10 +303,18 @@ void BondBPMPeri::init_style()
 {
   BondBPM::init_style();
 
+  // the partial-volume correction needs a uniform cubic lattice spacing
+  if (!domain->lattice)
+    error->all(FLERR, Error::NOLASTLINE, "Bond style bpm/peri requires a lattice be defined");
+  if (domain->lattice->xlattice != domain->lattice->ylattice ||
+      domain->lattice->xlattice != domain->lattice->zlattice)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Bond style bpm/peri requires equal lattice spacing in x, y, and z");
+
   // peridynamics needs a per-atom nodal volume (vfrac); the user supplies it
   // via fix property/atom d_vfrac (uniform with set, or per-atom with read_data)
   int flag, cols;
-  int index_vfrac = atom->find_custom("vfrac", flag, cols);
+  index_vfrac = atom->find_custom("vfrac", flag, cols);
   if (index_vfrac < 0 || flag != 1 || cols != 0)
     error->all(FLERR, Error::NOLASTLINE,
                "Bond style bpm/peri requires a per-atom vfrac property; add "
@@ -311,18 +346,35 @@ void BondBPMPeri::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double BondBPMPeri::single(int type, double /*rsq*/, int i, int j, double &fforce)
+double BondBPMPeri::single(int type, double rsq, int i, int j, double &fforce)
 {
-  if (type <= 0) return 0.0;
+  if (type <= 0) {
+    fforce = 0.0;
+    return 0.0;
+  }
 
   double r0 = 0.0;
   for (int n = 0; n < atom->num_bond[i]; n++)
     if (atom->bond_atom[i][n] == atom->tag[j]) r0 = fix_bond_history->get_atom_value(i, n, 0);
 
-  // Stage 0: zero force/energy
-  fforce = 0.0;
+  double r = sqrt(rsq);
+  double dr = r - r0;
+  if (fabs(dr) < NEAR_ZERO) dr = 0.0;
+  double stretch = (r0 > 0.0) ? dr / r0 : 0.0;
+
+  const double lc = domain->lattice->xlattice;
+  const double half_lc = 0.5 * lc;
+  double delta = cut[type];
+  double vfrac_scale = 1.0;
+  if (fabs(r0 - delta) <= half_lc)
+    vfrac_scale = (-1.0 / (2.0 * half_lc)) * r0 + (1.0 + (delta - half_lc) / (2.0 * half_lc));
+
+  double *vfrac = atom->dvector[index_vfrac];
+  double vfrac_eff = 0.5 * (vfrac[i] + vfrac[j]);
+
+  fforce = (r > 0.0) ? -(c[type] * vfrac_eff * vfrac_scale * stretch) / r : 0.0;
   svector[0] = r0;
-  return 0.0;
+  return 0.5 * c[type] * vfrac_eff * vfrac_scale * stretch * dr;
 }
 
 /* ----------------------------------------------------------------------

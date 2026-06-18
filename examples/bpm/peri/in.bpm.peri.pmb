@@ -23,9 +23,9 @@ mass            * 2.75e-7
 fix             vol all property/atom d_vfrac ghost yes
 set             group all d_vfrac 1.25e-10
 
-# no short-range contact in this scaffold (pair_style bpm/peri arrives in Stage 2)
-pair_style      zero 0.0012
-pair_coeff      * *
+# short-range contact (repulsion between non-bonded near pairs)
+pair_style      bpm/peri
+pair_coeff      * * 1.6863e22 0.0011
 
 # create the peridynamic bond set within the horizon
 create_bonds    many all all 1 0.0 0.0011

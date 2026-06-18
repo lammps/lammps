@@ -551,7 +551,7 @@ void BondBPMPeri::init_style()
   if (index_vfrac < 0 || flag != 1 || cols != 0)
     error->all(FLERR, Error::NOLASTLINE,
                "Bond style bpm/peri requires a per-atom vfrac property; add "
-               "'fix <ID> <group> property/atom d_vfrac ghost yes' before bond_style");
+               "'fix <ID> all property/atom d_vfrac ghost yes' before bond_style");
 
   // internal critical-stretch bookkeeping: s0 (diagnostic) and smin (break
   // state); auto-create the fix property/atom if it does not already exist

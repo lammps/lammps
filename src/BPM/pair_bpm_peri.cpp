@@ -218,7 +218,7 @@ void PairBPMPeri::init_style()
   if (index_vfrac < 0 || flag != 1 || cols != 0)
     error->all(FLERR, Error::NOLASTLINE,
                "Pair style bpm/peri requires a per-atom vfrac property; add "
-               "'fix <ID> <group> property/atom d_vfrac ghost yes'");
+               "'fix <ID> all property/atom d_vfrac ghost yes'");
 
   // handshake: reject a non-bpm/peri bond style. The check tolerates force->bond
   // being unset because this runs during create_bonds (before bond_style in the

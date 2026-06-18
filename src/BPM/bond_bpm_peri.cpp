@@ -50,6 +50,7 @@ BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
     BondBPM(_lmp), model(nullptr), c(nullptr), kbulk(nullptr), gshear(nullptr), lambda(nullptr),
     tau(nullptr), yieldstress(nullptr), cut(nullptr), s00(nullptr), alpha(nullptr),
     id_fix_property_peri(nullptr), index_vfrac(-1), index_s0(-1), index_smin(-1), index_lambda(-1),
+    index_vinter(-1),
     smin_new(nullptr), s0_new(nullptr), nmax(0), state_based(0), wvolume_setup(0), kbulk_rep(0.0),
     wvolume(nullptr), theta(nullptr), commflag(COMM_SMIN), plastic(0), tdnorm(nullptr),
     pointwise_yield(0.0), gshear_rep(0.0)
@@ -112,6 +113,14 @@ void BondBPMPeri::store_data()
   double delx, dely, delz, r;
   double **x = atom->x;
   int **bond_type = atom->bond_type;
+  double *vfrac = atom->dvector[index_vfrac];
+  double *vinter = atom->dvector[index_vinter];
+
+  // vinter[i] = total reference interaction volume (sum of partner nodal volumes),
+  // captured once here at the reference configuration for the damage diagnostic.
+  // Under newton bond off every bond is stored at both endpoints, so each owned
+  // atom sees all its bonds locally.
+  for (i = 0; i < atom->nlocal; i++) vinter[i] = 0.0;
 
   for (i = 0; i < atom->nlocal; i++) {
     for (m = 0; m < atom->num_bond[i]; m++) {
@@ -135,6 +144,8 @@ void BondBPMPeri::store_data()
 
       // zero any evolving history slots (e.g. the VES deviator extensions)
       for (int a = 1; a < nhistory; a++) fix_bond_history->update_atom_value(i, m, a, 0.0);
+
+      vinter[i] += vfrac[j];
     }
   }
 }
@@ -786,19 +797,22 @@ void BondBPMPeri::init_style()
                "Bond style bpm/peri requires a per-atom vfrac property; add "
                "'fix <ID> all property/atom d_vfrac ghost yes' before bond_style");
 
-  // internal critical-stretch bookkeeping: s0 (diagnostic) and smin (break
-  // state), plus the EPS accumulated plastic multiplier lambdaValue (d_lambda).
-  // Auto-create each field that does not already exist, so a user may pre-declare
-  // any of them -- e.g. d_lambda for dumping -- and the bond style reuses it. On
-  // restart the property/atom fix is restored before init_style, so the stored
-  // s0/smin values are kept and only freshly created fields get the sentinels.
+  // internal per-atom bookkeeping: s0 (diagnostic) and smin (break state), the
+  // reference interaction volume vinter (for the damage diagnostic, all models),
+  // and the EPS accumulated plastic multiplier lambdaValue (d_lambda). Auto-create
+  // each field that does not already exist, so a user may pre-declare any of them
+  // -- e.g. d_lambda for dumping -- and the bond style reuses it. On restart the
+  // property/atom fix is restored before init_style, so the stored s0/smin/vinter
+  // values are kept and only freshly created fields get the sentinels.
   bool need_s0 = (atom->find_custom("s0", flag, cols) < 0);
   bool need_smin = (atom->find_custom("smin", flag, cols) < 0);
+  bool need_vinter = (atom->find_custom("vinter", flag, cols) < 0);
   bool need_lambda = (plastic && (atom->find_custom("lambda", flag, cols) < 0));
-  if ((need_s0 || need_smin || need_lambda) && !id_fix_property_peri) {
+  if ((need_s0 || need_smin || need_vinter || need_lambda) && !id_fix_property_peri) {
     std::string fields;
     if (need_s0) fields += " d_s0";
     if (need_smin) fields += " d_smin";
+    if (need_vinter) fields += " d_vinter";
     if (need_lambda) fields += " d_lambda";
     id_fix_property_peri = utils::strdup("BPM_PERI_PROPERTY_ATOM");
     modify->add_fix(fmt::format("{} all property/atom{} ghost yes writedata no",
@@ -807,9 +821,10 @@ void BondBPMPeri::init_style()
 
   index_s0 = atom->find_custom("s0", flag, cols);
   index_smin = atom->find_custom("smin", flag, cols);
-  if ((index_s0 < 0) || (index_smin < 0))
+  index_vinter = atom->find_custom("vinter", flag, cols);
+  if ((index_s0 < 0) || (index_smin < 0) || (index_vinter < 0))
     error->all(FLERR, Error::NOLASTLINE,
-               "Bond style bpm/peri internal error: missing d_s0/d_smin storage");
+               "Bond style bpm/peri internal error: missing d_s0/d_smin/d_vinter storage");
   if (plastic) {
     index_lambda = atom->find_custom("lambda", flag, cols);
     if (index_lambda < 0)

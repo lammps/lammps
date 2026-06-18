@@ -70,6 +70,7 @@ class BondBPMPeri : public BondBPM {
   int wvolume_setup;      // 1 once the static weighted volume has been computed
   double kbulk_rep;       // bulk modulus for the per-atom volumetric energy
   double *wvolume, *theta;
+  double *winv;           // 1/wvolume, precomputed each step (avoids per-bond divides)
   int commflag;           // selects the array packed by the next forward_comm
 
   // EPS plasticity: per-atom deviatoric force-state norm (ghost-communicated),

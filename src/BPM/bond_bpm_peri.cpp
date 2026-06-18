@@ -94,7 +94,7 @@ BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
     id_fix_property_peri(nullptr), index_vfrac(-1), index_s0(-1), index_smin(-1), index_lambda(-1),
     index_vinter(-1), index_dtheta(-1),
     smin_new(nullptr), s0_new(nullptr), nmax(0), state_based(0), wvolume_setup(0), kbulk_rep(0.0),
-    wvolume(nullptr), theta(nullptr), commflag(COMM_SMIN), plastic(0), tdnorm(nullptr),
+    wvolume(nullptr), theta(nullptr), winv(nullptr), commflag(COMM_SMIN), plastic(0), tdnorm(nullptr),
     pointwise_yield(0.0), gshear_rep(0.0)
 {
   if (lmp->citeme) lmp->citeme->add(cite_bpm_peri);
@@ -125,6 +125,7 @@ BondBPMPeri::~BondBPMPeri()
   memory->destroy(s0_new);
   memory->destroy(wvolume);
   memory->destroy(theta);
+  memory->destroy(winv);
   memory->destroy(tdnorm);
 
   if (id_fix_property_peri) {
@@ -216,8 +217,10 @@ void BondBPMPeri::compute(int eflag, int vflag)
     if (state_based) {
       memory->destroy(wvolume);
       memory->destroy(theta);
+      memory->destroy(winv);
       memory->create(wvolume, nmax, "bond:wvolume");
       memory->create(theta, nmax, "bond:theta");
+      memory->create(winv, nmax, "bond:winv");
       wvolume_setup = 0;    // arrays reallocated -> rebuild the weighted volume
     }
     if (plastic) {
@@ -263,6 +266,11 @@ void BondBPMPeri::compute(int eflag, int vflag)
       comm->forward_comm(this);
     }
     compute_dilatation();
+
+    // precompute 1/wvolume once per atom (incl. ghosts) so the per-bond force
+    // and plastic-state loops use multiplies instead of repeated divisions
+    int ntotal = nlocal + atom->nghost;
+    for (int i = 0; i < ntotal; i++) winv[i] = (wvolume[i] > 0.0) ? 1.0 / wvolume[i] : 0.0;
 
     // volumetric part of the LPS energy (per atom); the deviatoric part is
     // tallied per bond in the force loop below
@@ -338,31 +346,31 @@ void BondBPMPeri::compute(int eflag, int vflag)
     // legacy's vfrac[j] convention (which conserves momentum only when uniform).
     vfrac_eff = 0.5 * (vfrac[i1] + vfrac[i2]);
     if (model[type] == LPS) {
-      const double wv1 = wvolume[i1], wv2 = wvolume[i2];
+      const double winv1 = winv[i1], winv2 = winv[i2];
       const double rinv0 = 1.0 / r0;    // isotropic influence function omega = 1/r0
       double rk = 0.0;
       ebond = 0.0;
-      if ((wv1 > 0.0) && (wv2 > 0.0)) {
+      if ((winv1 > 0.0) && (winv2 > 0.0)) {
         rk = (3.0 * kbulk[type] - 5.0 * gshear[type]) * vfrac_eff * vfrac_scale *
-            (theta[i1] / wv1 + theta[i2] / wv2);
+            (theta[i1] * winv1 + theta[i2] * winv2);
         rk += 15.0 * gshear[type] * vfrac_eff * vfrac_scale * rinv0 *
-            (1.0 / wv1 + 1.0 / wv2) * dr;
+            (winv1 + winv2) * dr;
         // deviatoric energy per bond (vanishes for a pure dilatation)
         const double dev1 = dr - theta[i1] * r0 / 3.0;
         const double dev2 = dr - theta[i2] * r0 / 3.0;
         ebond = 0.25 * 15.0 * gshear[type] * vfrac_eff * vfrac_scale * rinv0 *
-            (dev1 * dev1 / wv1 + dev2 * dev2 / wv2);
+            (dev1 * dev1 * winv1 + dev2 * dev2 * winv2);
       }
       fbond = (r > 0.0) ? -(rk / r) : 0.0;
     } else if (model[type] == VES) {
       // viscoelastic: elastic dilatation (3K*theta) plus a relaxing deviatoric
       // term with a per-bond back-extension recurrence (one symmetric history)
-      const double wv1 = wvolume[i1], wv2 = wvolume[i2];
+      const double winv1 = winv[i1], winv2 = winv[i2];
       const double rinv0 = 1.0 / r0;
       double rk = 0.0;
       ebond = 0.0;
-      if ((wv1 > 0.0) && (wv2 > 0.0)) {
-        rk = 3.0 * kbulk[type] * vfrac_eff * vfrac_scale * (theta[i1] / wv1 + theta[i2] / wv2);
+      if ((winv1 > 0.0) && (winv2 > 0.0)) {
+        rk = 3.0 * kbulk[type] * vfrac_eff * vfrac_scale * (theta[i1] * winv1 + theta[i2] * winv2);
 
         const double dev = dr - 0.5 * (theta[i1] + theta[i2]) * r0 / 3.0;
         const double c1 = tau[type] / update->dt;
@@ -375,7 +383,7 @@ void BondBPMPeri::compute(int eflag, int vflag)
 
         const double lam = lambda[type];
         const double gfac =
-            15.0 * gshear[type] * vfrac_eff * vfrac_scale * rinv0 * (1.0 / wv1 + 1.0 / wv2);
+            15.0 * gshear[type] * vfrac_eff * vfrac_scale * rinv0 * (winv1 + winv2);
         rk += gfac * ((1.0 - lam) * dev + lam * (dev - edb));
         ebond = 0.25 * gfac * ((1.0 - lam) * dev * dev + lam * (dev - edb) * (dev - edb));
 
@@ -389,18 +397,18 @@ void BondBPMPeri::compute(int eflag, int vflag)
       // state radially returned onto the yield surface. The per-atom deviatoric
       // force-state norm and yield state are precomputed in compute_plastic_state;
       // the per-bond elastic/plastic split (edp) evolves each step.
-      const double wv1 = wvolume[i1], wv2 = wvolume[i2];
+      const double winv1 = winv[i1], winv2 = winv[i2];
       const double rinv0 = 1.0 / r0;
       double rk = 0.0;
       ebond = 0.0;
-      if ((wv1 > 0.0) && (wv2 > 0.0)) {
+      if ((winv1 > 0.0) && (winv2 > 0.0)) {
         const double dev = dr - 0.5 * (theta[i1] + theta[i2]) * r0 / 3.0;
         const double edp = bondstore[n][1];
-        rk = 3.0 * kbulk[type] * (theta[i1] / wv1 + theta[i2] / wv2);
+        rk = 3.0 * kbulk[type] * (theta[i1] * winv1 + theta[i2] * winv2);
 
         // trial deviatoric force state; radially return it onto the yield surface
         // when the (symmetric) bond force-state norm exceeds the yield norm
-        const double tdtrial = 15.0 * gshear[type] * rinv0 * (1.0 / wv1 + 1.0 / wv2) * (dev - edp);
+        const double tdtrial = 15.0 * gshear[type] * rinv0 * (winv1 + winv2) * (dev - edp);
         const double tdnorm_b = 0.5 * (tdnorm[i1] + tdnorm[i2]);
         const double yieldnorm = sqrt(2.0 * pointwise_yield);
         double rkdev = tdtrial;
@@ -418,7 +426,7 @@ void BondBPMPeri::compute(int eflag, int vflag)
         rk += rkdev;
         // recoverable deviatoric elastic energy uses the returned elastic extension
         const double edev = dev - edp_new;
-        ebond = 0.25 * 15.0 * gshear[type] * rinv0 * (1.0 / wv1 + 1.0 / wv2) * edev * edev *
+        ebond = 0.25 * 15.0 * gshear[type] * rinv0 * (winv1 + winv2) * edev * edev *
             vfrac_eff * vfrac_scale;
 
         // write back the evolving plastic deviator extension for the next step
@@ -603,8 +611,8 @@ void BondBPMPeri::compute_plastic_state()
     int type = bondlist[n][2];
     if (model[type] != EPS) continue;
 
-    const double wv1 = wvolume[i1], wv2 = wvolume[i2];
-    if ((wv1 <= 0.0) || (wv2 <= 0.0)) continue;
+    const double winv1 = winv[i1], winv2 = winv[i2];
+    if ((winv1 <= 0.0) || (winv2 <= 0.0)) continue;
 
     double delx = x[i1][0] - x[i2][0];
     double dely = x[i1][1] - x[i2][1];
@@ -618,7 +626,7 @@ void BondBPMPeri::compute_plastic_state()
 
     double dev = dr - 0.5 * (theta[i1] + theta[i2]) * r0 / 3.0;
     double edp = bondstore[n][1];
-    double tdtrial = 15.0 * gshear[type] * (1.0 / r0) * (1.0 / wv1 + 1.0 / wv2) * (dev - edp);
+    double tdtrial = 15.0 * gshear[type] * (1.0 / r0) * (winv1 + winv2) * (dev - edp);
 
     if (i1 < nlocal) tdnorm[i1] += tdtrial * tdtrial * vfrac[i2] * scale;
     if (i2 < nlocal) tdnorm[i2] += tdtrial * tdtrial * vfrac[i1] * scale;

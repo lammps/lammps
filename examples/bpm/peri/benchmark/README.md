@@ -31,10 +31,10 @@ To benchmark a different model, edit the `pair_style`/`pair_coeff` (legacy) or
 
 | model | legacy peri/* | bpm/peri | speedup |
 |-------|---------------|----------|---------|
-| pmb   | 2.96          | 0.82     | 3.6x    |
-| lps   | 7.03          | 1.36     | 5.2x    |
-| ves   | 8.41          | 1.89     | 4.4x    |
-| eps   | 10.31         | 1.86     | 5.5x    |
+| pmb   | 2.95          | 0.82     | 3.6x    |
+| lps   | 7.00          | 1.30     | 5.4x    |
+| ves   | 7.96          | 1.80     | 4.4x    |
+| eps   | 10.34         | 1.74     | 5.9x    |
 
 np=4 (LPS): legacy 1.92 s, bpm/peri 0.46 s -> 4.1x.
 

@@ -34,6 +34,7 @@
 #include "pair.h"
 #include "update.h"
 
+#include <cfloat>
 #include <cmath>
 #include <cstring>
 
@@ -46,7 +47,8 @@ using namespace LAMMPS_NS;
 
 BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
     BondBPM(_lmp), model(nullptr), c(nullptr), cut(nullptr), s00(nullptr), alpha(nullptr),
-    id_fix_property_peri(nullptr), index_s0(-1), index_smin(-1)
+    id_fix_property_peri(nullptr), index_vfrac(-1), index_s0(-1), index_smin(-1),
+    smin_new(nullptr), s0_new(nullptr), nmax(0)
 {
   partial_flag = 1;
   writedata = 0;
@@ -55,6 +57,10 @@ BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
   nhistory = 1;
   update_flag = 0;
   id_fix_bond_history = utils::strdup("HISTORY_BPM_PERI");
+
+  // forward-communicate smin each step so the break test can read a neighbor's
+  // previous-step smin even when that neighbor is a ghost
+  comm_forward = 1;
 
   single_extra = 1;
   svector = new double[1];
@@ -65,6 +71,9 @@ BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
 BondBPMPeri::~BondBPMPeri()
 {
   delete[] svector;
+
+  memory->destroy(smin_new);
+  memory->destroy(s0_new);
 
   if (id_fix_property_peri && modify->nfix) {
     modify->delete_fix(id_fix_property_peri);
@@ -126,6 +135,15 @@ void BondBPMPeri::compute(int eflag, int vflag)
   // rearrange stored bond values for hybrid bond styles, handled by parent
   pre_compute();
 
+  // grow the per-step break-bookkeeping scratch if needed
+  if (atom->nmax > nmax) {
+    memory->destroy(smin_new);
+    memory->destroy(s0_new);
+    nmax = atom->nmax;
+    memory->create(smin_new, nmax, "bond:smin_new");
+    memory->create(s0_new, nmax, "bond:s0_new");
+  }
+
   int i1, i2, itmp, n, type;
   double delx, dely, delz, rsq, r, r0, dr, stretch, fbond, ebond;
   double delta, vfrac_scale, vfrac_eff;
@@ -142,9 +160,21 @@ void BondBPMPeri::compute(int eflag, int vflag)
 
   double **bondstore = fix_bond_history->bondstore;
   double *vfrac = atom->dvector[index_vfrac];
+  double *smin = atom->dvector[index_smin];
 
   const double lc = domain->lattice->xlattice;
   const double half_lc = 0.5 * lc;
+  const bool allow_breaks = (update->setupflag == 0) && break_flag;
+
+  // sync ghost smin to last step's committed values so the break criterion can
+  // read a neighbor's previous-step smin even when the neighbor is a ghost
+  comm->forward_comm(this);
+
+  // reset the per-step accumulators (MIN for smin, MAX for s0)
+  for (int i = 0; i < nlocal; i++) {
+    smin_new[i] = DBL_MAX;
+    s0_new[i] = -DBL_MAX;
+  }
 
   for (n = 0; n < nbondlist; n++) {
 
@@ -180,6 +210,16 @@ void BondBPMPeri::compute(int eflag, int vflag)
     if (fabs(dr) < NEAR_ZERO) dr = 0.0;    // avoid roundoff noise
     stretch = dr / r0;
 
+    // per-type-pair critical-stretch break test (#984): the critical stretch is
+    // s00 - alpha*smin, evaluated per bond, using the more tensile (max) of the
+    // two endpoints' previous-step smin. A broken bond exerts no force and does
+    // not contribute to the new smin/s0.
+    if (allow_breaks && stretch > s00[type] - alpha[type] * MAX(smin[i1], smin[i2])) {
+      bondlist[n][2] = 0;
+      process_broken(i1, i2);
+      continue;
+    }
+
     // partial-volume correction: taper the nodal volume for bonds whose
     // reference length is within half a lattice spacing of the horizon
     delta = cut[type];
@@ -211,6 +251,28 @@ void BondBPMPeri::compute(int eflag, int vflag)
 
     ebond = 0.5 * c[type] * vfrac_eff * vfrac_scale * stretch * dr;
     if (evflag) ev_tally(i1, i2, nlocal, newton_bond, ebond, fbond, delx, dely, delz);
+
+    // accumulate this step's minimum stretch (for breaking) and the diagnostic
+    // critical stretch on each owned endpoint (newton bond off: each atom sees
+    // all of its bonds locally)
+    if (i1 < nlocal) {
+      smin_new[i1] = MIN(smin_new[i1], stretch);
+      s0_new[i1] = MAX(s0_new[i1], s00[type] - alpha[type] * stretch);
+    }
+    if (i2 < nlocal) {
+      smin_new[i2] = MIN(smin_new[i2], stretch);
+      s0_new[i2] = MAX(s0_new[i2], s00[type] - alpha[type] * stretch);
+    }
+  }
+
+  // commit the new smin/s0. An atom with no surviving bonds keeps the no-breaking
+  // sentinel (smin = -DBL_MAX) so the max() in the criterion cannot trigger a
+  // neighbor's break (its implied critical stretch stays +infinity).
+  smin = atom->dvector[index_smin];
+  double *s0 = atom->dvector[index_s0];
+  for (int i = 0; i < nlocal; i++) {
+    smin[i] = (smin_new[i] == DBL_MAX) ? -DBL_MAX : smin_new[i];
+    s0[i] = (s0_new[i] == -DBL_MAX) ? DBL_MAX : s0_new[i];
   }
 
   // revert changes for hybrid bond style, handled by parent
@@ -322,12 +384,14 @@ void BondBPMPeri::init_style()
 
   // internal critical-stretch bookkeeping: s0 (diagnostic) and smin (break
   // state); auto-create the fix property/atom if it does not already exist
+  bool created = false;
   index_s0 = atom->find_custom("s0", flag, cols);
   if (index_s0 < 0) {
     if (!id_fix_property_peri) {
       id_fix_property_peri = utils::strdup("BPM_PERI_PROPERTY_ATOM");
       modify->add_fix(fmt::format("{} all property/atom d_s0 d_smin ghost yes writedata no",
                                   id_fix_property_peri));
+      created = true;
     }
     index_s0 = atom->find_custom("s0", flag, cols);
   }
@@ -335,6 +399,18 @@ void BondBPMPeri::init_style()
   if (index_smin < 0)
     error->all(FLERR, Error::NOLASTLINE,
                "Bond style bpm/peri internal error: missing d_smin storage");
+
+  // initialize the no-breaking sentinels on first creation (s0 = +DBL_MAX and
+  // smin = -DBL_MAX, so the implied critical stretch is +infinity); on restart
+  // the stored values are restored, so only initialize when freshly created
+  if (created) {
+    double *s0 = atom->dvector[index_s0];
+    double *smin = atom->dvector[index_smin];
+    for (int i = 0; i < atom->nlocal; i++) {
+      s0[i] = DBL_MAX;
+      smin[i] = -DBL_MAX;
+    }
+  }
 
   // peridynamics needs the short-range contact pair; require pair_style bpm/peri.
   // A deliberate pair_style zero is also accepted so the bond style can be driven
@@ -415,4 +491,26 @@ void BondBPMPeri::read_restart(FILE *fp)
   MPI_Bcast(&alpha[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
 
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   forward communication of smin to ghost atoms (read by the break test)
+------------------------------------------------------------------------- */
+
+int BondBPMPeri::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+{
+  double *smin = atom->dvector[index_smin];
+  int m = 0;
+  for (int i = 0; i < n; i++) buf[m++] = smin[list[i]];
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondBPMPeri::unpack_forward_comm(int n, int first, double *buf)
+{
+  double *smin = atom->dvector[index_smin];
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) smin[i] = buf[m++];
 }

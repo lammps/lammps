@@ -56,6 +56,12 @@ public:
     // granular/DEM specific: ${var} substitution and multi-segment runs
     std::vector<std::pair<std::string, std::string>> variables;
     std::vector<int> run_segments;
+    // optional restart round-trip: after this segment, write a restart, rebuild
+    // from it (issuing restart_commands to restore non-restart setup such as the
+    // lattice and the integrator), and continue -- the trajectory must match the
+    // uninterrupted reference.  -1 disables the round trip.
+    int restart_segment;
+    std::vector<std::string> restart_commands;
     // optional analytic (closed-form) verification
     bool analytic_enable;
     std::string analytic_model;
@@ -91,7 +97,8 @@ public:
         lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), input_file(""),
         pair_style("zero"), bond_style("zero"), angle_style("zero"), dihedral_style("zero"),
         improper_style("zero"), kspace_style("none"), analytic_enable(false), analytic_model(""),
-        analytic_tol(1.0e-2), analytic_segment(-1), analytic_only(false), natoms(0), init_energy(0),
+        analytic_tol(1.0e-2), analytic_segment(-1), analytic_only(false), restart_segment(-1),
+        natoms(0), init_energy(0),
         run_energy(0),
         init_vdwl(0), run_vdwl(0), init_coul(0), run_coul(0), init_stress({0, 0, 0, 0, 0, 0}),
         run_stress({0, 0, 0, 0, 0, 0}), global_scalar(0)

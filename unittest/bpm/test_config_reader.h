@@ -47,6 +47,8 @@ public:
     void run_force(const yaml_event_t &event);
     void variables(const yaml_event_t &event);
     void run_segments(const yaml_event_t &event);
+    void restart_segment(const yaml_event_t &event);
+    void restart_commands(const yaml_event_t &event);
     void analytic_enable(const yaml_event_t &event);
     void analytic_model(const yaml_event_t &event);
     void analytic_tol(const yaml_event_t &event);

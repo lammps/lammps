@@ -107,8 +107,12 @@ static LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool
     return lmp;
 }
 
-// run all segments and compare per-atom state against the reference after each
-static void run_and_check(LAMMPS *lmp, const TestConfig &cfg, double epsilon,
+// run all segments and compare per-atom state against the reference after each.
+// lmp is taken by reference so the optional restart round trip can swap in a
+// fresh instance rebuilt from a restart file; the continued trajectory must
+// still match the (uninterrupted) reference, which exercises the restart of the
+// per-type coefficients, the property/atom fields and the bond history.
+static void run_and_check(LAMMPS *&lmp, LAMMPS::argv &args, const TestConfig &cfg, double epsilon,
                           const std::string &label)
 {
     auto command = [&](const std::string &line) {
@@ -127,6 +131,20 @@ static void run_and_check(LAMMPS *lmp, const TestConfig &cfg, double epsilon,
             EXPECT_FORCES("run_force (" + tag + ")", lmp->atom, cfg.seg_force[i], epsilon);
 
         check_analytic_model(cfg, lmp, (int) i);
+
+        // optional restart round trip: write a restart, rebuild from it, and
+        // continue.  restart_commands restore the non-restart setup (lattice,
+        // integrator) that read_restart does not.  command() uses lmp by
+        // reference, so it targets the rebuilt instance after the swap.
+        if ((cfg.restart_segment >= 0) && ((int) i == cfg.restart_segment)) {
+            const std::string rfile = "bpm_restart_" + cfg.basename + ".tmp";
+            command("write_restart " + rfile);
+            delete lmp;
+            lmp = new LAMMPS(args, MPI_COMM_WORLD);
+            command("read_restart " + rfile);
+            for (const auto &rc : cfg.restart_commands) command(rc);
+            command("run 0 post no");
+        }
     }
 }
 
@@ -260,7 +278,7 @@ void run_bpm_trajectory_test(bool newton, const std::string &label)
     double epsilon = test_config.epsilon;
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    run_and_check(lmp, test_config, epsilon, label);
+    run_and_check(lmp, args, test_config, epsilon, label);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     if (!verbose) ::testing::internal::CaptureStdout();

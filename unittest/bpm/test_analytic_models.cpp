@@ -111,6 +111,34 @@ static void check_pmb_force(const TestConfig &cfg, LAMMPS *lmp)
     expect_rel(expected, force_mag(lmp, 2), cfg.analytic_tol, "pmb_force atom 2");
 }
 
+// value of a per-atom custom (d_) property for the atom with the given tag
+static double custom_value(LAMMPS *lmp, const std::string &name, tagint id)
+{
+    int flag, cols;
+    const int idx = lmp->atom->find_custom(name.c_str(), flag, cols);
+    if ((idx < 0) || (flag != 1) || (cols != 0)) return 0.0;
+    const int i = find_local(lmp, id);
+    return (i < 0) ? 0.0 : lmp->atom->dvector[idx][i];
+}
+
+// LPS single-bond dilatation: with one bond the weighted volume is m = r0*vfrac,
+// so theta = (3/m)*dr*vfrac = 3*dr/r0 = 3*stretch.  Reads the per-step dilatation
+// from the d_theta property (which the YAML declares) and compares it with three
+// times the live stretch; r0 is supplied as a variable.
+static void check_lps_dilatation(const TestConfig &cfg, LAMMPS *lmp)
+{
+    const auto vars = as_doubles(cfg);
+    const double r0 = var_or(vars, "r0", 0.0);
+    if (r0 <= 0.0) {
+        ADD_FAILURE() << "lps_dilatation requires a positive r0 variable";
+        return;
+    }
+    const double stretch  = (separation(lmp, 1, 2) - r0) / r0;
+    const double expected = 3.0 * stretch;
+    expect_rel(expected, custom_value(lmp, "theta", 1), cfg.analytic_tol, "lps_dilatation atom 1");
+    expect_rel(expected, custom_value(lmp, "theta", 2), cfg.analytic_tol, "lps_dilatation atom 2");
+}
+
 void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
 {
     if (!cfg.analytic_enable) return;
@@ -121,6 +149,8 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
 
     if (cfg.analytic_model == "pmb_force") {
         check_pmb_force(cfg, lmp);
+    } else if (cfg.analytic_model == "lps_dilatation") {
+        check_lps_dilatation(cfg, lmp);
     } else {
         ADD_FAILURE() << "unknown analytic_model: " << cfg.analytic_model;
     }

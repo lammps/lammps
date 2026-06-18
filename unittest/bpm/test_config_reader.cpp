@@ -54,6 +54,8 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
 
     consumers["variables"]        = &TestConfigReader::variables;
     consumers["run_segments"]     = &TestConfigReader::run_segments;
+    consumers["restart_segment"]  = &TestConfigReader::restart_segment;
+    consumers["restart_commands"] = &TestConfigReader::restart_commands;
     consumers["analytic_enable"]  = &TestConfigReader::analytic_enable;
     consumers["analytic_model"]   = &TestConfigReader::analytic_model;
     consumers["analytic_tol"]     = &TestConfigReader::analytic_tol;
@@ -289,6 +291,21 @@ void TestConfigReader::run_segments(const yaml_event_t &event)
         } catch (std::exception &) {
             // ignore non-integer tokens
         }
+    }
+}
+
+void TestConfigReader::restart_segment(const yaml_event_t &event)
+{
+    config.restart_segment = atoi((const char *)event.data.scalar.value);
+}
+
+void TestConfigReader::restart_commands(const yaml_event_t &event)
+{
+    config.restart_commands.clear();
+    std::stringstream data((const char *)event.data.scalar.value);
+    std::string line;
+    while (std::getline(data, line, '\n')) {
+        if (!trim(line).empty()) config.restart_commands.push_back(line);
     }
 }
 

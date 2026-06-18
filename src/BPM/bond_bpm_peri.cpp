@@ -52,7 +52,7 @@ BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
     id_fix_property_peri(nullptr), index_vfrac(-1), index_s0(-1), index_smin(-1), index_lambda(-1),
     smin_new(nullptr), s0_new(nullptr), nmax(0), state_based(0), wvolume_setup(0), kbulk_rep(0.0),
     wvolume(nullptr), theta(nullptr), commflag(COMM_SMIN), plastic(0), tdnorm(nullptr),
-    deltalambda(nullptr), pointwise_yield(0.0), gshear_rep(0.0)
+    pointwise_yield(0.0), gshear_rep(0.0)
 {
   partial_flag = 1;
   writedata = 0;
@@ -81,7 +81,6 @@ BondBPMPeri::~BondBPMPeri()
   memory->destroy(wvolume);
   memory->destroy(theta);
   memory->destroy(tdnorm);
-  memory->destroy(deltalambda);
 
   if (id_fix_property_peri && modify->nfix) {
     modify->delete_fix(id_fix_property_peri);
@@ -168,9 +167,7 @@ void BondBPMPeri::compute(int eflag, int vflag)
     }
     if (plastic) {
       memory->destroy(tdnorm);
-      memory->destroy(deltalambda);
       memory->create(tdnorm, nmax, "bond:tdnorm");
-      memory->create(deltalambda, nmax, "bond:deltalambda");
     }
   }
 
@@ -338,8 +335,9 @@ void BondBPMPeri::compute(int eflag, int vflag)
       fbond = (r > 0.0) ? -(rk / r) : 0.0;
     } else if (model[type] == EPS) {
       // elastic-plastic: elastic dilatation (3K*theta) plus a deviatoric force
-      // state projected onto the yield surface (the per-atom return-mapping is
-      // done in compute_plastic_state); the per-bond plastic extension evolves
+      // state radially returned onto the yield surface. The per-atom deviatoric
+      // force-state norm and yield state are precomputed in compute_plastic_state;
+      // the per-bond elastic/plastic split (edp) evolves each step.
       const double wv1 = wvolume[i1], wv2 = wvolume[i2];
       const double rinv0 = 1.0 / r0;
       double rk = 0.0;
@@ -349,25 +347,33 @@ void BondBPMPeri::compute(int eflag, int vflag)
         const double edp = bondstore[n][1];
         rk = 3.0 * kbulk[type] * (theta[i1] / wv1 + theta[i2] / wv2);
 
-        // trial deviatoric force state (the same intensive expression the per-atom
-        // norm uses) and its yield-surface projection when the atom has yielded
+        // trial deviatoric force state; radially return it onto the yield surface
+        // when the (symmetric) bond force-state norm exceeds the yield norm
         const double tdtrial = 15.0 * gshear[type] * rinv0 * (1.0 / wv1 + 1.0 / wv2) * (dev - edp);
+        const double tdnorm_b = 0.5 * (tdnorm[i1] + tdnorm[i2]);
+        const double yieldnorm = sqrt(2.0 * pointwise_yield);
         double rkdev = tdtrial;
         double edp_new = edp;
-        if ((deltalambda[i1] > 0.0) || (deltalambda[i2] > 0.0)) {
-          const double tdnorm_b = 0.5 * (tdnorm[i1] + tdnorm[i2]);
-          const double dlam_b = 0.5 * (deltalambda[i1] + deltalambda[i2]);
-          if (tdnorm_b > 0.0) rkdev = sqrt(2.0 * pointwise_yield) * tdtrial / tdnorm_b;
-          edp_new = edp + rkdev * dlam_b;
+        if (tdnorm_b > yieldnorm) {
+          const double radial = yieldnorm / tdnorm_b;    // < 1 in the plastic regime
+          rkdev = radial * tdtrial;                       // returned deviatoric force state
+          // dimensionally consistent plastic-extension increment: the elastic
+          // deviatoric extension (dev - edp) is scaled by the same radial factor,
+          // edp absorbs the remainder. Converges to the yield surface in one step,
+          // unlike the legacy edp += rkNew*deltalambda update whose ~2/r0 gain
+          // overshoots (a likely latent PERI bug -- report).
+          edp_new = edp + (dev - edp) * (1.0 - radial);
         }
         rk += rkdev;
-        ebond = 0.25 * 15.0 * gshear[type] * rinv0 * (1.0 / wv1 + 1.0 / wv2) * (dev - edp) *
-            (dev - edp) * vfrac_eff * vfrac_scale;
+        // recoverable deviatoric elastic energy uses the returned elastic extension
+        const double edev = dev - edp_new;
+        ebond = 0.25 * 15.0 * gshear[type] * rinv0 * (1.0 / wv1 + 1.0 / wv2) * edev * edev *
+            vfrac_eff * vfrac_scale;
 
         // write back the evolving plastic deviator extension for the next step
         bondstore[n][1] = edp_new;
       }
-      // elastic + projected-plastic force state, weighted by the nodal volume
+      // elastic + returned-plastic force state, weighted by the nodal volume
       fbond = (r > 0.0) ? -((rk / r) * vfrac_eff * vfrac_scale) : 0.0;
     } else {    // PMB
       fbond = (r > 0.0) ? -(c[type] * vfrac_eff * vfrac_scale * stretch) / r : 0.0;
@@ -514,10 +520,10 @@ void BondBPMPeri::compute_dilatation()
 }
 
 /* ----------------------------------------------------------------------
-   EPS per-atom plastic state: the deviatoric force-state norm tdnorm[i], the
-   yield check, and the plastic-multiplier increment deltalambda[i] (accumulated
-   into lambdaValue). tdnorm and deltalambda are published to ghosts so the force
-   loop can read both endpoints. NOTE: the norm uses the same intensive trial
+   EPS per-atom plastic state: the deviatoric force-state norm tdnorm[i] and the
+   yield check, accumulating the plastic multiplier into lambdaValue (a public
+   diagnostic). Only tdnorm is published to ghosts; the force loop's radial return
+   reads the norm of both endpoints. NOTE: the norm uses the same intensive trial
    force state the force loop applies; legacy PERI's norm carries an extra
    dilatation factor theta (a likely bug), deliberately dropped here.
 ------------------------------------------------------------------------- */
@@ -569,21 +575,18 @@ void BondBPMPeri::compute_plastic_state()
     if (i2 < nlocal) tdnorm[i2] += tdtrial * tdtrial * vfrac[i1] * scale;
   }
 
-  // per-atom yield-surface check and plastic-multiplier update
+  // per-atom yield-surface check; accumulate the plastic multiplier (lambdaValue,
+  // a public diagnostic) and finalize the deviatoric force-state norm in place
   for (int i = 0; i < nlocal; i++) {
     double norm = sqrt(tdnorm[i]);
     tdnorm[i] = norm;
-    deltalambda[i] = 0.0;
-    if (0.5 * norm * norm - pointwise_yield > 0.0) {
-      deltalambda[i] =
+    if (0.5 * norm * norm - pointwise_yield > 0.0)
+      lambdaValue[i] +=
           (norm / sqrt(2.0 * pointwise_yield) - 1.0) * wvolume[i] / (15.0 * gshear_rep);
-      lambdaValue[i] += deltalambda[i];
-    }
   }
 
+  // publish the finalized norm to ghosts so the force loop can read both endpoints
   commflag = COMM_TDNORM;
-  comm->forward_comm(this);
-  commflag = COMM_DELTALAMBDA;
   comm->forward_comm(this);
 }
 
@@ -932,7 +935,6 @@ int BondBPMPeri::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag
   if (commflag == COMM_THETA) src = theta;
   else if (commflag == COMM_WVOLUME) src = wvolume;
   else if (commflag == COMM_TDNORM) src = tdnorm;
-  else if (commflag == COMM_DELTALAMBDA) src = deltalambda;
   else src = atom->dvector[index_smin];
 
   int m = 0;
@@ -948,7 +950,6 @@ void BondBPMPeri::unpack_forward_comm(int n, int first, double *buf)
   if (commflag == COMM_THETA) dst = theta;
   else if (commflag == COMM_WVOLUME) dst = wvolume;
   else if (commflag == COMM_TDNORM) dst = tdnorm;
-  else if (commflag == COMM_DELTALAMBDA) dst = deltalambda;
   else dst = atom->dvector[index_smin];
 
   int m = 0;

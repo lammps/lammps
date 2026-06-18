@@ -42,7 +42,7 @@ class BondBPMPeri : public BondBPM {
   // peridynamic constitutive models (internal ids; lower-case keywords in input)
   enum { PMB, LPS, VES, EPS };
   // tags selecting which per-atom array the next forward_comm carries
-  enum { COMM_SMIN, COMM_THETA, COMM_WVOLUME, COMM_TDNORM, COMM_DELTALAMBDA };
+  enum { COMM_SMIN, COMM_THETA, COMM_WVOLUME, COMM_TDNORM };
 
   int *model;             // per bond type: constitutive model id
   double *c;              // PMB micromodulus c = 18 K / (pi delta^4)
@@ -70,11 +70,10 @@ class BondBPMPeri : public BondBPM {
   double *wvolume, *theta;
   int commflag;           // selects the array packed by the next forward_comm
 
-  // EPS plasticity: per-atom deviatoric force-state norm and plastic increment
-  // (both ghost-communicated), plus a representative yield/shear for the
-  // per-atom return-mapping
+  // EPS plasticity: per-atom deviatoric force-state norm (ghost-communicated),
+  // plus a representative yield/shear for the per-atom return-mapping
   int plastic;            // 1 if any bond type uses EPS
-  double *tdnorm, *deltalambda;
+  double *tdnorm;
   double pointwise_yield, gshear_rep;
 
   void allocate();

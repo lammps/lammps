@@ -23,6 +23,7 @@ OPT.
    * :doc:`bond <compute_bond>`
    * :doc:`bond/local <compute_bond_local>`
    * :doc:`born/matrix <compute_born_matrix>`
+   * :doc:`bpm/peri/damage/atom <compute_bpm_peri_damage_atom>`
    * :doc:`centro/atom (o) <compute_centro_atom>`
    * :doc:`centroid/stress/atom <compute_stress_atom>`
    * :doc:`chunk/atom <compute_chunk_atom>`

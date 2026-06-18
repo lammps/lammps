@@ -12,6 +12,12 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+   Contributing author: Claude Opus 4.8 (Anthropic), under the direction of
+   Joel Clemmer (SNL) and Axel Kohlmeyer (Temple U). Derived from the PERI
+   package compute_damage_atom.cpp (Mike Parks, SNL).
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
    Volume-weighted bond damage for the BPM peridynamics model:
        damage[i] = 1 - (sum of nodal volume over surviving bonds) / vinter[i]
    where vinter[i] is the reference interaction volume stored by bond_style

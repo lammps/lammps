@@ -10,7 +10,7 @@ Syntax
 
    bond_style style args
 
-* style = *none* or *zero* or *hybrid* or *bpm/rotational* or *bpm/spring* or *bpm/spring/plastic* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/restrain* *harmonic/shift* or *harmonic/shift/cut* or *lepton* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic* or *quartic/exp* or *special* or *table*
+* style = *none* or *zero* or *hybrid* or *bpm/peri* or *bpm/rotational* or *bpm/spring* or *bpm/spring/plastic* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/restrain* *harmonic/shift* or *harmonic/shift/cut* or *lepton* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic* or *quartic/exp* or *special* or *table*
 
 * args = none for any style except *hybrid*
 
@@ -84,6 +84,7 @@ accelerated styles exist.
 * :doc:`zero <bond_zero>` - topology but no interactions
 * :doc:`hybrid <bond_hybrid>` - define multiple styles of bond interactions
 
+* :doc:`bpm/peri <bond_bpm_peri>` - peridynamic constitutive models (PMB/LPS/VES/EPS) on the BPM framework
 * :doc:`bpm/rotational <bond_bpm_rotational>` - breakable bond with forces and torques based on deviation from reference state
 * :doc:`bpm/spring <bond_bpm_spring>` - breakable bond with forces based on deviation from reference length
 * :doc:`bpm/spring/plastic <bond_bpm_spring_plastic>` - a similar breakable bond with plastic yield

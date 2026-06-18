@@ -199,6 +199,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`bond <compute_bond>` - energy of each bond sub-style
 * :doc:`bond/local <compute_bond_local>` - distance and energy of each bond
 * :doc:`born/matrix <compute_born_matrix>` - second derivative or potential with respect to strain
+* :doc:`bpm/peri/damage/atom <compute_bpm_peri_damage_atom>` - volume-weighted bond damage for the BPM peridynamics model
 * :doc:`centro/atom <compute_centro_atom>` - centro-symmetry parameter for each atom
 * :doc:`centroid/stress/atom <compute_stress_atom>` - centroid based stress tensor for each atom
 * :doc:`chunk/atom <compute_chunk_atom>` - assign chunk IDs to each atom

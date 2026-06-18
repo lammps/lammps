@@ -79,6 +79,113 @@ Some notes on this input example:
   :doc:`timestep <timestep>` command.
 
 
+BPM-based peridynamics
+""""""""""""""""""""""
+
+.. versionadded:: TBD
+
+The same four constitutive models are also available through the
+:doc:`bond_style bpm/peri <bond_bpm_peri>` command, which recasts
+peridynamics within the :doc:`BPM (bonded particle model) framework
+<Howto_bpm>`.  Peridynamic bonds become real LAMMPS bonds, so the model
+uses the standard :doc:`atom_style bond <atom_style>` (no dedicated atom
+style), stores per-bond reference state in :doc:`restart files <restart>`,
+and gains BPM tooling such as broken-bond dumps.  The constitutive law is
+the first :doc:`bond_coeff <bond_coeff>` argument (*pmb*, *lps*, *ves*, or
+*eps*), and a companion :doc:`pair_style bpm/peri <pair_bpm_peri>`
+provides the short-range contact force.
+
+Here is the minimal example above expressed in the BPM framework:
+
+.. code-block:: LAMMPS
+
+   units           si
+   dimension       3
+   boundary        s s s
+   atom_style      bond
+   atom_modify     map array
+   special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+   newton          on off
+   neighbor        0.0010 bin
+   lattice         sc 0.0005
+   region          target cylinder y 0.0 0.0 0.0050 -0.0050 0.0 units box
+   create_box      1 target bond/types 1 extra/bond/per/atom 60 extra/special/per/atom 100
+   create_atoms    1 region target
+
+   # nodal mass (per-type) and nodal volume (the lone user-declared input)
+   mass            * 2.75e-7
+   fix             vol all property/atom d_vfrac ghost yes
+   set             group all d_vfrac 1.25e-10
+
+   pair_style      bpm/peri
+   pair_coeff      * * 1.6863e22 0.0015001
+   create_bonds    many all all 1 0.0 0.0015001
+   special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+   bond_style      bpm/peri
+   bond_coeff      1 pmb 1.6863e22 0.0015001 0.0005 0.25
+   compute         dmg all bpm/peri/damage/atom
+   fix             1 all nve
+   timestep        1.0e-7
+
+Notes specific to the BPM formulation:
+
+- The nodal volume must be declared by the user as a :doc:`fix
+  property/atom <fix_property_atom>` named *vfrac* (group *all*, ghost
+  communication on) **before** the bond style is defined.  This is *input*
+  data: it is populated by :doc:`set <set>` (uniform) or :doc:`read_data
+  <read_data>` (per-node) during input parsing, before any *run*, so it
+  cannot be auto-created the way the internal bookkeeping fields are.  The
+  general rule is: input-data per-atom properties are user-declared;
+  purely internal ones (*s0*, *smin*, *vinter*, and the *eps* *lambda*)
+  are auto-created by the bond style.
+- Because the styles never read the mass (only the integrator does), the
+  nodal mass is supplied independently: a uniform per-type :doc:`mass
+  <mass>` equal to density times nodal volume (here :math:`2200 \times
+  1.25\times10^{-10} = 2.75\times10^{-7}`), or, for variable mass,
+  :doc:`atom_style hybrid sphere bond <atom_style>` with per-atom *rmass*.
+- The peridynamic bonds are created with :doc:`create_bonds many
+  <create_bonds>` out to the horizon; *extra/bond/per/atom* must be large
+  enough for the peridynamic coordination number (often 30-60 or more).
+- :doc:`newton <newton>` must be *bond off* and the two-stage
+  *special_bonds* idiom (coul weight 0 during *create_bonds*, then 1) is
+  required, as for all BPM bond styles.
+- When a body fragments, pieces can leave the domain.  The legacy PERI
+  package tolerates lost atoms silently; in the BPM framework this is an
+  explicit, opt-in choice.  To let a shattering simulation continue, use a
+  fixed (non-shrink-wrap) box with margin and, *after* the
+  :doc:`thermo_style <thermo_style>` command (which resets these settings),
+  add ``thermo_modify lost ignore`` and ``thermo_modify lost/bond ignore``;
+  the latter drops the dangling bonds of an atom that has left the domain so
+  the remaining bonds are unaffected.  See the ``examples/bpm/peri`` decks.
+
+Migrating a PERI input to the BPM framework is mostly a one-to-one
+translation:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - PERI package
+     - BPM framework
+   * - ``atom_style peri``
+     - ``atom_style bond`` (+ ``fix property/atom d_vfrac``)
+   * - ``pair_style peri/pmb`` (+ ``pair_coeff``)
+     - ``pair_style bpm/peri`` + ``bond_style bpm/peri`` (model keyword)
+   * - ``set group all volume V``
+     - ``set group all d_vfrac V``
+   * - ``set group all density D``
+     - ``mass * (D*V)`` (uniform) or per-atom *rmass*
+   * - bonds implicit in the pair neighbor list
+     - explicit ``create_bonds many all all <type> 0.0 <horizon>``
+   * - ``compute damage/atom``
+     - ``compute bpm/peri/damage/atom``
+
+The two implementations follow the same constitutive equations.  The
+analytic elastic response (dilatation, energy) agrees; for the *eps*
+model the BPM implementation uses a dimensionally-consistent plastic
+return mapping that is stable under sustained plastic flow.
+
 Peridynamic Model of a Continuum
 """"""""""""""""""""""""""""""""
 

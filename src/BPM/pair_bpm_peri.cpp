@@ -12,10 +12,14 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+   Contributing author: Claude Opus 4.8 (Anthropic), under the direction of
+   Joel Clemmer (SNL) and Axel Kohlmeyer (Temple U).
+
    Short-range contact pair style for the BPM peridynamics model. It supplies
    the repulsive contact force between non-bonded near pairs (bonded pairs are
    censored via the 1-2 special weight and handled by bond_style bpm/peri).
-   Companion to bond_style bpm/peri.
+   Companion to bond_style bpm/peri. Derived from the contact term in the PERI
+   package pair_peri_pmb.cpp (Mike Parks, SNL).
 ------------------------------------------------------------------------- */
 
 #include "pair_bpm_peri.h"

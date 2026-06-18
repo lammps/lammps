@@ -12,16 +12,20 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Re-implementation of the PERI package constitutive models on the BPM
-   framework. This is the Stage 0 scaffold: it builds the peridynamic bond
-   set, stores the reference configuration, and applies zero force. The PMB
-   force law, the state-based (LPS/VES/EPS) models, and the #984 per-bond
-   breaking criterion are added in subsequent stages.
+   Contributing author: Claude Opus 4.8 (Anthropic), under the direction of
+   Joel Clemmer (SNL) and Axel Kohlmeyer (Temple U).
+
+   Re-implementation of the four PERI package constitutive models on the BPM
+   framework, derived from pair_peri.cpp and pair_peri_{pmb,lps,ves,eps}.cpp.
+   Original PERI models: PMB and LPS (and the shared dilatation/weighted-volume
+   infrastructure) by Mike Parks (SNL); VES and EPS by Rezwanur Rahman and
+   J. T. Foster (UTSA).
 ------------------------------------------------------------------------- */
 
 #include "bond_bpm_peri.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -44,6 +48,34 @@ static constexpr double NEAR_ZERO = 2.2204e-16;
 
 using namespace LAMMPS_NS;
 
+static const char cite_bpm_peri[] =
+    "BPM peridynamics (bond_style bpm/peri), derived from the PERI package: "
+    "https://doi.org/10.1016/j.cpc.2008.06.011\n\n"
+    "@Article{Parks08,\n"
+    " author = {M. L. Parks and R. B. Lehoucq and S. J. Plimpton and S. A. Silling},\n"
+    " title = {Implementing Peridynamics Within a Molecular Dynamics Code},\n"
+    " journal = {Comput.\\ Phys.\\ Commun.},\n"
+    " year =    2008,\n"
+    " volume =  179,\n"
+    " number =  11,\n"
+    " pages =   {777--783}\n"
+    "}\n\n";
+
+// the ves/eps models additionally derive from the state-based viscoplasticity
+// theory of Foster, Silling, and Chen (the original PDLAMMPS ves/eps models were
+// implemented by Rahman and Foster, UTSA)
+static const char cite_bpm_peri_plastic[] =
+    "BPM peridynamics eps/ves models: https://doi.org/10.1002/nme.2725\n\n"
+    "@Article{Foster10,\n"
+    " author = {J. T. Foster and S. A. Silling and W. W. Chen},\n"
+    " title = {Viscoplasticity Using Peridynamics},\n"
+    " journal = {Int.\\ J.\\ Numer.\\ Methods Eng.},\n"
+    " year =    2010,\n"
+    " volume =  81,\n"
+    " number =  10,\n"
+    " pages =   {1242--1258}\n"
+    "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
@@ -55,6 +87,8 @@ BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
     wvolume(nullptr), theta(nullptr), commflag(COMM_SMIN), plastic(0), tdnorm(nullptr),
     pointwise_yield(0.0), gshear_rep(0.0)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_bpm_peri);
+
   partial_flag = 1;
   writedata = 0;
 
@@ -787,6 +821,10 @@ void BondBPMPeri::init_style()
           25.0 / (8.0 * MathConst::MY_PI * pow(cut[i], 5.0)) * yieldstress[i] * yieldstress[i];
     }
   }
+
+  // the plastic (eps) model derives from the Foster/Silling/Chen viscoplasticity
+  // theory; surface that citation at runtime when an eps bond type is in use
+  if (plastic && lmp->citeme) lmp->citeme->add(cite_bpm_peri_plastic);
 
   // peridynamics needs a per-atom nodal volume (vfrac); the user supplies it
   // via fix property/atom d_vfrac (uniform with set, or per-atom with read_data)

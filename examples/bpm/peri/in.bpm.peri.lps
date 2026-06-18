@@ -1,5 +1,5 @@
-# Peridynamics (PMB model) on the BPM framework: a small brittle cylinder
-# shattered by a spherical indenter.  Equivalent to examples/peri/in.peri.pmb
+# Peridynamics (LPS model) on the BPM framework: a small brittle cylinder
+# shattered by a spherical indenter.  Equivalent to examples/peri/in.peri.lps
 # but using atom_style bond + bond_style/pair_style bpm/peri.
 #
 # Fragmentation note: when the target shatters, fragments can leave the domain.
@@ -40,8 +40,8 @@ create_bonds    many all all 1 0.0 0.0015001
 special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
 
 bond_style      bpm/peri
-#               model   c        horizon   s00    alpha
-bond_coeff      1 pmb 1.6863e22 0.0015001 0.0005 0.25
+#               model  K      G      horizon   s00    alpha
+bond_coeff      1 lps 14.9e9 14.9e9 0.0015001 0.0005 0.25
 
 velocity        all set 0.0 0.0 0.0 sum no units box
 fix             1 all nve
@@ -63,5 +63,5 @@ thermo_style    custom step atoms c_davg
 thermo_modify   lost ignore
 thermo_modify   lost/bond ignore
 
-#dump            1 all custom 200 dump.peri.pmb id type x y z c_dmg
+#dump            1 all custom 200 dump.peri.lps id type x y z c_dmg
 run             2000

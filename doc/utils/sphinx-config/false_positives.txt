@@ -541,6 +541,7 @@ checksums
 chemflag
 chemistries
 Chemnitz
+Chen
 Cheng
 Chenoweth
 chiral
@@ -888,6 +889,7 @@ dihedraltype
 Dihedrals
 dihydride
 Dij
+dilatational
 dimdim
 dimensionality
 dimensioned
@@ -1334,6 +1336,7 @@ Forschungszentrum
 fortran
 Fortran
 Fosado
+Foster
 fourbody
 fourier
 fp
@@ -2473,6 +2476,7 @@ Mishin
 Mishra
 mistyped
 mistyrose
+Mitchell
 Miyazaki
 Mizuguchi
 Mj
@@ -3790,6 +3794,7 @@ smd
 SMD
 smi
 Smilauer
+smin
 Smirichinski
 Smit
 smtbq
@@ -4344,6 +4349,7 @@ vhi
 vibrational
 Vij
 Vikas
+vinter
 virial
 Virial
 virialmode
@@ -4351,6 +4357,7 @@ virials
 virtualenv
 viscoelastic
 viscoelasticity
+viscoplasticity
 viscosities
 viscously
 vizplotgui

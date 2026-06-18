@@ -180,6 +180,42 @@ static void check_bpm_zero(const TestConfig &cfg, LAMMPS *lmp)
         EXPECT_EQ((double) lmp->atom->nbonds, expect) << "bpm_zero: unexpected surviving bond count";
 }
 
+// bond_style bpm/spring (smooth off, gamma 0, normalize off): a linear central
+// spring, so the equal-and-opposite force magnitude is Hooke's law in the bond
+// displacement, |f| = k*|r - r0|.  Variables provide the stiffness k and the
+// reference length r0; the current separation r is read live.
+static void check_spring_force(const TestConfig &cfg, LAMMPS *lmp)
+{
+    const auto vars = as_doubles(cfg);
+    const double k  = var_or(vars, "k", 0.0);
+    const double r0 = var_or(vars, "r0", 0.0);
+    if (r0 <= 0.0) {
+        ADD_FAILURE() << "spring_force requires a positive r0 variable";
+        return;
+    }
+    const double expected = k * std::fabs(separation(lmp, 1, 2) - r0);
+    expect_rel(expected, force_mag(lmp, 1), cfg.analytic_tol, "spring_force atom 1");
+    expect_rel(expected, force_mag(lmp, 2), cfg.analytic_tol, "spring_force atom 2");
+}
+
+// bond_style bpm/spring/plastic (smooth off, gamma 0, normalize off): once the
+// bond strain exceeds the plastic threshold eplastic, the plastic strain ep
+// tracks the total strain so the elastic part saturates at eplastic, giving an
+// elastic-perfectly-plastic force plateau |f| = k*eplastic*r0 independent of
+// further stretch (the 1/r and the bond-direction projection cancel).  The deck
+// must drive the bond past yield before the checked segment; variables provide
+// k, eplastic and r0.
+static void check_spring_plastic(const TestConfig &cfg, LAMMPS *lmp)
+{
+    const auto vars      = as_doubles(cfg);
+    const double k       = var_or(vars, "k", 0.0);
+    const double eplas   = var_or(vars, "eplastic", 0.0);
+    const double r0      = var_or(vars, "r0", 0.0);
+    const double expected = k * eplas * r0;
+    expect_rel(expected, force_mag(lmp, 1), cfg.analytic_tol, "spring_plastic atom 1");
+    expect_rel(expected, force_mag(lmp, 2), cfg.analytic_tol, "spring_plastic atom 2");
+}
+
 void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
 {
     if (!cfg.analytic_enable) return;
@@ -196,6 +232,10 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         check_lps_force(cfg, lmp);
     } else if (cfg.analytic_model == "bpm_zero") {
         check_bpm_zero(cfg, lmp);
+    } else if (cfg.analytic_model == "spring_force") {
+        check_spring_force(cfg, lmp);
+    } else if (cfg.analytic_model == "spring_plastic") {
+        check_spring_plastic(cfg, lmp);
     } else {
         ADD_FAILURE() << "unknown analytic_model: " << cfg.analytic_model;
     }

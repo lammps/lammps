@@ -85,3 +85,8 @@ register_bpm_tests(test_bpm_peri bpmperi BpmPeri)
 add_executable(test_bpm_zero test_bpm_zero.cpp)
 target_link_libraries(test_bpm_zero PRIVATE lammps bpm_tests)
 register_bpm_tests(test_bpm_zero bpmzero BpmZero)
+
+# BPM central-force bond styles: bpm/spring and bpm/spring/plastic
+add_executable(test_bpm_spring test_bpm_spring.cpp)
+target_link_libraries(test_bpm_spring PRIVATE lammps bpm_tests)
+register_bpm_tests(test_bpm_spring bpmspring BpmSpring)

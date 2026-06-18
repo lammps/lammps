@@ -92,7 +92,7 @@ BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
     BondBPM(_lmp), model(nullptr), c(nullptr), kbulk(nullptr), gshear(nullptr), lambda(nullptr),
     tau(nullptr), yieldstress(nullptr), cut(nullptr), s00(nullptr), alpha(nullptr),
     id_fix_property_peri(nullptr), index_vfrac(-1), index_s0(-1), index_smin(-1), index_lambda(-1),
-    index_vinter(-1),
+    index_vinter(-1), index_dtheta(-1),
     smin_new(nullptr), s0_new(nullptr), nmax(0), state_based(0), wvolume_setup(0), kbulk_rep(0.0),
     wvolume(nullptr), theta(nullptr), commflag(COMM_SMIN), plastic(0), tdnorm(nullptr),
     pointwise_yield(0.0), gshear_rep(0.0)
@@ -560,6 +560,13 @@ void BondBPMPeri::compute_dilatation()
   for (int i = 0; i < nlocal; i++)
     theta[i] = (wvolume[i] > 0.0) ? (3.0 / wvolume[i]) * theta[i] : 0.0;
 
+  // if the user opted in with a d_theta property/atom, publish theta on the
+  // owned atoms there so it is visible (e.g. compute property/atom, dump)
+  if (index_dtheta >= 0) {
+    double *dtheta = atom->dvector[index_dtheta];
+    for (int i = 0; i < nlocal; i++) dtheta[i] = theta[i];
+  }
+
   commflag = COMM_THETA;
   comm->forward_comm(this);
 }
@@ -866,6 +873,11 @@ void BondBPMPeri::init_style()
       error->all(FLERR, Error::NOLASTLINE,
                  "Bond style bpm/peri internal error: missing d_lambda storage");
   }
+  // optional dilatation diagnostic: if the user pre-declares a per-atom theta
+  // property ('fix <ID> all property/atom d_theta ghost yes' before bond_style),
+  // the state-based models publish the per-step dilatation into it (only then,
+  // so a compute property/atom defined in the input can read it from the start)
+  index_dtheta = (state_based) ? atom->find_custom("theta", flag, cols) : -1;
 
   // initialize the no-breaking sentinels on the freshly created s0/smin (s0 =
   // +DBL_MAX and smin = -DBL_MAX, so the implied critical stretch is +infinity)
@@ -884,6 +896,30 @@ void BondBPMPeri::init_style()
   // blocks accidental misuse without forbidding a deliberate opt-out.
   if (!force->pair || (!force->pair_match("bpm/peri", 0) && !force->pair_match("zero", 1)))
     error->all(FLERR, Error::NOLASTLINE, "Bond style bpm/peri requires pair style bpm/peri");
+
+  // these models do a single force pass and are several times faster than the
+  // legacy peri/* styles, so a multi-timescale rRESPA split is never worthwhile;
+  // refuse it rather than silently mis-integrate (no respa hooks are implemented)
+  if (utils::strmatch(update->integrate_style, "^respa"))
+    error->all(FLERR, Error::NOLASTLINE,
+               "Bond style bpm/peri is not compatible with run_style respa");
+
+  // consistency sanity check (typos happen): the bond horizon and the contact
+  // pair horizon should be the same peridynamic horizon.  Compare against the
+  // pair's largest cutoff when the bpm/peri contact pair is in use and warn (do
+  // not error) on an obvious mismatch -- differing by more than half a lattice
+  // spacing, the width of the partial-volume taper.
+  if (force->pair_match("bpm/peri", 0)) {
+    const double half_lc = 0.5 * domain->lattice->xlattice;
+    for (int i = 1; i <= atom->nbondtypes; i++) {
+      if (!setflag[i]) continue;
+      if (fabs(force->pair->cutforce - cut[i]) > half_lc)
+        error->warning(FLERR,
+                       "Bond style bpm/peri horizon {} for bond type {} differs from the pair "
+                       "style bpm/peri contact cutoff {}; check the pair_coeff and bond_coeff",
+                       cut[i], i, force->pair->cutforce);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

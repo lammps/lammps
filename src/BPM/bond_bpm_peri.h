@@ -58,6 +58,7 @@ class BondBPMPeri : public BondBPM {
   char *id_fix_property_peri;
   int index_vfrac, index_s0, index_smin, index_lambda;
   int index_vinter;       // reference interaction volume (for damage diagnostics)
+  int index_dtheta;       // per-step dilatation theta exposed for visualization
 
   // per-step scratch for the break bookkeeping (committed to smin/s0 each step)
   double *smin_new, *s0_new;

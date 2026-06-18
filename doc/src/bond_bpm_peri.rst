@@ -178,6 +178,19 @@ stretch; for *eps*, *lambda* reports the accumulated plastic multiplier.
 Volume-weighted damage is available through :doc:`compute
 bpm/peri/damage/atom <compute_bpm_peri_damage_atom>`.
 
+For the state-based models (*lps*, *ves*, *eps*) the per-step dilatation
+:math:`\theta` can optionally be exposed for visualization: declare a
+per-atom *theta* property before the bond style,
+
+.. code-block:: LAMMPS
+
+   fix dil all property/atom d_theta ghost yes
+
+and the bond style writes the dilatation of each owned node into it every
+step, readable with :doc:`compute property/atom <compute_property_atom>`
+*theta*.  (It must be declared up front, like *vfrac*, so a compute that
+references it can be defined from the start of the input.)
+
 ----------
 
 Restart and other info

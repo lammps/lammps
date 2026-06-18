@@ -186,6 +186,19 @@ analytic elastic response (dilatation, energy) agrees; for the *eps*
 model the BPM implementation uses a dimensionally-consistent plastic
 return mapping that is stable under sustained plastic flow.
 
+**Performance.**  The BPM implementation is consistently faster than the
+legacy PERI pair styles.  On a periodic 16x16x16 simple-cubic block (4096
+nodes, 122 bonds per node) the per-step force cost is roughly 3.6x (pmb),
+5.2x (lps), 4.4x (ves) and 5.5x (eps) lower than the corresponding
+``peri/*`` pair style on a single MPI rank, and about 4x lower on four
+ranks.  The legacy styles walk a double-counted partner list (each bond
+visited from both endpoints) and combine bond and contact in one pass,
+whereas the BPM bond style visits each bond once and the contact
+``pair_style bpm/peri`` carries a separate, nearly empty short-range list.
+The forward communication of the per-step dilatation and break state for
+the state-based models is a negligible fraction of the cost.  See
+``examples/bpm/peri/benchmark`` for the input decks.
+
 Peridynamic Model of a Continuum
 """"""""""""""""""""""""""""""""
 

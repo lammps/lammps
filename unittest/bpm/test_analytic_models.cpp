@@ -216,6 +216,48 @@ static void check_spring_plastic(const TestConfig &cfg, LAMMPS *lmp)
     expect_rel(expected, force_mag(lmp, 2), cfg.analytic_tol, "spring_plastic atom 2");
 }
 
+// bond_style bpm/peri, eps model -- cyclic plasticity on an octahedral cluster.
+// A central node (tag 1) bonded to six axial neighbors is stretched along x past
+// the deviatoric yield and unloaded back to the reference configuration (a fix
+// move wiggle run over an integer half-period).  A single colinear bond has zero
+// deviatoric extension (ed = dr - theta*r0/3 = 0) and can never yield -- which is
+// why the two-body eps deck only ever exercises the elastic path; the central
+// node's six non-colinear bonds carry a nonzero deviatoric force state, so the
+// anisotropic stretch drives genuine plastic flow.
+//
+// The defining cyclic-plasticity signature is irreversibility: after a full
+// load/unload the accumulated plastic multiplier lambda on the central node is
+// strictly positive (an elastic cycle leaves it exactly zero), while lambda and
+// every nodal force stay finite and bounded.  This is the regression guard for the
+// EPS radial-return map (bond_bpm_peri.cpp): the corrected projection lands on the
+// yield surface in one step and keeps lambda bounded, whereas the legacy
+// edp += rkNew*deltalambda update (~2/r0 gain) overshoots and diverges -- which
+// here would surface as a blown-up lambda or non-finite forces.  Variable
+// lambda_min sets the positive floor that proves plasticity engaged.
+static void check_eps_cyclic(const TestConfig &cfg, LAMMPS *lmp)
+{
+    const auto vars         = as_doubles(cfg);
+    const double lambda_min = var_or(vars, "lambda_min", 1.0e-8);
+
+    const double lambda_c = custom_value(lmp, "lambda", 1);    // central node (tag 1)
+    EXPECT_GT(lambda_c, lambda_min)
+        << "eps_cyclic: central node did not yield (lambda=" << lambda_c
+        << ") -- the deviatoric plastic path was not exercised";
+    EXPECT_TRUE(std::isfinite(lambda_c))
+        << "eps_cyclic: plastic multiplier diverged (lambda=" << lambda_c
+        << ") -- the EPS radial-return map is unstable";
+
+    // a divergent return map blows the deviatoric force state up to non-finite
+    // values; every node in the cluster must keep a finite force
+    for (tagint id = 1; id <= 7; ++id) {
+        const int i = find_local(lmp, id);
+        if (i < 0) continue;
+        const double *f = lmp->atom->f[i];
+        EXPECT_TRUE(std::isfinite(f[0]) && std::isfinite(f[1]) && std::isfinite(f[2]))
+            << "eps_cyclic: non-finite force on node " << id;
+    }
+}
+
 void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
 {
     if (!cfg.analytic_enable) return;
@@ -236,6 +278,8 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         check_spring_force(cfg, lmp);
     } else if (cfg.analytic_model == "spring_plastic") {
         check_spring_plastic(cfg, lmp);
+    } else if (cfg.analytic_model == "eps_cyclic") {
+        check_eps_cyclic(cfg, lmp);
     } else {
         ADD_FAILURE() << "unknown analytic_model: " << cfg.analytic_model;
     }

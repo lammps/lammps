@@ -61,7 +61,7 @@ template <typename T> static LddPotential *creator(LAMMPS *lmp)
 // 2nd customization section: add a row for a new potential here.
 // The columns are the input-script keyword and the potential class name.
 
-const LddPotentialInfo ldd_potential_table[] = {
+LMP_REGISTRY_CONST LddPotentialInfo ldd_potential_table[] = {
   { "constant",         &creator<LddPotentialConstant>       },
   { "linear",           &creator<LddPotentialLinear>         },
   { "mdpd",             &creator<LddPotentialMdpd>           },
@@ -74,6 +74,6 @@ const LddPotentialInfo ldd_potential_table[] = {
 };
 // clang-format on
 
-const int num_ldd_potential = sizeof(ldd_potential_table) / sizeof(LddPotentialInfo);
+LMP_REGISTRY_CONST int num_ldd_potential = sizeof(ldd_potential_table) / sizeof(LddPotentialInfo);
 
 }    // namespace LAMMPS_NS

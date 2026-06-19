@@ -63,7 +63,7 @@ template <typename T> static GranSubMod *creator(GranularModel *gm, LAMMPS *lmp)
 // are the input-script keyword, the sub-model class name, and the sub-model
 // type.  The order of the rows does not matter.
 
-const GranSubModInfo gran_sub_mod_table[] = {
+LMP_REGISTRY_CONST GranSubModInfo gran_sub_mod_table[] = {
 
   // normal models
   { "none",                   &creator<GranSubModNormalNone>,                   NORMAL },
@@ -110,6 +110,6 @@ const GranSubModInfo gran_sub_mod_table[] = {
 };
 // clang-format on
 
-const int num_gran_sub_mod = sizeof(gran_sub_mod_table) / sizeof(GranSubModInfo);
+LMP_REGISTRY_CONST int num_gran_sub_mod = sizeof(gran_sub_mod_table) / sizeof(GranSubModInfo);
 
 }    // namespace LAMMPS_NS::Granular_NS

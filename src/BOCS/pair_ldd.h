@@ -33,21 +33,25 @@ namespace LAMMPS_NS {
 class LddIndicator;
 class LddPotential;
 
+// the registration tables below use LMP_REGISTRY_CONST (see lmptype.h): const,
+// except in a GPU-enabled Kokkos build where the host-only factory function
+// pointers must not be shadowed into device memory.
+
 typedef LddIndicator *(*IndicatorCreator)(LAMMPS *);
 struct LddIndicatorInfo {
   const char *name;
   IndicatorCreator creator;
 };
-extern const LddIndicatorInfo ldd_indicator_table[];
-extern const int num_ldd_indicator;
+extern LMP_REGISTRY_CONST LddIndicatorInfo ldd_indicator_table[];
+extern LMP_REGISTRY_CONST int num_ldd_indicator;
 
 typedef LddPotential *(*PotentialCreator)(LAMMPS *);
 struct LddPotentialInfo {
   const char *name;
   PotentialCreator creator;
 };
-extern const LddPotentialInfo ldd_potential_table[];
-extern const int num_ldd_potential;
+extern LMP_REGISTRY_CONST LddPotentialInfo ldd_potential_table[];
+extern LMP_REGISTRY_CONST int num_ldd_potential;
 
 class PairLdd : public Pair {
  public:

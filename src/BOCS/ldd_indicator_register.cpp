@@ -57,7 +57,7 @@ template <typename T> static LddIndicator *creator(LAMMPS *lmp)
 // 2nd customization section: add a row for a new indicator here.
 // The columns are the input-script keyword and the indicator class name.
 
-const LddIndicatorInfo ldd_indicator_table[] = {
+LMP_REGISTRY_CONST LddIndicatorInfo ldd_indicator_table[] = {
   { "dpd",    &creator<LddIndicatorDpd>    },
   { "lucy",   &creator<LddIndicatorLucy>   },
   { "shell",  &creator<LddIndicatorShell>  },
@@ -66,6 +66,6 @@ const LddIndicatorInfo ldd_indicator_table[] = {
 };
 // clang-format on
 
-const int num_ldd_indicator = sizeof(ldd_indicator_table) / sizeof(LddIndicatorInfo);
+LMP_REGISTRY_CONST int num_ldd_indicator = sizeof(ldd_indicator_table) / sizeof(LddIndicatorInfo);
 
 }    // namespace LAMMPS_NS

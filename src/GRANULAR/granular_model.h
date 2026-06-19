@@ -57,8 +57,11 @@ struct GranSubModInfo {
   int type;                     // sub-model type (SubModelType enum value)
 };
 
-extern const GranSubModInfo gran_sub_mod_table[];
-extern const int num_gran_sub_mod;
+// LMP_REGISTRY_CONST (see lmptype.h): const, except in a GPU-enabled Kokkos
+// build where the host-only factory function pointers in the table below must
+// not be shadowed into device memory.
+extern LMP_REGISTRY_CONST GranSubModInfo gran_sub_mod_table[];
+extern LMP_REGISTRY_CONST int num_gran_sub_mod;
 
 class GranularModel : protected Pointers {
  public:

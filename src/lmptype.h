@@ -52,6 +52,21 @@
 #define PRId64 "ld"
 #endif
 
+// LMP_REGISTRY_CONST: const-qualifier for file-scope style-registration tables
+// (committed *_register.cpp files that hold arrays of host-only factory function
+// pointers).  In a GPU-enabled Kokkos build every translation unit is also
+// compiled for the device, where clang implicitly shadows file-scope "const"
+// objects into device memory -- which drags the host-only factory functions
+// into device code and fails to link.  These tables are only ever read by host
+// runtime code, so the qualifier is dropped in that case.  LMP_KOKKOS_GPU is set
+// as a global compile definition by the build system (cmake KOKKOS package).
+
+#ifdef LMP_KOKKOS_GPU
+#define LMP_REGISTRY_CONST
+#else
+#define LMP_REGISTRY_CONST const
+#endif
+
 namespace LAMMPS_NS {
 
 // reserve 2 highest bits in molecular system neigh list for special bonds flag

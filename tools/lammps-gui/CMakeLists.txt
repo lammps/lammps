@@ -94,7 +94,7 @@ endif()
 
 option(BUILD_WHAM "Download and compile WHAM executable from Grossfield Lab" YES)
 if(BUILD_WHAM)
-  set(WHAM_URL "http://membrane.urmc.rochester.edu/sites/default/files/wham/wham-release-2.1.0.tgz" CACHE STRING "URL for WHAM tarball")
+  set(WHAM_URL "https://download.lammps.org/thirdparty/wham-release-2.1.0.tar.gz" CACHE STRING "URL for WHAM tarball")
   set(WHAM_MD5 "5d278e94e2999fc483764e8eaaa2d2b4" CACHE STRING "MD5 checksum of WHAM tarball")
   mark_as_advanced(WHAM_URL)
   mark_as_advanced(WHAM_MD5)

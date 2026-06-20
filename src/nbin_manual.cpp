@@ -147,7 +147,7 @@ void NBinManual::bin_custom_setup(double **xcustom, int ncustom)
    mbin = number of bins I need in a dimension
 ------------------------------------------------------------------------- */
 
-void NBinManual::setup_bins(int style)
+void NBinManual::setup_bins(int /*style*/)
 {
   // bbox = size of bbox of entire domain
   // bsubbox lo/hi = bounding box of my subdomain extended by cutghost or cutneighmax

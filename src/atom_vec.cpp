@@ -2602,6 +2602,23 @@ void AtomVec::init_method(int nfield, Method *method)
 }
 
 /* ----------------------------------------------------------------------
+   Set pointers to default atom arrays
+     used by hybrid style to set substyle pointers
+------------------------------------------------------------------------- */
+
+void AtomVec::grow_default_pointers(tagint *tag2, int *type2, int *mask2, imageint *image2,
+                                    double **x2, double **v2, double **f2)
+{
+  tag = tag2;
+  type = type2;
+  mask = mask2;
+  image = image2;
+  x = x2;
+  v = v2;
+  f = f2;
+}
+
+/* ----------------------------------------------------------------------
    Method class members
 ------------------------------------------------------------------------- */
 

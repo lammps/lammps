@@ -25,7 +25,7 @@
 #include "graphics.h"
 #include "memory.h"
 #include "safe_pointers.h"
-#include "text_file_reader.h"
+#include "stl_reader.h"
 
 #include <Eigen/Eigen>
 #include <cstring>
@@ -189,9 +189,6 @@ void FixSMDWallSurface::read_triangles(int pass)
   vert = new Vector3d[3];
   Vector3d normal, center;
 
-  SafeFilePtr fp = fopen(filename, "r");
-  if (fp == nullptr) error->one(FLERR, "Cannot open file {}: {}", filename, utils::getsyserror());
-
   if (comm->me == 0) {
     utils::logmesg(lmp, "\n>>========>>========>>========>>========>>========>>========\n");
     if (pass == 0)
@@ -200,107 +197,80 @@ void FixSMDWallSurface::read_triangles(int pass)
       utils::logmesg(lmp, "  reading triangle pairs ...\n");
   }
 
-  TextFileReader reader(fp, "triangles");
+  // read all triangles (ASCII or binary STL) with the shared STL reader
+
+  std::vector<STLReader::Triangle> triangles;
   try {
-    char *line = reader.next_line();
-    if (!line || !utils::strmatch(line, "^solid"))
-      throw TokenizerException("Invalid triangles file format", "");
-
+    std::string title;
+    triangles = STLReader::parse(filename, &title);
     if (comm->me == 0)
-      utils::logmesg(lmp, "  reading STL object '{}' from {}\n", utils::trim(line + 6), filename);
-
-    while ((line = reader.next_line())) {
-
-      // next line is facet line with 5 words
-      auto values = utils::split_words(line);
-      // otherwise stop reading
-      if ((values.size() != 5) || !utils::strmatch(values[0], "^facet")) break;
-
-      normal << utils::numeric(FLERR, values[2], false, lmp),
-          utils::numeric(FLERR, values[3], false, lmp),
-          utils::numeric(FLERR, values[4], false, lmp);
-
-      line = reader.next_line(2);
-      if (!line || !utils::strmatch(line, "^ *outer *loop"))
-        throw TokenizerException("Error reading outer loop", "");
-
-      for (int k = 0; k < 3; ++k) {
-        line = reader.next_line(4);
-        values = utils::split_words(line);
-        if ((values.size() != 4) || !utils::strmatch(values[0], "^vertex"))
-          throw TokenizerException("Error reading vertex", "");
-
-        vert[k] << utils::numeric(FLERR, values[1], false, lmp),
-            utils::numeric(FLERR, values[2], false, lmp),
-            utils::numeric(FLERR, values[3], false, lmp);
-      }
-
-      line = reader.next_line(1);
-      if (!line || !utils::strmatch(line, "^ *endloop"))
-        throw TokenizerException("Error reading endloop", "");
-      line = reader.next_line(1);
-      if (!line || !utils::strmatch(line, "^ *endfacet"))
-        throw TokenizerException("Error reading endfacet", "");
-
-      // now we have a normal and three vertices ... proceed with adding triangle
-
-      center = (vert[0] + vert[1] + vert[2]) / 3.0;
-
-      double r1 = (center - vert[0]).norm();
-      double r2 = (center - vert[1]).norm();
-      double r3 = (center - vert[2]).norm();
-      double r = MAX(MAX(r1, r2), r3);
-
-      /*
-       * if atom/molecule is in my subbox, create it
-       * ... use x0 to hold triangle normal.
-       * ... use smd_data_9 to hold the three vertices
-       * ... use x to hold triangle center
-       * ... radius is the mmaximal distance from triangle center to all vertices
-       */
-
-      if (center(0) >= sublo[0] && center(0) < subhi[0] && center(1) >= sublo[1] &&
-          center(1) < subhi[1] && center(2) >= sublo[2] && center(2) < subhi[2]) {
-
-        coord[0] = center(0);
-        coord[1] = center(1);
-        coord[2] = center(2);
-        atom->avec->create_atom(wall_particle_type, coord);
-
-        /*
-         * need to initialize pointers to atom vec arrays here, because they could have changed
-         * due to calling grow() in create_atoms() above;
-         */
-
-        tagint *mol = atom->molecule;
-        int *type = atom->type;
-        double *radius = atom->radius;
-        double *contact_radius = atom->contact_radius;
-        double **smd_data_9 = atom->smd_data_9;
-        double **x0 = atom->x0;
-
-        radius[ilocal] = r;            //ilocal;
-        contact_radius[ilocal] = r;    //ilocal;
-        mol[ilocal] = wall_molecule_id;
-        type[ilocal] = wall_particle_type;
-        x0[ilocal][0] = normal(0);
-        x0[ilocal][1] = normal(1);
-        x0[ilocal][2] = normal(2);
-        smd_data_9[ilocal][0] = vert[0](0);
-        smd_data_9[ilocal][1] = vert[0](1);
-        smd_data_9[ilocal][2] = vert[0](2);
-        smd_data_9[ilocal][3] = vert[1](0);
-        smd_data_9[ilocal][4] = vert[1](1);
-        smd_data_9[ilocal][5] = vert[1](2);
-        smd_data_9[ilocal][6] = vert[2](0);
-        smd_data_9[ilocal][7] = vert[2](1);
-        smd_data_9[ilocal][8] = vert[2](2);
-
-        ilocal++;
-      }
-    }
+      utils::logmesg(lmp, "  reading STL object '{}' from {}\n", title, filename);
   } catch (std::exception &e) {
     error->all(FLERR, "Error reading triangles from file {}: {}", filename, e.what());
+  }
+
+  for (const auto &tri : triangles) {
+
+    normal << tri.normal[0], tri.normal[1], tri.normal[2];
+    for (int k = 0; k < 3; ++k)
+      vert[k] << tri.vert[k][0], tri.vert[k][1], tri.vert[k][2];
+
+    // now we have a normal and three vertices ... proceed with adding triangle
+
+    center = (vert[0] + vert[1] + vert[2]) / 3.0;
+
+    double r1 = (center - vert[0]).norm();
+    double r2 = (center - vert[1]).norm();
+    double r3 = (center - vert[2]).norm();
+    double r = MAX(MAX(r1, r2), r3);
+
+    /*
+     * if atom/molecule is in my subbox, create it
+     * ... use x0 to hold triangle normal.
+     * ... use smd_data_9 to hold the three vertices
+     * ... use x to hold triangle center
+     * ... radius is the mmaximal distance from triangle center to all vertices
+     */
+
+    if (center(0) >= sublo[0] && center(0) < subhi[0] && center(1) >= sublo[1] &&
+        center(1) < subhi[1] && center(2) >= sublo[2] && center(2) < subhi[2]) {
+
+      coord[0] = center(0);
+      coord[1] = center(1);
+      coord[2] = center(2);
+      atom->avec->create_atom(wall_particle_type, coord);
+
+      /*
+       * need to initialize pointers to atom vec arrays here, because they could have changed
+       * due to calling grow() in create_atoms() above;
+       */
+
+      tagint *mol = atom->molecule;
+      int *type = atom->type;
+      double *radius = atom->radius;
+      double *contact_radius = atom->contact_radius;
+      double **smd_data_9 = atom->smd_data_9;
+      double **x0 = atom->x0;
+
+      radius[ilocal] = r;            //ilocal;
+      contact_radius[ilocal] = r;    //ilocal;
+      mol[ilocal] = wall_molecule_id;
+      type[ilocal] = wall_particle_type;
+      x0[ilocal][0] = normal(0);
+      x0[ilocal][1] = normal(1);
+      x0[ilocal][2] = normal(2);
+      smd_data_9[ilocal][0] = vert[0](0);
+      smd_data_9[ilocal][1] = vert[0](1);
+      smd_data_9[ilocal][2] = vert[0](2);
+      smd_data_9[ilocal][3] = vert[1](0);
+      smd_data_9[ilocal][4] = vert[1](1);
+      smd_data_9[ilocal][5] = vert[1](2);
+      smd_data_9[ilocal][6] = vert[2](0);
+      smd_data_9[ilocal][7] = vert[2](1);
+      smd_data_9[ilocal][8] = vert[2](2);
+
+      ilocal++;
+    }
   }
 
   // set new total # of atoms and error check

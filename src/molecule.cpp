@@ -2544,13 +2544,15 @@ void Molecule::read(int flag)
   }
 
   // error checks
-
   if (!has_atoms && !has_lines && !has_tris)
-    error->all(FLERR, fileiarg, "Required \"atoms\" or \"lines\" or \"tris\" header keyword not found in molecule file");
-  if (has_atoms && natoms < 1) error->all(FLERR, fileiarg, "No atoms or invalid atom count in molecule file");
-  if (has_lines && nlines < 1) error->all(FLERR, fileiarg, "No lines or invalid line count in molecule file");
-  if (has_tris && ntris < 1) error->all(FLERR, fileiarg, "No tris or invalid tri count in molecule file");
-
+    error->all(FLERR, fileiarg,
+        R"(Required "atoms" or "lines" or "tris" header keyword not found in molecule file)");
+  if (has_atoms && natoms < 1)
+    error->all(FLERR, fileiarg, "No atoms or invalid atom count in molecule file");
+  if (has_lines && nlines < 1)
+    error->all(FLERR, fileiarg, "No lines or invalid line count in molecule file");
+  if (has_tris && ntris < 1)
+    error->all(FLERR, fileiarg, "No tris or invalid tri count in molecule file");
   if (natoms < 0) error->all(FLERR, fileiarg, "Invalid atom count in molecule file");
   if (nlines < 0) error->all(FLERR, fileiarg, "Invalid line count in molecule file");
   if (ntris < 0) error->all(FLERR, fileiarg, "Invalid triangle count in molecule file");

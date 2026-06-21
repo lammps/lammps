@@ -240,7 +240,10 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
         val.argindex = argi.get_index1();
         val.id = argi.get_name();
 
-        if (val.which == ArgInfo::NONE) breakflag = 1;
+        if (val.which == ArgInfo::NONE) {
+          breakflag = 1;
+          break;
+        }
 
         if ((val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
           error->all(FLERR, iarg, "Illegal fix store/state argument: {}", arg[iarg]);

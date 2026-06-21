@@ -118,27 +118,18 @@ void BondBPMZero::compute(int eflag, int vflag)
   // Rearrange stored bond values for hybrid bond styles, handled by parent class
   pre_compute();
 
-  double *manybody_term;
-
-  if (manybody_flag) {
-    manybody_term = atom->dvector[index_manybody];
-    calculate_manybody();
-  }
-
   int i1, i2, itmp, n, type;
   double delx, dely, delz, rsq, r, r0, e, fbond, ebond;
 
   ev_init(eflag, vflag);
 
   double **x = atom->x;
-  double **v = atom->v;
   double **f = atom->f;
   tagint *tag = atom->tag;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
-  double dim = domain->dimension;
 
   double **bondstore = fix_bond_history->bondstore;
   const bool allow_breaks = (update->setupflag == 0) && break_flag;
@@ -224,7 +215,6 @@ void BondBPMZero::calculate_manybody()
   int nlocal = atom->nlocal;
   int ntotal = nlocal + atom->nghost;
   int newton_bond = force->newton_bond;
-  int dim = domain->dimension;
 
   double *manybody = atom->dvector[index_manybody];
   int **bondlist = neighbor->bondlist;
@@ -232,8 +222,6 @@ void BondBPMZero::calculate_manybody()
   double **bondstore = fix_bond_history->bondstore;
 
   for (n = 0; n < ntotal; n++) manybody[n] = 0.0;
-
-  int bond_change_flag = 0;
 
   for (n = 0; n < nbondlist; n++) {
     if (bondlist[n][2] <= 0) continue;
@@ -400,10 +388,6 @@ double BondBPMZero::single(int type, double rsq, int i, int j, double &fforce)
   for (int n = 0; n < atom->num_bond[i]; n++) {
     if (atom->bond_atom[i][n] == atom->tag[j]) r0 = fix_bond_history->get_atom_value(i, n, 0);
   }
-
-  double r = sqrt(rsq);
-  double rinv = 1.0 / r;
-  double e = (r - r0) / r0;
 
   // calculate force and energy
 

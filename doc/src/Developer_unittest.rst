@@ -736,7 +736,7 @@ are:
        (``brownian``, ``gjf``, ``press/langevin``) draw their random
        numbers differently under r-RESPA, and velocity-dependent forcing
        fixes (``viscous``, ``accelerate/cos``) and the isokinetic ``nvk``
-       integrator follow a different trajectory under r-RESPA — in all of
+       integrator follow a different trajectory under r-RESPA - in all of
        these cases the verlet and r-RESPA runs cannot match.
    * - no_reset_dt
      - The ``fix_timestep`` tester does not exercise a timestep change

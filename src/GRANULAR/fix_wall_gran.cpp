@@ -185,9 +185,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     }
     iarg += 3;
   } else if (strcmp(arg[iarg],"zcylinder") == 0) {
-    iarg += 2;
     error->all(FLERR, iarg, "The zcylinder keyword has been removed. "
                "Please use fix wall/gran/region instead.");
+    iarg += 2;
   } else if (strcmp(arg[iarg],"region") == 0) {
     if (narg < iarg+2) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = REGION;
@@ -371,9 +371,9 @@ void FixWallGran::init()
 
   if (heat_flag) {
     if (!atom->temperature_flag)
-      error->all(FLERR,"Heat conduction in fix wall/gran requires atom style with temperature property");
+      error->all(FLERR, "Heat conduction in fix wall/gran requires atom style with temperature property");
     if (!atom->heatflow_flag)
-      error->all(FLERR,"Heat conduction in fix wall/gran requires atom style with heatflow property");
+      error->all(FLERR, "Heat conduction in fix wall/gran requires atom style with heatflow property");
   }
 
   // check for FixRigid so can extract rigid body masses

@@ -83,9 +83,9 @@ void Hyper::command(int narg, char **arg)
     hyperenable = 0;
     hyperstyle = NOHYPER;
   } else {
-    int ifix = modify->find_fix(id_fix);
-    if (ifix < 0) error->all(FLERR,"Could not find fix ID for hyper");
-    fix_hyper = dynamic_cast<FixHyper *>(modify->fix[ifix]);
+    auto *ifix = modify->get_fix_by_id(id_fix);
+    if (!ifix) error->all(FLERR,"Could not find fix ID for hyper");
+    fix_hyper = dynamic_cast<FixHyper *>(ifix);
     int dim;
     int *hyperflag = (int *) fix_hyper->extract("hyperflag",dim);
     if (hyperflag == nullptr || *hyperflag == 0)
@@ -105,10 +105,10 @@ void Hyper::command(int narg, char **arg)
 
   // assign FixEventHyper to event-detection compute
   // necessary so it will know atom coords at last event
-
-  int icompute = modify->find_compute(id_compute);
-  if (icompute < 0) error->all(FLERR,"Could not find compute ID for hyper");
-  compute_event = dynamic_cast<ComputeEventDisplace *>(modify->compute[icompute]);
+  auto *icompute = modify->get_compute_by_id(id_compute);
+  compute_event = dynamic_cast<ComputeEventDisplace *>(icompute);
+  if (!compute_event)
+    error->all(FLERR,"Could not find compute event/displace ID {} for hyper", id_compute);
   compute_event->reset_extra_compute_fix("hyper_event");
 
   // reset reneighboring criteria since will perform minimizations

@@ -14,6 +14,8 @@
 #include "atom_vec_hybrid.h"
 
 #include "atom.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
 #include "comm.h"
 #include "error.h"
 
@@ -155,6 +157,28 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     merge_fields(fields_data_vel, styles[k]->fields_data_vel, 0, concat_dummy);
   }
 
+  // as needed, alert sub-styles of interactions with other sub-styles
+  //   if sub-style which defines radius in data file exists (e.g. SPHERE),
+  //     need to alert sub-styles LINE or TRI
+  //     this is so thay can treat non-line/tri particles as
+  //       point particles versus finite-size spheroids
+
+  for (int k = 0; k < nstyles; k++) {
+    if (strcmp(keywords[k], "line") == 0) {
+      if (std::find(fields_data_atom.begin(), fields_data_atom.end(), "radius") != fields_data_atom.end()) {
+        auto *avec_line = dynamic_cast<AtomVecLine *>(styles[k]);
+        avec_line->set_sphere();
+      }
+    }
+
+    if (strcmp(keywords[k], "tri") == 0) {
+      if (std::find(fields_data_atom.begin(), fields_data_atom.end(), "radius") != fields_data_atom.end()) {
+        auto *avec_tri = dynamic_cast<AtomVecTri *>(styles[k]);
+        avec_tri->set_sphere();
+      }
+    }
+  }
+
   // check concat_grow for multiple special-case fields
   // may cause issues with style-specific create_atom() and data_atom() methods
   // issue warnings if appear in multiple sub-styles
@@ -208,7 +232,10 @@ void AtomVecHybrid::init()
 
 void AtomVecHybrid::grow_pointers()
 {
-  for (int k = 0; k < nstyles; k++) styles[k]->grow_pointers();
+  for (int k = 0; k < nstyles; k++) {
+    styles[k]->grow_default_pointers(tag, type, mask, image, x, v, f);
+    styles[k]->grow_pointers();
+  }
 }
 
 /* ---------------------------------------------------------------------- */

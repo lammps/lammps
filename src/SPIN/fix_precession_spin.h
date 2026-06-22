@@ -38,6 +38,7 @@ class FixPrecessionSpin : public Fix {
   void post_force_respa(int, int, int) override;
   void min_post_force(int) override;
   double compute_scalar() override;
+  double memory_usage() override;
 
   int zeeman_flag, stt_flag, aniso_flag, cubic_flag, hexaniso_flag;
   void compute_single_precession(int, double *, double *);

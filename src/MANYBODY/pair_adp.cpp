@@ -1019,6 +1019,7 @@ void PairADP::unpack_reverse_comm(int n, int *list, double *buf)
 double PairADP::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  bytes += (double)21 * nmax * sizeof(double);
+  // rho[nmax] + fp[nmax] + mu[nmax][3] + lambda[nmax][6]
+  bytes += (double) 11 * nmax * sizeof(double);
   return bytes;
 }

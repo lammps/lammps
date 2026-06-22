@@ -364,11 +364,23 @@ the EVB energy correction (ground-state eigenvalue minus the reference
 partition energy) in the system potential energy reported by thermo.
 
 This fix stores a global scalar (the EVB energy correction,
-:math:`\lambda_g - E_0`) and a global vector of length equal to the number
-of partitions containing the potential energy of each partition.  Both the
-scalar and vector are in :doc:`energy units <units>` and "extensive".
-See the :doc:`Howto output <Howto_output>` page for how to access these
-values.
+:math:`\lambda_g - E_0`) and a global vector containing the potential energy
+of each EVB state.  The length of the vector is the number of EVB states
+detected that step (the reference state plus all reactive states,
+:math:`M = 1 + N_\mathrm{sites}`), so it varies from step to step as
+reactions are detected.  Element *n* is the potential energy :math:`E_n` of
+state *n*, with the reference state at index 0.  Both the scalar and vector
+are in :doc:`energy units <units>` and "extensive".  See the
+:doc:`Howto output <Howto_output>` page for how to access these values.
+
+.. note::
+
+   Because the vector length tracks the number of states each step, it is not
+   constant during a run.  Commands that assume a fixed vector length (for
+   example :doc:`fix ave/time <fix_ave_time>` in vector mode) may not be
+   suitable for this output; accessing a fixed element such as
+   ``f_evb[1]`` is well defined as long as that many states exist on the
+   current step.
 
 The virial contribution from the coupling forces is tallied and included
 when :doc:`fix_modify virial yes <fix_modify>` is set.

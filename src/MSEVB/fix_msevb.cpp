@@ -383,7 +383,11 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
   energy_global_flag = 1;    // compute_scalar contributes to compute pe
   virial_global_flag = 1;    // virial[6] contributes to compute pressure
   vector_flag = 1;
-  size_vector = npartitions;
+  // The global vector holds one entry per EVB state, so its length tracks the
+  // number of states detected each step (nstates).  It is initialised to the
+  // reference-only state count here and updated every step in
+  // detect_reactive_sites() once nstates is known.
+  size_vector = nstates;
   extvector = 1;
   comm_forward = 2;    // type + charge per atom
   nmax = 6;
@@ -1611,7 +1615,11 @@ double FixMSEVB::compute_scalar()
 
 double FixMSEVB::compute_vector(int n)
 {
-  if (n < 0 || n >= npartitions) return 0.0;
+  // The vector is sized to the number of EVB states detected this step
+  // (size_vector == nstates), so every state's energy is exposed, including
+  // serial states beyond the partition count.  epot[] is grown to nstates
+  // each step in grow_epot_arrays().
+  if (n < 0 || n >= nstates) return 0.0;
   return epot[n];
 }
 

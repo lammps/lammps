@@ -1186,6 +1186,10 @@ broadcast:
 
   nstates = 1 + nsites;
 
+  // Expose one global-vector entry per EVB state this step (reference + all
+  // reactive states), so f_evb has length nstates rather than npartitions.
+  size_vector = nstates;
+
   nsites_parallel = MIN(nsites, npartitions - 1);
   nsites_serial = nsites - nsites_parallel;
 

@@ -23,6 +23,7 @@
 /src/FEP/             @agiliopadua
 /src/GPU/             @ndtrung81
 /src/GRANULAR/        @jtclemm @dsbolin
+/src/GRANSURF/        @jtclemm @dsbolin @sjplimp
 /src/GRAPHICS/        @akohlmey
 /src/INTEL/           @wmbrownintel
 /src/KIM/             @ellio167

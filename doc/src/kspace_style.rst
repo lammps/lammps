@@ -27,6 +27,7 @@
 .. index:: kspace_style pppm/tip4p/omp
 .. index:: kspace_style pppm/electrode
 .. index:: kspace_style pppm/electrode/intel
+.. index:: kspace_style pppm/rk
 .. index:: kspace_style msm
 .. index:: kspace_style msm/omp
 .. index:: kspace_style msm/cg
@@ -45,7 +46,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
 
   .. parsed-literal::
 
@@ -110,6 +111,8 @@ Syntax
        *pppm/electrode* value = accuracy
          accuracy = desired relative error in forces
        *pppm/electrode/intel* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/rk* value = accuracy
          accuracy = desired relative error in forces
        *msm* value = accuracy
          accuracy = desired relative error in forces
@@ -301,16 +304,50 @@ parameters and how to choose them is described in
 
 ----------
 
+.. versionadded:: TBD
+
+The *pppm/rk* kspace style is a variant of *pppm* designed for a
+heterogeneous multicore pppm computation of long-range forces.  The
+heterogeneity is in the sense that the MPI communicator is partitioned
+into two classes of MPI processes. Thus, the use of *pppm/rk* requires
+the use of the command line `-partition` option.  E.g.,
+
+.. code-block:: LAMMPS
+
+  mpirun -n 100 lmp -partition 96 4 -in in.somescript
+
+The R-process class of processes primarily computes the short-range
+forces and atom-wise updates, the latter of which includes the
+accumulation of charge densities.  In the above command-line example,
+there would be 96 R-processes and 4 K-processes.  The K-process class is
+mainly responsible for solving the Poisson equations with 3d FFT.  The
+number of K-processes divides the number of R-processes, and the total
+number of processes is furthermore partitioned orthogonally into
+inter-RK blocks (as seen also in the `VerletSplit` class).  Each
+inter-RK block communicator has one representative K process, with the
+rest of the processes being R processes.
+
+The *pppm/rk* kspace style must be paired with an analogous *rk* type
+run style, e.g., :doc:`verlet/split/rk <run_style>`.  An error is
+generated otherwise. Also, *pppm/rk* does not currently support
+group/group computation (`group_group_enable==0`).
+
+This approach is based on the enhanced baseline decomposition of
+:ref:`(Dandurand) <kspaceDandurand2025>` and works cited within.
+
+----------
+
 .. note::
 
    All of the PPPM styles can be used with single-precision FFTs by
-   using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
-   low-level Makefile.  This setting also changes some of the PPPM
+   using the compiler switch -DFFT_SINGLE for the FFT_INC setting in
+   your low-level Makefile.  This setting also changes some of the PPPM
    operations (e.g. mapping charge to mesh and interpolating electric
-   fields to particles) to be performed in single precision.  This option
-   can speed-up long-range calculations, particularly in parallel or on
-   GPUs.  The use of the -DFFT_SINGLE flag is discussed on the :doc:`Build settings <Build_settings>` doc page. MSM does not currently support
-   the -DFFT_SINGLE compiler switch.
+   fields to particles) to be performed in single precision.  This
+   option can speed-up long-range calculations, particularly in parallel
+   or on GPUs.  The use of the -DFFT_SINGLE flag is discussed on the
+   :doc:`Build settings <Build_settings>` doc page. MSM does not
+   currently support the -DFFT_SINGLE compiler switch.
 
 ----------
 
@@ -562,6 +599,11 @@ Default
    kspace_style none
 
 ----------
+
+.. _kspaceDandurand2025:
+
+**(Dandurand)** Dandurand, Vandierendonck, de Supinski, 39th IEEE IPDPS,
+June 3-7, (2025).
 
 .. _Darden:
 

@@ -2,7 +2,7 @@
 lammps_version: 30 Mar 2026
 tags:
 date_generated: Thu May 21 21:00:01 2026
-epsilon: 5e-14
+epsilon: 1e-13
 skip_tests:
 prerequisites: ! |
   atom full

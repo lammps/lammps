@@ -983,3 +983,14 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x, double *b)
     }
   } // omp parallel
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixQEqReaxFFOMP::memory_usage()
+{
+  double bytes = FixQEqReaxFF::memory_usage();
+  int size = nmax;
+  if (dual_enabled) size *= 2;
+  bytes += (double) comm->nthreads * size * sizeof(double);    // b_temp[nthreads][nmax]
+  return bytes;
+}

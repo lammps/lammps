@@ -58,7 +58,7 @@ class ComputePropertyAtom : public Compute {
   // function ptr for each attribute
 
   using FnPtrPack = void (ComputePropertyAtom::*)(int);
-  FnPtrPack *pack_choice;    // ptrs to pack functions
+  std::vector<FnPtrPack> pack_choice;    // ptrs to pack functions
 
   void pack_id(int);
   void pack_molecule(int);

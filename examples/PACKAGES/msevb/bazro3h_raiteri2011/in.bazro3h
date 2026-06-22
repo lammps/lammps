@@ -9,7 +9,7 @@ molecule pre pre.mol
 molecule post post.mol
 
 fix evb all msevb         &
-  reaction pre post react.map 1.9 taper 1.7 shells 1 coupling raiteri2011 lambda 0.7998 zeta 16 &
+  reaction pre post react.map 1.9 taper 1.7 shells 1 coupling geometry/gaussian lambda 0.7998 zeta 16 &
   output msevb.out 1
 
 fix_modify evb energy yes

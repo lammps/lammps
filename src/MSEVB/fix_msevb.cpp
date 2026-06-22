@@ -105,25 +105,28 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
       if (iarg >= narg)
         error->universe_all(FLERR, "Fix msevb: missing coupling style after 'coupling'");
-      if (strcmp(arg[iarg], "raiteri2011") == 0) {
-        coupling_type = COUPLING_RAITERI2011;
-        coupling_enabled = 1;
-        iarg++;
-      } else if (strcmp(arg[iarg], "vuilleumier1998") == 0) {
-        coupling_type = COUPLING_VUILLEUMIER1998;
-        coupling_enabled = 1;
-        iarg++;
-      } else if (strcmp(arg[iarg], "grimme2015") == 0) {
+      coupling_enabled = 1;
+      // The coupling style keyword is optional and defaults to energy/gaussian.
+      // Style names contain a '/' (or are the literal 'none'); anything else is
+      // treated as the first coupling parameter for the default energy/gaussian
+      // style and left for the parameter loop below to consume.
+      if (strcmp(arg[iarg], "energy/gaussian") == 0) {
         coupling_type = COUPLING_GRIMME2015;
-        coupling_enabled = 1;
+        iarg++;
+      } else if (strcmp(arg[iarg], "geometry/gaussian") == 0) {
+        coupling_type = COUPLING_RAITERI2011;
+        iarg++;
+      } else if (strcmp(arg[iarg], "geometry/exp") == 0) {
+        coupling_type = COUPLING_VUILLEUMIER1998;
         iarg++;
       } else if (strcmp(arg[iarg], "none") == 0) {
         coupling_type = COUPLING_NONE;
-        coupling_enabled = 1;
         iarg++;
-      } else {
+      } else if (strchr(arg[iarg], '/') != nullptr) {
         error->universe_all(FLERR,
                             fmt::format("Fix msevb: unknown coupling style '{}'", arg[iarg]));
+      } else {
+        coupling_type = COUPLING_GRIMME2015;    // default style: energy/gaussian
       }
       // Greedily consume coupling params that follow the style keyword
       while (iarg < narg) {
@@ -189,22 +192,26 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
           if (iarg >= narg)
             error->universe_all(FLERR,
                                 "Fix msevb: missing coupling style after reaction 'coupling'");
-          if (strcmp(arg[iarg], "raiteri2011") == 0) {
+          // Style keyword is optional and defaults to energy/gaussian (see global
+          // coupling parse above for the disambiguation rule).
+          if (strcmp(arg[iarg], "energy/gaussian") == 0) {
+            rr.coupling_type = COUPLING_GRIMME2015;
+            iarg++;
+          } else if (strcmp(arg[iarg], "geometry/gaussian") == 0) {
             rr.coupling_type = COUPLING_RAITERI2011;
             iarg++;
-          } else if (strcmp(arg[iarg], "vuilleumier1998") == 0) {
+          } else if (strcmp(arg[iarg], "geometry/exp") == 0) {
             rr.coupling_type = COUPLING_VUILLEUMIER1998;
-            iarg++;
-          } else if (strcmp(arg[iarg], "grimme2015") == 0) {
-            rr.coupling_type = COUPLING_GRIMME2015;
             iarg++;
           } else if (strcmp(arg[iarg], "none") == 0) {
             rr.coupling_type = COUPLING_NONE;
             iarg++;
-          } else {
+          } else if (strchr(arg[iarg], '/') != nullptr) {
             error->universe_all(
                 FLERR,
                 fmt::format("Fix msevb: unknown per-reaction coupling style '{}'", arg[iarg]));
+          } else {
+            rr.coupling_type = COUPLING_GRIMME2015;    // default style: energy/gaussian
           }
           // Parse coupling parameters for this reaction
           while (iarg < narg) {
@@ -352,14 +359,14 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
     if (rd.coupling_type == COUPLING_RAITERI2011 &&
         (rd.coupling_lambda == 0.0 || rd.coupling_zeta == 0.0))
       error->universe_all(
-          FLERR, fmt::format("Fix msevb: reaction {} raiteri2011 requires lambda and zeta", r));
+          FLERR, fmt::format("Fix msevb: reaction {} geometry/gaussian requires lambda and zeta", r));
     else if (rd.coupling_type == COUPLING_VUILLEUMIER1998 && rd.coupling_v12 == 0.0)
       error->universe_all(FLERR,
-                          fmt::format("Fix msevb: reaction {} vuilleumier1998 requires v12", r));
+                          fmt::format("Fix msevb: reaction {} geometry/exp requires v12", r));
     else if (rd.coupling_type == COUPLING_GRIMME2015 &&
              (rd.coupling_a == 0.0 || rd.coupling_b == 0.0))
       error->universe_all(FLERR,
-                          fmt::format("Fix msevb: reaction {} grimme2015 requires a and b", r));
+                          fmt::format("Fix msevb: reaction {} energy/gaussian requires a and b", r));
   }
 
   if (fermi_dirac_enabled) {
@@ -859,20 +866,20 @@ void FixMSEVB::setup(int vflag)
           cpl = fmt::format("none  [{}]", src);
           break;
         case COUPLING_RAITERI2011:
-          cpl = fmt::format("raiteri2011  lambda={:.4f}  zeta={:.4f}", rd.coupling_lambda,
+          cpl = fmt::format("geometry/gaussian  lambda={:.4f}  zeta={:.4f}", rd.coupling_lambda,
                             rd.coupling_zeta);
           if (rd.coupling_taper > 0.0) cpl += fmt::format("  taper={:.4f}", rd.coupling_taper);
           cpl += fmt::format("  [{}]", src);
           break;
         case COUPLING_VUILLEUMIER1998:
-          cpl = fmt::format("vuilleumier1998  v12={:.4f}  alpha={:.4f}"
+          cpl = fmt::format("geometry/exp  v12={:.4f}  alpha={:.4f}"
                             "  gamma={:.4f}",
                             rd.coupling_v12, rd.coupling_alpha, rd.coupling_gamma_v);
           if (rd.coupling_taper > 0.0) cpl += fmt::format("  taper={:.4f}", rd.coupling_taper);
           cpl += fmt::format("  [{}]", src);
           break;
         case COUPLING_GRIMME2015:
-          cpl = fmt::format("grimme2015  a={:.4f}  b={:.4f}", rd.coupling_a, rd.coupling_b);
+          cpl = fmt::format("energy/gaussian  a={:.4f}  b={:.4f}", rd.coupling_a, rd.coupling_b);
           if (rd.coupling_taper > 0.0) cpl += fmt::format("  taper={:.4f}", rd.coupling_taper);
           cpl += fmt::format("  [{}]", src);
           break;

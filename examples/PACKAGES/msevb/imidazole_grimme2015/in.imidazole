@@ -12,7 +12,7 @@ molecule pre  pre.mol
 molecule post post.mol
 
 fix evb all msevb         &
-  reaction pre post react.map 2.8 taper 2.4 shells 3 coupling grimme2015 a 18.448 b 0.0002821 &
+  reaction pre post react.map 2.8 taper 2.4 shells 3 coupling energy/gaussian a 18.448 b 0.0002821 &
   output msevb.out 1000
 
 fix_modify evb energy yes

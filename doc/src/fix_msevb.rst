@@ -18,19 +18,19 @@ Syntax
 
   .. parsed-literal::
 
-     *coupling* values = style params
-       style = *none* or *raiteri2011* or *vuilleumier1998* or *grimme2015*
-         *none* = no off-diagonal coupling (diagonal EVB only)
-         *raiteri2011* params = *lambda* V *zeta* Z
+     *coupling* values = [style] params
+       style = *energy/gaussian* or *geometry/gaussian* or *geometry/exp* or *none* (optional, default = *energy/gaussian*)
+         *energy/gaussian* params = *a* A *b* B
+           A = coupling prefactor (energy units)
+           B = energy decay parameter (inverse energy-squared units)
+         *geometry/gaussian* params = *lambda* V *zeta* Z
            V = coupling prefactor (energy units)
            Z = Gaussian decay parameter (inverse distance-squared units)
-         *vuilleumier1998* params = *v12* V *alpha* A *gamma* G
+         *geometry/exp* params = *v12* V *alpha* A *gamma* G
            V = coupling prefactor (energy units)
            A = linear decay parameter (inverse distance units)
            G = Gaussian decay parameter (inverse distance-squared units)
-         *grimme2015* params = *a* A *b* B
-           A = coupling prefactor (energy units)
-           B = energy decay parameter (inverse energy-squared units)
+         *none* = no off-diagonal coupling (diagonal EVB only)
      *reaction* values = pre-ID post-ID mapfile cutoff [per-reaction keywords]
        pre-ID = molecule template ID for the pre-reaction topology
        post-ID = molecule template ID for the post-reaction topology
@@ -63,7 +63,7 @@ Examples
    molecule pre  pre_h3o.mol
    molecule post post_h3o.mol
    fix evb all msevb &
-     reaction pre post react.map 2.5 taper 2.0 shells 3 coupling grimme2015 a 0.6 b 0.25 &
+     reaction pre post react.map 2.5 taper 2.0 shells 3 coupling a 0.6 b 0.25 &
      output msevb.out 1
    fix_modify evb energy yes
 
@@ -74,7 +74,7 @@ Examples
    molecule pre2 pre2.mol
    molecule post2 post2.mol
    fix evb all msevb &
-     coupling raiteri2011 lambda 0.8 zeta 16 &
+     coupling geometry/gaussian lambda 0.8 zeta 16 &
      reaction pre1 post1 react.map 1.9 taper 1.7 &
      reaction pre2 post2 react.map 1.9 taper 1.7 offset 0.843 &
      shells 1 output msevb.out 1
@@ -101,8 +101,9 @@ It is typically used to model proton transfer or other ion-hopping reactions
 in condensed-phase systems.
 
 Example inputs are provided in the ``examples/PACKAGES/msevb`` directory
-covering the *raiteri2011*, *vuilleumier1998*, and *grimme2015* coupling
-schemes, energy offsets, Fermi-Dirac smearing, and SCF topology convergence.
+covering the *energy/gaussian*, *geometry/gaussian*, and *geometry/exp*
+coupling schemes, energy offsets, Fermi-Dirac smearing, and SCF topology
+convergence.
 
 ----------
 
@@ -191,21 +192,34 @@ Coupling
 ''''''''
 
 The *coupling* keyword sets the functional form used to compute the
-off-diagonal Hamiltonian elements.  A global coupling applies to all
-reactions that do not specify their own; a per-reaction *coupling* keyword
-inside a *reaction* block overrides it for that reaction only.  If no global
-coupling is given, every *reaction* block must provide its own.
+off-diagonal Hamiltonian elements.  The style name is optional and defaults
+to *energy/gaussian*; when omitted, the parameters that follow *coupling*
+are interpreted as *energy/gaussian* parameters.  A global coupling applies
+to all reactions that do not specify their own; a per-reaction *coupling*
+keyword inside a *reaction* block overrides it for that reaction only.  If no
+global coupling is given, every *reaction* block must provide its own.
+
+Coupling styles are named by the quantity they depend on (*energy* or
+*geometry*) followed by their functional form, rather than by reference.
 
 Per-reaction keywords (*coupling*, *taper*, *offset*, *shells*) may appear
 in any order after the four required *reaction* arguments.
 
-*none*
+*energy/gaussian* (default)
 
-  All off-diagonal elements are zero.  The Hamiltonian is diagonal and no
-  force mixing between states occurs.  Useful with *fermi_dirac* when only
-  energy-based state mixing is desired, for example for polaron hopping.
+  Energy-dependent coupling based on the potential energy difference between
+  the parent and child EVB states :ref:`(Hartke2015) <msevb-Hartke2015>`:
 
-*raiteri2011*
+  .. math::
+
+     C_{ij} = a \exp\!\left(-b\, \Delta E_{ij}^2\right)
+
+  where :math:`\Delta E_{ij} = E_i - E_j`.  Values of :math:`a = 0.8` eV and
+  :math:`b = 0.15` eV\ :math:`^{-2}` have been demonstrated to be a good
+  choice for modelling proton-transfer dynamics, and would likely make a good
+  first guess when refitting a new parameter set for a different system.
+
+*geometry/gaussian*
 
   Geometry-dependent coupling based on the asymmetric proton-transfer
   coordinate :ref:`(Raiteri2011) <msevb-Raiteri2011>`:
@@ -218,7 +232,7 @@ in any order after the four required *reaction* arguments.
   the transferring atom H to the donor X and :math:`r_{HY}` the distance
   from H to the acceptor Y.  Forces on H, X, and Y are computed analytically.
 
-*vuilleumier1998*
+*geometry/exp*
 
   Geometry-dependent coupling based on the donor-acceptor distance and the
   position of H relative to the midpoint of X and Y
@@ -231,22 +245,17 @@ in any order after the four required *reaction* arguments.
   where :math:`Q = r_{XY}` and :math:`q` is the distance from H to the
   midpoint of X and Y.
 
-*grimme2015*
+*none*
 
-  Energy-dependent coupling based on the potential energy difference between
-  the parent and child EVB states :ref:`(Hartke2015) <msevb-Hartke2015>`:
-
-  .. math::
-
-     C_{ij} = a \exp\!\left(-b\, \Delta E_{ij}^2\right)
-
-  where :math:`\Delta E_{ij} = E_i - E_j`.
+  All off-diagonal elements are zero.  The Hamiltonian is diagonal and no
+  force mixing between states occurs.  Useful with *fermi_dirac* when only
+  energy-based state mixing is desired, for example for polaron hopping.
 
 The optional *taper* keyword applies a smooth MDF damping function that
 reduces the coupling to zero between the taper distance *T* and the
 reaction *cutoff* distance.  The damping is based on the distance between
 the initiator atoms H and Y and applies to all coupling styles, including
-*grimme2015*.  This prevents discontinuities at the boundary of the
+*energy/gaussian*.  This prevents discontinuities at the boundary of the
 reactive zone.  The *taper* keyword may appear at the global level
 (applies to all reactions without their own *taper*) or inside a
 *reaction* block (per-reaction).
@@ -319,7 +328,7 @@ atoms:
 
 .. code-block:: LAMMPS
 
-   dump msevb_dump evb_atoms custom 100 msevb.lammpstrj id type xu yu zu
+   dump msevb_dump evb_atoms custom 100 msevb.lammpstrj id type x y z
 
 ----------
 

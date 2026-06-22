@@ -15,7 +15,7 @@ molecule pre4   pre4.mol
 molecule post4  post4.mol
 
 fix evb all msevb         &
-  coupling raiteri2011 lambda 0.7998 zeta 16  &
+  coupling geometry/gaussian lambda 0.7998 zeta 16  &
   reaction pre1 post1 react.map 1.9 taper 1.7 &
   reaction pre2 post2 react.map 1.9 taper 1.7 offset 0.843  &
   reaction pre3 post3 react.map 1.9 taper 1.7 offset -0.843 &

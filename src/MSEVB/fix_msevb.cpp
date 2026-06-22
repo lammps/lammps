@@ -664,6 +664,18 @@ void FixMSEVB::parse_template_mapfile(ReactionDef &rd)
   const int natoms_pre = rd.pre_mol->natoms;
   const int natoms_post = rd.post_mol->natoms;
 
+  // fix msevb applies a topology *difference* to a fixed set of atoms; it
+  // cannot insert or delete atoms.  The pre and post templates must therefore
+  // describe the same atoms.  Reject a change in atom count up front.
+  if (natoms_pre != natoms_post)
+    error->universe_all(
+        FLERR,
+        fmt::format("Fix msevb: pre template '{}' has {} atoms but post template '{}' has {}; "
+                    "fix msevb requires atom-conserving reactions and cannot insert or delete "
+                    "atoms (the pre- and post-reaction templates must contain the same number "
+                    "of atoms)",
+                    rd.pre_mol_id, natoms_pre, rd.post_mol_id, natoms_post));
+
   rd.glove_n = natoms_pre;
   rd.is_edge.assign(natoms_pre, 0);
   rd.pre_to_post.assign(natoms_pre, -1);
@@ -725,8 +737,24 @@ void FixMSEVB::parse_template_mapfile(ReactionDef &rd)
         case 3: {
           int pre_id, post_id;
           if (sscanf(p, "%d %d", &pre_id, &post_id) == 2) {
-            if (pre_id >= 1 && pre_id <= natoms_pre && post_id >= 1 && post_id <= natoms_post)
-              rd.pre_to_post[pre_id - 1] = post_id - 1;
+            if (pre_id < 1 || pre_id > natoms_pre || post_id < 1 || post_id > natoms_post)
+              error->universe_all(
+                  FLERR,
+                  fmt::format("Fix msevb: Equivalences entry '{} {}' in map file '{}' is out of "
+                              "range for templates with {} (pre) and {} (post) atoms",
+                              pre_id, post_id, rd.map_file_path, natoms_pre, natoms_post));
+            // fix msevb keeps each atom's identity across the reaction, so the
+            // map must pair every atom with itself.  A pre/post mismatch means
+            // the map is renumbering atoms, which is not supported.
+            if (pre_id != post_id)
+              error->universe_all(
+                  FLERR,
+                  fmt::format("Fix msevb: Equivalences entry maps atom {} to atom {} in map file "
+                              "'{}'; fix msevb does not support changing atom IDs (the pre- and "
+                              "post-reaction templates must use identical atom numbering, i.e. "
+                              "every Equivalences pair must map an atom to itself)",
+                              pre_id, post_id, rd.map_file_path));
+            rd.pre_to_post[pre_id - 1] = post_id - 1;
           }
           break;
         }
@@ -739,6 +767,17 @@ void FixMSEVB::parse_template_mapfile(ReactionDef &rd)
     error->universe_all(
         FLERR,
         fmt::format("Fix msevb: map file '{}' missing InitiatorIDs section", rd.map_file_path));
+
+  // Every atom must appear in the Equivalences section.  A missing entry would
+  // drop an atom from the reaction, i.e. effectively change the atom count.
+  for (int i = 0; i < natoms_pre; i++)
+    if (rd.pre_to_post[i] < 0)
+      error->universe_all(
+          FLERR,
+          fmt::format("Fix msevb: map file '{}' Equivalences section does not map atom {}; every "
+                      "atom in the pre-reaction template must be mapped one-to-one to the "
+                      "post-reaction template",
+                      rd.map_file_path, i + 1));
 }
 
 /* ---------------------------------------------------------------------- */

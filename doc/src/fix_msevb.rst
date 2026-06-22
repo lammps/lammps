@@ -139,6 +139,15 @@ reduces the number of batches and therefore the wall time per step.
    insertion or deletion, modification of atom IDs, and the use of atom labels
    in templates are not implemented.
 
+   Because this fix applies a topology *difference* to a fixed set of atoms,
+   the pre- and post-reaction templates must describe the same atoms: they
+   must contain an identical number of atoms, and the *Equivalences* section
+   must map every atom to itself (identical atom numbering in both templates).
+   These requirements are enforced.  This fix will stop with an error if the
+   templates differ in atom count, if the map omits an atom, or if an
+   *Equivalences* pair maps an atom to a different ID (which would renumber
+   atoms).
+
 ----------
 
 The EVB Hamiltonian

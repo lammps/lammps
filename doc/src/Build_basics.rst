@@ -327,7 +327,6 @@ LAMMPS.
             Makefile.opt                   # OPT package
             Makefile.omp                   # OPENMP package
             Makefile.intel_cpu             # INTEL package for CPUs
-            Makefile.intel_coprocessor     # INTEL package for KNLs
             Makefile.gpu                   # GPU package
 
 ----------

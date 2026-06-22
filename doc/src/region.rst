@@ -317,9 +317,7 @@ If the *move* or *rotate* keywords are used, the region is "dynamic",
 meaning its location or orientation changes with time.  These keywords
 cannot be used with a *union* or *intersect* style region.  Instead, the
 keywords should be used to make the individual sub-regions of the
-*union* or *intersect* region dynamic.  Normally, each sub-region should
-be "dynamic" in the same manner (e.g. rotate around the same point),
-though this is not a requirement.
+*union* or *intersect* region dynamic.
 
 The *move* keyword allows one or more :doc:`equal-style variables
 <variable>` to be used to specify the x,y,z displacement of the region,

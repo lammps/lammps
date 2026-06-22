@@ -100,8 +100,6 @@ void PairDPDIntel::compute(int eflag, int vflag,
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
-  const int host_start = fix->host_start_pair();
-  const int offload_end = fix->offload_end_pair();
   const int ago = neighbor->ago;
 
   if (ago != 0 && fix->separate_buffers() == 0) {
@@ -128,44 +126,36 @@ void PairDPDIntel::compute(int eflag, int vflag,
   if (_onetype) {
     if (eflag) {
       if (force->newton_pair) {
-        eval<1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,1,1>(0, ovflag, buffers, fc, host_start, inum);
+        eval<1,1,1>(ovflag, buffers, fc, 0, inum);
       } else {
-        eval<1,1,0>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,1,0>(0, ovflag, buffers, fc, host_start, inum);
+        eval<1,1,0>(ovflag, buffers, fc, 0, inum);
       }
     } else {
       if (force->newton_pair) {
-        eval<1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,0,1>(0, ovflag, buffers, fc, host_start, inum);
+        eval<1,0,1>(ovflag, buffers, fc, 0, inum);
       } else {
-        eval<1,0,0>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,0,0>(0, ovflag, buffers, fc, host_start, inum);
+        eval<1,0,0>(ovflag, buffers, fc, 0, inum);
       }
     }
   } else {
     if (eflag) {
       if (force->newton_pair) {
-        eval<0,1,1>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<0,1,1>(0, ovflag, buffers, fc, host_start, inum);
+        eval<0,1,1>(ovflag, buffers, fc, 0, inum);
       } else {
-        eval<0,1,0>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<0,1,0>(0, ovflag, buffers, fc, host_start, inum);
+        eval<0,1,0>(ovflag, buffers, fc, 0, inum);
       }
     } else {
       if (force->newton_pair) {
-        eval<0,0,1>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<0,0,1>(0, ovflag, buffers, fc, host_start, inum);
+        eval<0,0,1>(ovflag, buffers, fc, 0, inum);
       } else {
-        eval<0,0,0>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<0,0,0>(0, ovflag, buffers, fc, host_start, inum);
+        eval<0,0,0>(ovflag, buffers, fc, 0, inum);
       }
     }
   }
 }
 
 template <int ONETYPE, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
-void PairDPDIntel::eval(const int offload, const int vflag,
+void PairDPDIntel::eval(const int vflag,
                         IntelBuffers<flt_t,acc_t> *buffers,
                         const ForceConst<flt_t> &fc,
                         const int astart, const int aend)
@@ -173,12 +163,9 @@ void PairDPDIntel::eval(const int offload, const int vflag,
   const int inum = aend - astart;
   if (inum == 0) return;
   int nlocal, nall, minlocal;
-  fix->get_buffern(offload, nlocal, nall, minlocal);
+  fix->get_buffern(nlocal, nall, minlocal);
 
-  const int ago = neighbor->ago;
-  IP_PRE_pack_separate_buffers(fix, buffers, ago, offload, nlocal, nall);
-
-  ATOM_T * _noalias const x = buffers->get_x(offload);
+  ATOM_T * _noalias const x = buffers->get_x();
   typedef struct { double x, y, z; } lmp_vt;
   auto *v = (lmp_vt *)atom->v[0];
   const flt_t dtinvsqrt = 1.0/std::sqrt(update->dt);
@@ -195,24 +182,16 @@ void PairDPDIntel::eval(const int offload, const int vflag,
   const int eatom = this->eflag_atom;
 
   // Determine how much data to transfer
-  int x_size, q_size, f_stride, ev_size, separate_flag;
-  IP_PRE_get_transfern(ago, NEWTON_PAIR, EFLAG, vflag,
-                       buffers, offload, fix, separate_flag,
-                       x_size, q_size, ev_size, f_stride);
+  int f_stride;
+  IP_PRE_get_transfern(NEWTON_PAIR, buffers, f_stride);
 
   int tc;
   FORCE_T * _noalias f_start;
   acc_t * _noalias ev_global;
-  IP_PRE_get_buffers(offload, buffers, fix, tc, f_start, ev_global);
+  IP_PRE_get_buffers(buffers, fix, tc, f_start, ev_global);
   const int nthreads = tc;
-  int *overflow = fix->get_off_overflow_flag();
   {
-    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
-    *timer_compute = MIC_Wtime();
-    #endif
 
-    IP_PRE_repack_for_offload(NEWTON_PAIR, separate_flag, nlocal, nall,
-                              f_stride, x, 0);
 
     acc_t oevdwl, ov0, ov1, ov2, ov3, ov4, ov5;
     if (EFLAG || vflag)
@@ -263,7 +242,7 @@ void PairDPDIntel::eval(const int offload, const int vflag,
 
         const int * _noalias const jlist = firstneigh[i];
         int jnum = numneigh[i];
-        IP_PRE_neighbor_pad(jnum, offload);
+        IP_PRE_neighbor_pad(jnum);
 
         acc_t fxtmp, fytmp, fztmp, fwtmp;
         acc_t sevdwl, sv0, sv1, sv2, sv3, sv4, sv5;
@@ -395,7 +374,7 @@ void PairDPDIntel::eval(const int offload, const int vflag,
       } // for ii
 
       IP_PRE_fdotr_reduce_omp(NEWTON_PAIR, nall, minlocal, nthreads, f_start,
-                              f_stride, x, offload, vflag, ov0, ov1, ov2, ov3,
+                              f_stride, x, vflag, ov0, ov1, ov2, ov3,
                               ov4, ov5);
       rngi_thread[tid] = rngi;
     } // end omp
@@ -422,20 +401,14 @@ void PairDPDIntel::eval(const int offload, const int vflag,
       ev_global[6] = ov4;
       ev_global[7] = ov5;
     }
-    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
-    *timer_compute = MIC_Wtime() - *timer_compute;
-    #endif
-  } // end offload
+  }
 
-  if (offload)
-    fix->stop_watch(TIME_OFFLOAD_LATENCY);
-  else
-    fix->stop_watch(TIME_HOST_PAIR);
+  fix->stop_watch(TIME_HOST_PAIR);
 
   if (EFLAG || vflag)
-    fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
+    fix->add_result_array(f_start, ev_global, eatom, vflag);
   else
-    fix->add_result_array(f_start, nullptr, offload);
+    fix->add_result_array(f_start, nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -498,10 +471,6 @@ void PairDPDIntel::init_style()
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (fix->offload_balance() != 0.0)
-    error->all(FLERR, "Offload for dpd/intel is not yet available. Set balance to 0.");
-  #endif
 
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)
     pack_force_const(force_const_single, fix->get_mixed_buffers());
@@ -520,7 +489,7 @@ void PairDPDIntel::pack_force_const(ForceConst<flt_t> &fc,
   _onetype = 0;
 
   int tp1 = atom->ntypes + 1;
-  fc.set_ntypes(tp1,comm->nthreads,buffers->get_max_nbors(),memory,_cop);
+  fc.set_ntypes(tp1,comm->nthreads,buffers->get_max_nbors(),memory);
 
   // Repeat cutsq calculation because done after call to init_style
   int mytypes = 0;
@@ -558,8 +527,7 @@ template <class flt_t>
 void PairDPDIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                  const int nthreads,
                                                  const int max_nbors,
-                                                 Memory *memory,
-                                                 const int cop) {
+                                                 Memory *memory) {
   if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
@@ -568,7 +536,6 @@ void PairDPDIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       _memory->destroy(rngi);
     }
     if (ntypes > 0) {
-      _cop = cop;
       _memory->create(param,ntypes,ntypes,"fc.param");
       _memory->create(rand_buffer_thread, nthreads, max_nbors,
                      "fc.rand_buffer_thread");

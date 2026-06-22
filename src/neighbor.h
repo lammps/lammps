@@ -109,6 +109,7 @@ class Neighbor : protected Pointers {
 
   // optional type grouping for multi
 
+  int bin_hash;                    // 1 if using hash tables to store atoms in a bin
   int custom_collection_flag;      // 1 if custom collections are defined for multi
   int interval_collection_flag;    // 1 if custom collections use intervals
   int finite_cut_flag;             // 1 if multi considers finite atom size
@@ -357,6 +358,7 @@ namespace NeighConst {
     REQ_NEWTON_ON = 1 << 8,
     REQ_NEWTON_OFF = 1 << 9,
     REQ_SSA = 1 << 10,
+    REQ_ONESIDED = 1 << 11
   };
 }    // namespace NeighConst
 

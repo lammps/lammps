@@ -151,6 +151,42 @@ details please see the description in "(Mitchell2011a)".
 
 ----------
 
+Bond breaking criterion
+"""""""""""""""""""""""
+
+For all of these styles a peridynamic bond between particles *i* and *j*
+breaks irreversibly once its stretch :math:`s = (r - r_0)/r_0` exceeds a
+critical stretch.  Following :ref:`(Parks) <Parks>` (eq. 9), the critical
+stretch of a particle is :math:`s_0 = s_{00} - \alpha\, s_{min}`, where
+:math:`s_{min}` is the minimum (most compressive) stretch over all of the
+particle's bonds, and a bond breaks when :math:`s > \min(s_{0,i},
+s_{0,j})`, i.e. symmetrically from the point of view of both particles.
+
+The s00 and :math:`\alpha` coefficients may be chosen differently for each
+pair of atom types.  This makes it possible, for example, to assign a
+smaller s00 to the bonds across an interface between two materials so that
+a crack preferentially initiates there.  The critical stretch is evaluated
+*per bond* using that bond's own s00 and :math:`\alpha` together with the
+geometric :math:`s_{min}` of each endpoint.
+
+.. versionchanged:: TBD
+
+In previous versions the critical stretch was stored as a single
+per-particle value computed as the maximum of :math:`s_{00} - \alpha s`
+over a particle's bonds.  That is only equivalent to the criterion above
+when s00 and :math:`\alpha` are identical for all type pairs; with
+type-dependent coefficients a bond would incorrectly inherit the critical
+stretch of the surrounding bulk bonds and a weakened interface would not
+fracture.  The criterion is now evaluated per bond so that type-dependent
+s00 and :math:`\alpha` behave as intended.
+
+The :doc:`compute property/atom <compute_property_atom>` *s0* per-atom
+property reports this per-particle critical stretch.  Earlier versions of
+this documentation incorrectly described *s0* as the maximum stretch of
+any bond a particle is part of.
+
+----------
+
 .. include:: accel_styles.rst
 
 ----------

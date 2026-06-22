@@ -259,7 +259,8 @@ accelerated styles exist.
 * :doc:`filter/corotate <fix_filter_corotate>` - implement corotation filter to allow larger timesteps with r-RESPA
 * :doc:`flow/gauss <fix_flow_gauss>` - Gaussian dynamics for constant mass flux
 * :doc:`freeze <fix_freeze>` - freeze atoms in a granular simulation
-* :doc:`gcmc <fix_gcmc>` - grand canonical insertions/deletions
+* :doc:`gcmc <fix_gcmc>` - grand canonical Monte Carlo insertions/deletions/translations/rotations
+* :doc:`gemc <fix_gemc>` - Gibbs ensemble Monte Carlo exchanges/volumes/translations/rotations
 * :doc:`gjf <fix_gjf>` - statistically correct Langevin temperature control using the GJ methods
 * :doc:`gld <fix_gld>` - generalized Langevin dynamics integrator
 * :doc:`gle <fix_gle>` - generalized Langevin equation thermostat
@@ -434,6 +435,8 @@ accelerated styles exist.
 * :doc:`srd <fix_srd>` - stochastic rotation dynamics (SRD)
 * :doc:`store/force <fix_store_force>` - store force on each atom
 * :doc:`store/state <fix_store_state>` - store attributes for each atom
+* :doc:`surface/global <fix_surface_global>` - global granular surface model, each proc has copy
+* :doc:`surface/local <fix_surface_local>` - local granular surface model, distributed across procs
 * :doc:`tdpd/source <fix_dpd_source>` - add external concentration source
 * :doc:`temp/berendsen <fix_temp_berendsen>` - temperature control by Berendsen thermostat
 * :doc:`temp/csld <fix_temp_csvr>` - canonical sampling thermostat with Langevin dynamics

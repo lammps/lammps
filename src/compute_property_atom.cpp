@@ -39,7 +39,6 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
   Compute(lmp, narg, arg)
 {
   if (narg < 4)  utils::missing_cmd_args(FLERR, "compute property/atom", error);
@@ -415,23 +414,23 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
     // values[i].index = I index of history[I][J] for history frame (1 to Nrepeat)
     // values[i].colindex = J index of history[I][J] for fix SS value (1 to Nattribute)
 
-    } else if (utils::strmatch(arg[iarg],"^history\\[\\d+\\]\\[\\d+\\]$")) {
+    } else if (std::strncmp(arg[iarg], "history[", 8) == 0) {
       historyflag = 1;
-      pack_choice.push_back(&ComputePropertyAtom::pack_history);
-      // parse the two bracketed indices of history[I][J];
-      // the regex guarantees at least 3 tokens when splitting on the brackets
-      // utils::inumeric() catches illegal values within the brackets
-      // I = history frame (1 to Nrepeat), J = fix store/state value (1 to Nattribute)
+      value_added = 1;
+
       ValueTokenizer hist(arg[iarg],"[]");
       hist.skip();                                                // the "history" keyword
-        // parse the two bracketed indices of history[I][J];
-        // the regex guarantees at least 3 tokens when splitting on the brackets
-        // utils::inumeric() catches illegal values within the brackets
-        // I = history frame (1 to Nrepeat), J = fix store/state value (1 to Nattribute)
-        ValueTokenizer hist(str,"[]");
-        hist.skip();                                                // the "history" keyword
-        val.index = utils::inumeric(FLERR,hist.next_string(),false,lmp);     // I
-        val.colindex = utils::inumeric(FLERR,hist.next_string(),false,lmp);  // J
+      std::string first_bracket = hist.next_string();
+      std::string second_bracket = hist.next_string();
+
+      std::vector<std::string> earg;
+      // if (text.find('*') != std::string::npos)
+      earg.push_back(arg[iarg]);
+      for (const auto& str : earg) {
+        val.pack_choice = &ComputePropertyAtom::pack_history;
+        val.index = utils::inumeric(FLERR,first_bracket,false,lmp);     // I
+        val.colindex = utils::inumeric(FLERR,second_bracket,false,lmp);  // J
+        values.push_back(std::move(val));
       }
 
     // any other attribute could be recognized by atom style

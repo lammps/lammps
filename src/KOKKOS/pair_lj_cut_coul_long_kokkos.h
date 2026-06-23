@@ -39,6 +39,8 @@ class PairLJCutCoulLongKokkos : public PairLJCutCoulLong {
   PairLJCutCoulLongKokkos(class LAMMPS *);
   ~PairLJCutCoulLongKokkos() override;
 
+  class TuneKokkos* tuner;
+
   void compute(int, int) override;
 
   void init_tables(double cut_coul, double *cut_respa) override;

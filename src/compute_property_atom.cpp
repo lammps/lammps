@@ -61,11 +61,9 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   int i;
   int iarg = 3;
-  int value_added;
   while (iarg < narg) {
     i = iarg-3;
 
-    value_added = 0;
     value_t val;
     val.index = 0;
     val.colindex = 0;
@@ -416,22 +414,21 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (std::strncmp(arg[iarg], "history[", 8) == 0) {
       historyflag = 1;
-      value_added = 1;
 
-      ValueTokenizer hist(arg[iarg],"[]");
-      hist.skip();                                                // the "history" keyword
-      std::string first_bracket = hist.next_string();
-      std::string second_bracket = hist.next_string();
+      bool is_numeric = utils::strmatch(arg[iarg], "^history\\[\\d+\\]\\[\\d+\\]$");
+      bool is_asterisk = utils::strmatch(arg[iarg], "^history\\[\\*\\]\\[\\d+\\]$");
 
-      std::vector<std::string> earg;
-      // if (text.find('*') != std::string::npos)
-      earg.push_back(arg[iarg]);
-      for (const auto& str : earg) {
+      if (is_numeric || is_asterisk) {
+        ValueTokenizer hist(arg[iarg],"[]");
+        hist.skip();                                                // the "history" keyword
         val.pack_choice = &ComputePropertyAtom::pack_history;
-        val.index = utils::inumeric(FLERR,first_bracket,false,lmp);     // I
-        val.colindex = utils::inumeric(FLERR,second_bracket,false,lmp);  // J
-        values.push_back(std::move(val));
-      }
+        if (is_numeric) {
+          val.index = utils::inumeric(FLERR,hist.next_string(),false,lmp);    // I
+          if (val.index < 1) error->all(FLERR, "Compute {} history references invalid history "
+                                        "frame {} from fix store/state", style, val.index);
+        }
+        val.colindex = utils::inumeric(FLERR,hist.next_string(),false,lmp);   // J
+      } else error->all(FLERR,"Inconsistent request for history keyword");
 
     // any other attribute could be recognized by atom style
     // otherwise break for processing optional args
@@ -442,15 +439,9 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       val.pack_choice = &ComputePropertyAtom::pack_atom_style;
     }
 
-    if (!value_added) values.push_back(std::move(val));
+    values.push_back(std::move(val));
     iarg++;
   }
-
-  // reset nvalues in case there are optional args
-
-  nvalues = values.size();
-  if (nvalues == 1) size_peratom_cols = 0;
-  else size_peratom_cols = nvalues;
 
   // optional arg required if history attribute used
   // otherwise error for attribute not recognized by atom style
@@ -478,7 +469,13 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (historyflag == 1)
     error->all(FLERR,"Compute property/atom history attribute requires history option");
-  if (historyflag == 2) setup_history();
+  if (historyflag == 2) setup_history();    // expands wildcard inside inside setup_history
+
+  // reset nvalues in case there are optional args
+
+  nvalues = values.size();
+  if (nvalues == 1) size_peratom_cols = 0;
+  else size_peratom_cols = nvalues;
 
   nmax = 0;
 }
@@ -541,12 +538,12 @@ void ComputePropertyAtom::setup_history()
   history = (double ***) fixhistory->extract("history",dim);
 
   // validate all history attribute references against the (current) fix params
-  //   values[i].index    = history frame, 1 to Nrepeat
+  //   values[i].index    = history frame, 1 to Nrepeat (or still zero here if asterisk was used)
   //   values[i].colindex = fix store/state attribute, 1 to Nattribute
 
-  for (int i = 0; i < nvalues; i++) {
+  for (int i = 0; i < values.size(); i++) {
     if (values[i].pack_choice == &ComputePropertyAtom::pack_history) {
-      if (values[i].index < 1 || values[i].index > nrepeat_history)
+      if (values[i].index > nrepeat_history)
         error->all(FLERR,
                    "Compute {} history references invalid history frame {} from fix store/state",
                    style, values[i].index);
@@ -554,6 +551,25 @@ void ComputePropertyAtom::setup_history()
         error->all(FLERR,
                    "Compute {} history references invalid attribute {} from fix store/state",
                    style, values[i].colindex);
+    }
+  }
+
+  // values[i].index is zero if wildcard was used. expand 'values' here
+
+  for (int i = 0; i < values.size(); i++) {
+    if (values[i].pack_choice == &ComputePropertyAtom::pack_history) {
+      if (values[i].index == 0) {
+        value_t val;
+        val.colindex = values[i].colindex;
+        val.pack_choice = values[i].pack_choice;
+        auto it = values.erase(values.begin() + i);
+        --it;
+        for (int j = 0; j < nrepeat_history; j++) {
+          val.index = j+1;
+          it = values.insert(++it, val);
+        }
+        break; // only one history keyword allowed, i think. if not, may need a tmp buf
+      }
     }
   }
 }

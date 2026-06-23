@@ -310,12 +310,14 @@ class FixMSEVB : public Fix {
   bool partition_warning{false};
   bool product_states_multishell_warning{false};
 
-  // ---- Structured output ----------------------------------------------
-  std::string output_filename;
-  int output_every;
-  FILE *output_fp;
+  // ---- Structured (JSON) output ---------------------------------------
+  std::string file_name;    // path given to the 'file' keyword
+  bool file_flag;           // true if the 'file' keyword was given
+  int file_every;           // >0: also write every N steps; 0: on reaction only
+  FILE *fpout;              // open only on the universe root (ipartition 0, me 0)
+  int json_init;            // 0 until the first record is written (comma control)
 
-  void write_msevb_output(bigint timestep, int dominant_state, double dominant_amp);
+  void write_msevb_json(bigint timestep, int dominant_state, double dominant_amp);
 
   // ---- Helper: dynamic array growth -----------------------------------
   void grow_eigensystem_arrays();

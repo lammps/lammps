@@ -51,9 +51,10 @@ Syntax
        re-evaluate EVB after each permanent transfer until convergence (default: no)
      *scf_max_iter* value = N
        N = maximum SCF iterations per timestep (default: 10)
-     *output* values = filename every
-       filename = path to per-timestep EVB output file
-       every = write output every this many steps
+     *file* values = filename [every N]
+       filename = path to a structured JSON output file
+       *every* N = also write a record every N steps (optional; default: only
+                   when a reaction occurs)
 
 Examples
 """"""""
@@ -64,7 +65,7 @@ Examples
    molecule post post_h3o.mol
    fix evb all msevb &
      reaction pre post react.map 2.5 taper 2.0 shells 3 coupling a 0.6 b 0.25 &
-     output msevb.out 1
+     file msevb.json every 1
    fix_modify evb energy yes
 
 .. code-block:: LAMMPS
@@ -77,7 +78,7 @@ Examples
      coupling geometry/gaussian lambda 0.8 zeta 16 &
      reaction pre1 post1 react.map 1.9 taper 1.7 &
      reaction pre2 post2 react.map 1.9 taper 1.7 offset 0.843 &
-     shells 1 output msevb.out 1
+     shells 1 file msevb.json
    fix_modify evb energy yes
 
 .. code-block:: LAMMPS
@@ -88,7 +89,7 @@ Examples
      coupling none &
      reaction pre post react.map 3.5 &
      shells 1 fermi_dirac 300.0 scf_topology yes &
-     output msevb.out 1
+     file msevb.json every 1
    fix_modify evb energy yes
 
 Description
@@ -344,11 +345,16 @@ atoms:
 Output file
 '''''''''''
 
-When the *output* keyword is given, a structured text file is written every
-*every* steps (and always on permanent transfer).  Each record contains the
-current timestep, the list of detected reactive sites, the full Hamiltonian
-matrix, and the eigenvalues and amplitudes (or Fermi-Dirac occupancies if
-enabled).
+When the *file* keyword is given, a structured JSON file is written.  By
+default a record is written only when a reaction (permanent transfer) occurs;
+if the optional *every* N argument is given, a record is additionally written
+every N steps.  The file is a single JSON object with a top-level metadata
+header and a ``"timesteps"`` array; each element is a record for one step
+containing the timestep, the list of detected reactive sites (with their
+initiator atom tags, parent state, and transfer chain), the full Hamiltonian
+matrix, the eigenvalues and amplitudes, and (when *fermi_dirac* is enabled)
+the occupancies and mixed energy.  The file is written by the root process
+only and closed when the fix is destroyed.
 
 ----------
 

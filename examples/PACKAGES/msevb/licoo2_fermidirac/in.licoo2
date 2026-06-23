@@ -14,7 +14,7 @@ fix evb all msevb &
   reaction pre post react.map 3.5 &
   shells 1 &
   fermi_dirac 300.0 &
-  output msevb.out 1
+  file msevb.json every 1
 
 fix_modify evb energy yes
 

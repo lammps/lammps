@@ -40,6 +40,7 @@
 #include "force.h"
 #include "group.h"
 #include "improper.h"
+#include "json.h"
 #include "kspace.h"
 #include "memory.h"
 #include "modify.h"
@@ -49,6 +50,7 @@
 #include "pair.h"
 #include "universe.h"
 #include "update.h"
+#include "utils.h"
 
 #include <cmath>
 #include <cstdio>
@@ -83,9 +85,9 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
     coupling_zeta(0.0), coupling_v12(0.0), coupling_alpha(0.0), coupling_gamma_v(0.0),
     coupling_a(0.0), coupling_b(0.0), coupling_taper(0.0), coupling_enabled(0),
     temp_compute(nullptr), press_compute(nullptr), enumerate_product_states(0),
-    fermi_dirac_enabled(0), fd_temperature(0.0), fd_RT(0.0), max_shells(1), output_every(0),
-    output_fp(nullptr), reactive_group_bit(0), scf_topology(false), scf_max_iter(10),
-    min_terminate(false)
+    fermi_dirac_enabled(0), fd_temperature(0.0), fd_RT(0.0), max_shells(1), file_flag(false),
+    file_every(0), fpout(nullptr), json_init(0), reactive_group_bit(0), scf_topology(false),
+    scf_max_iter(10), min_terminate(false)
 {
   force_reneighbor = 1;
 
@@ -292,13 +294,35 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
       fd_temperature = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       fermi_dirac_enabled = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg], "output") == 0) {
-      if (iarg + 2 >= narg)
-        error->universe_all(FLERR, "Fix msevb: output requires filename and frequency");
-      output_filename = arg[iarg + 1];
-      output_every = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
-      if (output_every < 1) error->universe_all(FLERR, "Fix msevb: output frequency must be >= 1");
-      iarg += 3;
+    } else if (strcmp(arg[iarg], "file") == 0) {
+      if (iarg + 1 >= narg) error->universe_all(FLERR, "Fix msevb: file requires a filename");
+      file_name = arg[iarg + 1];
+      file_flag = true;
+      iarg += 2;
+      // Optional 'every N': also write a record every N steps (in addition to
+      // the records written whenever a reaction occurs).
+      if (iarg < narg && strcmp(arg[iarg], "every") == 0) {
+        if (iarg + 1 >= narg) error->universe_all(FLERR, "Fix msevb: file 'every' requires a value");
+        file_every = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+        if (file_every < 1) error->universe_all(FLERR, "Fix msevb: file 'every' must be >= 1");
+        iarg += 2;
+      }
+      // Open the JSON file and write its header on the universe root only.
+      if (ipartition == 0 && comm->me == 0) {
+        fpout = fopen(file_name.c_str(), "w");
+        if (!fpout)
+          error->one(FLERR, fmt::format("Fix msevb: cannot open file '{}': {}", file_name,
+                                        utils::getsyserror()));
+        utils::print(fpout,
+                     "{\n"
+                     "  \"application\": \"LAMMPS\",\n"
+                     "  \"format\": \"dump\",\n"
+                     "  \"style\": \"evb_states\",\n"
+                     "  \"title\": \"fix msevb\",\n"
+                     "  \"revision\": 1,\n"
+                     "  \"timesteps\": [\n");
+        fflush(fpout);
+      }
     } else if (strcmp(arg[iarg], "scf_topology") == 0) {
       if (iarg + 1 >= narg) error->universe_all(FLERR, "Fix msevb: missing value for scf_topology");
       if (strcmp(arg[iarg + 1], "yes") == 0)
@@ -518,9 +542,13 @@ FixMSEVB::~FixMSEVB()
   memory->destroy(chain_glove_flat);
   memory->destroy(glove_flat);
   destroy_ref_topology();
-  if (output_fp) {
-    fclose(output_fp);
-    output_fp = nullptr;
+  if (fpout) {
+    // Close the "timesteps" array and the root object.  Works whether or not
+    // any records were written (json_init tracks that an entry exists, but the
+    // closing brackets are valid for an empty array too).
+    utils::print(fpout, "\n  ]\n}\n");
+    fclose(fpout);
+    fpout = nullptr;
   }
   // Note: do NOT call group->assign("delete") here.  By the time the
   // destructor runs during LAMMPS teardown, lmp->group may already be
@@ -942,9 +970,13 @@ void FixMSEVB::setup(int vflag)
       msg +=
           fmt::format("    {:<17}T={:.2f} K  (RT={:.6f})\n", "fermi-dirac:", fd_temperature, fd_RT);
     if (enumerate_product_states) msg += fmt::format("    {:<17}enabled\n", "product states:");
-    if (output_every > 0)
-      msg +=
-          fmt::format("    {:<17}{}  every {} steps\n", "output:", output_filename, output_every);
+    if (file_flag) {
+      if (file_every > 0)
+        msg += fmt::format("    {:<17}{}  (on reaction + every {} steps)\n", "file:", file_name,
+                           file_every);
+      else
+        msg += fmt::format("    {:<17}{}  (on reaction)\n", "file:", file_name);
+    }
 
     msg += "----------------------------------------------------------------\n\n";
 
@@ -1215,8 +1247,8 @@ void FixMSEVB::post_force(int vflag)
     if (scf_topology && transferred) {
       // Write output now, while nsites/nstates still reflect the topology
       // that was present when the transfer was detected.
-      if (ipartition == 0 && comm->me == 0) {
-        write_msevb_output(update->ntimestep, dominant_state, dominant_amp);
+      if (file_flag && ipartition == 0 && comm->me == 0) {
+        write_msevb_json(update->ntimestep, dominant_state, dominant_amp);
         transfer_output_written = true;
       }
 
@@ -1321,8 +1353,8 @@ void FixMSEVB::post_force(int vflag)
 
         // Write output for each subsequent transfer while nsites/nstates
         // still reflect the state at which this transfer was detected.
-        if (transferred && ipartition == 0 && comm->me == 0)
-          write_msevb_output(update->ntimestep, dominant_state, dominant_amp);
+        if (transferred && file_flag && ipartition == 0 && comm->me == 0)
+          write_msevb_json(update->ntimestep, dominant_state, dominant_amp);
       }
 
       if (transferred && universe->me == 0)
@@ -1376,7 +1408,7 @@ void FixMSEVB::post_force(int vflag)
     // Add coupling virial (already in energy units)
     for (int k = 0; k < 6; k++) mixed_vir[k] += coupling_virial[k];
 
-    // 3. Compute mixed pressure (for extract / msevb.out)
+    // 3. Compute mixed pressure (for extract / JSON output)
     double volume = domain->xprd * domain->yprd * domain->zprd;
     double vir_to_press = force->nktv2p / volume;
     press_compute->compute_vector();
@@ -1395,15 +1427,17 @@ void FixMSEVB::post_force(int vflag)
 
   // Transfer output was already written before the SCF loop (if SCF ran);
   // skip it here to avoid double-writing.  For SCF-disabled runs, write now.
-  if (!transfer_output_written && any_transferred && ipartition == 0 && comm->me == 0) {
-    write_msevb_output(update->ntimestep, dominant_state, dominant_amp);
+  if (file_flag && !transfer_output_written && any_transferred && ipartition == 0 &&
+      comm->me == 0) {
+    write_msevb_json(update->ntimestep, dominant_state, dominant_amp);
     return;
   }
   if (transfer_output_written) return;
 
-  if (output_every > 0 && (update->ntimestep % output_every == 0) && ipartition == 0 &&
+  // Periodic record: only when 'every N' was given and no reaction wrote this step.
+  if (file_flag && file_every > 0 && (update->ntimestep % file_every == 0) && ipartition == 0 &&
       comm->me == 0) {
-    write_msevb_output(update->ntimestep, dominant_state, dominant_amp);
+    write_msevb_json(update->ntimestep, dominant_state, dominant_amp);
     return;
   }
 }
@@ -1480,115 +1514,88 @@ void FixMSEVB::update_reactive_group()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMSEVB::write_msevb_output(bigint timestep, int max_state, double max_amp)
+void FixMSEVB::write_msevb_json(bigint timestep, int max_state, double max_amp)
 {
-  if (!output_fp) {
-    output_fp = fopen(output_filename.c_str(), "a");
-    if (!output_fp)
-      error->one(FLERR, fmt::format("Fix msevb: cannot open output file '{}'", output_filename));
-    fmt::memory_buffer hdr;
-    fmt::format_to(std::back_inserter(hdr), "# MSEVB output  |  fix {}  |  every {} steps\n", id,
-                   output_every);
-    fwrite(hdr.data(), 1, hdr.size(), output_fp);
-  }
+  if (!fpout) return;    // only the universe root holds an open file
 
-  FILE *fp = output_fp;
   const int ns = nstates;
-  const int cw = 13;
 
-  fmt::memory_buffer buf;
-  auto out = std::back_inserter(buf);
+  json rec;
+  rec["timestep"] = timestep;
+  rec["nstates"] = ns;
+  rec["nsites_parallel"] = nsites_parallel;
+  rec["nsites_serial"] = nsites_serial;
 
-  const int rule_w = 16 + ns * cw;
-  std::string rule(rule_w, '=');
-  fmt::format_to(out, "\n{}\n", rule);
-  fmt::format_to(out, "  Timestep {:<14}  nstates={}  (parallel={}  serial={})\n",
-                 static_cast<long long>(timestep), ns, nsites_parallel, nsites_serial);
-  fmt::format_to(out, "{}\n", rule);
-
-  fmt::format_to(out, "\nReactive states: {}\n", nsites);
-  if (nsites > 0) {
-    fmt::format_to(out, "  {:>5}  {:>7}  {:>12}  {:>12}  {:>6}  {:<6}  {}\n", "state", "tag_X",
-                   "initiator1", "initiator2", "parent", "type", "transfer chain");
-    fmt::format_to(out, "  {:>5}  {:>7}  {:>12}  {:>12}  {:>6}  {:<6}  {}\n", "-----", "-------",
-                   "------------", "------------", "------", "------",
-                   "-----------------------------");
-    for (int k = 0; k < nsites; k++) {
-      const ReactiveSite &s = sites[k];
-      std::string chain;
-      for (int d = 0; d < s.chain_len; d++) {
-        if (d) chain += ", ";
-        fmt::format_to(std::back_inserter(chain), "{}-{}--{}[r{}]",
-                       chain_X_flat[k * max_shells + d], chain_H_flat[k * max_shells + d],
-                       chain_Y_flat[k * max_shells + d], chain_rxn_flat[k * max_shells + d]);
-      }
-      std::string tag_x_str = (s.tag_X == 0) ? "None" : fmt::format("{}", (int) s.tag_X);
-      fmt::format_to(out, "  {:>5}  {:>7}  {:>12}  {:>12}  {:>6}  {:<6}  {}\n", k + 1, tag_x_str,
-                     (int) s.tag_H, (int) s.tag_Y, s.parent_state,
-                     (k < nsites_parallel) ? "para" : "serial", chain);
+  // Reactive states detected this step (one entry per site).
+  json states = json::array();
+  for (int k = 0; k < nsites; k++) {
+    const ReactiveSite &s = sites[k];
+    json st;
+    st["index"] = k + 1;
+    st["tag_X"] = s.tag_X;    // 0 means no bond-breaking partner
+    st["tag_H"] = s.tag_H;
+    st["tag_Y"] = s.tag_Y;
+    st["parent_state"] = s.parent_state;
+    st["kind"] = (k < nsites_parallel) ? "parallel" : "serial";
+    json chain = json::array();
+    for (int d = 0; d < s.chain_len; d++) {
+      json link;
+      link["X"] = chain_X_flat[k * max_shells + d];
+      link["H"] = chain_H_flat[k * max_shells + d];
+      link["Y"] = chain_Y_flat[k * max_shells + d];
+      link["reaction"] = chain_rxn_flat[k * max_shells + d];
+      chain.push_back(link);
     }
+    st["chain"] = chain;
+    states.push_back(st);
   }
+  rec["states"] = states;
 
-  fmt::format_to(out, "\nHamiltonian\n");
-
-  fmt::format_to(out, "  {:>10} |", "");
-  for (int j = 0; j < ns; j++) fmt::format_to(out, "  {:>{}}", j, cw - 2);
-  fmt::format_to(out, "\n");
-
-  fmt::format_to(out, "  {}--+", std::string(9, '-'));
-  for (int j = 0; j < ns; j++) fmt::format_to(out, "--{}", std::string(cw - 2, '-'));
-  fmt::format_to(out, "\n");
-
+  // Effective Hamiltonian (row-major ns x ns).
+  json hmat = json::array();
   for (int i = 0; i < ns; i++) {
-    const char *tag = (i == 0) ? "ref" : (i <= nsites_parallel) ? "para" : "serial";
-    fmt::format_to(out, "  {:>4} {:<6}|", i, tag);
-    for (int j = 0; j < ns; j++) {
-      double v = hamiltonian[i * ns + j];
-      if (v == 0.0 && i != j)
-        fmt::format_to(out, "  {:>{}}", ".", cw - 2);
-      else
-        fmt::format_to(out, "  {:>{}.6f}", v, cw - 2);
-    }
-    fmt::format_to(out, "\n");
+    json row = json::array();
+    for (int j = 0; j < ns; j++) row.push_back(hamiltonian[i * ns + j]);
+    hmat.push_back(row);
   }
+  rec["hamiltonian"] = hmat;
+
+  // Eigenvalues and ground-state amplitudes (density-matrix diagonal under
+  // Fermi-Dirac mixing, |c_n|^2 otherwise).
+  json evals = json::array();
+  json amps = json::array();
+  for (int i = 0; i < ns; i++) {
+    evals.push_back(eigenvalues[i]);
+    amps.push_back(amplitudes[i]);
+  }
+  rec["eigenvalues"] = evals;
+  rec["amplitudes"] = amps;
+
   if (fermi_dirac_enabled) {
-    fmt::format_to(out, "\nFermi-Dirac mixing  (T = {} K):\n", fd_temperature);
-    fmt::format_to(out, "  {:>5}  {:>18}  {:>12}  {}\n", "state", "eigenvalue (E_n)", "occ(E_n)",
-                   "occ * E_n");
-    fmt::format_to(out, "  {:>5}  {:>18}  {:>12}  {}\n", "-----", "------------------",
-                   "------------", "-----------------");
-    for (int k = 0; k < ns; k++) {
-      double contrib = fd_occ[k] * eigenvalues[k];
-      fmt::format_to(out, "  {:>5}  {:>18.8f}  {:>12.8f}  {:>17.8f}\n", k, eigenvalues[k],
-                     fd_occ[k], contrib);
-    }
-    fmt::format_to(out, "\n  E_mixed = sum_k occ(E_k)*E_k = {:.10f}\n", epot_ground);
-    fmt::format_to(out, "\nEVB state amplitudes  (diagonal of density matrix):\n");
-    fmt::format_to(out, "  {:>5}  {:>12}\n", "state", "rho[i][i]");
-    fmt::format_to(out, "  {:>5}  {:>12}\n", "-----", "------------");
-    for (int i = 0; i < ns; i++) { fmt::format_to(out, "  {:>5}  {:>12.8f}\n", i, amplitudes[i]); }
-
-  } else {
-    fmt::format_to(out, "\nEigenvalues and ground-state amplitudes:\n");
-    fmt::format_to(out, "  {:>5}  {:>16}  {:>12}\n", "state", "eigenvalue (E_n)", "|c_n|^2");
-    fmt::format_to(out, "  {:>5}  {:>16}  {:>12}\n", "-----", "----------------", "------------");
-    for (int i = 0; i < ns; i++) {
-      fmt::format_to(out, "  {:>5}  {:>16.8f}  {:>12.8f}\n", i, eigenvalues[i], amplitudes[i]);
-    }
-    fmt::format_to(out, "\n  E_ground = {:.10f} \n", epot_ground);
-  }
-  fmt::format_to(out,
-                 "\n Ground state's predominant contributor is state {} with "
-                 "amplitude {:.8f}\n",
-                 max_state, max_amp);
-  if (max_state > 0) {
-    fmt::format_to(out, " Reference topology is updated from state 0 to state {}\n", max_state);
-  } else {
-    fmt::format_to(out, " No reference topology update required\n");
+    json fd;
+    fd["temperature"] = fd_temperature;
+    json occ = json::array();
+    for (int k = 0; k < ns; k++) occ.push_back(fd_occ[k]);
+    fd["occupations"] = occ;
+    fd["E_mixed"] = epot_ground;
+    rec["fermi_dirac"] = fd;
   }
 
-  fwrite(buf.data(), 1, buf.size(), fp);
-  fflush(fp);
+  rec["E_ground"] = epot_ground;
+  rec["dominant_state"] = max_state;
+  rec["dominant_amplitude"] = max_amp;
+  // Null when no reference-topology update occurs this step.
+  if (max_state > 0)
+    rec["reference_update"] = max_state;
+  else
+    rec["reference_update"] = nullptr;
+
+  // Stream the record into the open "timesteps" array, separated by commas.
+  if (json_init) utils::print(fpout, ",\n");
+  json_init = 1;
+  const std::string text = rec.dump(2);
+  fwrite(text.data(), 1, text.size(), fpout);
+  fflush(fpout);
 }
 
 /* ---------------------------------------------------------------------- */

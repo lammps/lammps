@@ -17,7 +17,7 @@ fix evb all msevb &
   shells 1 &
   fermi_dirac 300.0 &
   scf_topology yes &
-  output msevb.out 1
+  file msevb.json every 1
 
 fix_modify evb energy yes
 

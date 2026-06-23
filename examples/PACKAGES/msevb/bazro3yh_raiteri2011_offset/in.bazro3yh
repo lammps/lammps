@@ -21,7 +21,7 @@ fix evb all msevb         &
   reaction pre3 post3 react.map 1.9 taper 1.7 offset -0.843 &
   reaction pre4 post4 react.map 1.9 taper 1.7 &
   shells 1         &
-  output msevb.out 1
+  file msevb.json every 1
 
 fix_modify evb energy yes
 

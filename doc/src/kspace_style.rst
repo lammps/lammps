@@ -1,4 +1,5 @@
 .. index:: kspace_style ewald
+.. index:: kspace_style ewald/gpu
 .. index:: kspace_style ewald/dipole
 .. index:: kspace_style ewald/dipole/spin
 .. index:: kspace_style ewald/disp
@@ -46,12 +47,14 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
+* style = *none* or *ewald* or ewald/gpu or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
 
   .. parsed-literal::
 
        *none* value = none
        *ewald* value = accuracy
+         accuracy = desired relative error in forces
+       *ewald/gpu* value = accuracy
          accuracy = desired relative error in forces
        *ewald/dipole* value = accuracy
          accuracy = desired relative error in forces
@@ -189,6 +192,21 @@ matching keyword to the name of the KSpace style, as in this table:
 
 The *ewald* style performs a standard Ewald summation as described in
 any solid-state physics text.
+
+.. versionadded:: TBD
+
+The *ewald/gpu* style is a GPU-accelerated version of the *ewald* style.
+Unlike *pppm/gpu*, it requires no FFTs and therefore avoids the
+bandwidth-intensive grid communication of the PPPM method, which makes
+it competitive with *pppm/gpu* for smaller system sizes despite the less
+favorable scaling of the Ewald method with system size.  The
+reciprocal-space structure factors, per-atom forces, and per-atom energy
+and virial are computed on the device; only the small structure-factor
+vector is reduced across MPI ranks on the host.  Non-orthogonal
+(triclinic) simulation boxes are not supported.  For best accuracy the
+*mixed* or *double* precision builds of the GPU package are recommended;
+the *single* precision build is not recommended for the Ewald summation
+because of round-off in the structure-factor sums.
 
 The *ewald/disp* style adds a long-range dispersion sum option for
 :math:`1/r^6` potentials and is useful for simulation of interfaces

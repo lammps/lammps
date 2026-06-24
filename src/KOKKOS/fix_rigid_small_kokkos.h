@@ -38,6 +38,18 @@ struct TagUpdateXGC{};
 namespace LAMMPS_NS {
 
 
+// Kokkos port of fix rigid/small.
+//
+// Design notes:
+//  - Body setup (create_bodies / rendezvous_body) is intentionally kept on the
+//    host: it runs only at setup, uses STL maps and an MPI rendezvous callback,
+//    and has no per-timestep cost, so a device reimplementation would add
+//    complexity with no runtime benefit.  The tied DualViews make the host
+//    setup results directly visible to the device kernels.
+//  - Atom exchange (migration) is routed through the proven host
+//    FixRigidSmall::pack/unpack_exchange path (exchange_comm_device = 0); the
+//    tied DualViews are flushed to the host in pre_exchange() and re-synced in
+//    pre_neighbor().  Forward/reverse comm and sorting run on the device.
 template<class DeviceType>
 class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 

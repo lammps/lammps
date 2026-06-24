@@ -14,57 +14,40 @@ variable        inew atom ternary(v_istart,v_tshock,i_tshock)
 variable        dnew atom ternary(v_istart,x,d_xshock)
 fix             setshock all set ${nevery} 0 group all d_xshock v_dnew i_tshock v_inew
 
-# set up vx history, c_vxhist[*][1] not yet supported
+# set up vx history
 
 variable nhistory equal ${leftwindow}+${rightwindow}
-fix vxhist all store/state 0 vx history ${nevery} ${nhistory} 0
-compute vxhist all property/atom &
-history[$(v_nhistory-010+1)][1] &
-history[$(v_nhistory-020+1)][1] &
-history[$(v_nhistory-030+1)][1] &
-history[$(v_nhistory-040+1)][1] &
-history[$(v_nhistory-050+1)][1] &
-history[$(v_nhistory-060+1)][1] &
-history[$(v_nhistory-070+1)][1] &
-history[$(v_nhistory-080+1)][1] &
-history[$(v_nhistory-090+1)][1] &
-history[$(v_nhistory-100+1)][1] &
-history[$(v_nhistory-110+1)][1] &
-history[$(v_nhistory-120+1)][1] &
-history[$(v_nhistory-130+1)][1] &
-history[$(v_nhistory-140+1)][1] &
-history[$(v_nhistory-150+1)][1] &
-history[$(v_nhistory-160+1)][1] &
-history[$(v_nhistory-170+1)][1] &
-history[$(v_nhistory-180+1)][1] &
-history[$(v_nhistory-190+1)][1] &
-history[$(v_nhistory-200+1)][1] &
-history vxhist
+
+compute dyn all property/atom vx vy vz fx fy fz
+
+fix vxhist all store/state 0 c_dyn[*] history ${nevery} ${nhistory} 0
+
+compute vxhist all property/atom history[*][1] history vxhist
 
 # store vxhist at end of window
 
 variable        step_rightwindow atom i_tshock + ${rightwindow}*${nevery}
 variable        irightwindow atom step == v_step_rightwindow
-variable        dnewvxhist010 atom ternary(v_irightwindow,c_vxhist[1], d_vxhist010)
-variable        dnewvxhist020 atom ternary(v_irightwindow,c_vxhist[2], d_vxhist020)
-variable        dnewvxhist030 atom ternary(v_irightwindow,c_vxhist[3], d_vxhist030)
-variable        dnewvxhist040 atom ternary(v_irightwindow,c_vxhist[4], d_vxhist040)
-variable        dnewvxhist050 atom ternary(v_irightwindow,c_vxhist[5], d_vxhist050)
-variable        dnewvxhist060 atom ternary(v_irightwindow,c_vxhist[6], d_vxhist060)
-variable        dnewvxhist070 atom ternary(v_irightwindow,c_vxhist[7], d_vxhist070)
-variable        dnewvxhist080 atom ternary(v_irightwindow,c_vxhist[8], d_vxhist080)
-variable        dnewvxhist090 atom ternary(v_irightwindow,c_vxhist[9], d_vxhist090)
-variable        dnewvxhist100 atom ternary(v_irightwindow,c_vxhist[10],d_vxhist100)
-variable        dnewvxhist110 atom ternary(v_irightwindow,c_vxhist[11],d_vxhist110)
-variable        dnewvxhist120 atom ternary(v_irightwindow,c_vxhist[12],d_vxhist120)
-variable        dnewvxhist130 atom ternary(v_irightwindow,c_vxhist[13],d_vxhist130)
-variable        dnewvxhist140 atom ternary(v_irightwindow,c_vxhist[14],d_vxhist140)
-variable        dnewvxhist150 atom ternary(v_irightwindow,c_vxhist[15],d_vxhist150)
-variable        dnewvxhist160 atom ternary(v_irightwindow,c_vxhist[16],d_vxhist160)
-variable        dnewvxhist170 atom ternary(v_irightwindow,c_vxhist[17],d_vxhist170)
-variable        dnewvxhist180 atom ternary(v_irightwindow,c_vxhist[18],d_vxhist180)
-variable        dnewvxhist190 atom ternary(v_irightwindow,c_vxhist[19],d_vxhist190)
-variable        dnewvxhist200 atom ternary(v_irightwindow,c_vxhist[20],d_vxhist200)
+variable        dnewvxhist010 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-010+1)], d_vxhist010)
+variable        dnewvxhist020 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-020+1)], d_vxhist020)
+variable        dnewvxhist030 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-030+1)], d_vxhist030)
+variable        dnewvxhist040 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-040+1)], d_vxhist040)
+variable        dnewvxhist050 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-050+1)], d_vxhist050)
+variable        dnewvxhist060 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-060+1)], d_vxhist060)
+variable        dnewvxhist070 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-070+1)], d_vxhist070)
+variable        dnewvxhist080 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-080+1)], d_vxhist080)
+variable        dnewvxhist090 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-090+1)], d_vxhist090)
+variable        dnewvxhist100 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-100+1)],d_vxhist100)
+variable        dnewvxhist110 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-110+1)],d_vxhist110)
+variable        dnewvxhist120 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-120+1)],d_vxhist120)
+variable        dnewvxhist130 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-130+1)],d_vxhist130)
+variable        dnewvxhist140 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-140+1)],d_vxhist140)
+variable        dnewvxhist150 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-150+1)],d_vxhist150)
+variable        dnewvxhist160 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-160+1)],d_vxhist160)
+variable        dnewvxhist170 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-170+1)],d_vxhist170)
+variable        dnewvxhist180 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-180+1)],d_vxhist180)
+variable        dnewvxhist190 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-190+1)],d_vxhist190)
+variable        dnewvxhist200 atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-200+1)],d_vxhist200)
 
 fix             sethist all set ${nevery} 0 group all &
 d_vxhist010 v_dnewvxhist010 &
@@ -92,7 +75,7 @@ d_vxhist200 v_dnewvxhist200
 
 run		${nsteps}
 
-# average vxhist to get CVCF 
+# average vxhist to get CVCF
 
 variable vxhist010 atom d_vxhist010
 compute vxhistav010 bulk reduce ave v_vxhist010

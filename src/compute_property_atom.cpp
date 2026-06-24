@@ -422,12 +422,14 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         ValueTokenizer hist(arg[iarg],"[]");
         hist.skip();                                                // the "history" keyword
         val.pack_choice = &ComputePropertyAtom::pack_history;
+        std::string bracket1 = hist.next_string();
+        std::string bracket2 = hist.next_string();
         if (is_numeric) {
-          val.index = utils::inumeric(FLERR,hist.next_string(),false,lmp);    // I
+          val.index = utils::inumeric(FLERR,bracket1,false,lmp);    // I
           if (val.index < 1) error->all(FLERR, "Compute {} history references invalid history "
                                         "frame {} from fix store/state", style, val.index);
         }
-        val.colindex = utils::inumeric(FLERR,hist.next_string(),false,lmp);   // J
+        val.colindex = utils::inumeric(FLERR,bracket2,false,lmp);   // J
       } else error->all(FLERR,"Inconsistent request for history keyword");
 
     // any other attribute could be recognized by atom style

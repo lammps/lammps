@@ -1726,19 +1726,32 @@ void FixRigidSmallKokkos<DeviceType>::reset_atom2body()
   }
 
 
+  // count atoms whose body owner is missing on this proc (iowner < 0); the host
+  // FixRigidSmall::reset_atom2body() treats this as a fatal error.  Doing it on
+  // the device avoids the out-of-bounds d_bodyown(-1) read the previous code
+  // performed, and lets us reproduce the host error afterwards.
+  Kokkos::View<int,DeviceType> d_nmissing("rigid/small:nmissing");
+  Kokkos::deep_copy(d_nmissing, 0);
+
   Kokkos::parallel_for(
     "fix rigid/small reset atom2body",
     Range1D(0, nlocal),
     KOKKOS_LAMBDA(const int i){
       d_atom2body(i) = -1;
       if (d_bodytag(i)) {
-        // int iowner = atomKK->map(d_bodytag(i));
         int iowner = AtomKokkos::map_kokkos<DeviceType>(d_bodytag(i),map_style,k_map_array,k_map_hash);
-        d_atom2body(i) = d_bodyown(iowner);
+        if (iowner >= 0) d_atom2body(i) = d_bodyown(iowner);
+        else Kokkos::atomic_add(&d_nmissing(), 1);
       }
     }
   );
   k_atom2body.template modify<DeviceType>();
+
+  int nmissing = 0;
+  Kokkos::deep_copy(nmissing, d_nmissing);
+  if (nmissing)
+    error->one(FLERR, "Rigid body atoms missing on proc {} at step {} "
+               "(fix rigid/small/kk)", comm->me, update->ntimestep);
   Kokkos::Profiling::popRegion();
 }
 

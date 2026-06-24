@@ -72,6 +72,18 @@ templates include:
 * :doc:`create_atoms <create_atoms>`
 * :doc:`atom_style template <atom_style>`
 
+.. versionchanged:: TBD
+
+It can also be used to define a collection of line segments (2d) or
+triangles (3d) which define an object's surface or a boundary
+condition for granular particles to interact with, via these commands:
+
+* :doc:`fix surface/global <fix_surface_global>`
+* :doc:`fix surface/local <fix_surface_local>`
+
+See the :doc:`Howto granular surfaces <Howto_granular_surfaces>` doc
+page for more details on these kinds of models.
+
 The ID of a molecule template can only contain alphanumeric characters
 and underscores, same as other IDs in LAMMPS.
 
@@ -110,6 +122,11 @@ use that attribute (e.g. no bonds).
    labels will determine the actual types directly depending on the
    current :doc:`labelmap <labelmap>` settings.
 
+.. note::
+
+   For molecule files defining line segments or triangles, only the
+   *toff* keyword is relevant; the other offset keywords are ignored
+
 The *scale* keyword scales the size of the molecule.  This can be useful
 for modeling polydisperse granular rigid bodies.  The scale factor is
 applied to each of these properties in the molecule file, if they are
@@ -119,7 +136,9 @@ section), the individual diameters of each particle (Diameters or
 "diameters" section), the per-atom dipoles (Dipoles or "dipoles"
 section) the total mass of the molecule (header keyword = mass), the
 center-of-mass of the molecule (header keyword = com), and the moments
-of inertia of the molecule (header keyword = inertia).
+of inertia of the molecule (header keyword = inertia). For line or tri
+molecules, the scale factor multiplies the line endpoints or triangle
+vertices.
 
 .. versionadded:: 11Feb2026
 
@@ -244,18 +263,18 @@ molecule:
 
    1   1      2      1      3
 
-A molecule file has a header and a body.  The header appears first.  The
-first line of the header and thus of the molecule file is *always*
+A molecule file has a header and a body.  The header appears first.
+The first line of the header and thus of the molecule file is *always*
 skipped; it typically contains a description of the file or a comment
 from the software that created the file.
 
 Then lines are read one line at a time.  Lines can have a trailing
-comment starting with '#' that is ignored.  There *must* be at least one
-blank between any valid content and the comment.  If the line is blank
-(i.e. contains only white-space after comments are deleted), it is
-skipped.  If the line contains a header keyword, the corresponding
-value(s) is/are read from the line.  A line that is *not* blank and does
-*not* contains a header keyword begins the body of the file.
+comment starting with '#' that is ignored.  There *must* be at least
+one blank between any valid content and the comment.  If the line is
+blank (i.e. contains only white-space after comments are deleted), it
+is skipped.  If the line contains a header keyword, the corresponding
+value(s) is/are read from the line.  A line that is *not* blank and
+does *not* contains a header keyword begins the body of the file.
 
 The body of the file contains zero or more sections.  The first line
 of a section has only a keyword.  The next line is skipped.  The
@@ -264,13 +283,18 @@ depends on the section keyword as described below.  Zero or more blank
 lines can be used between sections.  Sections can appear in any order,
 with a few exceptions as noted below.
 
+.. versionadded:: TBD
+
+   New header keywords *lines* and *tris*
+
 These are the recognized header keywords.  Header lines can come in
 any order.  The numeric value(s) are read from the beginning of the
 line.  The keyword should appear at the end of the line.  All these
 settings have default values, as explained below.  A line need only
 appear if the value(s) are different than the default, except when
 defining a *body* particle, which requires setting the number of
-*atoms* to 1, and setting the *inertia* in a specific section (see below).
+*atoms* to 1, and setting the *inertia* in a specific section (see
+below).
 
 .. list-table::
       :header-rows: 1
@@ -320,6 +344,18 @@ defining a *body* particle, which requires setting the number of
         - inertia
         - 6 components of inertia tensor of molecule
         - computed
+      * - Nlines
+        - lines
+        - # of lines Nlines in molecule
+        - 0
+      * - Ntris
+        - triangles
+        - # of triangle Ntris in molecule
+        - 0
+
+A molecule file can contain only either the *atoms*, *lines*, or
+*triangles* keyword.  All the other keywords can only be used for
+a molecule file containing the *atoms* keyword.
 
 For *mass*, *com*, and *inertia*, the default is for LAMMPS to calculate
 this quantity itself if needed, assuming the molecules consist of a set
@@ -344,6 +380,11 @@ These are the allowed section keywords for the body of the file.
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info
 * *Body Integers, Body Doubles* = body-property sections
+* *Lines, Triangles* = corner points of lines or triangles
+
+Similar to the corresponding keywords, a molecule file can only
+contain either a Coords, Lines, or Triangles section.  All of the
+other sections can only be used in molecule files for atoms.
 
 For the Types, Bonds, Angles, Dihedrals, and Impropers sections, each
 atom/bond/angle/etc type can be specified either as a number (numeric
@@ -747,6 +788,70 @@ the file format.
 
 ----------
 
+.. versionadded:: TBD
+
+*Lines* section:
+
+* one line per line segment
+* line syntax: ID molecule-ID type x1 y1 x2 y2
+* molecule-ID = molecule-ID of the line segment
+* type = type of the line segment
+* x1,y1,x2,y2 = coords of two endpoints of line segment
+
+Each line segment is assigned a molecule-ID and type, similar to an
+atom type.  This allows a collection of lines to represent multiple 2d
+bodies, e.g. a collection of squares.  Line-segments in each could
+have a different molecule-ID, or the left-facing edges could have a
+unique atom type.
+
+The coords of two different line segments which are connected by a
+common point should list the exact same coordinates for the common
+point.  This allows a command like :doc:`fix surface/local
+<fix_surface_local>` to infer connectivity of the two line segments.
+
+The ordering of the two points defines the direction of an outward
+normal for the line segment.  This is defined by a right-hand rule.
+The outward normal N = (0,0,1) x (p2-p1), where p1 and p2 are the 2
+points.  In other words, a unit z-direction vector is crossed into the
+vector from p1 to p2 to determine the normal.
+
+It depends on how the line segments are used by other commands in
+LAMMPS whether the normal direction matters or not.
+
+----------
+
+.. versionadded:: TBD
+
+*Triangles* section:
+
+* one line per triangle
+* line syntax: ID molecule-ID type x1 y1 z1 x2 y2 z2 x3 y3 z3
+* molecule-ID = molecule-ID assigned triangle
+* type = type assigned to triangle
+* x1,y1,z1,x2,y2,z2,x3,y3,z3 = coords of three corner points of triangle
+
+Each triangle is assigned a molecule-ID and type, similar to an atom
+type.  This allows a collection of triangles to represent multiple 3d
+objects, e.g. a curved surface on the left and right of the simulation
+box.  Triangles in each could have a different molecule-ID, or the the
+triangles in the upper half could have a different type than those in
+the lower half.
+
+The coords of two different triangles which share a common edge (2
+points) or corner point (single point) should list the exact same
+coordinates for the common points.  This allows a command like
+:doc:`fix surface/local <fix_surface_local>` to infer connectivity of
+the two triangles.
+
+The ordering of the three points defines the direction of the outward
+normal for the triangle. This is defined by a right-hand rule.  The
+outward normal N = (p2-p1) x (p3-p1), where p1, p2, p3 are the 3
+points.  In other words, the edge from p1 to p2 is crossed into the
+edge from p1 to p3 to determine the normal.
+
+It depends on how the triangles are used by other commands in LAMMPS
+whether the normal direction matters or not.
+
 Format of a JSON molecule file
 """"""""""""""""""""""""""""""
 
@@ -1087,7 +1192,8 @@ contain only one atom:
 Restrictions
 """"""""""""
 
-None
+The *lines* and *tris* keywords and corresponding sections are currently
+not (yet) supported with molecule files in JSON format.
 
 Related commands
 """"""""""""""""

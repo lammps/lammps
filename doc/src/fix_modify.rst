@@ -42,10 +42,12 @@ Examples
 Description
 """""""""""
 
-Modify one or more parameters of a previously defined fix.  Only
-specific fix styles support specific parameters.  See the doc pages
-for individual fix commands for info on which ones support which
-fix_modify parameters.
+Modify one or more parameters of a previously defined fix.  Specific
+fix styles support specific parameters.  See the doc pages of an
+individual fix command for info on which fix_modify keywords it
+supports.  This doc page only describes fix_modify keywords which are
+supported by multiple fixes.  Additional keywords, specific to a
+single fix, are only described on that fix's doc page.
 
 The *temp* keyword is used to determine how a fix computes
 temperature.  The specified compute ID must have been previously

@@ -600,6 +600,15 @@ int MinSpinCG::adescent(double phi_0, double phi_j) {
     return 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
+double MinSpinCG::memory_usage()
+{
+  double bytes = (double) 3 * nlocal_max * 3 * sizeof(double);     // g_old + g_cur + p_s [3*nlocal_max]
+  if (sp_copy) bytes += (double) nlocal_max * 3 * sizeof(double);  // sp_copy[nlocal_max][3]
+  return bytes;
+}
+
 /* ----------------------------------------------------------------------
    evaluate max timestep
 ---------------------------------------------------------------------- */

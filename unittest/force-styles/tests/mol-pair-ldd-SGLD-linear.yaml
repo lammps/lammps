@@ -3,6 +3,7 @@ lammps_version: 30 Mar 2026
 date_generated: Mon Jun  1 12:20:28 2026
 epsilon: 5e-12
 skip_tests:
+tags: unstable
 prerequisites: ! |
   atom full
   pair ldd

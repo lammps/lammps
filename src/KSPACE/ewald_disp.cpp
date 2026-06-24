@@ -152,6 +152,9 @@ void EwaldDisp::init()
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab EwaldDisp");
+    if (domain->triclinic && (domain->yz != 0.0 || domain->xz != 0.0))
+      error->all(FLERR,"Triclinic slab (EW3DC) correction requires xz = yz = 0 "
+                 "(the slab normal must be the z axis); xy tilt is allowed");
   }
 
   scale = 1.0;

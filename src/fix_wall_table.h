@@ -32,6 +32,7 @@ class FixWallTable : public FixWall {
   void post_constructor() override;
   void precompute(int) override;
   void wall_particle(int, int, double) override;
+  double memory_usage() override;
 
  protected:
   double offset[6];

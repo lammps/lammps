@@ -110,6 +110,11 @@ void FixRigidSmallKokkos<DeviceType>::init()
 
   // warn about functionality that has not been thoroughly validated on device
   if (comm->me == 0) {
+    if (langflag && comm->nprocs > 1)
+      error->warning(FLERR,"fix rigid/small/kk: the Langevin thermostat is "
+                     "experimental with Kokkos and may be unstable with MPI "
+                     "domain decomposition (np>1); validate against the "
+                     "non-Kokkos style");
     if (inpfile)
       error->warning(FLERR,"fix rigid/small/kk: reading body properties from a "
                      "file (infile) is experimental with Kokkos");

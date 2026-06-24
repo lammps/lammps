@@ -34,7 +34,7 @@ Syntax
                              corner2x, corner2y, corner2z,
                              corner3x, corner3y, corner3z,
                              i_name, d_name, i2_name[I], d2_name[I],
-              history[I][J],
+                             history[\*][J], history[I][J],
                              vfrac, s0, espin, eradius, ervel, erforce,
                              rho, drho, e, de, cv, buckling,
                              apip_lambda, apip_lambda_input, apip_e_fast,
@@ -77,6 +77,7 @@ Syntax
            *d_name* = custom floating point vector with name
            *i2_name[I]* = Ith column of custom integer array with name
            *d2_name[I]* = Ith column of custom floating-point array with name
+           *history[\*][J]* = all history frames (Nrepeat frames) for Jth attribute (1 to Nattribute)
            *history[I][J]* = Ith most recent history frame (1 to Nrepeat) for Jth attribute (1 to Nattribute)
 
   .. parsed-literal::
@@ -182,12 +183,15 @@ timestep this compute is invoked.  *Nrepeat* sets the count of how
 many history values are stored for each attribute.  The first *I*
 index of attribute *history[I][J]* must be a value from 1 to
 *Nrepeat*, where 1 is the most recent history and *Nrepeat* is the
-oldest history.  If this compute is invoked before all *Nrepeat*
-history values have been stored (e.g. early in a run), then zeroes
-will be stored by this compute for not-yet-available history.  The
-second *J* index of attribute *history[I][J]* must be a value from 1
-to *Nattribute* for the per-atom attribute to access.  See the
-:doc:`fix store/state <fix_store_state>` doc page for more details.
+oldest history.  An asterisk can be used for this first index, which
+adds *Nrepeat* inputs to this fix, as if an attribute *history[I][J]*
+had been listed for all *I* from 1 to *Nrepeat*.  If this compute is
+invoked before all *Nrepeat* history values have been stored (e.g.
+early in a run), then zeroes will be stored by this compute for
+not-yet-available history.  The second *J* index of attribute
+*history[I][J]* must be a value from 1 to *Nattribute* for the per-atom
+attribute to access.  See the :doc:`fix store/state <fix_store_state>`
+doc page for more details.
 
 The additional per-atom attributes only accessible via this command,
 and not directly via the :doc:`dump custom <dump>` command, are as

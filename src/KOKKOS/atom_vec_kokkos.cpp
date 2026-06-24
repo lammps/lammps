@@ -2853,6 +2853,495 @@ int AtomVecKokkos::unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf, int nr
   return k_count.view_host()(0);
 }
 
+/* ----------------------------------------------------------------------
+   sort atom arrays on device with a single pair of kernels
+
+   The set of per-atom arrays that must be permuted by a spatial sort is
+   exactly the set of persistent per-atom arrays that travel when an atom
+   migrates to another MPI rank, i.e. the "exchange" set.  We therefore
+   reuse datamask_exchange / size_exchange and the same mask-driven field
+   layout as pack/unpack_exchange, but index the gather by the BinSort
+   permutation vector instead of a sendlist.  This replaces the previous
+   per-array Kokkos::BinSort::sort() calls (one permute + copy-back kernel
+   per array, 6-30 arrays per style) with a single gather kernel into a
+   scratch buffer followed by a single in-place copy-back kernel.
+------------------------------------------------------------------------- */
+
+template<class DeviceType,int DEFAULT,class PermuteView>
+struct AtomVecKokkos_PackSortFunctor {
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+
+  typename AT::t_kkfloat_1d_3_lr _x;
+  typename AT::t_kkfloat_1d_3 _v;
+  typename AT::t_tagint_1d _tag;
+  typename AT::t_int_1d _type;
+  typename AT::t_int_1d _mask;
+  typename AT::t_imageint_1d _image;
+  typename AT::t_kkfloat_1d _q;
+  typename AT::t_tagint_1d _molecule;
+  typename AT::t_int_2d _nspecial;
+  typename AT::t_tagint_2d _special;
+  typename AT::t_int_1d _num_bond;
+  typename AT::t_int_2d _bond_type;
+  typename AT::t_tagint_2d _bond_atom;
+  typename AT::t_int_1d _num_angle;
+  typename AT::t_int_2d _angle_type;
+  typename AT::t_tagint_2d _angle_atom1,_angle_atom2,_angle_atom3;
+  typename AT::t_int_1d _num_dihedral;
+  typename AT::t_int_2d _dihedral_type;
+  typename AT::t_tagint_2d _dihedral_atom1,_dihedral_atom2,
+    _dihedral_atom3,_dihedral_atom4;
+  typename AT::t_int_1d _num_improper;
+  typename AT::t_int_2d _improper_type;
+  typename AT::t_tagint_2d _improper_atom1,_improper_atom2,
+    _improper_atom3,_improper_atom4;
+  typename AT::t_kkfloat_1d_4 _mu;
+  typename AT::t_kkfloat_1d_4 _sp;
+  typename AT::t_kkfloat_1d _radius,_rmass;
+  typename AT::t_kkfloat_1d_3 _omega;
+  typename AT::t_kkfloat_1d_3 _angmom;
+  typename AT::t_kkfloat_1d _dpdTheta,_uCond,_uMech,_uChem,_uCG,_uCGnew;
+
+  typename AT::t_double_2d_lr_um _buf;
+  PermuteView _permute;
+  int _size_sort;
+  uint64_t _datamask;
+
+  AtomVecKokkos_PackSortFunctor(
+    const AtomKokkos* atomKK,
+    const DAT::tdual_double_2d_lr buf,
+    PermuteView permute,
+    const uint64_t datamask):
+      _x(atomKK->k_x.view<DeviceType>()),
+      _v(atomKK->k_v.view<DeviceType>()),
+      _tag(atomKK->k_tag.view<DeviceType>()),
+      _type(atomKK->k_type.view<DeviceType>()),
+      _mask(atomKK->k_mask.view<DeviceType>()),
+      _image(atomKK->k_image.view<DeviceType>()),
+      _q(atomKK->k_q.view<DeviceType>()),
+      _molecule(atomKK->k_molecule.view<DeviceType>()),
+      _nspecial(atomKK->k_nspecial.view<DeviceType>()),
+      _special(atomKK->k_special.view<DeviceType>()),
+      _num_bond(atomKK->k_num_bond.view<DeviceType>()),
+      _bond_type(atomKK->k_bond_type.view<DeviceType>()),
+      _bond_atom(atomKK->k_bond_atom.view<DeviceType>()),
+      _num_angle(atomKK->k_num_angle.view<DeviceType>()),
+      _angle_type(atomKK->k_angle_type.view<DeviceType>()),
+      _angle_atom1(atomKK->k_angle_atom1.view<DeviceType>()),
+      _angle_atom2(atomKK->k_angle_atom2.view<DeviceType>()),
+      _angle_atom3(atomKK->k_angle_atom3.view<DeviceType>()),
+      _num_dihedral(atomKK->k_num_dihedral.view<DeviceType>()),
+      _dihedral_type(atomKK->k_dihedral_type.view<DeviceType>()),
+      _dihedral_atom1(atomKK->k_dihedral_atom1.view<DeviceType>()),
+      _dihedral_atom2(atomKK->k_dihedral_atom2.view<DeviceType>()),
+      _dihedral_atom3(atomKK->k_dihedral_atom3.view<DeviceType>()),
+      _dihedral_atom4(atomKK->k_dihedral_atom4.view<DeviceType>()),
+      _num_improper(atomKK->k_num_improper.view<DeviceType>()),
+      _improper_type(atomKK->k_improper_type.view<DeviceType>()),
+      _improper_atom1(atomKK->k_improper_atom1.view<DeviceType>()),
+      _improper_atom2(atomKK->k_improper_atom2.view<DeviceType>()),
+      _improper_atom3(atomKK->k_improper_atom3.view<DeviceType>()),
+      _improper_atom4(atomKK->k_improper_atom4.view<DeviceType>()),
+      _mu(atomKK->k_mu.view<DeviceType>()),
+      _sp(atomKK->k_sp.view<DeviceType>()),
+      _radius(atomKK->k_radius.view<DeviceType>()),
+      _rmass(atomKK->k_rmass.view<DeviceType>()),
+      _omega(atomKK->k_omega.view<DeviceType>()),
+      _angmom(atomKK->k_angmom.view<DeviceType>()),
+      _dpdTheta(atomKK->k_dpdTheta.view<DeviceType>()),
+      _uCond(atomKK->k_uCond.view<DeviceType>()),
+      _uMech(atomKK->k_uMech.view<DeviceType>()),
+      _uChem(atomKK->k_uChem.view<DeviceType>()),
+      _uCG(atomKK->k_uCG.view<DeviceType>()),
+      _uCGnew(atomKK->k_uCGnew.view<DeviceType>()),
+      _permute(permute),
+      _size_sort(atomKK->avecKK->size_exchange),
+      _datamask(datamask) {
+        const int maxsort = (buf.template view<DeviceType>().extent(0)*
+                             buf.template view<DeviceType>().extent(1))/_size_sort;
+        buffer_view<DeviceType>(_buf,buf,maxsort,_size_sort);
+      }
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int &i) const {
+    const int j = _permute(i);
+    int m = 0;
+
+    _buf(i,m++) = _x(j,0);
+    _buf(i,m++) = _x(j,1);
+    _buf(i,m++) = _x(j,2);
+    _buf(i,m++) = _v(j,0);
+    _buf(i,m++) = _v(j,1);
+    _buf(i,m++) = _v(j,2);
+    _buf(i,m++) = d_ubuf(_tag(j)).d;
+    _buf(i,m++) = d_ubuf(_type(j)).d;
+    _buf(i,m++) = d_ubuf(_mask(j)).d;
+    _buf(i,m++) = d_ubuf(_image(j)).d;
+
+    if constexpr (!DEFAULT) {
+
+      if (_datamask & Q_MASK)
+        _buf(i,m++) = _q(j);
+
+      if (_datamask & MOLECULE_MASK)
+        _buf(i,m++) = d_ubuf(_molecule(j)).d;
+
+      if (_datamask & BOND_MASK) {
+        _buf(i,m++) = d_ubuf(_num_bond(j)).d;
+        for (int k = 0; k < _num_bond(j); k++) {
+          _buf(i,m++) = d_ubuf(_bond_type(j,k)).d;
+          _buf(i,m++) = d_ubuf(_bond_atom(j,k)).d;
+        }
+      }
+
+      if (_datamask & ANGLE_MASK) {
+        _buf(i,m++) = d_ubuf(_num_angle(j)).d;
+        for (int k = 0; k < _num_angle(j); k++) {
+          _buf(i,m++) = d_ubuf(_angle_type(j,k)).d;
+          _buf(i,m++) = d_ubuf(_angle_atom1(j,k)).d;
+          _buf(i,m++) = d_ubuf(_angle_atom2(j,k)).d;
+          _buf(i,m++) = d_ubuf(_angle_atom3(j,k)).d;
+        }
+      }
+
+      if (_datamask & DIHEDRAL_MASK) {
+        _buf(i,m++) = d_ubuf(_num_dihedral(j)).d;
+        for (int k = 0; k < _num_dihedral(j); k++) {
+          _buf(i,m++) = d_ubuf(_dihedral_type(j,k)).d;
+          _buf(i,m++) = d_ubuf(_dihedral_atom1(j,k)).d;
+          _buf(i,m++) = d_ubuf(_dihedral_atom2(j,k)).d;
+          _buf(i,m++) = d_ubuf(_dihedral_atom3(j,k)).d;
+          _buf(i,m++) = d_ubuf(_dihedral_atom4(j,k)).d;
+        }
+      }
+
+      if (_datamask & IMPROPER_MASK) {
+        _buf(i,m++) = d_ubuf(_num_improper(j)).d;
+        for (int k = 0; k < _num_improper(j); k++) {
+          _buf(i,m++) = d_ubuf(_improper_type(j,k)).d;
+          _buf(i,m++) = d_ubuf(_improper_atom1(j,k)).d;
+          _buf(i,m++) = d_ubuf(_improper_atom2(j,k)).d;
+          _buf(i,m++) = d_ubuf(_improper_atom3(j,k)).d;
+          _buf(i,m++) = d_ubuf(_improper_atom4(j,k)).d;
+        }
+      }
+
+      if (_datamask & SPECIAL_MASK) {
+        _buf(i,m++) = d_ubuf(_nspecial(j,0)).d;
+        _buf(i,m++) = d_ubuf(_nspecial(j,1)).d;
+        _buf(i,m++) = d_ubuf(_nspecial(j,2)).d;
+        for (int k = 0; k < _nspecial(j,2); k++)
+          _buf(i,m++) = d_ubuf(_special(j,k)).d;
+      }
+
+      if (_datamask & MU_MASK) {
+        _buf(i,m++) = _mu(j,0);
+        _buf(i,m++) = _mu(j,1);
+        _buf(i,m++) = _mu(j,2);
+        _buf(i,m++) = _mu(j,3);
+      }
+
+      if (_datamask & SP_MASK) {
+        _buf(i,m++) = _sp(j,0);
+        _buf(i,m++) = _sp(j,1);
+        _buf(i,m++) = _sp(j,2);
+        _buf(i,m++) = _sp(j,3);
+      }
+
+      if (_datamask & RADIUS_MASK)
+        _buf(i,m++) = _radius(j);
+
+      if (_datamask & RMASS_MASK)
+        _buf(i,m++) = _rmass(j);
+
+      if (_datamask & OMEGA_MASK) {
+        _buf(i,m++) = _omega(j,0);
+        _buf(i,m++) = _omega(j,1);
+        _buf(i,m++) = _omega(j,2);
+      }
+
+      // angmom: included for ellipsoid
+
+      if (_datamask & ANGMOM_MASK) {
+        _buf(i,m++) = _angmom(j,0);
+        _buf(i,m++) = _angmom(j,1);
+        _buf(i,m++) = _angmom(j,2);
+      }
+
+      // DPD-REACT package
+
+      if (_datamask & DPDTHETA_MASK) {
+        _buf(i,m++) = _dpdTheta(j);
+        _buf(i,m++) = _uCond(j);
+        _buf(i,m++) = _uMech(j);
+        _buf(i,m++) = _uChem(j);
+        _buf(i,m++) = _uCG(j);
+        _buf(i,m++) = _uCGnew(j);
+      }
+    }
+  }
+};
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType,int DEFAULT>
+struct AtomVecKokkos_UnpackSortFunctor {
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+
+  typename AT::t_kkfloat_1d_3_lr _x;
+  typename AT::t_kkfloat_1d_3 _v;
+  typename AT::t_tagint_1d _tag;
+  typename AT::t_int_1d _type;
+  typename AT::t_int_1d _mask;
+  typename AT::t_imageint_1d _image;
+  typename AT::t_kkfloat_1d _q;
+  typename AT::t_tagint_1d _molecule;
+  typename AT::t_int_2d _nspecial;
+  typename AT::t_tagint_2d _special;
+  typename AT::t_int_1d _num_bond;
+  typename AT::t_int_2d _bond_type;
+  typename AT::t_tagint_2d _bond_atom;
+  typename AT::t_int_1d _num_angle;
+  typename AT::t_int_2d _angle_type;
+  typename AT::t_tagint_2d _angle_atom1,_angle_atom2,_angle_atom3;
+  typename AT::t_int_1d _num_dihedral;
+  typename AT::t_int_2d _dihedral_type;
+  typename AT::t_tagint_2d _dihedral_atom1,_dihedral_atom2,
+    _dihedral_atom3,_dihedral_atom4;
+  typename AT::t_int_1d _num_improper;
+  typename AT::t_int_2d _improper_type;
+  typename AT::t_tagint_2d _improper_atom1,_improper_atom2,
+    _improper_atom3,_improper_atom4;
+  typename AT::t_kkfloat_1d_4 _mu;
+  typename AT::t_kkfloat_1d_4 _sp;
+  typename AT::t_kkfloat_1d _radius,_rmass;
+  typename AT::t_kkfloat_1d_3 _omega;
+  typename AT::t_kkfloat_1d_3 _angmom;
+  typename AT::t_kkfloat_1d _dpdTheta,_uCond,_uMech,_uChem,_uCG,_uCGnew;
+
+  typename AT::t_double_2d_lr_um _buf;
+  int _size_sort;
+  uint64_t _datamask;
+
+  AtomVecKokkos_UnpackSortFunctor(
+    const AtomKokkos* atomKK,
+    const DAT::tdual_double_2d_lr buf,
+    const uint64_t datamask):
+      _x(atomKK->k_x.view<DeviceType>()),
+      _v(atomKK->k_v.view<DeviceType>()),
+      _tag(atomKK->k_tag.view<DeviceType>()),
+      _type(atomKK->k_type.view<DeviceType>()),
+      _mask(atomKK->k_mask.view<DeviceType>()),
+      _image(atomKK->k_image.view<DeviceType>()),
+      _q(atomKK->k_q.view<DeviceType>()),
+      _molecule(atomKK->k_molecule.view<DeviceType>()),
+      _nspecial(atomKK->k_nspecial.view<DeviceType>()),
+      _special(atomKK->k_special.view<DeviceType>()),
+      _num_bond(atomKK->k_num_bond.view<DeviceType>()),
+      _bond_type(atomKK->k_bond_type.view<DeviceType>()),
+      _bond_atom(atomKK->k_bond_atom.view<DeviceType>()),
+      _num_angle(atomKK->k_num_angle.view<DeviceType>()),
+      _angle_type(atomKK->k_angle_type.view<DeviceType>()),
+      _angle_atom1(atomKK->k_angle_atom1.view<DeviceType>()),
+      _angle_atom2(atomKK->k_angle_atom2.view<DeviceType>()),
+      _angle_atom3(atomKK->k_angle_atom3.view<DeviceType>()),
+      _num_dihedral(atomKK->k_num_dihedral.view<DeviceType>()),
+      _dihedral_type(atomKK->k_dihedral_type.view<DeviceType>()),
+      _dihedral_atom1(atomKK->k_dihedral_atom1.view<DeviceType>()),
+      _dihedral_atom2(atomKK->k_dihedral_atom2.view<DeviceType>()),
+      _dihedral_atom3(atomKK->k_dihedral_atom3.view<DeviceType>()),
+      _dihedral_atom4(atomKK->k_dihedral_atom4.view<DeviceType>()),
+      _num_improper(atomKK->k_num_improper.view<DeviceType>()),
+      _improper_type(atomKK->k_improper_type.view<DeviceType>()),
+      _improper_atom1(atomKK->k_improper_atom1.view<DeviceType>()),
+      _improper_atom2(atomKK->k_improper_atom2.view<DeviceType>()),
+      _improper_atom3(atomKK->k_improper_atom3.view<DeviceType>()),
+      _improper_atom4(atomKK->k_improper_atom4.view<DeviceType>()),
+      _mu(atomKK->k_mu.view<DeviceType>()),
+      _sp(atomKK->k_sp.view<DeviceType>()),
+      _radius(atomKK->k_radius.view<DeviceType>()),
+      _rmass(atomKK->k_rmass.view<DeviceType>()),
+      _omega(atomKK->k_omega.view<DeviceType>()),
+      _angmom(atomKK->k_angmom.view<DeviceType>()),
+      _dpdTheta(atomKK->k_dpdTheta.view<DeviceType>()),
+      _uCond(atomKK->k_uCond.view<DeviceType>()),
+      _uMech(atomKK->k_uMech.view<DeviceType>()),
+      _uChem(atomKK->k_uChem.view<DeviceType>()),
+      _uCG(atomKK->k_uCG.view<DeviceType>()),
+      _uCGnew(atomKK->k_uCGnew.view<DeviceType>()),
+      _size_sort(atomKK->avecKK->size_exchange),
+      _datamask(datamask) {
+        const int maxsort = (buf.template view<DeviceType>().extent(0)*
+                             buf.template view<DeviceType>().extent(1))/_size_sort;
+        buffer_view<DeviceType>(_buf,buf,maxsort,_size_sort);
+      }
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int &i) const {
+    int m = 0;
+
+    _x(i,0) = _buf(i,m++);
+    _x(i,1) = _buf(i,m++);
+    _x(i,2) = _buf(i,m++);
+    _v(i,0) = _buf(i,m++);
+    _v(i,1) = _buf(i,m++);
+    _v(i,2) = _buf(i,m++);
+    _tag(i) = (tagint) d_ubuf(_buf(i,m++)).i;
+    _type(i) = (int) d_ubuf(_buf(i,m++)).i;
+    _mask(i) = (int) d_ubuf(_buf(i,m++)).i;
+    _image(i) = (imageint) d_ubuf(_buf(i,m++)).i;
+
+    if constexpr (!DEFAULT) {
+
+      if (_datamask & Q_MASK)
+        _q(i) = _buf(i,m++);
+
+      if (_datamask & MOLECULE_MASK)
+        _molecule(i) = (tagint) d_ubuf(_buf(i,m++)).i;
+
+      if (_datamask & BOND_MASK) {
+        _num_bond(i) = (int) d_ubuf(_buf(i,m++)).i;
+        for (int k = 0; k < _num_bond(i); k++) {
+          _bond_type(i,k) = (int) d_ubuf(_buf(i,m++)).i;
+          _bond_atom(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+        }
+      }
+
+      if (_datamask & ANGLE_MASK) {
+        _num_angle(i) = (int) d_ubuf(_buf(i,m++)).i;
+        for (int k = 0; k < _num_angle(i); k++) {
+          _angle_type(i,k) = (int) d_ubuf(_buf(i,m++)).i;
+          _angle_atom1(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+          _angle_atom2(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+          _angle_atom3(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+        }
+      }
+
+      if (_datamask & DIHEDRAL_MASK) {
+        _num_dihedral(i) = (int) d_ubuf(_buf(i,m++)).i;
+        for (int k = 0; k < _num_dihedral(i); k++) {
+          _dihedral_type(i,k) = (int) d_ubuf(_buf(i,m++)).i;
+          _dihedral_atom1(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+          _dihedral_atom2(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+          _dihedral_atom3(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+          _dihedral_atom4(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+        }
+      }
+
+      if (_datamask & IMPROPER_MASK) {
+        _num_improper(i) = (int) d_ubuf(_buf(i,m++)).i;
+        for (int k = 0; k < _num_improper(i); k++) {
+          _improper_type(i,k) = (int) d_ubuf(_buf(i,m++)).i;
+          _improper_atom1(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+          _improper_atom2(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+          _improper_atom3(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+          _improper_atom4(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+        }
+      }
+
+      if (_datamask & SPECIAL_MASK) {
+        _nspecial(i,0) = (int) d_ubuf(_buf(i,m++)).i;
+        _nspecial(i,1) = (int) d_ubuf(_buf(i,m++)).i;
+        _nspecial(i,2) = (int) d_ubuf(_buf(i,m++)).i;
+        for (int k = 0; k < _nspecial(i,2); k++)
+          _special(i,k) = (tagint) d_ubuf(_buf(i,m++)).i;
+      }
+
+      if (_datamask & MU_MASK) {
+        _mu(i,0) = _buf(i,m++);
+        _mu(i,1) = _buf(i,m++);
+        _mu(i,2) = _buf(i,m++);
+        _mu(i,3) = _buf(i,m++);
+      }
+
+      if (_datamask & SP_MASK) {
+        _sp(i,0) = _buf(i,m++);
+        _sp(i,1) = _buf(i,m++);
+        _sp(i,2) = _buf(i,m++);
+        _sp(i,3) = _buf(i,m++);
+      }
+
+      if (_datamask & RADIUS_MASK)
+        _radius(i) = _buf(i,m++);
+
+      if (_datamask & RMASS_MASK)
+        _rmass(i) = _buf(i,m++);
+
+      if (_datamask & OMEGA_MASK) {
+        _omega(i,0) = _buf(i,m++);
+        _omega(i,1) = _buf(i,m++);
+        _omega(i,2) = _buf(i,m++);
+      }
+
+      if (_datamask & ANGMOM_MASK) {
+        _angmom(i,0) = _buf(i,m++);
+        _angmom(i,1) = _buf(i,m++);
+        _angmom(i,2) = _buf(i,m++);
+      }
+
+      // DPD-REACT package
+
+      if (_datamask & DPDTHETA_MASK) {
+        _dpdTheta(i) = _buf(i,m++);
+        _uCond(i) = _buf(i,m++);
+        _uMech(i) = _buf(i,m++);
+        _uChem(i) = _buf(i,m++);
+        _uCG(i) = _buf(i,m++);
+        _uCGnew(i) = _buf(i,m++);
+      }
+    }
+  }
+};
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  set_size_exchange();
+
+  const int nlocal = atomKK->nlocal;
+  if (nlocal == 0) return;
+
+  atomKK->sync(Device,datamask_exchange);
+
+  // permutation vector: sorted slot i takes its data from old index permute(i)
+
+  auto d_permute = Sorter.get_permute_vector();
+
+  // (re)allocate the scratch sort buffer: nlocal rows of size_exchange doubles
+  // (width must equal size_exchange so the unmanaged buffer_view strides match)
+
+  if ((int)k_buf_sort.view_device().extent(0) < nlocal ||
+      (int)k_buf_sort.view_device().extent(1) != size_exchange)
+    k_buf_sort.resize(MAX(nlocal,(int)k_buf_sort.view_device().extent(0)),
+                      size_exchange);
+
+  // gather all per-atom arrays into the buffer in sorted order (1 kernel),
+  // then copy them back into the atom arrays in place (1 kernel)
+
+  if (size_exchange == size_exchange_default) {
+    AtomVecKokkos_PackSortFunctor<LMPDeviceType,1,decltype(d_permute)>
+      fpack(atomKK,k_buf_sort,d_permute,datamask_exchange);
+    Kokkos::parallel_for(nlocal,fpack);
+    AtomVecKokkos_UnpackSortFunctor<LMPDeviceType,1>
+      funpack(atomKK,k_buf_sort,datamask_exchange);
+    Kokkos::parallel_for(nlocal,funpack);
+  } else {
+    AtomVecKokkos_PackSortFunctor<LMPDeviceType,0,decltype(d_permute)>
+      fpack(atomKK,k_buf_sort,d_permute,datamask_exchange);
+    Kokkos::parallel_for(nlocal,fpack);
+    AtomVecKokkos_UnpackSortFunctor<LMPDeviceType,0>
+      funpack(atomKK,k_buf_sort,datamask_exchange);
+    Kokkos::parallel_for(nlocal,funpack);
+  }
+
+  atomKK->modified(Device,datamask_exchange);
+}
+
 /* ---------------------------------------------------------------------- */
 
 uint64_t AtomVecKokkos::field2mask(std::string field)

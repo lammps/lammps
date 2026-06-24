@@ -74,4 +74,10 @@
 #define TORQUE_MASK    0x0000002000000000
 #define ANGMOM_MASK    0x0000004000000000
 
+// custom per-atom arrays (fix property/atom)
+
+#define IVECTOR_MASK   0x0000008000000000
+#define IARRAY_MASK    0x0000010000000000
+#define DARRAY_MASK    0x0000020000000000
+
 #endif

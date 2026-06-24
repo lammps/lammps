@@ -118,6 +118,22 @@ AtomKokkos::~AtomKokkos()
 
   memoryKK->destroy_kokkos(k_dvector, dvector);
   dvector = nullptr;
+
+  memoryKK->destroy_kokkos(k_ivector, ivector);
+  ivector = nullptr;
+
+  // views-of-views: destroy each inner DualView (this also nulls the legacy
+  // iarray[i]/darray[i] pointers, so the base Atom destructor skips them), then
+  // release the outer DualView.
+
+  for (int i = 0; i < niarray; i++)
+    memoryKK->destroy_kokkos(k_iarray.view_host()[i].k_view, iarray[i]);
+  k_iarray = tdual_struct_tdual_int_2d_1d();
+
+  for (int i = 0; i < ndarray; i++)
+    memoryKK->destroy_kokkos(k_darray.view_host()[i].k_view, darray[i]);
+  k_darray = tdual_struct_tdual_double_2d_1d();
+
   delete [] fix_prop_atom;
 }
 
@@ -324,7 +340,9 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols, int ghost)
     ivghost = (int *) memory->srealloc(ivghost,nivector * sizeof(int),"atom:ivghost");
     ivghost[index] = ghost;
     ivector = (int **) memory->srealloc(ivector, nivector * sizeof(int *), "atom:ivector");
-    memory->create(ivector[index], nmax, "atom:ivector");
+    this->sync(Device, IVECTOR_MASK);
+    memoryKK->grow_kokkos(k_ivector, ivector, nivector, nmax, "atom:ivector");
+    this->modified(Device, IVECTOR_MASK);
 
   } else if (flag == 1 && cols == 0) {
     index = ndvector;
@@ -346,10 +364,20 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols, int ghost)
     iaghost = (int *) memory->srealloc(iaghost, niarray * sizeof(int), "atom:iaghost");
     iaghost[index] = ghost;
     iarray = (int ***) memory->srealloc(iarray, niarray * sizeof(int **), "atom:iarray");
-    memory->create(iarray[index], nmax, cols, "atom:iarray");
+    iarray[index] = nullptr;
 
     icols = (int *) memory->srealloc(icols, niarray * sizeof(int), "atom:icols");
     icols[index] = cols;
+
+    // grow the outer view-of-views by one inner DualView for this property.
+    // SequentialHostInit is required: the struct elements wrap a DualView
+    // (non-trivial ctor + atomic refcount), so the default parallel host init
+    // would race constructing/copying the inner DualViews.
+    k_iarray.resize(Kokkos::view_alloc(Kokkos::SequentialHostInit), niarray);
+    memoryKK->create_kokkos(k_iarray.view_host()[index].k_view, iarray[index],
+                            nmax, cols, "atom:iarray");
+    k_iarray.modify_host();
+    k_iarray.sync_device();
 
   } else if (flag == 1 && cols) {
     index = ndarray;
@@ -359,10 +387,17 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols, int ghost)
     daghost = (int *) memory->srealloc(daghost, ndarray * sizeof(int), "atom:daghost");
     daghost[index] = ghost;
     darray = (double ***) memory->srealloc(darray, ndarray * sizeof(double **), "atom:darray");
-    memory->create(darray[index], nmax, cols, "atom:darray");
+    darray[index] = nullptr;
 
     dcols = (int *) memory->srealloc(dcols, ndarray * sizeof(int), "atom:dcols");
     dcols[index] = cols;
+
+    // see iarray branch above for why SequentialHostInit is required here
+    k_darray.resize(Kokkos::view_alloc(Kokkos::SequentialHostInit), ndarray);
+    memoryKK->create_kokkos(k_darray.view_host()[index].k_view, darray[index],
+                            nmax, cols, "atom:darray");
+    k_darray.modify_host();
+    k_darray.sync_device();
   }
 
   if (index < 0)
@@ -379,8 +414,13 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols, int ghost)
 
 void AtomKokkos::remove_custom(int index, int flag, int cols)
 {
+  // the per-atom data is Kokkos-managed (k_ivector/k_dvector are contiguous, and
+  // k_iarray/k_darray are views-of-views), so do NOT memory->destroy() it here --
+  // that would free pointers that alias into a Kokkos view.  Just drop the legacy
+  // alias (ivector/dvector) or free the row-pointer array via destroy_kokkos
+  // (iarray/darray); the view data is released when the Atom is destroyed.
+
   if (flag == 0 && cols == 0) {
-    memory->destroy(ivector[index]);
     ivector[index] = nullptr;
     delete[] ivname[index];
     ivname[index] = nullptr;
@@ -391,13 +431,13 @@ void AtomKokkos::remove_custom(int index, int flag, int cols)
     dvname[index] = nullptr;
 
   } else if (flag == 0 && cols) {
-    memory->destroy(iarray[index]);
+    memoryKK->destroy_kokkos(k_iarray.view_host()[index].k_view, iarray[index]);
     iarray[index] = nullptr;
     delete[] ianame[index];
     ianame[index] = nullptr;
 
   } else if (flag == 1 && cols) {
-    memory->destroy(darray[index]);
+    memoryKK->destroy_kokkos(k_darray.view_host()[index].k_view, darray[index]);
     darray[index] = nullptr;
     delete[] daname[index];
     daname[index] = nullptr;

@@ -1681,7 +1681,7 @@ double PairSurfGranular::calculate_3d_forces(std::vector<int> *composite_surfs)
         pt2 = 6;
         which1 = 0;
         which2 = 1;
-      } else if (flag == -6) {
+      } else {    // flag == -6 (overlap classification is bounded to -1..-6)
         pt = 6;
         pt1 = 0;
         pt2 = 3;

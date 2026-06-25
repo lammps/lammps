@@ -160,7 +160,7 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   // PERI package
 
-  vfrac = s0 = nullptr;
+  vfrac = s0 = smin = nullptr;
   x0 = nullptr;
 
   // SPIN package
@@ -495,6 +495,7 @@ void Atom::peratom_create()
 
   add_peratom("vfrac",&vfrac,DOUBLE,0);
   add_peratom("s0",&s0,DOUBLE,0);
+  add_peratom("smin",&smin,DOUBLE,0);
   add_peratom("x0",&x0,DOUBLE,3);
 
   // SPIN package

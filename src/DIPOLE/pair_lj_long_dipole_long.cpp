@@ -52,19 +52,18 @@ PairLJLongDipoleLong::PairLJLongDipoleLong(LAMMPS *lmp) : Pair(lmp)
 // global settings
 // ----------------------------------------------------------------------
 
-void PairLJLongDipoleLong::options(char **arg, int order)
+void PairLJLongDipoleLong::options(char **arg, int mask)
 {
-  const char *option[] = {"long", "cut", "off", nullptr};
-  int i;
-
   if (!*arg) error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
-  for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
-  switch (i) {
-    case 0: ewald_order |= 1<<order; break;             // set kspace r^-order
-    case 2: ewald_off |= 1<<order; break;               // turn r^-order off
-    case 1: break;
-    default: error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
-  }
+
+  // "long" : treat this interaction with the long-range (k-space) solver
+  // "cut"  : plain real-space cutoff (default, leaves both flags clear)
+  // "off"  : interaction disabled
+
+  if (strcmp(*arg,"long") == 0) ewald_order |= mask;
+  else if (strcmp(*arg,"off") == 0) ewald_off |= mask;
+  else if (strcmp(*arg,"cut") != 0)
+    error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
 }
 
 void PairLJLongDipoleLong::settings(int narg, char **arg)
@@ -74,22 +73,22 @@ void PairLJLongDipoleLong::settings(int narg, char **arg)
   ewald_order = 0;
   ewald_off = 0;
 
-  options(arg, 6);
-  options(++arg, 3);
-  options(arg, 1);
+  options(arg, EWALD_DISP);
+  options(++arg, EWALD_DIPOLE);
+  options(arg, EWALD_COUL);
 
-  if (!comm->me && ewald_order&(1<<6))
+  if (!comm->me && ewald_order & EWALD_DISP)
     error->warning(FLERR,"Geometric mixing assumed for 1/r^6 coefficients" + utils::errorurl(21));
-  if (!comm->me && ewald_order==((1<<3)|(1<<6)))
+  if (!comm->me && ewald_order == (EWALD_DIPOLE | EWALD_DISP))
     error->warning(FLERR,"Using largest cut-off for lj/long/dipole/long long long");
   if (!*(++arg))
     error->all(FLERR,"Cutoffs missing in pair_style lj/long/dipole/long");
-  if (!((ewald_order^ewald_off) & (1<<6)))
+  if (!((ewald_order^ewald_off) & EWALD_DISP))
     dispersionflag = 0;
-  if (!((ewald_order^ewald_off)&(1<<3)))
+  if (!((ewald_order^ewald_off) & EWALD_DIPOLE))
     error->all(FLERR,"Coulombic cut not supported in pair_style lj/long/dipole/long");
   cut_lj_global = utils::numeric(FLERR,*(arg++),false,lmp);
-  if (narg == 4 && (ewald_order==0x4a))
+  if (narg == 4 && (ewald_order == (EWALD_COUL | EWALD_DIPOLE | EWALD_DISP)))
     error->all(FLERR,"Only one cut-off allowed when requesting all long");
   if (narg == 4) cut_coul = utils::numeric(FLERR,*(arg++),false,lmp);
   else cut_coul = cut_lj_global;
@@ -164,18 +163,20 @@ void PairLJLongDipoleLong::allocate()
 
 void *PairLJLongDipoleLong::extract(const char *id, int &dim)
 {
-  const char *ids[] = {
-    "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "ewald_mix",
-    "cut_coul", "cut_vdwl", nullptr};
-  void *ptrs[] = {
-    lj4, sigma, epsilon, &ewald_order, &cut_coul, &mix_flag, &cut_coul,
-    &cut_lj_global, nullptr};
-  int i;
+  // per-type-pair arrays are 2d, scalars are 0d
 
-  for (i=0; ids[i]&&strcmp(ids[i], id); ++i);
-  if (i <= 2) dim = 2;
-  else dim = 0;
-  return ptrs[i];
+  dim = 2;
+  if (strcmp(id,"B") == 0) return (void *) lj4;
+  if (strcmp(id,"sigma") == 0) return (void *) sigma;
+  if (strcmp(id,"epsilon") == 0) return (void *) epsilon;
+
+  dim = 0;
+  if (strcmp(id,"ewald_order") == 0) return (void *) &ewald_order;
+  if (strcmp(id,"ewald_cut") == 0) return (void *) &cut_coul;
+  if (strcmp(id,"ewald_mix") == 0) return (void *) &mix_flag;
+  if (strcmp(id,"cut_coul") == 0) return (void *) &cut_coul;
+  if (strcmp(id,"cut_vdwl") == 0) return (void *) &cut_lj_global;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -223,7 +224,7 @@ void PairLJLongDipoleLong::init_style()
 
   // require an atom style with charge defined
 
-  if (!atom->q_flag && (ewald_order&(1<<1)))
+  if (!atom->q_flag && (ewald_order & EWALD_COUL))
     error->all(FLERR,
                "Invoking coulombic in pair style lj/long/dipole/long requires atom attribute q");
   if (!atom->mu_flag || !atom->torque_flag)
@@ -235,13 +236,13 @@ void PairLJLongDipoleLong::init_style()
 
   // ensure use of KSpace long-range solver, set g_ewald
 
-  if (ewald_order&(1<<3)) {                             // r^-1 kspace
+  if (ewald_order & EWALD_DIPOLE) {                     // r^-1 kspace
     if (force->kspace == nullptr)
       error->all(FLERR,"Pair style requires a KSpace style");
     if (!force->kspace->dipoleflag)
       error->all(FLERR,"Pair style requires use of kspace_style with dipole support");
   }
-  if (ewald_order&(1<<6)) {                             // r^-6 kspace
+  if (ewald_order & EWALD_DISP) {                       // r^-6 kspace
     if (force->kspace == nullptr)
       error->all(FLERR,"Pair style requires a KSpace style");
     if (!force->kspace->dispersionflag)
@@ -256,11 +257,11 @@ void PairLJLongDipoleLong::init_style()
 
 double PairLJLongDipoleLong::init_one(int i, int j)
 {
-  if ((ewald_order&(1<<6))||(setflag[i][j] == 0)) {
+  if ((ewald_order & EWALD_DISP)||(setflag[i][j] == 0)) {
     epsilon[i][j] = mix_energy(epsilon_read[i][i],epsilon_read[j][j],
                                sigma_read[i][i],sigma_read[j][j]);
     sigma[i][j] = mix_distance(sigma_read[i][i],sigma_read[j][j]);
-    if (ewald_order&(1<<6))
+    if (ewald_order & EWALD_DISP)
       cut_lj[i][j] = cut_lj_global;
     else
       cut_lj[i][j] = mix_distance(cut_lj_read[i][i],cut_lj_read[j][j]);
@@ -400,10 +401,11 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
-  double **x = atom->x, *x0 = x[0];
-  double **mu = atom->mu, *mu0 = mu[0];
-  double **tq = atom->torque, *tq0 = tq[0], *tqi;
-  double **f = atom->f, *f0 = f[0], *fi = f0, fx, fy, fz;
+  double **x = atom->x;
+  double **mu = atom->mu;
+  double **tq = atom->torque;
+  double **f = atom->f;
+  double fx, fy, fz;
   double *q = atom->q, qi = 0, qj;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -412,54 +414,60 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
-  int i, j;
-  int order3 = ewald_order&(1<<3), order6 = ewald_order&(1<<6);
-  int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
-  double *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
+  int i, j, ii, jj, typei, typej, ni;
+  int order3 = ewald_order & EWALD_DIPOLE, order6 = ewald_order & EWALD_DISP;
+  int inum = list->inum;
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  double *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti, *tqi;
   double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2;
   double B0, B1, B2, B3, G0, G1, G2, mudi, mudj, muij;
-  double force_d[3] = {0.0,0.0,0.0}, ti[3] = {0.0,0.0,0.0}, tj[3] = {0.0,0.0,0.0};
   double mui[3], muj[3], xi[3], d[3];
 
   double C1 = 2.0 * g_ewald / MY_PIS;
   double C2 = 2.0 * g2 * C1;
   double C3 = 2.0 * g2 * C2;
 
-  ineighn = (ineigh = list->ilist)+list->inum;
-
-  for (; ineigh<ineighn; ++ineigh) {                    // loop over all neighs
-    i = *ineigh; fi = f0+3*i; tqi = tq0+3*i;
+  for (ii = 0; ii < inum; ii++) {                       // loop over all neighs
+    i = ilist[ii];
+    tqi = tq[i];
     qi = q[i];                          // initialize constants
-    offseti = offset[typei = type[i]];
+    typei = type[i];
+    offseti = offset[typei];
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
-    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
-    memcpy(mui, mu0+(i<<2), 3*sizeof(double));
+    xi[0] = x[i][0]; xi[1] = x[i][1]; xi[2] = x[i][2];
+    mui[0] = mu[i][0]; mui[1] = mu[i][1]; mui[2] = mu[i][2];
 
-    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+    int *jlist = firstneigh[i];
+    int jnum = numneigh[i];
 
-    for (; jneigh<jneighn; ++jneigh) {                  // loop over neighbors
-      j = *jneigh;
+    for (jj = 0; jj < jnum; jj++) {                     // loop over neighbors
+      j = jlist[jj];
       ni = sbmask(j);                                   // special index
       j &= NEIGHMASK;
 
-      { double *xj = x0+(j+(j<<1));
-        d[0] = xi[0] - xj[0];                           // pair vector
-        d[1] = xi[1] - xj[1];
-        d[2] = xi[2] - xj[2]; }
+      d[0] = xi[0] - x[j][0];                           // pair vector
+      d[1] = xi[1] - x[j][1];
+      d[2] = xi[2] - x[j][2];
 
-      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
+      rsq = dot3(d, d);
+      typej = type[j];
+      if (rsq >= cutsqi[typej]) continue;
       r2inv = 1.0/rsq;
 
+      double force_d[3] = {0.0,0.0,0.0}, ti[3] = {0.0,0.0,0.0}, tj[3] = {0.0,0.0,0.0};
+
       if (order3 && (rsq < cut_coulsq)) {               // dipole
-        memcpy(muj, mu0+(j<<2), 3*sizeof(double));
+        muj[0] = mu[j][0]; muj[1] = mu[j][1]; muj[2] = mu[j][2];
         {                                               // series real space
           double r = sqrt(rsq);
-          double x = g_ewald*r;
-          double f = exp(-x*x)*qqrd2e;
+          double grij = g_ewald*r;
+          double f = exp(-grij*grij)*qqrd2e;
 
-          B0 = 1.0/(1.0+EWALD_P*x);                     // eqn 2.8
+          B0 = 1.0/(1.0+EWALD_P*grij);                  // eqn 2.8
           B0 *= ((((A5*B0+A4)*B0+A3)*B0+A2)*B0+A1)*f/r;
           B1 = (B0 + C1 * f) * r2inv;
           B2 = (3.0*B1 + C2 * f) * r2inv;
@@ -516,55 +524,53 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
 
       if (rsq < cut_ljsqi[typej]) {                     // lj
         if (order6) {                                   // long-range lj
-          double rn = r2inv*r2inv*r2inv;
-          double x2 = g2*rsq, a2 = 1.0/x2;
-          x2 = a2*exp(-x2)*lj4i[typej];
-          if (ni < 0) {
-            force_lj =
-              (rn*=rn)*lj1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
-            if (eflag) evdwl = rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2;
+          double r6inv = r2inv*r2inv*r2inv;
+          double r12inv = r6inv*r6inv;
+          double gr2 = g2*rsq, a2 = 1.0/gr2;
+          double expterm = a2*exp(-gr2)*lj4i[typej];      // damped 1/r^6 reciprocal term
+          double g6term = g6*((a2+1.0)*a2+0.5)*expterm;
+          double g8term = g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*expterm*rsq;
+          if (ni == 0) {
+            force_lj = r12inv*lj1i[typej]-g8term;
+            if (eflag) evdwl = r12inv*lj3i[typej]-g6term;
           } else {                                        // special case
-            double f = special_lj[ni], t = rn*(1.0-f);
-            force_lj = f*(rn *= rn)*lj1i[typej]-
-              g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[typej];
-            if (eflag) evdwl =
-                         f*rn*lj3i[typej]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[typej];
+            double factor = special_lj[ni], t = r6inv*(1.0-factor);
+            force_lj = factor*r12inv*lj1i[typej]-g8term+t*lj2i[typej];
+            if (eflag) evdwl = factor*r12inv*lj3i[typej]-g6term+t*lj4i[typej];
           }
         } else {                                          // cut lj
-          double rn = r2inv*r2inv*r2inv;
-          if (ni < 0) {
-            force_lj = rn*(rn*lj1i[typej]-lj2i[typej]);
-            if (eflag) evdwl = rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej];
+          double r6inv = r2inv*r2inv*r2inv;
+          if (ni == 0) {
+            force_lj = r6inv*(r6inv*lj1i[typej]-lj2i[typej]);
+            if (eflag) evdwl = r6inv*(r6inv*lj3i[typej]-lj4i[typej])-offseti[typej];
           } else {                                        // special case
-            double f = special_lj[ni];
-            force_lj = f*rn*(rn*lj1i[typej]-lj2i[typej]);
-            if (eflag) evdwl = f*(
-              rn*(rn*lj3i[typej]-lj4i[typej])-offseti[typej]);
+            double factor = special_lj[ni];
+            force_lj = factor*r6inv*(r6inv*lj1i[typej]-lj2i[typej]);
+            if (eflag) evdwl = factor*(
+              r6inv*(r6inv*lj3i[typej]-lj4i[typej])-offseti[typej]);
           }
         }
         force_lj *= r2inv;
       } else force_lj = evdwl = 0.0;
 
       fpair = force_coul+force_lj;                      // force
+      fx = d[0]*fpair+force_d[0];
+      fy = d[1]*fpair+force_d[1];
+      fz = d[2]*fpair+force_d[2];
+      f[i][0] += fx;
+      f[i][1] += fy;
+      f[i][2] += fz;
+      tqi[0] += mui[1]*ti[2]-mui[2]*ti[1];              // torque
+      tqi[1] += mui[2]*ti[0]-mui[0]*ti[2];
+      tqi[2] += mui[0]*ti[1]-mui[1]*ti[0];
       if (newton_pair || j < nlocal) {
-        double *fj = f0+(j+(j<<1));
-        fi[0] += fx = d[0]*fpair+force_d[0]; fj[0] -= fx;
-        fi[1] += fy = d[1]*fpair+force_d[1]; fj[1] -= fy;
-        fi[2] += fz = d[2]*fpair+force_d[2]; fj[2] -= fz;
-        tqi[0] += mui[1]*ti[2]-mui[2]*ti[1];            // torque
-        tqi[1] += mui[2]*ti[0]-mui[0]*ti[2];
-        tqi[2] += mui[0]*ti[1]-mui[1]*ti[0];
-        double *tqj = tq0+(j+(j<<1));
+        f[j][0] -= fx;
+        f[j][1] -= fy;
+        f[j][2] -= fz;
+        double *tqj = tq[j];
         tqj[0] += muj[1]*tj[2]-muj[2]*tj[1];
         tqj[1] += muj[2]*tj[0]-muj[0]*tj[2];
         tqj[2] += muj[0]*tj[1]-muj[1]*tj[0];
-      } else {
-        fi[0] += fx = d[0]*fpair+force_d[0];            // force
-        fi[1] += fy = d[1]*fpair+force_d[1];
-        fi[2] += fz = d[2]*fpair+force_d[2];
-        tqi[0] += mui[1]*ti[2]-mui[2]*ti[1];            // torque
-        tqi[1] += mui[2]*ti[0]-mui[0]*ti[2];
-        tqi[2] += mui[0]*ti[1]-mui[1]*ti[0];
       }
 
       if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
@@ -574,80 +580,4 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
 }
-
-/* ---------------------------------------------------------------------- */
-
-/*
-double PairLJLongDipoleLong::single(int i, int j, int itype, int jtype,
-                            double rsq, double factor_coul, double factor_lj,
-                            double &fforce)
-{
-  double r6inv, force_coul, force_lj;
-  double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2, *q = atom->q;
-
-  double eng = 0.0;
-  double r2inv = 1.0/rsq;
-
-  if ((ewald_order&(1<<3)) && (rsq < cut_coulsq)) {     // coulombic
-    double *mui = atom->mu[i], *muj = atom->mu[j];
-    double *xi = atom->x[i], *xj = atom->x[j];
-    double qi = q[i], qj = q[j];
-    double G0, G1, G2, B0, B1, B2, B3, mudi, mudj, muij;
-    vector d = {xi[0]-xj[0], xi[1]-xj[1], xi[2]-xj[2]};
-    {                                                   // series real space
-      double r = sqrt(rsq);
-      double x = g_ewald*r;
-      double f = exp(-x*x)*qqrd2e;
-
-      B0 = 1.0/(1.0+EWALD_P*x);                 // eqn 2.8
-      B0 *= ((((A5*B0+A4)*B0+A3)*B0+A2)*B0+A1)*f/r;
-      B1 = (B0 + C1 * f) * r2inv;
-      B2 = (3.0*B1 + C2 * f) * r2inv;
-      B3 = (5.0*B2 + C3 * f) * r2inv;
-
-      mudi = mui[0]*d[0]+mui[1]*d[1]+mui[2]*d[2];
-      mudj = muj[0]*d[0]+muj[1]*d[1]+muj[2]*d[2];
-      muij = mui[0]*muj[0]+mui[1]*muj[1]+mui[2]*muj[2];
-      G0 = qi*(qj = q[j]);                              // eqn 2.10
-      G1 = qi*mudj-qj*mudi+muij;
-      G2 = -mudi*mudj;
-      force_coul = G0*B1+G1*B2+G2*B3;
-
-      eng += G0*B0+G1*B1+G2*B2;
-      if (factor_coul < 1.0) {                          // adj part, eqn 2.13
-        force_coul -= (f = force->qqrd2e*(1.0-factor_coul)/r)*(
-            (3.0*G1+6.0*muij+15.0*G2*r2inv)*r2inv+G0);
-        eng -= f*((G1+3.0*G2*r2inv)*r2inv+G0);
-        B1 -= f*r2inv;
-      }
-      B0 = mudj*B2-qj*B1; B3 = qi*B1+mudi*B2;           // position independent
-      //force_d[0] = B0*mui[0]+B3*muj[0];               // force contributions
-      //force_d[1] = B0*mui[1]+B3*muj[1];
-      //force_d[2] = B0*mui[2]+B3*muj[2];
-    }                                                   // table real space
-  }
-  else force_coul = 0.0;
-
-  if (rsq < cut_ljsq[itype][jtype]) {                   // lennard-jones
-    r6inv = r2inv*r2inv*r2inv;
-    if (ewald_order&0x40) {                             // long-range
-      double x2 = g2*rsq, a2 = 1.0/x2, t = r6inv*(1.0-factor_lj);
-      x2 = a2*exp(-x2)*lj4[itype][jtype];
-      force_lj = factor_lj*(r6inv *= r6inv)*lj1[itype][jtype]-
-        g8*(((6.0*a2+6.0)*a2+3.0)*a2+a2)*x2*rsq+t*lj2[itype][jtype];
-      eng += factor_lj*r6inv*lj3[itype][jtype]-
-        g6*((a2+1.0)*a2+0.5)*x2+t*lj4[itype][jtype];
-    }
-    else {                                              // cut
-      force_lj = factor_lj*r6inv*(lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
-      eng += factor_lj*(r6inv*(r6inv*lj3[itype][jtype]-
-            lj4[itype][jtype])-offset[itype][jtype]);
-    }
-  }
-  else force_lj = 0.0;
-
-  fforce = (force_coul+force_lj)*r2inv;
-  return eng;
-}
-*/
 

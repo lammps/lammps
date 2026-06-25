@@ -19,9 +19,6 @@
 
 #include "ilves_asym.h"
 
-#include <cmath>
-#include <utility>
-
 namespace LAMMPS_NS {
 namespace ILVES {
 
@@ -34,30 +31,20 @@ IlvesAsym::IlvesAsym(LAMMPS *const lmp, const int nbonds, const int *const catom
   for (int d = 0; d < DIM; ++d) xprime_ab[d].resize(mol->bonds.num);
 }
 
-std::pair<bool, int> IlvesAsym::solve(double **const x, double **const xprime, const real tol,
-                                      const int maxiter)
+real IlvesAsym::prepare(double **const x, double **const xprime)
 {
-  int numit = 0;
-
   // Compute g(x); fills the reference bond vectors x_ab and (since xprime_ab is
-  // allocated for this variant) the predicted bond vectors xprime_ab.
-  real ptau = make_rhs(0, x, xprime, true);
+  // allocated for this variant) the predicted bond vectors xprime_ab.  The
+  // exact-Newton Jacobian is reassembled and refactored each step (in step()).
+  return make_rhs(0, x, xprime, true);
+}
 
-  for (int i = 0; (i < maxiter) && std::isfinite(ptau) && (tol < ptau); ++i) {
-    ++numit;
-
-    // The exact-Newton Jacobian changes every iteration (uses xprime_ab).
-    make_lhs(0, xprime_ab, x_ab);
-    schur_solver->LU_factor();
-    schur_solver->LU_solve();
-
-    update_positions(0, xprime);
-    update_current_lagr(0, i == 0);
-
-    ptau = make_rhs(0, x, xprime, false);
-  }
-
-  return std::make_pair(std::isfinite(ptau) && (ptau < tol), numit);
+void IlvesAsym::step(double **const dx)
+{
+  make_lhs(0, xprime_ab, x_ab);
+  schur_solver->LU_factor();
+  schur_solver->LU_solve();
+  accumulate_increment(0, dx);
 }
 
 }    // namespace ILVES

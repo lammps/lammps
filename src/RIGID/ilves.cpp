@@ -19,7 +19,6 @@
 
 #include "ilves.h"
 
-#include "domain.h"
 #include "lammps.h"
 
 #include <algorithm>
@@ -32,7 +31,7 @@ namespace ILVES {
 Ilves::Ilves(LAMMPS *const _lmp, const int nbonds, const int *const catom1, const int *const catom2,
              const real *const cdist, const real *const invmass, const int threads,
              const bool upper_tri) :
-    lmp(_lmp), domain(_lmp->domain), nthreads(threads)
+    lmp(_lmp), nthreads(threads)
 {
   mol = std::unique_ptr<Molecule>(new Molecule(nbonds, catom1, catom2, cdist, invmass));
 
@@ -116,19 +115,12 @@ Ilves::Ilves(LAMMPS *const _lmp, const int nbonds, const int *const catom1, cons
     current_lagr[p].resize(schur_solver->part_data[p].rhs.size());
 }
 
-/* ---------------------------------------------------------------------- */
-
-void Ilves::min_image_sub(const double *const xa, const double *const xb, double *const out) const
-{
-  out[0] = xa[0] - xb[0];
-  out[1] = xa[1] - xb[1];
-  out[2] = xa[2] - xb[2];
-  domain->minimum_image(FLERR, out);
-}
-
 /* ----------------------------------------------------------------------
    Compute the part of the right-hand side g(x) for rows [gstart, gend).
    Returns the largest relative (squared) bond-length violation of that part.
+   The bond vectors use raw differences: the partner index already refers to
+   the closest periodic image (Domain::closest_image), so no minimum-image
+   correction is needed here.
 ------------------------------------------------------------------------- */
 
 real Ilves::make_rhs_scalar(double **const x, double **const xprime, const bool compute_x_ab,
@@ -142,18 +134,15 @@ real Ilves::make_rhs_scalar(double **const x, double **const xprime, const bool 
     const int a = mol->bonds.atom1[grow];
     const int b = mol->bonds.atom2[grow];
 
-    if (compute_x_ab) {
-      double rab[3];
-      min_image_sub(x[b], x[a], rab);
-      for (int d = 0; d < DIM; ++d) x_ab[d][grow] = rab[d];
-    }
+    if (compute_x_ab)
+      for (int d = 0; d < DIM; ++d) x_ab[d][grow] = x[b][d] - x[a][d];
 
-    double rcd[3];
-    min_image_sub(xprime[b], xprime[a], rcd);
+    real rcd[DIM];
+    for (int d = 0; d < DIM; ++d) rcd[d] = xprime[b][d] - xprime[a][d];
     if (!xprime_ab_empty)
       for (int d = 0; d < DIM; ++d) xprime_ab[d][grow] = rcd[d];
 
-    const real scalar = rcd[0] * rcd[0] + rcd[1] * rcd[1] + rcd[2] * rcd[2];
+    const real scalar = rcd[XX] * rcd[XX] + rcd[YY] * rcd[YY] + rcd[ZZ] * rcd[ZZ];
 
     rhs[lrow] = 0.5 * (scalar - mol->bonds.sigma2[grow]);
 
@@ -218,7 +207,21 @@ void Ilves::update_current_lagr(const int partition, const bool first_time)
   }
 }
 
-void Ilves::update_positions(const int partition, double **const xprime) const
+/* ----------------------------------------------------------------------
+   Accumulate this Newton iteration's position increments into dx, for both
+   atoms of every constraint (the atoms may be local or ghost).  dx must be
+   pre-zeroed; the caller reverse-sums dx to the owning ranks and applies it.
+------------------------------------------------------------------------- */
+
+real Ilves::recompute(double **const x, double **const xprime, const bool first_iter)
+{
+  update_current_lagr(0, first_iter);
+  return make_rhs(0, x, xprime, false);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Ilves::accumulate_increment(const int partition, double **const dx) const
 {
   const auto &pdata = schur_solver->part_data[partition];
 
@@ -229,30 +232,8 @@ void Ilves::update_positions(const int partition, double **const xprime) const
     const real rhs_a = pdata.rhs[lrow] * mol->atoms.invmass[a];
     const real rhs_b = pdata.rhs[lrow] * mol->atoms.invmass[b];
     for (int d = 0; d < DIM; ++d) {
-      xprime[a][d] += rhs_a * x_ab[d][grow];
-      xprime[b][d] -= rhs_b * x_ab[d][grow];
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   Convert the accumulated Lagrange multipliers into constraint forces:
-   f[a] += lagr * inv_dtfsq * x_ab, f[b] -= lagr * inv_dtfsq * x_ab, matching
-   the multiplier-to-force conversion of fix shake (lamda /= dtfsq).
-------------------------------------------------------------------------- */
-
-void Ilves::add_constraint_forces(double **const f, const real inv_dtfsq) const
-{
-  for (size_t p = 0; p < schur_solver->part_data.size(); ++p) {
-    const auto &pdata = schur_solver->part_data[p];
-    for (int grow = pdata.part[0], lrow = 0; grow < pdata.part[1]; ++grow, ++lrow) {
-      const int a = mol->bonds.atom1[grow];
-      const int b = mol->bonds.atom2[grow];
-      const real fac = current_lagr[p][lrow] * inv_dtfsq;
-      for (int d = 0; d < DIM; ++d) {
-        f[a][d] += fac * x_ab[d][grow];
-        f[b][d] -= fac * x_ab[d][grow];
-      }
+      dx[a][d] += rhs_a * x_ab[d][grow];
+      dx[b][d] -= rhs_b * x_ab[d][grow];
     }
   }
 }

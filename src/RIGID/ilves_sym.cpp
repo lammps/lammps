@@ -19,9 +19,6 @@
 
 #include "ilves_sym.h"
 
-#include <cmath>
-#include <utility>
-
 namespace LAMMPS_NS {
 namespace ILVES {
 
@@ -32,30 +29,20 @@ IlvesSym::IlvesSym(LAMMPS *const lmp, const int nbonds, const int *const catom1,
 {
 }
 
-std::pair<bool, int> IlvesSym::solve(double **const x, double **const xprime, const real tol,
-                                     const int maxiter)
+real IlvesSym::prepare(double **const x, double **const xprime)
 {
-  int numit = 0;
-
-  // Compute g(x); also fills the reference bond vectors x_ab.
-  real ptau = make_rhs(0, x, xprime, true);
-
-  // Assemble the (symmetric, step-constant) Jacobian and factor it once.
+  // Compute g(x) (also fills the reference bond vectors x_ab), then assemble the
+  // symmetric, step-constant Jacobian and factor it once (reused every step).
+  const real ptau = make_rhs(0, x, xprime, true);
   make_lhs(0, x_ab, x_ab);
   schur_solver->LDLT_factor();
+  return ptau;
+}
 
-  // Newton iteration: reuse the cached factor across iterations.
-  for (int i = 0; (i < maxiter) && std::isfinite(ptau) && (tol < ptau); ++i) {
-    ++numit;
-
-    schur_solver->LDLT_solve();
-    update_positions(0, xprime);
-    update_current_lagr(0, i == 0);
-
-    ptau = make_rhs(0, x, xprime, false);
-  }
-
-  return std::make_pair(std::isfinite(ptau) && (ptau < tol), numit);
+void IlvesSym::step(double **const dx)
+{
+  schur_solver->LDLT_solve();
+  accumulate_increment(0, dx);
 }
 
 }    // namespace ILVES

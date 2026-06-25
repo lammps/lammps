@@ -16,10 +16,22 @@
 
    Adapted from GROMACS 2021 ILVES (LGPL-2.1), src/gromacs/mdlib/ilves.{cpp,h}.
    The reusable algorithm (right-hand-side / left-hand-side assembly, position
-   update, Lagrange-multiplier accumulation, bond partitioning and matrix
+   increment, Lagrange-multiplier accumulation, bond partitioning and matrix
    weights) is preserved; the interface is adapted to LAMMPS (positions as
-   double**, minimum-image via Domain, no SIMD/MPI/FEP in this single-rank
-   port).  See ilves_graph.h for full attribution.
+   double**, no SIMD/FEP).
+
+   The Newton iteration is global (convergence is the all-reduced maximum
+   relative violation), so the fix drives the loop and the MPI communication
+   uniformly across all ranks, calling these per-rank primitives:
+     prepare()   -> assemble g(x) (and, for the symmetric variant, the constant
+                    Jacobian + factorization); returns the local max violation
+     step(dx)    -> solve the linear system; accumulate per-atom position
+                    increments into dx (home + ghost)
+     recompute() -> accumulate the multipliers; reassemble g(x); return the
+                    local max violation
+   Between step() and recompute() the fix reverse-sums dx to the owning ranks,
+   applies it, and forward-communicates the predicted positions to the ghosts.
+   See ilves_graph.h for full attribution.
 ------------------------------------------------------------------------- */
 
 #ifndef LMP_ILVES_H
@@ -31,13 +43,11 @@
 
 #include <array>
 #include <memory>
-#include <utility>
 #include <vector>
 
 namespace LAMMPS_NS {
 
 class LAMMPS;
-class Domain;
 
 namespace ILVES {
 
@@ -47,47 +57,28 @@ using BondVecs = std::array<VecReal, DIM>;
 
 class Ilves {
  public:
-  /**
-   * Build the ILVES solver for the given constraint list.
-   *
-   * @param lmp LAMMPS instance (used for the minimum-image convention).
-   * @param nbonds Number of constraints.
-   * @param catom1 catom1[k]/catom2[k] are the atom indices of constraint k.
-   * @param catom2 See catom1.
-   * @param cdist cdist[k] is the target length of constraint k.
-   * @param invmass Per-atom inverse mass (1/m, no unit conversion), indexed by
-   * atom index.  The solver keeps the pointer; it must stay alive and valid.
-   * @param nthreads Number of OpenMP threads (1 for the serial port).
-   * @param upper_tri True for the symmetric (Cholesky/LDLT) variant.
-   */
   Ilves(LAMMPS *lmp, int nbonds, const int *catom1, const int *catom2, const real *cdist,
         const real *invmass, int nthreads, bool upper_tri);
 
   virtual ~Ilves() = default;
 
-  /**
-   * Iterate xprime (predicted positions) until the constraints are satisfied to
-   * the relative tolerance tol or maxiter Newton iterations are reached.  x are
-   * the reference positions (start of the step), used for the constant bond
-   * vectors x_ab.  Returns {converged, number-of-iterations}.  The accumulated
-   * Lagrange multipliers are left in current_lagr for add_constraint_forces().
-   */
-  virtual std::pair<bool, int> solve(double **x, double **xprime, real tol, int maxiter) = 0;
+  // assemble g(x) using reference positions x and predicted positions xprime;
+  // returns the local max relative (squared) bond-length violation
+  virtual real prepare(double **x, double **xprime) = 0;
 
-  /**
-   * After a solve, add the constraint forces to f:
-   *   f[atom1[k]] += current_lagr[k] * inv_dtfsq * x_ab[k]
-   *   f[atom2[k]] -= current_lagr[k] * inv_dtfsq * x_ab[k]
-   * with inv_dtfsq = 1 / (dt^2 * ftm2v), matching fix shake.
-   */
-  void add_constraint_forces(double **f, real inv_dtfsq) const;
+  // one Newton step: solve the linear system, accumulate position increments
+  // (for both atoms of every constraint, home or ghost) into dx
+  virtual void step(double **dx) = 0;
+
+  // accumulate the multipliers, then reassemble g(x); first_iter selects the
+  // initial multiplier handling.  returns the local max relative violation
+  real recompute(double **x, double **xprime, bool first_iter);
 
   int num_constraints() const { return mol->bonds.num; }
   const Molecule *molecule() const { return mol.get(); }
 
  protected:
   LAMMPS *lmp;
-  Domain *domain;
 
   int nthreads;
 
@@ -104,9 +95,6 @@ class Ilves {
   BondVecs x_ab;
   BondVecs xprime_ab;
 
-  // minimum-image difference out = xa - xb (closest periodic image)
-  void min_image_sub(const double *xa, const double *xb, double *out) const;
-
   real make_rhs_scalar(double **x, double **xprime, bool compute_x_ab, real *rhs, int gstart,
                        int gend, int lstart);
   real make_rhs(int partition, double **x, double **xprime, bool compute_x_ab);
@@ -115,7 +103,8 @@ class Ilves {
   void make_lhs(int partition, const BondVecs &xab1, const BondVecs &xab2);
 
   void update_current_lagr(int partition, bool first_time);
-  void update_positions(int partition, double **xprime) const;
+  // accumulate this iteration's position increments into dx (home + ghost)
+  void accumulate_increment(int partition, double **dx) const;
 
  private:
   bool disjoint_mol(int submol_max_size) const;

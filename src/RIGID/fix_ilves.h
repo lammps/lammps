@@ -22,13 +22,11 @@ FixStyle(ilves,FixIlves);
 
 #include "fix.h"
 
+#include "ilves.h"
+
 #include <vector>
 
 namespace LAMMPS_NS {
-
-namespace ILVES {
-class Ilves;
-}
 
 class FixIlves : public Fix {
  public:
@@ -40,6 +38,11 @@ class FixIlves : public Fix {
   void setup(int) override;
   void pre_neighbor() override;
   void post_force(int) override;
+
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
   // user settings
@@ -69,11 +72,15 @@ class FixIlves : public Fix {
   // the ported ILVES solver, rebuilt every reneighbor from the constraint list
   ILVES::Ilves *ilves_solver;
 
-  // per-atom inverse mass (1/m) handed to the solver; kept alive across steps
+  // per-atom inverse mass (1/m) handed to the solver; sized nlocal+nghost
   std::vector<double> invmass;
-  // predicted (unconstrained) positions, iterated by the solver
+  // predicted (unconstrained) positions, iterated by the solver (home+ghost),
+  // the saved unconstrained prediction (home), and the per-iteration increment
+  // accumulator (home+ghost) used for the reverse-sum across ranks
   double **xpred;
-  int maxatom;    // current allocated length of xpred
+  double **xpred0;
+  double **dx;
+  int maxatom;    // current allocated length of the above per-atom arrays
 
   // timestep factors, as in fix shake
   double dtv;          // = dt
@@ -87,6 +94,7 @@ class FixIlves : public Fix {
   int nlocal;
 
   void build_constraint_list();
+  void grow_arrays_local();
   void negate_bond_types(int sign);    // sign < 0 negate, sign > 0 restore
   int bond_selected(int i, int j, int btype);
   int masscheck(double massone);

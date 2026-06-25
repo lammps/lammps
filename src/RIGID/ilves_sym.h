@@ -30,7 +30,8 @@ class IlvesSym : public Ilves {
   IlvesSym(LAMMPS *lmp, int nbonds, const int *catom1, const int *catom2, const real *cdist,
            const real *invmass, int nthreads);
 
-  std::pair<bool, int> solve(double **x, double **xprime, real tol, int maxiter) override;
+  real prepare(double **x, double **xprime) override;
+  void step(double **dx) override;
 };
 
 }    // namespace ILVES

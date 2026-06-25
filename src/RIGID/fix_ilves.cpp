@@ -90,10 +90,17 @@ static const char cite_fix_ilves[] =
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), tolerance(1.0e-4), max_iter(25), output_every(0), next_output(0),
     variant(ILVES_FAST), molecular(0), types_negated(0), nconstraints(0), ilves_solver(nullptr),
-    xpred(nullptr), maxatom(0), dtv(0.0), dtfsq(0.0), inv_dtfsq(0.0), x(nullptr), v(nullptr),
-    f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), mask(nullptr), nlocal(0)
+    xpred(nullptr), xpred0(nullptr), dx(nullptr), maxatom(0), dtv(0.0), dtfsq(0.0), inv_dtfsq(0.0),
+    x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), mask(nullptr),
+    nlocal(0)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ilves);
+
+  // predicted positions and per-iteration increments are communicated to/from
+  // ghost atoms each Newton iteration (forward: positions, reverse: increments)
+
+  comm_forward = 3;
+  comm_reverse = 3;
 
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix ilves", error);
 
@@ -192,6 +199,8 @@ FixIlves::~FixIlves()
 
   delete ilves_solver;
   memory->destroy(xpred);
+  memory->destroy(xpred0);
+  memory->destroy(dx);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -266,47 +275,176 @@ void FixIlves::pre_neighbor()
 
 void FixIlves::post_force(int /*vflag*/)
 {
-  if (!ilves_solver) return;
+  x = atom->x;
+  v = atom->v;
+  f = atom->f;
+  type = atom->type;
+  mass = atom->mass;
+  rmass = atom->rmass;
+  nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
 
-  double **x = atom->x;
-  double **v = atom->v;
-  double **f = atom->f;
-  int *type = atom->type;
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
-  int nlocal = atom->nlocal;
+  grow_arrays_local();
 
-  // (re)allocate the predicted-position buffer
-
-  if (nlocal > maxatom) {
-    memory->destroy(xpred);
-    maxatom = atom->nmax;
-    memory->create(xpred, maxatom, 3, "ilves:xpred");
-  }
-
-  // predict the unconstrained positions, as in fix shake unconstrained_update
+  // predict the unconstrained positions for owned atoms (fix shake style) and
+  // save them, so the net constrained displacement can be turned into a force
 
   for (int i = 0; i < nlocal; ++i) {
     const double m = rmass ? rmass[i] : mass[type[i]];
-    if (m <= 0.0) {
+    if (m > 0.0) {
+      const double dtfm = dtfsq / m;
+      xpred[i][0] = x[i][0] + dtv * v[i][0] + dtfm * f[i][0];
+      xpred[i][1] = x[i][1] + dtv * v[i][1] + dtfm * f[i][1];
+      xpred[i][2] = x[i][2] + dtv * v[i][2] + dtfm * f[i][2];
+    } else {
       xpred[i][0] = x[i][0];
       xpred[i][1] = x[i][1];
       xpred[i][2] = x[i][2];
-      continue;
     }
-    const double dtfm = dtfsq / m;
-    xpred[i][0] = x[i][0] + dtv * v[i][0] + dtfm * f[i][0];
-    xpred[i][1] = x[i][1] + dtv * v[i][1] + dtfm * f[i][1];
-    xpred[i][2] = x[i][2] + dtv * v[i][2] + dtfm * f[i][2];
+    xpred0[i][0] = xpred[i][0];
+    xpred0[i][1] = xpred[i][1];
+    xpred0[i][2] = xpred[i][2];
   }
 
-  // solve the constraints (iterates xpred) and add the constraint forces to f.
-  // when the solver takes no iterations the predicted positions already satisfy
-  // the constraints, so no force is needed and the (stale) Lagrange multipliers
-  // must not be applied -- mirror the numit > 0 guard of the reference code.
+  // zero the per-iteration increment buffer (home + ghost)
 
-  auto result = ilves_solver->solve(x, xpred, tolerance, max_iter);
-  if (result.second > 0) ilves_solver->add_constraint_forces(f, inv_dtfsq);
+  for (int i = 0; i < nall; ++i) dx[i][0] = dx[i][1] = dx[i][2] = 0.0;
+
+  // Global Newton iteration.  The loop is driven uniformly on all ranks: the
+  // convergence test uses the all-reduced maximum residual, so every rank takes
+  // the same number of iterations and participates in the same collective
+  // communication even if it owns no constraints.  Cross-rank coupling is a
+  // block-Jacobi sweep: each iteration reverse-sums the per-atom position
+  // increments to their owners, applies them, and forward-communicates the
+  // predicted positions back to the ghosts.
+
+  comm->forward_comm(this);
+  double local = ilves_solver ? ilves_solver->prepare(x, xpred) : 0.0;
+  double ptau;
+  MPI_Allreduce(&local, &ptau, 1, MPI_DOUBLE, MPI_MAX, world);
+
+  int numit = 0;
+  for (int i = 0; (i < max_iter) && std::isfinite(ptau) && (tolerance < ptau); ++i) {
+    ++numit;
+    if (ilves_solver) ilves_solver->step(dx);
+
+    comm->reverse_comm(this);
+    for (int k = 0; k < nlocal; ++k) {
+      xpred[k][0] += dx[k][0];
+      xpred[k][1] += dx[k][1];
+      xpred[k][2] += dx[k][2];
+    }
+    for (int k = 0; k < nall; ++k) dx[k][0] = dx[k][1] = dx[k][2] = 0.0;
+    comm->forward_comm(this);
+
+    local = ilves_solver ? ilves_solver->recompute(x, xpred, i == 0) : 0.0;
+    MPI_Allreduce(&local, &ptau, 1, MPI_DOUBLE, MPI_MAX, world);
+  }
+
+  // convert the net constrained displacement of each owned atom into a force,
+  // identical to the multiplier-to-force coupling of fix shake (f += m*dx/dtfsq)
+
+  if (numit > 0) {
+    for (int i = 0; i < nlocal; ++i) {
+      const double m = rmass ? rmass[i] : mass[type[i]];
+      if (m <= 0.0) continue;
+      const double fac = m * inv_dtfsq;
+      f[i][0] += fac * (xpred[i][0] - xpred0[i][0]);
+      f[i][1] += fac * (xpred[i][1] - xpred0[i][1]);
+      f[i][2] += fac * (xpred[i][2] - xpred0[i][2]);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   (re)allocate the predicted-position / increment buffers to hold local+ghost
+------------------------------------------------------------------------- */
+
+void FixIlves::grow_arrays_local()
+{
+  if (atom->nmax > maxatom) {
+    memory->destroy(xpred);
+    memory->destroy(xpred0);
+    memory->destroy(dx);
+    maxatom = atom->nmax;
+    memory->create(xpred, maxatom, 3, "ilves:xpred");
+    memory->create(xpred0, maxatom, 3, "ilves:xpred0");
+    memory->create(dx, maxatom, 3, "ilves:dx");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   forward communication of predicted positions to ghosts (with PBC shift)
+------------------------------------------------------------------------- */
+
+int FixIlves::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+{
+  int m = 0;
+  if (pbc_flag == 0) {
+    for (int i = 0; i < n; ++i) {
+      const int j = list[i];
+      buf[m++] = xpred[j][0];
+      buf[m++] = xpred[j][1];
+      buf[m++] = xpred[j][2];
+    }
+  } else {
+    double dxs, dys, dzs;
+    if (domain->triclinic == 0) {
+      dxs = pbc[0] * domain->xprd;
+      dys = pbc[1] * domain->yprd;
+      dzs = pbc[2] * domain->zprd;
+    } else {
+      dxs = pbc[0] * domain->xprd + pbc[5] * domain->xy + pbc[4] * domain->xz;
+      dys = pbc[1] * domain->yprd + pbc[3] * domain->yz;
+      dzs = pbc[2] * domain->zprd;
+    }
+    for (int i = 0; i < n; ++i) {
+      const int j = list[i];
+      buf[m++] = xpred[j][0] + dxs;
+      buf[m++] = xpred[j][1] + dys;
+      buf[m++] = xpred[j][2] + dzs;
+    }
+  }
+  return m;
+}
+
+void FixIlves::unpack_forward_comm(int n, int first, double *buf)
+{
+  int m = 0;
+  const int last = first + n;
+  for (int i = first; i < last; ++i) {
+    xpred[i][0] = buf[m++];
+    xpred[i][1] = buf[m++];
+    xpred[i][2] = buf[m++];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   reverse communication of position increments (summed into the owners).
+   increments are displacement vectors, so no PBC shift is applied.
+------------------------------------------------------------------------- */
+
+int FixIlves::pack_reverse_comm(int n, int first, double *buf)
+{
+  int m = 0;
+  const int last = first + n;
+  for (int i = first; i < last; ++i) {
+    buf[m++] = dx[i][0];
+    buf[m++] = dx[i][1];
+    buf[m++] = dx[i][2];
+  }
+  return m;
+}
+
+void FixIlves::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int m = 0;
+  for (int i = 0; i < n; ++i) {
+    const int j = list[i];
+    dx[j][0] += buf[m++];
+    dx[j][1] += buf[m++];
+    dx[j][2] += buf[m++];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -339,9 +477,11 @@ void FixIlves::build_constraint_list()
       for (int m = 0; m < num_bond[i]; ++m) {
         const int btype = abs(bond_type[i][m]);
         if (btype == 0) continue;
-        const int j = atom->map(bond_atom[i][m]);
+        int j = atom->map(bond_atom[i][m]);
         if (j < 0)
-          error->one(FLERR, "Fix ilves bond atom missing on this processor");
+          error->one(FLERR, "Fix ilves bond atom missing on this processor; increase the "
+                            "communication cutoff with comm_modify cutoff");
+        j = domain->closest_image(i, j);
         // with newton_bond off the bond is stored on both atoms; keep one copy
         if (!newton_bond && (tag[i] > tag[j])) continue;
         if (!(mask[j] & groupbit)) continue;
@@ -356,9 +496,11 @@ void FixIlves::build_constraint_list()
 
   nconstraints = (int) clist_a.size();
 
-  // per-atom inverse mass (1/m) for the constrained atoms, handed to the solver
+  // per-atom inverse mass (1/m) for the constrained atoms, handed to the solver.
+  // sized for local+ghost atoms since a constraint partner may be a ghost.
 
-  invmass.assign(nlocal, 0.0);
+  const int nall = atom->nlocal + atom->nghost;
+  invmass.assign(nall, 0.0);
   for (int k = 0; k < nconstraints; ++k) {
     const int a = clist_a[k];
     const int b = clist_b[k];

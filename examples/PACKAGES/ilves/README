@@ -19,7 +19,8 @@ Peptide (solvated protein, CHARMM force field, data.peptide)
 ------------------------------------------------------------
   in.peptide-fast     -- constrain the hydrogen bonds of the protein and the
                          O-H bonds + H-O-H angle of every water; variant fast
-  in.peptide-full     -- same constraints, variant full (exact-Newton)
+  in.peptide-fixed    -- same constraints and variant, but fixed number of 4 Newton iterations
+  in.peptide-full     -- same constraints, mode converge, variant full (exact-Newton)
   in.peptide-allbonds -- constrain all protein bonds plus the rigid waters
   in.peptide-mix      -- fix ilves on the protein, fix shake on the water,
                          showing the two can be combined on disjoint atoms

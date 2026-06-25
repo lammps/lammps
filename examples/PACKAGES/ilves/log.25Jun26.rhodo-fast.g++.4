@@ -48,15 +48,12 @@ Finding 1-2 1-3 1-4 neighbors ...
     24 = max # of 1-4 neighbors
     26 = max # of special neighbors
   special bonds CPU = 0.003 seconds
-  read_data CPU = 0.213 seconds
+  read_data CPU = 0.222 seconds
 
 fix             1 all ilves 0.0001 100 50 m 1.0 a 232 variant fast
 fix             2 all npt temp 300.0 300.0 100.0                 z 0.0 0.0 1000.0 mtk no pchain 0 tchain 1
 
 special_bonds   charmm
-
-if "$(extract_setting(world_size)) > 1" then "comm_modify cutoff 20"
-comm_modify cutoff 20
 
 thermo          50
 thermo_style    multi
@@ -95,7 +92,7 @@ Neighbor list info ...
   update: every = 1 steps, delay = 5 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 12
-  ghost atom cutoff = 20
+  ghost atom cutoff = 12
   binsize = 6, bins = 10 13 13
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair lj/charmm/coul/long, perpetual
@@ -140,7 +137,7 @@ Fix ilves constraint statistics at step 0 (max 0 Newton iterations):
   bond type 110: count 6  ave 1.32501  spread 0.000101
   bond type 112: count 8466  ave 0.957197  spread 0.000273
   angle type 232 (A-C): count 4233  ave 1.51389  spread 0.000242
-Per MPI rank memory allocation (min/avg/max) = 81.44 | 81.54 | 81.82 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 47.5 | 47.6 | 47.89 Mbytes
 ------------ Step              0 ----- CPU =            0 (sec) -------------
 TotEng   =    -25356.5576 KinEng   =     21444.4794 Temp     =       299.0348 
 PotEng   =    -46801.0370 E_bond   =      2537.9940 E_angle  =     10921.3742 
@@ -183,7 +180,7 @@ Fix ilves constraint statistics at step 50 (max 3 Newton iterations):
   bond type 110: count 6  ave 1.32577  spread 0.000851
   bond type 112: count 8466  ave 0.957574  spread 0.00295
   angle type 232 (A-C): count 4233  ave 1.5145  spread 0.00306
------------- Step             50 ----- CPU =       2.4933 (sec) -------------
+------------ Step             50 ----- CPU =     2.218005 (sec) -------------
 TotEng   =    -25236.9609 KinEng   =     21437.6354 Temp     =       298.9393 
 PotEng   =    -46674.5963 E_bond   =      2535.9765 E_angle  =     10946.8534 
 E_dihed  =      5243.0457 E_impro  =       226.0336 E_vdwl   =     -2637.0386 
@@ -225,7 +222,7 @@ Fix ilves constraint statistics at step 100 (max 3 Newton iterations):
   bond type 110: count 6  ave 1.32596  spread 0.00236
   bond type 112: count 8466  ave 0.957822  spread 0.0036
   angle type 232 (A-C): count 4233  ave 1.51489  spread 0.004
------------- Step            100 ----- CPU =     5.066551 (sec) -------------
+------------ Step            100 ----- CPU =     4.479661 (sec) -------------
 TotEng   =    -24402.0339 KinEng   =     21495.1039 Temp     =       299.7407 
 PotEng   =    -45897.1378 E_bond   =      2671.1741 E_angle  =     11017.0368 
 E_dihed  =      5247.7568 E_impro  =       214.4099 E_vdwl   =     -3138.0560 
@@ -267,7 +264,7 @@ Fix ilves constraint statistics at step 150 (max 3 Newton iterations):
   bond type 110: count 6  ave 1.32653  spread 0.00267
   bond type 112: count 8466  ave 0.95821  spread 0.00402
   angle type 232 (A-C): count 4233  ave 1.51558  spread 0.00596
------------- Step            150 ----- CPU =     7.748085 (sec) -------------
+------------ Step            150 ----- CPU =     6.819058 (sec) -------------
 TotEng   =    -22857.4413 KinEng   =     21495.9522 Temp     =       299.7525 
 PotEng   =    -44353.3935 E_bond   =      2718.9240 E_angle  =     11293.5830 
 E_dihed  =      5393.0755 E_impro  =       207.3552 E_vdwl   =     -3502.0788 
@@ -309,33 +306,33 @@ Fix ilves constraint statistics at step 200 (max 3 Newton iterations):
   bond type 110: count 6  ave 1.32602  spread 0.00296
   bond type 112: count 8466  ave 0.958204  spread 0.00453
   angle type 232 (A-C): count 4233  ave 1.51556  spread 0.00615
------------- Step            200 ----- CPU =     10.42966 (sec) -------------
+------------ Step            200 ----- CPU =     9.198171 (sec) -------------
 TotEng   =    -20663.4787 KinEng   =     21954.4887 Temp     =       306.1466 
 PotEng   =    -42617.9674 E_bond   =      2662.3826 E_angle  =     11502.1437 
 E_dihed  =      5476.2344 E_impro  =       218.1190 E_vdwl   =     -3428.5466 
 E_coul   =    211308.3539 E_long   =   -270356.6544 Press    =      4613.1274 
 Volume   =    352504.5410
-Loop time of 10.4297 on 4 procs for 200 steps with 32000 atoms
+Loop time of 9.1982 on 4 procs for 200 steps with 32000 atoms
 
-Performance: 3.314 ns/day, 7.243 hours/ns, 19.176 timesteps/s, 613.632 katom-step/s
-99.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 3.757 ns/day, 6.388 hours/ns, 21.743 timesteps/s, 695.788 katom-step/s
+99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.6984     | 5.7765     | 5.9948     |   5.2 | 55.38
-Bond    | 0.19513    | 0.2066     | 0.22639    |   2.6 |  1.98
-Kspace  | 0.42075    | 0.63827    | 0.72238    |  15.8 |  6.12
-Neigh   | 1.4462     | 1.4474     | 1.4479     |   0.1 | 13.88
-Comm    | 0.1583     | 0.16371    | 0.16923    |   1.0 |  1.57
-Output  | 0.00021398 | 0.00022949 | 0.00027471 |   0.0 |  0.00
-Modify  | 2.1667     | 2.1703     | 2.173      |   0.2 | 20.81
-Other   |            | 0.02673    |            |       |  0.26
+Pair    | 5.7706     | 5.9063     | 6.1372     |   5.8 | 64.21
+Bond    | 0.19747    | 0.20352    | 0.21835    |   1.9 |  2.21
+Kspace  | 0.44008    | 0.66639    | 0.7872     |  16.6 |  7.24
+Neigh   | 1.4102     | 1.4109     | 1.4121     |   0.1 | 15.34
+Comm    | 0.070383   | 0.070877   | 0.071454   |   0.1 |  0.77
+Output  | 0.00020192 | 0.00020774 | 0.00022272 |   0.0 |  0.00
+Modify  | 0.92065    | 0.92274    | 0.92417    |   0.1 | 10.03
+Other   |            | 0.01728    |            |       |  0.19
 
 Nlocal:           8000 ave        8134 max        7942 min
 Histogram: 2 0 1 0 0 0 0 0 0 1
-Nghost:        47142.8 ave       47297 max       47063 min
-Histogram: 1 1 1 0 0 0 0 0 0 1
+Nghost:        21056.5 ave       21143 max       20954 min
+Histogram: 1 0 1 0 0 0 0 0 1 1
 Neighs:      2.635e+06 ave 2.74206e+06 max 2.57235e+06 min
 Histogram: 2 0 0 1 0 0 0 0 0 1
 
@@ -344,4 +341,4 @@ Ave neighs/atom = 329.37519
 Ave special neighs/atom = 7.431875
 Neighbor list builds = 29
 Dangerous builds = 0
-Total wall time: 0:00:10
+Total wall time: 0:00:09

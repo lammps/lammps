@@ -135,6 +135,14 @@ Angle types whose equilibrium angle is at or above the *linearangle* threshold
   degrees, this is a soft control on the angle itself; *skip* gives tighter
   angle behavior when a force-field angle term is available.
 
+Unlike a constrained angle, a *skip* or *restrain* angle keeps its bending
+degree of freedom: *skip* leaves it free, and the *restrain* substitute is a
+soft potential whose A-C coordinate still vibrates and carries kinetic energy.
+Only the two rigid legs remove degrees of freedom in these modes, and the
+reported temperature accounts for this automatically.  For *restrain*, choose
+*kbond* soft enough that this vibration is resolved by the timestep; an
+excessively stiff value is neither stable nor properly thermostatted.
+
 The restraint energy of the *restrain* substitute is available as the global
 scalar of this fix and, with :doc:`fix_modify <fix_modify>` *energy yes*, is
 added to the potential energy and the thermodynamic output.

@@ -36,8 +36,10 @@ class FixIlves : public Fix {
   void init() override;
   void setup_pre_neighbor() override;
   void setup(int) override;
+  void min_setup(int) override;
   void pre_neighbor() override;
   void post_force(int) override;
+  void min_post_force(int) override;
   void end_of_step() override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
@@ -123,6 +125,7 @@ class FixIlves : public Fix {
 
   void build_constraint_list();
   void apply_linear_restraint();
+  double min_harmonic_bond(int a, int b, double d, double k);
   void project_velocities();
   void grow_arrays_local();
   void stats();

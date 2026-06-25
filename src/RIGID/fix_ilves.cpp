@@ -131,6 +131,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   energy_global_flag = 1;
+  thermo_energy = 1;    // count the restraint / minimization energy in the PE by default
   erestraint = 0.0;
 
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix ilves", error);
@@ -280,6 +281,8 @@ int FixIlves::setmask()
   mask |= PRE_NEIGHBOR;
   mask |= POST_FORCE;
   mask |= END_OF_STEP;
+  mask |= MIN_PRE_NEIGHBOR;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -425,6 +428,27 @@ void FixIlves::setup(int vflag)
   project_velocities();
 
   post_force(vflag);
+}
+
+/* ----------------------------------------------------------------------
+   minimization setup.  The constraint list and the bond/angle type negation
+   were prepared in setup_pre_neighbor() (called before the neighbor build in
+   minimization as well as dynamics), so here we only apply the harmonic
+   restraint substitute used in place of the holonomic constraints, which have
+   no meaning without time integration.
+------------------------------------------------------------------------- */
+
+void FixIlves::min_setup(int vflag)
+{
+  bigint nb = 0, na = 0;
+  for (int k = 0; k < nconstraints; ++k)
+    if (clist_btype[k] > 0) ++nb; else ++na;
+  bigint nc[2] = {nb, na}, nctot[2] = {0, 0};
+  MPI_Allreduce(nc, nctot, 2, MPI_LMP_BIGINT, MPI_SUM, world);
+  if (comm->me == 0)
+    utils::logmesg(lmp, "Fix ilves: replacing {} bond and {} angle constraint(s) with harmonic "
+                        "restraints for minimization\n", nctot[0], nctot[1]);
+  min_post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -877,26 +901,13 @@ void FixIlves::apply_linear_restraint()
 {
   const double k = (kbond > 0.0) ? kbond : KBOND_AUTO;
   const int nall = atom->nlocal + atom->nghost;
-  double **xx = atom->x;
 
   for (int i = 0; i < nall; ++i) dx[i][0] = dx[i][1] = dx[i][2] = 0.0;
 
   erestraint = 0.0;
   const int nr = (int) rlist_a.size();
-  for (int kk = 0; kk < nr; ++kk) {
-    const int a = rlist_a[kk], c = rlist_c[kk];
-    const double ux = xx[c][0] - xx[a][0];
-    const double uy = xx[c][1] - xx[a][1];
-    const double uz = xx[c][2] - xx[a][2];
-    const double r = sqrt(ux * ux + uy * uy + uz * uz);
-    if (r < 1.0e-10) continue;
-    const double dr = r - rlist_d[kk];
-    erestraint += k * dr * dr;
-    // F_a = 2k(r-d)/r * (x_c - x_a)  (toward c when stretched), F_c = -F_a
-    const double fac = 2.0 * k * dr / r;
-    dx[a][0] += fac * ux; dx[a][1] += fac * uy; dx[a][2] += fac * uz;
-    dx[c][0] -= fac * ux; dx[c][1] -= fac * uy; dx[c][2] -= fac * uz;
-  }
+  for (int kk = 0; kk < nr; ++kk)
+    erestraint += min_harmonic_bond(rlist_a[kk], rlist_c[kk], rlist_d[kk], k);
 
   comm->reverse_comm(this);    // sum ghost restraint forces into their owners
 
@@ -906,6 +917,85 @@ void FixIlves::apply_linear_restraint()
     ff[i][1] += dx[i][1];
     ff[i][2] += dx[i][2];
   }
+}
+
+/* ----------------------------------------------------------------------
+   energy minimization: a holonomic constraint cannot be enforced without time
+   integration, so during minimization each constraint is replaced by a stiff
+   harmonic bond E = k (r - d)^2 (as in fix shake).  The bond constraints use
+   the kbond force constant (default 1e9*boltz, very stiff, as fix shake) and
+   the near-linear-angle A-C restraints use the softer restrain force constant.
+   Forces are accumulated for home + ghost atoms in the dx buffer, reverse-summed
+   to the owners, and added to atom->f; the total energy is the fix scalar.
+------------------------------------------------------------------------- */
+
+void FixIlves::min_post_force(int /*vflag*/)
+{
+  x = atom->x;
+  type = atom->type;
+  nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+
+  grow_arrays_local();
+
+  if (store_flag) {
+    if (nlocal > maxstore) {
+      memory->destroy(fstore);
+      maxstore = atom->nmax;
+      memory->create(fstore, maxstore, 3, "ilves:fstore");
+      array_atom = fstore;
+    }
+    for (int i = 0; i < nlocal; ++i) fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
+  }
+
+  const double k_bond = (kbond > 0.0) ? kbond : 1.0e9 * force->boltz;
+  const double k_lin = (kbond > 0.0) ? kbond : KBOND_AUTO;
+
+  for (int i = 0; i < nall; ++i) dx[i][0] = dx[i][1] = dx[i][2] = 0.0;
+  erestraint = 0.0;
+
+  // stiff harmonic bonds replacing the holonomic constraints, plus the
+  // (softer) near-linear-angle A-C restraints
+  const int nc = nconstraints;
+  for (int kk = 0; kk < nc; ++kk)
+    erestraint += min_harmonic_bond(clist_a[kk], clist_b[kk], clist_d[kk], k_bond);
+  const int nr = (int) rlist_a.size();
+  for (int kk = 0; kk < nr; ++kk)
+    erestraint += min_harmonic_bond(rlist_a[kk], rlist_c[kk], rlist_d[kk], k_lin);
+
+  comm->reverse_comm(this);    // sum ghost restraint forces into their owners
+
+  double **ff = atom->f;
+  for (int i = 0; i < nlocal; ++i) {
+    ff[i][0] += dx[i][0];
+    ff[i][1] += dx[i][1];
+    ff[i][2] += dx[i][2];
+    if (store_flag) {
+      fstore[i][0] = dx[i][0];
+      fstore[i][1] = dx[i][1];
+      fstore[i][2] = dx[i][2];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   accumulate the harmonic-bond force E = k (r - d)^2 between atoms a and b
+   (local or ghost) into the dx buffer and return the bond energy.
+------------------------------------------------------------------------- */
+
+double FixIlves::min_harmonic_bond(int a, int b, double d, double k)
+{
+  double **xx = atom->x;
+  const double ux = xx[b][0] - xx[a][0];
+  const double uy = xx[b][1] - xx[a][1];
+  const double uz = xx[b][2] - xx[a][2];
+  const double r = sqrt(ux * ux + uy * uy + uz * uz);
+  if (r < 1.0e-10) return 0.0;
+  const double dr = r - d;
+  const double fac = 2.0 * k * dr / r;    // F_a = fac*(x_b - x_a), F_b = -F_a
+  dx[a][0] += fac * ux; dx[a][1] += fac * uy; dx[a][2] += fac * uz;
+  dx[b][0] -= fac * ux; dx[b][1] -= fac * uy; dx[b][2] -= fac * uz;
+  return k * dr * dr;
 }
 
 /* ----------------------------------------------------------------------

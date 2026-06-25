@@ -39,7 +39,9 @@ Syntax
            *skip* = do not constrain near-linear angle types
            *restrain* = replace the near-linear A-C constraint with a stiff harmonic restraint
          threshold = equilibrium angle (in degrees) at or above which an angle type is near-linear
-       *kbond* value = force constant of the *restrain* substitute (in the active unit system)
+       *kbond* value = force constant of the harmonic-bond substitute used during
+         energy minimization and for the *linearangle restrain* mode (in the active
+         unit system)
        *store* value = *yes* or *no*
          *yes* exposes the per-atom constraint forces via a per-atom array
 
@@ -231,8 +233,21 @@ first reneighbor.  Redeclare the same ``fix ilves`` command after
 :doc:`read_restart <read_restart>` to restore the constraints (the negated
 bond types are preserved in the restart file).
 
-The :doc:`fix_modify <fix_modify>` *virial* and *energy* options are supported.
-This fix is not invoked during :doc:`energy minimization <minimize>`.
+The :doc:`fix_modify <fix_modify>` *virial* and *energy* options are supported;
+the restraint and minimization energy is included in the potential energy by
+default (use *fix_modify energy no* to exclude it).
+
+During :doc:`energy minimization <minimize>` there is no time integration, so the
+holonomic constraints cannot be enforced as during dynamics.  Instead each
+constrained bond (and angle A-C virtual bond) is replaced by a stiff harmonic
+bond :math:`E = k_\text{bond} (r - d)^2` whose energy and forces are added to the
+minimization, exactly as :doc:`fix shake <fix_shake>` does.  The force constant
+is set with the *kbond* keyword; if it is not given, minimization uses a very
+stiff default of :math:`10^9 k_B` (as :doc:`fix shake <fix_shake>`), while the
+*linearangle restrain* substitute uses a much softer default of 1000 (a
+minimization-stiff restraint would be unstable in dynamics).  Minimize first,
+then run, so the holonomic solver tightens the bonds exactly once dynamics
+begins.
 
 Restrictions
 """"""""""""
@@ -274,7 +289,9 @@ Default
 """""""
 
 The keyword defaults are *variant* = *fast*, *mode* = *converge*,
-*linearangle* = *error* 175, *kbond* = 1000, and *store* = *no*.
+*linearangle* = *error* 175, and *store* = *no*.  If *kbond* is not set, the
+minimization substitute uses :math:`10^9 k_B` and the *linearangle restrain*
+substitute uses 1000; a *kbond* value applies to both.
 
 ----------
 

@@ -88,9 +88,12 @@ class FixIlves : public Fix {
 
   // local constraint list, rebuilt every reneighbor.
   // constraint k joins local/ghost atoms clist_a[k] and clist_b[k] with target
-  // distance clist_d[k]; clist_btype[k] is the (positive) bond type for stats.
+  // distance clist_d[k].  clist_btype[k] > 0 is the bond type; clist_btype[k] < 0
+  // marks an angle A-C "virtual bond" of angle type -clist_btype[k], whose vertex
+  // (center) atom is clist_vertex[k] (used only to report the actual angle in the
+  // statistics output, as fix shake does); clist_vertex[k] is -1 for bonds.
   int nconstraints;
-  std::vector<int> clist_a, clist_b, clist_btype;
+  std::vector<int> clist_a, clist_b, clist_btype, clist_vertex;
   std::vector<double> clist_d;
 
   // near-linear angles handled by the restrain substitute, rebuilt every

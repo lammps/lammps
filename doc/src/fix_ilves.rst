@@ -206,9 +206,14 @@ maximum is reported with the statistics) before choosing a fixed count.
 Output info
 ^^^^^^^^^^^
 
-When ``N > 0``, every ``N`` time steps the fix prints a summary line per
-constrained bond type giving the count, the average constrained length, and
-the spread (max - min) of the lengths across all constraints of that type.
+When ``N > 0``, every ``N`` time steps the fix prints constraint statistics in
+the same layout as :doc:`fix shake <fix_shake>`, so the two can be parsed
+interchangeably.  Each line gives the bond or angle type, the average value
+(bond length for ``Bond:`` lines, bend angle in degrees for ``Angle:`` lines),
+the spread (max - min) of that value across all constraints of the type, and
+the count.  The header line additionally reports the largest number of Newton
+iterations used since the previous output, which is specific to ILVES and is
+useful for choosing a fixed iteration count (see ``mode fixed`` above).
 
 With the ``store yes`` keyword, this fix exposes a *per-atom array* with 3
 columns containing the constraint-force components ``(fx, fy, fz)`` added by

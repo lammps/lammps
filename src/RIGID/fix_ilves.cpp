@@ -981,6 +981,7 @@ void FixIlves::build_constraint_list()
   clist_b.clear();
   clist_d.clear();
   clist_btype.clear();
+  clist_vertex.clear();
   rlist_a.clear();
   rlist_c.clear();
   rlist_d.clear();
@@ -1004,6 +1005,7 @@ void FixIlves::build_constraint_list()
         clist_b.push_back(j);
         clist_d.push_back(bond_distance[btype]);
         clist_btype.push_back(btype);
+        clist_vertex.push_back(-1);    // bonds have no angle vertex
       }
     }
   }
@@ -1035,6 +1037,7 @@ void FixIlves::build_constraint_list()
         clist_b.push_back(c);
         clist_d.push_back(angle_distance[atype]);
         clist_btype.push_back(-atype);    // negative marks an A-C angle constraint
+        clist_vertex.push_back(i);        // center atom, for reporting the angle
       }
     }
   }
@@ -1394,24 +1397,38 @@ void FixIlves::stats()
   std::vector<double> asum(na, 0.0), amin(na, 1.0e20), amax(na, 0.0);
   std::vector<double> asum_all(na, 0.0), amin_all(na, 0.0), amax_all(na, 0.0);
 
+  // tally bond lengths and (like fix shake) the actual bend angle in degrees of
+  // each constrained angle, computed from its two legs at the center atom.
+
   double **xx = atom->x;
   for (int k = 0; k < nconstraints; ++k) {
     const int a = clist_a[k], b = clist_b[k], t = clist_btype[k];
-    const double dx0 = xx[b][0] - xx[a][0];
-    const double dy0 = xx[b][1] - xx[a][1];
-    const double dz0 = xx[b][2] - xx[a][2];
-    const double r = sqrt(dx0 * dx0 + dy0 * dy0 + dz0 * dz0);
-    if (t > 0) {    // bond constraint
+    if (t > 0) {    // bond constraint: the bond length
+      const double dx0 = xx[b][0] - xx[a][0];
+      const double dy0 = xx[b][1] - xx[a][1];
+      const double dz0 = xx[b][2] - xx[a][2];
+      const double r = sqrt(dx0 * dx0 + dy0 * dy0 + dz0 * dz0);
       ++bcount[t];
       bsum[t] += r;
       if (r < bmin[t]) bmin[t] = r;
       if (r > bmax[t]) bmax[t] = r;
-    } else {    // A-C angle constraint, type encoded as -t
+    } else {    // A-C angle constraint (type -t): the A-vertex-C angle in degrees
       const int at = -t;
+      const int vtx = clist_vertex[k];
+      const double r1x = xx[a][0] - xx[vtx][0], r1y = xx[a][1] - xx[vtx][1],
+                   r1z = xx[a][2] - xx[vtx][2];
+      const double r2x = xx[b][0] - xx[vtx][0], r2y = xx[b][1] - xx[vtx][1],
+                   r2z = xx[b][2] - xx[vtx][2];
+      const double r1 = sqrt(r1x * r1x + r1y * r1y + r1z * r1z);
+      const double r2 = sqrt(r2x * r2x + r2y * r2y + r2z * r2z);
+      double cosv = (r1x * r2x + r1y * r2y + r1z * r2z) / (r1 * r2);
+      if (cosv > 1.0) cosv = 1.0;
+      if (cosv < -1.0) cosv = -1.0;
+      const double angle = acos(cosv) * 180.0 / MathConst::MY_PI;
       ++acount[at];
-      asum[at] += r;
-      if (r < amin[at]) amin[at] = r;
-      if (r > amax[at]) amax[at] = r;
+      asum[at] += angle;
+      if (angle < amin[at]) amin[at] = angle;
+      if (angle > amax[at]) amax[at] = angle;
     }
   }
 
@@ -1424,19 +1441,30 @@ void FixIlves::stats()
   MPI_Allreduce(amin.data(), amin_all.data(), na, MPI_DOUBLE, MPI_MIN, world);
   MPI_Allreduce(amax.data(), amax_all.data(), na, MPI_DOUBLE, MPI_MAX, world);
 
+  // print in the same type/ave/delta/count layout as fix shake, so fix ilves is
+  // a drop-in for tools that read SHAKE statistics; the header also reports the
+  // largest Newton iteration count used since the last output (ILVES-specific).
+
   if (comm->me == 0) {
-    utils::logmesg(lmp, "Fix ilves constraint statistics at step {} (max {} Newton iterations):\n",
-                   update->ntimestep, niter_max);
+    int maxt = (nb > na) ? nb : na;
+    if (maxt < 1) maxt = 1;
+    const int width = (int) log10((double) maxt) + 2;
+    auto mesg = fmt::format("ILVES stats (type/ave/delta/count) on step {} (up to {} Newton "
+                            "iterations)\n",
+                            update->ntimestep, niter_max);
     for (int t = 1; t < nb; ++t) {
       if (bcount_all[t] == 0) continue;
-      utils::logmesg(lmp, "  bond type {}: count {}  ave {:.6g}  spread {:.3g}\n", t, bcount_all[t],
-                     bsum_all[t] / (double) bcount_all[t], bmax_all[t] - bmin_all[t]);
+      mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n", t, width,
+                          bsum_all[t] / (double) bcount_all[t], bmax_all[t] - bmin_all[t],
+                          bcount_all[t]);
     }
     for (int t = 1; t < na; ++t) {
       if (acount_all[t] == 0) continue;
-      utils::logmesg(lmp, "  angle type {} (A-C): count {}  ave {:.6g}  spread {:.3g}\n", t,
-                     acount_all[t], asum_all[t] / (double) acount_all[t], amax_all[t] - amin_all[t]);
+      mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n", t, width,
+                          asum_all[t] / (double) acount_all[t], amax_all[t] - amin_all[t],
+                          acount_all[t]);
     }
+    utils::logmesg(lmp, mesg);
   }
 
   // reset the iteration counter for the next reporting interval

@@ -37,8 +37,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ElectrodeMatrix::ElectrodeMatrix(LAMMPS *lmp, int electrode_group, double eta) : Pointers(lmp)
-{
+ElectrodeMatrix::ElectrodeMatrix(LAMMPS *lmp, int electrode_group, double eta) :
+    Pointers(lmp), cutsq(nullptr), pair(nullptr), list(nullptr), electrode_kspace(nullptr){
   igroup = electrode_group;    // group of all electrode atoms
   groupbit = group->bitmask[igroup];
   ngroup = group->count(igroup);

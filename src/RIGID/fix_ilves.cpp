@@ -59,10 +59,16 @@ namespace {
 enum { ILVES_FAST, ILVES_FULL };
 enum { LINEAR_ERROR, LINEAR_SKIP, LINEAR_RESTRAIN };
 constexpr double MASSDELTA = 0.1;
-// default force constant (kcal/mol/Angstrom^2-equivalent, in the active unit
-// system) for the near-linear-angle harmonic A-C restraint when the user does
-// not set one with the kbond keyword
-constexpr double KBOND_AUTO = 1000.0;
+// Default harmonic-restraint force constant.  It is expressed as a multiple of
+// the Boltzmann constant so the default scales with the unit system's energy
+// scale instead of being tied to one unit choice.  KBOND_KB_MULT * boltz
+// reproduces the value (~1000) found empirically for real units in the
+// MD/restrain regime; the minimization regime has no timestep stability limit
+// and is KBOND_MIN_FACTOR times stiffer, so its default works out to the
+// 1e9*boltz used by fix shake.  An explicit kbond keyword sets the MD value and
+// is scaled by the same factor for minimization.
+constexpr double KBOND_KB_MULT = 5.0e5;
+constexpr double KBOND_MIN_FACTOR = 2.0e3;
 
 // keywords that terminate the b/a/t/m selector lists
 int is_keyword(const char *s)
@@ -899,7 +905,7 @@ void FixIlves::build_constraint_list()
 
 void FixIlves::apply_linear_restraint()
 {
-  const double k = (kbond > 0.0) ? kbond : KBOND_AUTO;
+  const double k = (kbond > 0.0) ? kbond : KBOND_KB_MULT * force->boltz;
   const int nall = atom->nlocal + atom->nghost;
 
   for (int i = 0; i < nall; ++i) dx[i][0] = dx[i][1] = dx[i][2] = 0.0;
@@ -948,20 +954,21 @@ void FixIlves::min_post_force(int /*vflag*/)
     for (int i = 0; i < nlocal; ++i) fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
   }
 
-  const double k_bond = (kbond > 0.0) ? kbond : 1.0e9 * force->boltz;
-  const double k_lin = (kbond > 0.0) ? kbond : KBOND_AUTO;
+  // base (MD-regime) force constant, then stiffen the true constraints by the
+  // minimization factor; the near-linear-angle A-C restraints stay at the base
+  // value since they are an inherently soft substitute in either regime
+  const double k_md = (kbond > 0.0) ? kbond : KBOND_KB_MULT * force->boltz;
+  const double k_bond = k_md * KBOND_MIN_FACTOR;
 
   for (int i = 0; i < nall; ++i) dx[i][0] = dx[i][1] = dx[i][2] = 0.0;
   erestraint = 0.0;
 
-  // stiff harmonic bonds replacing the holonomic constraints, plus the
-  // (softer) near-linear-angle A-C restraints
   const int nc = nconstraints;
   for (int kk = 0; kk < nc; ++kk)
     erestraint += min_harmonic_bond(clist_a[kk], clist_b[kk], clist_d[kk], k_bond);
   const int nr = (int) rlist_a.size();
   for (int kk = 0; kk < nr; ++kk)
-    erestraint += min_harmonic_bond(rlist_a[kk], rlist_c[kk], rlist_d[kk], k_lin);
+    erestraint += min_harmonic_bond(rlist_a[kk], rlist_c[kk], rlist_d[kk], k_md);
 
   comm->reverse_comm(this);    // sum ghost restraint forces into their owners
 

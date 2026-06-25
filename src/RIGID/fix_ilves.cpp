@@ -91,7 +91,7 @@ static const char cite_fix_ilves[] =
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), tolerance(1.0e-4), max_iter(25), output_every(0), next_output(0),
     variant(ILVES_FAST), molecular(0), types_negated(0), store_flag(0), fstore(nullptr),
-    maxstore(0), nconstraints(0), ilves_solver(nullptr),
+    maxstore(0), niter_max(0), nconstraints(0), ilves_solver(nullptr),
     xpred(nullptr), xpred0(nullptr), dx(nullptr), maxatom(0), commstage(0), dtv(0.0), dtfsq(0.0),
     inv_dtfsq(0.0), x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr),
     type(nullptr), mask(nullptr), nlocal(0)
@@ -409,6 +409,8 @@ void FixIlves::post_force(int vflag)
     local = ilves_solver ? ilves_solver->recompute(x, xpred, i == 0) : 0.0;
     MPI_Allreduce(&local, &ptau, 1, MPI_DOUBLE, MPI_MAX, world);
   }
+
+  if (numit > niter_max) niter_max = numit;
 
   // convert the net constrained displacement of each owned atom into a force,
   // identical to the multiplier-to-force coupling of fix shake (f += m*dx/dtfsq)
@@ -788,11 +790,15 @@ void FixIlves::stats()
   MPI_Allreduce(bmax.data(), bmax_all.data(), nb, MPI_DOUBLE, MPI_MAX, world);
 
   if (comm->me == 0) {
-    utils::logmesg(lmp, "Fix ilves constraint statistics at step {}:\n", update->ntimestep);
+    utils::logmesg(lmp, "Fix ilves constraint statistics at step {} (max {} Newton iterations):\n",
+                   update->ntimestep, niter_max);
     for (int t = 1; t < nb; ++t) {
       if (bcount_all[t] == 0) continue;
       utils::logmesg(lmp, "  bond type {}: count {}  ave {:.6g}  spread {:.3g}\n", t, bcount_all[t],
                      bsum_all[t] / (double) bcount_all[t], bmax_all[t] - bmin_all[t]);
     }
   }
+
+  // reset the iteration counter for the next reporting interval
+  niter_max = 0;
 }

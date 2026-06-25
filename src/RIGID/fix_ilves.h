@@ -68,6 +68,7 @@ class FixIlves : public Fix {
   int store_flag;     // 1 to expose per-atom constraint forces via array_atom
   double **fstore;    // per-atom constraint forces (when store_flag)
   int maxstore;       // current allocated length of fstore
+  int niter_max;      // max Newton iterations used since the last stats output
 
   // local constraint list, rebuilt every reneighbor.
   // constraint k joins local/ghost atoms clist_a[k] and clist_b[k] with target

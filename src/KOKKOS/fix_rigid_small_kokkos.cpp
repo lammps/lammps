@@ -17,6 +17,7 @@
 #include "atom_kokkos.h"
 #include "atom_vec_kokkos.h"
 #include "atom_masks.h"
+#include "kokkos.h"
 #include "molecule.h"
 #include "math_const.h"
 #include "math_eigen.h"
@@ -69,10 +70,18 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
   // on the first (setup-time) call.  pack/unpack_exchange_kokkos handle the
   // pre-setup state correctly: all atoms have bodytag=0 sentinels before
   // create_bodies() runs, so the exchange is effectively a no-op for body data.
-  // forward/reverse/sort flags are set in setup_device_push() after the
-  // host-side setup routines have populated the body arrays.
-  if (std::is_same<DeviceType,LMPDeviceType>::value)
+  // sort_device must likewise be declared before the first AtomKokkos::sort()
+  // (which runs in Verlet::setup() *before* modify->setup() reaches
+  // setup_device_push()); otherwise AtomKokkos::sort() permanently falls back to
+  // legacy host sorting, which permutes the host fix arrays out from under the
+  // device exchange and corrupts the body bookkeeping.  sort_kokkos() handles
+  // the pre-setup call (no bodies created yet) as a no-op.
+  // forward/reverse comm flags are dispatched per-call by CommKokkos and so can
+  // safely be set later in setup_device_push().
+  if (std::is_same<DeviceType,LMPDeviceType>::value) {
     exchange_comm_device = 1;
+    sort_device = 1;
+  }
 }
 
 
@@ -263,6 +272,21 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
     forward_comm_device = 1;
     sort_device = 1;
     reverse_comm_device = 1;
+
+    // The per-reneighbor migration pipeline (exchange -> sort) must run entirely
+    // on one side: device sort reorders the body owners that device exchange
+    // produced, and vice versa.  A mixed configuration (e.g. "comm device" while
+    // sorting stays on the legacy host path) lets a host sort permute the per-atom
+    // arrays out from under the device exchange, silently corrupting the
+    // body<->atom bookkeeping.  Require the two to match.  Both default to host on
+    // CPU/OpenMP and to device on GPU, so this only triggers for an explicit,
+    // inconsistent override such as "-pk kokkos comm device" without "sort device".
+    bool exchange_on_device = exchange_comm_device && !lmp->kokkos->exchange_comm_legacy;
+    bool sort_on_device = !lmp->kokkos->sort_legacy;
+    if (exchange_on_device != sort_on_device)
+      error->all(FLERR, "fix rigid/small/kk requires Kokkos atom exchange and sorting "
+                 "to run on the same side; use matching settings, e.g. "
+                 "'-pk kokkos comm device sort device' or the defaults");
   }
 
   // pre_neighbor isn't called again until necessary during the run,
@@ -1834,9 +1858,6 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
 {
   Kokkos::Profiling::pushRegion("rigid/small sort");
-  // TODO: check if correct
-  if (!setupflag)
-    error->all(FLERR, "kk sort before setup");
 
   // sort the device side of each tied DualView in place
   auto space = LMPDeviceType();
@@ -1861,6 +1882,20 @@ void FixRigidSmallKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, B
   k_vatom.modify_device();
   k_atom2body.modify_device();
 
+  // Before setup_bodies_static() has run there are no bodies yet (all atoms
+  // carry bodytag=0 / bodyown=-1 placeholders that setup() will overwrite), so
+  // there is nothing to re-link.  This guard lets the setup-time atom->sort()
+  // (Verlet::setup() calls it before modify->setup()) proceed on device instead
+  // of forcing AtomKokkos::sort() permanently onto the legacy host path.
+  if (!setupflag) {
+    Kokkos::Profiling::popRegion();
+    return;
+  }
+
+  // refresh d_body from k_body: grow_body() during a preceding exchange may have
+  // reallocated the body buffer, leaving this->d_body stale.  The body.ilocal
+  // back-pointers must be written into the live buffer that pack_exchange reads.
+  this->d_body = k_body.view_device();
   auto d_body = this->d_body;
   auto d_bodyown = this->d_bodyown;
   int nlocal = atom->nlocal;

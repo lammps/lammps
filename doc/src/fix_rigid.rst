@@ -928,6 +928,15 @@ results should be validated against the non-Kokkos style.  Reading body
 properties from a file (the *infile* keyword) is likewise experimental,
 and the *gravity* keyword is not supported.
 
+The Kokkos atom exchange (migration) and atom sorting must run on the
+same side (both on the host or both on the device), because the device
+sort reorders the rigid-body owner atoms that the device exchange
+produced.  This is satisfied by the defaults (host on CPU/OpenMP builds,
+device on GPU builds) and by passing matching settings such as ``-pk
+kokkos comm device sort device``.  An inconsistent override (for example
+``-pk kokkos comm device`` while sorting stays on the host) is rejected
+with an error.
+
 Assigning a temperature via the :doc:`velocity create <velocity>`
 command to a system with :doc:`rigid bodies <fix_rigid>` may not have
 the desired outcome for two reasons.  First, the velocity command can

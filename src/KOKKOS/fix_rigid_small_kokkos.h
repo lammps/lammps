@@ -46,10 +46,15 @@ namespace LAMMPS_NS {
 //    and has no per-timestep cost, so a device reimplementation would add
 //    complexity with no runtime benefit.  The tied DualViews make the host
 //    setup results directly visible to the device kernels.
-//  - Atom exchange (migration) is routed through the proven host
-//    FixRigidSmall::pack/unpack_exchange path (exchange_comm_device = 0); the
-//    tied DualViews are flushed to the host in pre_exchange() and re-synced in
-//    pre_neighbor().  Forward/reverse comm and sorting run on the device.
+//  - Atom exchange (migration) runs on whichever side CommKokkos/AtomKokkos
+//    select: the device path (pack/unpack_exchange_kokkos) when comm and sort
+//    are both on device (GPU default, or "-pk kokkos comm device sort device"),
+//    and the host FixRigidSmall::pack/unpack_exchange path otherwise (CPU
+//    default), with the tied DualViews flushed to the host in pre_exchange() and
+//    re-synced in pre_neighbor().  The exchange and the sort must run on the same
+//    side -- a mixed configuration would let a host sort permute the per-atom
+//    arrays out from under a device exchange -- so setup_device_push() errors on
+//    a mismatch.  Forward/reverse comm run on the device during the run.
 template<class DeviceType>
 class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 

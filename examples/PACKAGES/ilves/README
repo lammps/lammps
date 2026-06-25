@@ -1,0 +1,10 @@
+Example for the fix ilves bond constraint solver.
+
+  mol.dimer   -- molecule template for a rigid diatomic (dumbbell)
+  in.dimer    -- a Lennard-Jones fluid of rigid dimers whose bonds are held
+                 rigid by fix ilves; demonstrates the basic usage and the
+                 per-bond-type constraint statistics output
+
+Run with, e.g.:
+  lmp -in in.dimer            # serial
+  mpirun -np 4 lmp -in in.dimer   # 4 MPI ranks (gives the same dynamics)

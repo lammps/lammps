@@ -1,0 +1,103 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1986-gaeaeb9e7aa-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+Created orthogonal box = (0 0 0) to (18 18 18)
+  1 by 1 by 1 MPI processor grid
+Read molecule template dimer:
+# rigid diatomic (dumbbell) molecule for fix ilves example
+  1 molecules
+  0 fragments
+  0 bodies
+  2 atoms with max type 1
+  1 bonds with max type 1
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+Created 800 atoms
+  using lattice units in orthogonal box = (0 0 0) to (18 18 18)
+  create_atoms CPU = 0.009 seconds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     5 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- fix ilves command: doi:10.1021/acs.jctc.5c01376
+The log file lists these citations in BibTeX format.
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 13 13 13
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : lj
+  Current step  : 0
+  Time step     : 0.005
+Fix ilves: constraining 400 bond(s)
+Fix ilves constraint statistics at step 0:
+  bond type 1: count 400  ave 1  spread 5.44e-15
+Per MPI rank memory allocation (min/avg/max) = 4.371 | 4.371 | 4.371 Mbytes
+   Step          Temp          E_pair         TotEng         Press     
+         0   1.005676      -0.44054575     0.81466366     0.23453719   
+       250   1.3009398     -0.81575443     0.80798102     0.058539722  
+Fix ilves constraint statistics at step 500:
+  bond type 1: count 400  ave 1  spread 2.86e-05
+       500   1.3354213     -0.861437       0.80533565     0.052035832  
+       750   1.3785648     -0.91819271     0.80242852     0.044930401  
+Fix ilves constraint statistics at step 1000:
+  bond type 1: count 400  ave 1  spread 3.86e-05
+      1000   1.3704481     -0.91086302     0.79962752     0.043113628  
+      1250   1.4297304     -0.98727104     0.79721125     0.02623348   
+Fix ilves constraint statistics at step 1500:
+  bond type 1: count 400  ave 1  spread 2.81e-05
+      1500   1.413965      -0.96811476     0.79669024     0.016232166  
+      1750   1.4363043     -0.99796555     0.79472178     0.039617889  
+Fix ilves constraint statistics at step 2000:
+  bond type 1: count 400  ave 1  spread 3.19e-05
+      2000   1.4457101     -1.0118621      0.79256477     0.025857705  
+Loop time of 0.245134 on 1 procs for 2000 steps with 800 atoms
+
+Performance: 3524598.887 tau/day, 8158.794 timesteps/s, 6.527 Matom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.04832    | 0.04832    | 0.04832    |   0.0 | 19.71
+Bond    | 0.013638   | 0.013638   | 0.013638   |   0.0 |  5.56
+Neigh   | 0.08305    | 0.08305    | 0.08305    |   0.0 | 33.88
+Comm    | 0.0081922  | 0.0081922  | 0.0081922  |   0.0 |  3.34
+Output  | 0.00010125 | 0.00010125 | 0.00010125 |   0.0 |  0.04
+Modify  | 0.089178   | 0.089178   | 0.089178   |   0.0 | 36.38
+Other   |            | 0.002656   |            |       |  1.08
+
+Nlocal:            800 ave         800 max         800 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1000 ave        1000 max        1000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           5869 ave        5869 max        5869 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 5869
+Ave neighs/atom = 7.33625
+Ave special neighs/atom = 1
+Neighbor list builds = 271
+Dangerous builds = 0
+Total wall time: 0:00:00

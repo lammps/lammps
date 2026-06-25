@@ -42,8 +42,7 @@ static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */
 
-PairKolmogorovCrespiZ::PairKolmogorovCrespiZ(LAMMPS *lmp) : Pair(lmp)
-{
+PairKolmogorovCrespiZ::PairKolmogorovCrespiZ(LAMMPS *lmp) : Pair(lmp), offset(nullptr){
   single_enable = 0;
   restartinfo = 0;
   manybody_flag = 1;

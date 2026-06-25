@@ -57,8 +57,7 @@ static const char cite_kc[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp)
-{
+PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp), offset(nullptr){
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;

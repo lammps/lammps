@@ -61,7 +61,14 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
   datamask_read = X_MASK | F_MASK | V_MASK | VIRIAL_MASK | TYPE_MASK | TAG_MASK;
   datamask_modify = X_MASK | V_MASK | VIRIAL_MASK;
 
-  maxexchange = 12 + bodysize;
+  // Variable-stride device exchange (pack/unpack_exchange_kokkos) writes a
+  // per-sent-atom header (1 double, the offset of that atom's data) followed by
+  // the atom's variable-length payload.  The largest payload is a body owner:
+  // bodytag + xcmimage + displace[3] + vatom[6] + own-flag (12) + Body
+  // (bodysize).  maxexchange must bound header + payload so CommKokkos sizes the
+  // send buffer (nsend*maxexchange) large enough.  (The host path uses the base
+  // class's own smaller variable packing; over-sizing the buffer is harmless.)
+  maxexchange = 1 + 12 + bodysize;
 
   grow_arrays(atom->nmax);
 
@@ -1161,67 +1168,85 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
   auto d_atom2body = this->d_atom2body;
   auto d_bodyown = this->d_bodyown;
   auto d_body = this->d_body;
-  auto exchange_size = this->maxexchange;
+  const int bodysize = this->bodysize;
+  const int nsend_local = nsend;
 
+  // Variable-stride packing (modeled on fix shake/kk): the first nsend doubles
+  // form a header table (d_buf(mysend) = absolute offset of that atom's payload),
+  // followed by the densely packed payloads.  A non-body atom costs 1 double, a
+  // body member 12, and a body owner 12 + bodysize -- versus the old fixed
+  // maxexchange stride for every atom.  d_count holds the total doubles written.
+  Kokkos::View<int, DeviceType> d_count("rigid/small:exchange_count");
+  Kokkos::deep_copy(d_count, 0);
+
+  // count bodies whose owner is being sent (their slots are freed below); read
+  // d_bodyown before the pack scan rewrites it via the copylist compaction
   int n_deleted_bodies = 0;
-
-  // TODO: Optimize with parallel scan,
-  // see fix shake/kk
-  // warning: would require thinking of nrecv1extra in unpack
   Kokkos::parallel_reduce(
-    "fix rigid/small pack exchange",
+    "fix rigid/small count deleted bodies",
     Range1D(0, nsend),
-    KOKKOS_LAMBDA(const int isend, int &n_deleted_bodies) {
-      const int i = d_sendlist(isend);
-      int m = isend*exchange_size;
-
-      d_buf(m++) = d_ubuf(d_bodytag(i)).d;
-      if (d_bodytag(i)){
-        d_buf(m++) = d_ubuf(d_xcmimage(i)).d;
-        d_buf(m++) = d_displace(i,0);
-        d_buf(m++) = d_displace(i,1);
-        d_buf(m++) = d_displace(i,2);
-        for (int k = 0; k < 6; k++) {
-          d_buf(m++) = d_vatom(i,k);
-        }
-
-        if (d_bodyown(i) < 0) {
-          d_buf(m++) = 0;
-        } else {
-          d_buf(m++) = 1;
-          memcpy(&d_buf(m),&d_body(d_bodyown(i)),sizeof(Body));
-          d_body(d_bodyown(i)).natoms = -1;
-          n_deleted_bodies++;
-        }
-      }
-
-      const int j = d_copylist(isend);
-      if (j < 0) return;
-
-      d_bodytag(i) = d_bodytag(j);
-      d_xcmimage(i) = d_xcmimage(j);
-      d_bodyown(i) = d_bodyown(j);
-#ifndef LMP_KOKKOS_GPU
-      if(d_bodyown(i) >= nlocal_body){
-        error->one(FLERR, "rank {} atom {} has bodyown {} but nlocal body {}",
-            comm->me, i, d_bodyown(i), nlocal_body);
-      }
-#endif
-      for(int k = 0; k < 3; k++)
-        d_displace(i,k) = d_displace(j,k);
-      for(int k = 0; k < 6; k++)
-        d_vatom(i,k) = d_vatom(j,k);
-
-      if (d_bodyown(i) >= 0) {
-        d_body(d_bodyown(i)).ilocal = i;
-      }
-
-      // this appears necessary
-      d_bodyown(j) = -1;
-      d_bodytag(j) = -1;
-      d_atom2body(j) = -1;
+    KOKKOS_LAMBDA(const int isend, int &n) {
+      if (d_bodyown(d_sendlist(isend)) >= 0) n++;
     },
     n_deleted_bodies
+  );
+
+  Kokkos::parallel_scan(
+    "fix rigid/small pack exchange",
+    Range1D(0, nsend),
+    KOKKOS_LAMBDA(const int isend, int &offset, const bool is_final) {
+      const int i = d_sendlist(isend);
+      const tagint btag = d_bodytag(i);
+      const int bown = d_bodyown(i);
+
+      int size;
+      if (btag == 0) size = 1;
+      else if (bown < 0) size = 12;
+      else size = 12 + bodysize;
+
+      if (is_final) {
+        int m = nsend_local + offset;
+        d_buf(isend) = m;                       // header: offset of this payload
+        d_buf(m++) = d_ubuf(btag).d;
+        if (btag) {
+          d_buf(m++) = d_ubuf(d_xcmimage(i)).d;
+          d_buf(m++) = d_displace(i,0);
+          d_buf(m++) = d_displace(i,1);
+          d_buf(m++) = d_displace(i,2);
+          for (int k = 0; k < 6; k++) d_buf(m++) = d_vatom(i,k);
+          if (bown < 0) {
+            d_buf(m++) = 0;
+          } else {
+            d_buf(m++) = 1;
+            memcpy(&d_buf(m),&d_body(bown),sizeof(Body));
+            m += bodysize;
+            d_body(bown).natoms = -1;           // mark owner's body deleted
+          }
+        }
+        if (isend == nsend_local-1) d_count() = m;
+
+        // copylist compaction: backfill freed slot i with kept atom j
+        const int j = d_copylist(isend);
+        if (j >= 0) {
+          d_bodytag(i) = d_bodytag(j);
+          d_xcmimage(i) = d_xcmimage(j);
+          d_bodyown(i) = d_bodyown(j);
+#ifndef LMP_KOKKOS_GPU
+          if (d_bodyown(i) >= nlocal_body) {
+            error->one(FLERR, "rank {} atom {} has bodyown {} but nlocal body {}",
+                comm->me, i, d_bodyown(i), nlocal_body);
+          }
+#endif
+          for (int k = 0; k < 3; k++) d_displace(i,k) = d_displace(j,k);
+          for (int k = 0; k < 6; k++) d_vatom(i,k) = d_vatom(j,k);
+          if (d_bodyown(i) >= 0) d_body(d_bodyown(i)).ilocal = i;
+          d_bodyown(j) = -1;
+          d_bodytag(j) = -1;
+          d_atom2body(j) = -1;
+        }
+      }
+      offset += size;
+    }
   );
 
   // Need to pack remaining bodies densely
@@ -1272,9 +1297,16 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
   k_atom2body.template modify<DeviceType>();
   k_bodyown.template modify<DeviceType>();
 
+  k_buf.template modify<DeviceType>();
+  if (space == HostKK) k_buf.sync_host();
+  else k_buf.sync_device();
+
+  int total = 0;
+  Kokkos::deep_copy(total, d_count);
+
   Kokkos::Profiling::popRegion();
 
-  return nsend*exchange_size;
+  return total;
 }
 
 
@@ -1309,16 +1341,29 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2
   auto d_displace = this->d_displace;
   auto d_vatom = this->d_vatom;
   auto d_bodyown = this->d_bodyown;
-  int exchange_size = this->maxexchange;
+
+  // Variable-stride layout written by pack_exchange_kokkos: the buffer received
+  // from a single neighbor holds a header table (one offset per atom) followed
+  // by densely packed payloads.  When a swap exchanges with two neighbors
+  // (procgrid > 2) the receive buffer concatenates two such blocks: atoms
+  // [0,nrecv1) come from block 1 (header at d_buf(irecv)), atoms [nrecv1,nrecv)
+  // come from block 2 which starts at offset nrecv1extra, so their header lives
+  // at d_buf(nrecv1extra + irecv - nrecv1) and offsets are relative to
+  // nrecv1extra.  This mirrors fix shake/kk's nrecv1/nextrarecv1 indirection.
+  const int nrecv1_local = nrecv1;
+  const int nrecv1extra_local = nrecv1extra;
 
   int n_new_body = 0;
   Kokkos::parallel_reduce(
     "fix rigid/small count incoming bodies",
     Range1D(0, nrecv),
     KOKKOS_LAMBDA(const int irecv, int &count){
-      int m = irecv*exchange_size;
       int i = d_indices(irecv);
       if (i < 0) return;
+
+      int m = (int) d_buf(irecv);
+      if (irecv >= nrecv1_local)
+        m = nrecv1extra_local + (int) d_buf(nrecv1extra_local + irecv - nrecv1_local);
 
       d_bodyown(i) = -1; // set later
       d_bodytag(i) = (tagint) d_ubuf(d_buf(m++)).i;
@@ -1351,7 +1396,11 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2
 
       if(d_bodytag(i) <= 0) return;
 
-      int m = irecv*exchange_size + 11;
+      int m = (int) d_buf(irecv);
+      if (irecv >= nrecv1_local)
+        m = nrecv1extra_local + (int) d_buf(nrecv1extra_local + irecv - nrecv1_local);
+      // payload layout: bodytag(1) xcmimage(1) displace(3) vatom(6) -> flag at +11
+      m += 11;
 
       // if owning body
       if (d_buf(m) > 0) {

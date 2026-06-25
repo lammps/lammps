@@ -124,10 +124,13 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   // temperature computes to query dof()
   dof_flag = 1;
 
-  // the constraint forces can contribute to the global pressure virial; this is
-  // opt-in via fix_modify virial yes (the post-restart and per-atom-mass virial
-  // are not yet reproducible enough to enable by default)
+  // the constraint forces contribute to the global pressure virial, on by
+  // default as for fix shake.  the contribution is computed from the converged
+  // Lagrange multipliers and the start-of-step bond vectors, so it is
+  // reproducible after a restart and does not depend on whether the masses are
+  // per-type or per-atom.  use fix_modify virial no to exclude it.
   virial_global_flag = 1;
+  thermo_virial = 1;
   for (int i = 0; i < 6; ++i) virial[i] = 0.0;
 
   // the linearangle restrain substitute is a real potential; expose its energy

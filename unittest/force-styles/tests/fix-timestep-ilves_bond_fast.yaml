@@ -1,8 +1,8 @@
 ---
 lammps_version: 30 Mar 2026
 tags: generated
-date_generated: Thu Jun 25 02:38:30 2026
-epsilon: 2.0e-11
+date_generated: Thu Jun 25 10:44:28 2026
+epsilon: 2e-11
 skip_tests:
 prerequisites: ! |
   atom full
@@ -13,6 +13,9 @@ post_commands: ! |
   fix test solute ilves 1.0e-12 50 4 m 4.00794 variant fast
 input_file: in.fourmol
 natoms: 29
+run_stress: ! |-
+  -2.6352745095293466e+02 -1.8617148587085140e+02 -3.4145196019078057e+01  5.8772212293108865e+01  5.4661278965844389e+00  2.9547510188415377e+01
+global_scalar: 0
 run_pos: ! |2
     1 -2.6873163877979356e-01  2.4924638128150014e+00 -1.6917642018259432e-01
     2  3.0371572192853297e-01  2.9560093705542241e+00 -8.4720603379314274e-01

@@ -219,10 +219,14 @@ This fix computes a global scalar, the potential energy of the *linearangle
 restrain* substitute (zero unless that mode is active), accessible as
 ``f_<ID>``.
 
-By default the constraint forces are not added to the pressure virial; use
-:doc:`fix_modify <fix_modify>` *virial yes* to include their contribution to the
-global pressure.  Likewise the restraint energy is included in the potential
-energy only with :doc:`fix_modify <fix_modify>` *energy yes*.
+The constraint forces contribute to the global pressure virial by default, as
+for :doc:`fix shake <fix_shake>`; use :doc:`fix_modify <fix_modify>` *virial no*
+to exclude their contribution.  The contribution is computed from the converged
+constraint multipliers and the start-of-step bond vectors, so it is reproduced
+exactly after a :doc:`restart <read_restart>` and does not depend on whether the
+masses are defined per atom type or per atom.  The *linearangle restrain* and
+minimization restraint energy is likewise included in the potential energy by
+default.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -233,9 +237,11 @@ first reneighbor.  Redeclare the same ``fix ilves`` command after
 :doc:`read_restart <read_restart>` to restore the constraints (the negated
 bond types are preserved in the restart file).
 
-The :doc:`fix_modify <fix_modify>` *virial* and *energy* options are supported;
-the restraint and minimization energy is included in the potential energy by
-default (use *fix_modify energy no* to exclude it).
+The :doc:`fix_modify <fix_modify>` *virial* and *energy* options are supported
+and both are enabled by default: the constraint contribution to the global
+pressure is included in the virial (use *fix_modify virial no* to exclude it),
+and the restraint and minimization energy is included in the potential energy
+(use *fix_modify energy no* to exclude it).
 
 During :doc:`energy minimization <minimize>` there is no time integration, so the
 holonomic constraints cannot be enforced as during dynamics.  Instead each

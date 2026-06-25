@@ -97,7 +97,6 @@ void FixTISpringKokkos<DeviceType>::post_force(int /*vflag*/)
 
   double espring_kk = 0.0;
 
-  k_xoriginal.modify_host();
   k_xoriginal.sync<DeviceType>();
 
   copymode = 1;

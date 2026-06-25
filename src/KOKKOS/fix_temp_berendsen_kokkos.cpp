@@ -127,7 +127,7 @@ void FixTempBerendsenKokkos<DeviceType>::end_of_step()
   int nlocal = atom->nlocal;
   auto groupbit = this->groupbit;
 
-  if (which == NOBIAS) {
+  if (which == BIAS) {
     if (temperature->kokkosable) temperature->remove_bias_all_kk();
     else {
       atomKK->sync(temperature->execution_space,temperature->datamask_read);
@@ -149,8 +149,8 @@ void FixTempBerendsenKokkos<DeviceType>::end_of_step()
 
   atomKK->modified(execution_space,V_MASK);
 
-  if (which == NOBIAS) {
-    if (temperature->kokkosable) temperature->restore_bias_all();
+  if (which == BIAS) {
+    if (temperature->kokkosable) temperature->restore_bias_all_kk();
     else {
       atomKK->sync(temperature->execution_space,temperature->datamask_read);
       temperature->restore_bias_all();

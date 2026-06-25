@@ -795,6 +795,7 @@ void FixPhonon::GaussJordan(int n, std::complex<double> *Mat)
   for (i = 0; i < n; ++i) ipiv[i] = 0;
   for (i = 0; i < n; ++i) {
     big = 0.;
+    irow = icol = -1;
     for (j = 0; j < n; ++j) {
       if (ipiv[j] != 1) {
         for (k = 0; k < n; ++k) {
@@ -810,6 +811,7 @@ void FixPhonon::GaussJordan(int n, std::complex<double> *Mat)
         }
       }
     }
+    if (icol < 0) error->one(FLERR,"Singular matrix in complex GaussJordan!");
     ipiv[icol] += 1;
     if (irow != icol) {
       for (l = 0; l < n; ++l) {

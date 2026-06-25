@@ -31,8 +31,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperAmoeba::ImproperAmoeba(LAMMPS *lmp) : Improper(lmp)
-{
+ImproperAmoeba::ImproperAmoeba(LAMMPS *lmp) : Improper(lmp), k(nullptr){
   writedata = 1;
 
   // the second atom in the quadruplet is the atom of symmetry

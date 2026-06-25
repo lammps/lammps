@@ -782,3 +782,10 @@ void *FixLambdaAPIP::extract(const char *str, int &dim)
   if (strcmp(str, "fix_lambda:lambda_non_group") == 0) { return &lambda_non_group; }
   return nullptr;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixLambdaAPIP::memory_usage()
+{
+  return (double) nmax_stats * size_peratom_cols * sizeof(double);    // peratom_stats[nmax_stats][ncols]
+}

@@ -64,11 +64,10 @@ PairBondVal::~PairBondVal()
 
 void PairBondVal::compute(int eflag, int vflag)
 {
-  int i, j, m, ii, jj, inum, jnum, itype, jtype;
+  int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
-  double rsq, r2inv, r3inv, r6inv;
+  double rsq, phi;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  double rinv, phi;
   double s, ss;
   double Aij, r, recip, psip;
   evdwl = 0.0;

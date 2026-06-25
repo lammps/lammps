@@ -493,6 +493,36 @@ if(BUILD_OMP)
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
 
+  # Some Clang-based toolchains - most notably hipcc from ROCm - do not ship
+  # omp.h in the compiler's own resource directory, so host code that includes
+  # <omp.h> fails to compile even though -fopenmp is accepted (e.g. when
+  # building the GPU package with GPU_API=hip and a hipcc host compiler).  If
+  # the resource directory has no omp.h, look for a matching-version Clang
+  # omp.h and add it as a fallback include path (with -idirafter, so it is
+  # searched last and does not shadow any other headers).
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-resource-dir
+                    OUTPUT_VARIABLE _omp_resource_dir
+                    OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET
+                    RESULT_VARIABLE _omp_resource_rc)
+    if((_omp_resource_rc EQUAL 0) AND (NOT EXISTS "${_omp_resource_dir}/include/omp.h"))
+      string(REGEX REPLACE "\\..*" "" _omp_clang_major "${CMAKE_CXX_COMPILER_VERSION}")
+      find_path(LAMMPS_OMP_H_DIR NAMES omp.h
+        PATHS /usr/lib/clang/${_omp_clang_major}/include
+              /usr/lib64/clang/${_omp_clang_major}/include
+              /usr/local/lib/clang/${_omp_clang_major}/include)
+      if(LAMMPS_OMP_H_DIR)
+        message(STATUS "Compiler resource directory has no omp.h: "
+                "adding ${LAMMPS_OMP_H_DIR} as a fallback include path")
+        target_compile_options(lammps PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-idirafter${LAMMPS_OMP_H_DIR}>)
+        target_compile_options(lmp PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-idirafter${LAMMPS_OMP_H_DIR}>)
+      else()
+        message(WARNING "Compiler resource directory has no omp.h and no matching "
+                "Clang omp.h was found; OpenMP host compilation may fail")
+      endif()
+    endif()
+  endif()
+
   # this hack is required to correctly link with OpenMP support when using CrayClang version 15.0.2
   # CrayClang is only directly recognized by version 3.28 and later
   if(CMAKE_VERSION VERSION_LESS 3.28)

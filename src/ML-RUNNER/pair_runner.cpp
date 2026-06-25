@@ -1308,3 +1308,14 @@ void PairRuNNer::unpack_local_atomic_properties(int rank, int size, int natoms, 
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairRuNNer::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  // 7 per-atom double arrays: atomic_charge, hirshfeld_volume, electronegativity,
+  // lagrange_charges, de_dq, screening_de_dq, committee_storage
+  bytes += (double) nmax * 7 * sizeof(double);
+  return bytes;
+}

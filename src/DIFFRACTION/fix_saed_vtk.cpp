@@ -62,14 +62,11 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix saed/vtk command");
 
   ids = argi.copy_name();
-  int icompute = modify->find_compute(ids);
-  if (icompute < 0)
-    error->all(FLERR,"Compute ID for fix saed/vtk does not exist");
-
-  // Check that specified compute is for SAED
-  compute_saed = dynamic_cast<ComputeSAED *>(modify->compute[icompute]);
-  if (strcmp(compute_saed->style,"saed") != 0)
-    error->all(FLERR,"Fix saed/vtk has invalid compute assigned");
+  auto *icompute = modify->get_compute_by_id(ids);
+  compute_saed = dynamic_cast<ComputeSAED *>(icompute);
+  if (!compute_saed)
+    error->all(FLERR, 6, "Compute ID {} for fix saed/vtk does not exist or is of "
+               "incorrect style", ids);
 
   // Gather variables from specified compute_saed
   double *saed_var = compute_saed->saed_var;
@@ -272,8 +269,7 @@ void FixSAEDVTK::init()
   // set current indices for all computes,fixes,variables
 
 
-  int icompute = modify->find_compute(ids);
-  if (icompute < 0)
+  if (!modify->get_compute_by_id(ids))
     error->all(FLERR,"Compute ID for fix saed/vtk does not exist");
 
   // need to reset nvalid if nvalid < ntimestep b/c minimize was performed
@@ -309,8 +305,8 @@ void FixSAEDVTK::end_of_step()
 void FixSAEDVTK::invoke_vector(bigint ntimestep)
 {
   // zero if first step
-  int icompute = modify->find_compute(ids);
-  if (icompute < 0)
+  Compute *compute = modify->get_compute_by_id(ids);
+  if (!compute)
     error->all(FLERR,"Compute ID for fix saed/vtk does not exist");
 
   if (irepeat == 0)
@@ -323,8 +319,6 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
   modify->clearstep_compute();
 
   // invoke compute if not previously invoked
-
-  Compute *compute = modify->compute[icompute];
 
   if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
     compute->compute_vector();

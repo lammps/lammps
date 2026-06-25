@@ -144,6 +144,7 @@ class Molecule : protected Pointers {
   int findfragment(const char *);
   void check_attributes();
 
+  double memory_usage();
   void print(FILE *fp=stdout);
 
  private:

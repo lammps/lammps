@@ -1409,7 +1409,7 @@ std::vector<std::string> Info::get_variable_names(int &num) {
   std::vector<std::string> names;
   for (int i=0; i < num; ++i) {
     const auto *n =input->variable->get_name(i);
-    names.push_back(n ? n : "(unknown)");
+    names.emplace_back(n ? n : "(unknown)");
   }
   return names;
 }

@@ -1414,6 +1414,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
     /* Cubic Spline Interpolation */
     int r = (int)(rij * t.inv_dx);
     if (r == 0)  ++r;
+    // in reduced precision rij can round above the cutoff so that r reaches
+    // the table size; clamp to the last table entry to avoid out-of-bounds
+    else if (r >= (int)t.d_vdW.extent(0)) r = (int)t.d_vdW.extent(0) - 1;
     const KK_FLOAT base = static_cast<KK_FLOAT>(r+1) * t.dx;
 
     // This is a double to match the types of cubic_spline_coef members
@@ -2081,10 +2084,12 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &ii) const {
 
   // these variables need to be FP64 to prevent overflow
+  // (exp_f4/exp_f5 overflow single precision and -f4*exp_f4 becomes 0*inf = NaN)
 
   double exp_p1i, exp_p2i, exp_p1j, exp_p2j, f1, f2, f3, u1_ij, u1_ji, Cf1A_ij, Cf1B_ij, Cf1_ij, Cf1_ji;
+  double f4, f5, exp_f4, exp_f5;
 
-  KK_FLOAT f4, f5, exp_f4, exp_f5, f4f5, Cf45_ij, Cf45_ji;
+  KK_FLOAT f4f5, Cf45_ij, Cf45_ji;
   KK_FLOAT A0_ij, A1_ij, A2_ij, A3_ij, A2_ji, A3_ji;
 
   const int i = d_ilist[ii];
@@ -2322,12 +2327,12 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   //if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,i,e_lp);
 
   // over coordination
-  const KK_FLOAT exp_ovun1 = p_ovun3 * exp(p_ovun4 * d_sum_ovun(i,2));
-  const KK_FLOAT inv_exp_ovun1 = 1.0 / (1 + exp_ovun1);
+  const double exp_ovun1 = p_ovun3 * exp(p_ovun4 * d_sum_ovun(i,2));
+  const double inv_exp_ovun1 = 1.0 / (1 + exp_ovun1);
   const KK_FLOAT Delta_lpcorr  = d_Delta[i] - (dfvl * d_Delta_lp_temp[i]) * inv_exp_ovun1;
 
-  const KK_FLOAT exp_ovun2 = exp(p_ovun2 * Delta_lpcorr);
-  const KK_FLOAT inv_exp_ovun2 = 1.0 / (1.0 + exp_ovun2);
+  const double exp_ovun2 = exp(p_ovun2 * Delta_lpcorr);
+  const double inv_exp_ovun2 = 1.0 / (1.0 + exp_ovun2);
   const KK_FLOAT DlpVi = 1.0 / (Delta_lpcorr + val_i + 1e-8);
 
   CEover1 = Delta_lpcorr * DlpVi * inv_exp_ovun2;
@@ -2344,11 +2349,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
 
   // under coordination
 
-  const KK_FLOAT exp_ovun2n = 1.0 / exp_ovun2;
-  const KK_FLOAT exp_ovun6 = exp(p_ovun6 * Delta_lpcorr);
-  const KK_FLOAT exp_ovun8 = p_ovun7 * exp(p_ovun8 * d_sum_ovun(i,2));
-  const KK_FLOAT inv_exp_ovun2n = 1.0 / (1.0 + exp_ovun2n);
-  const KK_FLOAT inv_exp_ovun8 = 1.0 / (1.0 + exp_ovun8);
+  const double exp_ovun2n = 1.0 / exp_ovun2;
+  const double exp_ovun6 = exp(p_ovun6 * Delta_lpcorr);
+  const double exp_ovun8 = p_ovun7 * exp(p_ovun8 * d_sum_ovun(i,2));
+  const double inv_exp_ovun2n = 1.0 / (1.0 + exp_ovun2n);
+  const double inv_exp_ovun8 = 1.0 / (1.0 + exp_ovun8);
 
   e_un = 0;
   if (numbonds > 0 || enobondsflag)
@@ -2700,7 +2705,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   KK_FLOAT p_pen1, p_pen2, p_pen3, p_pen4;
   KK_FLOAT p_coa1, p_coa2, p_coa3, p_coa4;
   KK_FLOAT expval6, expval7, expval2theta, expval12theta, exp3ij, exp3jk;
-  KK_FLOAT exp_pen2ij, exp_pen2jk, exp_pen3, exp_pen4, trm_pen34, exp_coa2;
+  // FP64 to prevent overflow in single precision
+  double exp_pen2ij, exp_pen2jk, exp_pen3, exp_pen4, trm_pen34, exp_coa2;
   KK_FLOAT dSBO1, dSBO2, SBO2, CSBO2;
   KK_FLOAT CEval1, CEval2, CEval3, CEval4, CEval5, CEval6, CEval7, CEval8;
   KK_FLOAT CEpen1, CEpen2, CEpen3;
@@ -2955,8 +2961,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
 
   KK_FLOAT Delta_i, Delta_j, bo_ij, bo_ik, bo_jl, BOA_ij, BOA_ik, BOA_jl;
   KK_FLOAT p_tor1, p_cot1, V1, V2, V3;
-  KK_FLOAT exp_tor2_ij, exp_tor2_ik, exp_tor2_jl, exp_tor1, exp_tor3_DiDj, exp_tor4_DiDj, exp_tor34_inv;
-  KK_FLOAT exp_cot2_ij, exp_cot2_ik, exp_cot2_jl, fn10, f11_DiDj, dfn11, fn12;
+  // FP64 to prevent overflow in single precision
+  double exp_tor2_ij, exp_tor2_ik, exp_tor2_jl, exp_tor1, exp_tor3_DiDj, exp_tor4_DiDj, exp_tor34_inv;
+  double exp_cot2_ij, exp_cot2_ik, exp_cot2_jl, fn10, f11_DiDj, dfn11, fn12;
   KK_FLOAT theta_ijk, theta_jil, sin_ijk, sin_jil, cos_ijk, cos_jil, tan_ijk_i, tan_jil_i;
   KK_FLOAT cos_omega, cos2omega, cos3omega;
   KK_FLOAT CV, cmn, CEtors1, CEtors2, CEtors3, CEtors4;

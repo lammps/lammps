@@ -35,8 +35,7 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp)
-{
+PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp), scale(nullptr){
   ewaldflag = pppmflag = 1;
   ftable = nullptr;
   qdist = 0.0;

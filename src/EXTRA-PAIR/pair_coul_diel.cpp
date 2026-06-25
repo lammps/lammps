@@ -31,7 +31,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDiel::PairCoulDiel(LAMMPS *lmp) : Pair(lmp) {}
+PairCoulDiel::PairCoulDiel(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), sigmae(nullptr), rme(nullptr), offset(nullptr){}
 
 /* ---------------------------------------------------------------------- */
 

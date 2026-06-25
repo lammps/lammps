@@ -54,6 +54,7 @@ class FixIlves : public Fix {
   int output_every;       // print constraint statistics every this many steps (0 = never)
   bigint next_output;     // next timestep for statistics output
   int variant;            // ILVES_FAST (symmetric) or ILVES_FULL (asymmetric)
+  int fixed_iter;         // 1 = run exactly max_iter iterations (no convergence test)
 
   // selectors (which bonds/angles to constrain), as in fix shake
   std::vector<int> bond_flag;     // [nbondtypes+1]  constrain these bond types

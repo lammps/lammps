@@ -61,7 +61,8 @@ constexpr double MASSDELTA = 0.1;
 int is_keyword(const char *s)
 {
   return ((strcmp(s, "variant") == 0) || (strcmp(s, "store") == 0) ||
-          (strcmp(s, "kbond") == 0) || (strcmp(s, "linearangle") == 0));
+          (strcmp(s, "mode") == 0) || (strcmp(s, "kbond") == 0) ||
+          (strcmp(s, "linearangle") == 0));
 }
 
 int is_selector(const char *s)
@@ -90,7 +91,8 @@ static const char cite_fix_ilves[] =
 
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), tolerance(1.0e-4), max_iter(25), output_every(0), next_output(0),
-    variant(ILVES_FAST), molecular(0), types_negated(0), store_flag(0), fstore(nullptr),
+    variant(ILVES_FAST), fixed_iter(0), molecular(0), types_negated(0), store_flag(0),
+    fstore(nullptr),
     maxstore(0), niter_max(0), nconstraints(0), ilves_solver(nullptr),
     xpred(nullptr), xpred0(nullptr), dx(nullptr), maxatom(0), commstage(0), dtv(0.0), dtfsq(0.0),
     inv_dtfsq(0.0), x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr),
@@ -188,6 +190,15 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves store", error);
       store_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg], "mode") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves mode", error);
+      if (strcmp(arg[iarg + 1], "converge") == 0)
+        fixed_iter = 0;
+      else if (strcmp(arg[iarg + 1], "fixed") == 0)
+        fixed_iter = 1;
+      else
+        error->all(FLERR, "Unknown fix ilves mode: {}", arg[iarg + 1]);
+      iarg += 2;
     } else {
       error->all(FLERR, "Unknown fix ilves keyword: {}", arg[iarg]);
     }
@@ -243,6 +254,10 @@ void FixIlves::init()
 {
   if (!force->bond)
     error->all(FLERR, "Fix ilves requires a bond style to define equilibrium bond lengths");
+
+  // r-RESPA is not supported yet
+  if (utils::strmatch(update->integrate_style, "^respa"))
+    error->all(FLERR, "Fix ilves does not support run_style respa");
 
   // equilibrium bond lengths per bond type, as in fix shake
 
@@ -389,11 +404,15 @@ void FixIlves::post_force(int vflag)
   commstage = 0;    // forward-comm predicted positions (with PBC shift)
   comm->forward_comm(this);
   double local = ilves_solver ? ilves_solver->prepare(x, xpred) : 0.0;
-  double ptau;
-  MPI_Allreduce(&local, &ptau, 1, MPI_DOUBLE, MPI_MAX, world);
+  double ptau = 0.0;
+  if (!fixed_iter) MPI_Allreduce(&local, &ptau, 1, MPI_DOUBLE, MPI_MAX, world);
 
   int numit = 0;
-  for (int i = 0; (i < max_iter) && std::isfinite(ptau) && (tolerance < ptau); ++i) {
+  for (int i = 0; i < max_iter; ++i) {
+    // in convergence mode (the default) stop once the global maximum relative
+    // violation is below the tolerance; in fixed mode always run max_iter steps
+    // (which avoids the per-iteration MPI reduction)
+    if (!fixed_iter && (!std::isfinite(ptau) || (ptau <= tolerance))) break;
     ++numit;
     if (ilves_solver) ilves_solver->step(dx);
 
@@ -407,7 +426,7 @@ void FixIlves::post_force(int vflag)
     comm->forward_comm(this);
 
     local = ilves_solver ? ilves_solver->recompute(x, xpred, i == 0) : 0.0;
-    MPI_Allreduce(&local, &ptau, 1, MPI_DOUBLE, MPI_MAX, world);
+    if (!fixed_iter) MPI_Allreduce(&local, &ptau, 1, MPI_DOUBLE, MPI_MAX, world);
   }
 
   if (numit > niter_max) niter_max = numit;

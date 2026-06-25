@@ -29,6 +29,9 @@ Syntax
        *variant* value = *fast* or *full*
          *fast* = symmetric quasi-Newton with banded LDLT (default)
          *full* = exact-Newton (asymmetric) with LU decomposition
+       *mode* value = *converge* or *fixed*
+         *converge* = iterate until the tolerance is met (default)
+         *fixed* = always perform *iter* Newton iterations
        *store* value = *yes* or *no*
          *yes* exposes the per-atom constraint forces via a per-atom array
 
@@ -135,6 +138,16 @@ Two solver variants are available via the ``variant`` keyword:
 
 Both variants converge to the same solution of the constraint equations.
 
+By default the Newton iteration runs until the global maximum relative
+bond-length violation falls below *tol* (or *iter* iterations are reached).
+With ``mode fixed`` the solver instead performs exactly *iter* iterations every
+step.  This removes the per-iteration global reduction used by the convergence
+test and can improve parallel efficiency, at the cost of not guaranteeing the
+tolerance.  Because ILVES converges quadratically, a small fixed count is
+usually sufficient; run first with the default ``mode converge`` and a nonzero
+statistics interval *N* to see how many iterations are actually needed (the
+maximum is reported with the statistics) before choosing a fixed count.
+
 Output info
 ^^^^^^^^^^^
 
@@ -179,6 +192,8 @@ Only one ``fix ilves`` instance may be defined at a time.  ``fix ilves`` and
 :doc:`fix shake <fix_shake>` must not be used together for overlapping sets of
 constrained atoms.
 
+``fix ilves`` does not support :doc:`run_style respa <run_style>`.
+
 All atoms of a constraint cluster must lie within the communication cutoff of
 each other on every rank.  For small clusters (water, methyl, hydrogen-only
 constraints) this is satisfied automatically; for clusters that span large
@@ -200,7 +215,8 @@ Related commands
 Default
 """""""
 
-The keyword defaults are *variant* = *fast* and *store* = *no*.
+The keyword defaults are *variant* = *fast*, *mode* = *converge*, and
+*store* = *no*.
 
 ----------
 

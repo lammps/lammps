@@ -27,9 +27,6 @@ Syntax
 
   .. parsed-literal::
 
-       *variant* value = *fast* or *full*
-         *fast* = symmetric quasi-Newton with banded LDLT (default)
-         *full* = exact-Newton (asymmetric) with LU decomposition
        *mode* value = *converge* or *fixed*
          *converge* = iterate until the tolerance is met (default)
          *fixed* = always perform *iter* Newton iterations
@@ -52,7 +49,7 @@ Examples
 
    fix 1 all ilves 1.0e-6 25 0 b 4 6 8 10
    fix 2 wat ilves 1.0e-8 25 1000 b 18 a 31
-   fix 3 all ilves 1.0e-6 25 0 b 1 variant full
+   fix 3 all ilves 1.0e-6 25 0 b 1 mode fixed
    fix 4 sol ilves 1.0e-8 25 0 t 1 m 1.008 store yes
    fix 5 co2 ilves 1.0e-8 25 0 b 1 a 1 linearangle restrain 170 kbond 2000
 
@@ -73,7 +70,7 @@ algorithm authors integrated into GROMACS; the constraint solver itself
 (the parallel Schur-complement sparse direct solver and the constraint
 topology handling) is reused largely unchanged, while the interface to the
 LAMMPS data structures and the time integration follow :doc:`fix shake
-<fix_shake>` and :doc:`fix rattle <fix_shake>`.
+<fix_shake>`.
 
 User interface
 ^^^^^^^^^^^^^^
@@ -163,9 +160,12 @@ At each time step, after the force computation, *fix ilves*:
    added to ``atom->f``, so that the following integration step produces the
    constrained positions.
 
-After the velocity update, a RATTLE-style velocity projection removes the
-component of relative velocity along each constrained bond, so that both the
-bond lengths and their time derivatives satisfy the constraints.
+As with :doc:`fix shake <fix_shake>`, the constraints are enforced on the
+positions only; the velocities are projected onto the constraint manifold once
+at the start of a run (the analogue of SHAKE's initial velocity correction) but
+not every step.  ``fix ilves`` therefore has no special requirement on its
+placement relative to other time-integration fixes, unlike a full RATTLE
+integrator.
 
 The constraint topology is distributed: each MPI rank builds its constraint
 list from its own local bond storage plus the ghost atoms in the standard
@@ -175,23 +175,6 @@ the cross-rank coupling is resolved by communicating the predicted positions
 to the ghosts and reverse-summing the per-atom corrections to their owners
 each iteration.  The results are therefore independent of the number of MPI
 ranks (to the solver tolerance).
-
-Solver variants
-^^^^^^^^^^^^^^^
-
-Two solver variants are available via the ``variant`` keyword:
-
-* ``fast`` (default): a structurally symmetric, quasi-Newton step whose
-  Jacobian is constant within a time step and is therefore factored only once
-  per step with a banded LDLT factorization.  This is the faster choice for
-  the common case.
-
-* ``full``: the exact Newton Jacobian, which changes every iteration and is
-  re-factored with an LU decomposition each iteration.  This converges in
-  fewer iterations for strongly coupled or ill-conditioned clusters at a
-  higher per-iteration cost.
-
-Both variants converge to the same solution of the constraint equations.
 
 By default the Newton iteration runs until the global maximum relative
 bond-length violation falls below *tol* (or *iter* iterations are reached).
@@ -285,8 +268,7 @@ constrained atoms.
 
 ``fix ilves`` supports :doc:`run_style respa <run_style>`.  As for
 :doc:`fix shake <fix_shake>`, the constraints are enforced at every r-RESPA
-level using the level-dependent effective timestep, and the velocities are
-projected onto the constraint manifold once per outer step.
+level using the level-dependent effective timestep.
 
 All atoms of a constraint cluster must lie within the communication cutoff of
 each other on every rank.  For small clusters (water, methyl, hydrogen-only
@@ -309,8 +291,8 @@ Related commands
 Default
 """""""
 
-The keyword defaults are *variant* = *fast*, *mode* = *converge*,
-*linearangle* = *error* 175, and *store* = *no*.  If *kbond* is not set, the
+The keyword defaults are *mode* = *converge*, *linearangle* = *error* 175,
+and *store* = *no*.  If *kbond* is not set, the
 dynamics restrain substitute uses :math:`5\times10^5 k_B` (about 1000 in real
 units) and the minimization substitute is a factor of 2000 stiffer
 (:math:`10^9 k_B`, as :doc:`fix shake <fix_shake>`); a *kbond* value sets the

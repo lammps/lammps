@@ -41,7 +41,6 @@ class FixIlves : public Fix {
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
   void min_post_force(int) override;
-  void end_of_step() override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
@@ -57,7 +56,6 @@ class FixIlves : public Fix {
   int max_iter;           // max # of Newton iterations per step
   int output_every;       // print constraint statistics every this many steps (0 = never)
   bigint next_output;     // next timestep for statistics output
-  int variant;            // ILVES_FAST (symmetric) or ILVES_FULL (asymmetric)
   int fixed_iter;         // 1 = run exactly max_iter iterations (no convergence test)
 
   // near-linear angle handling.  the A-C "virtual bond" of an angle becomes

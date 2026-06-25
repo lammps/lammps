@@ -45,7 +45,6 @@
 #include "force.h"
 #include "group.h"
 #include "ilves_asym.h"
-#include "ilves_sym.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -59,7 +58,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 namespace {
-enum { ILVES_FAST, ILVES_FULL };
 enum { LINEAR_ERROR, LINEAR_SKIP, LINEAR_RESTRAIN };
 constexpr double MASSDELTA = 0.1;
 // Default harmonic-restraint force constant.  It is expressed as a multiple of
@@ -76,9 +74,8 @@ constexpr double KBOND_MIN_FACTOR = 2.0e3;
 // keywords that terminate the b/a/t/m selector lists
 int is_keyword(const char *s)
 {
-  return ((strcmp(s, "variant") == 0) || (strcmp(s, "store") == 0) ||
-          (strcmp(s, "mode") == 0) || (strcmp(s, "kbond") == 0) ||
-          (strcmp(s, "linearangle") == 0));
+  return ((strcmp(s, "store") == 0) || (strcmp(s, "mode") == 0) ||
+          (strcmp(s, "kbond") == 0) || (strcmp(s, "linearangle") == 0));
 }
 
 int is_selector(const char *s)
@@ -107,7 +104,7 @@ static const char cite_fix_ilves[] =
 
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), tolerance(1.0e-4), max_iter(25), output_every(0), next_output(0),
-    variant(ILVES_FAST), fixed_iter(0), linear_mode(LINEAR_ERROR), linear_threshold(175.0),
+    fixed_iter(0), linear_mode(LINEAR_ERROR), linear_threshold(175.0),
     kbond(-1.0), molecular(0), types_negated(0), store_flag(0),
     fstore(nullptr),
     maxstore(0), niter_max(0), nconstraints(0), ilves_solver(nullptr),
@@ -204,16 +201,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   // optional keyword/value pairs
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "variant") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves variant", error);
-      if (strcmp(arg[iarg + 1], "fast") == 0)
-        variant = ILVES_FAST;
-      else if (strcmp(arg[iarg + 1], "full") == 0)
-        variant = ILVES_FULL;
-      else
-        error->all(FLERR, "Unknown fix ilves variant: {}", arg[iarg + 1]);
-      iarg += 2;
-    } else if (strcmp(arg[iarg], "store") == 0) {
+    if (strcmp(arg[iarg], "store") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves store", error);
       store_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
@@ -294,7 +282,6 @@ int FixIlves::setmask()
   mask |= PRE_NEIGHBOR;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
-  mask |= END_OF_STEP;
   mask |= MIN_PRE_NEIGHBOR;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -449,7 +436,7 @@ void FixIlves::setup(int vflag)
   if (output_every) stats();
 
   // remove the velocity component along each bond so the run starts with
-  // constraint-consistent velocities (as fix rattle does)
+  // constraint-consistent velocities (as fix shake correct_velocities does)
   project_velocities();
 
   // precompute the constraint forces for the first integration step
@@ -513,15 +500,6 @@ void FixIlves::min_setup(int vflag)
     utils::logmesg(lmp, "Fix ilves: replacing {} bond and {} angle constraint(s) with harmonic "
                         "restraints for minimization\n", nctot[0], nctot[1]);
   min_post_force(vflag);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixIlves::end_of_step()
-{
-  // RATTLE-style velocity constraint: remove the relative velocity along each
-  // bond after the final velocity update
-  project_velocities();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -695,9 +673,7 @@ int FixIlves::solve_constraints()
    the level-dependent effective timestep, exactly as fix shake does:
      xpred = x + dt0*v + (dt0*dtN/m) fN
                        + sum_{j<N} (1/2 dt0*dtj/m) f_level[j]
-   with dt0 = step_respa[0] (innermost) and dtN = step_respa[ilevel].  The
-   velocity (RATTLE) projection is unchanged and still done once per outer step
-   in end_of_step.
+   with dt0 = step_respa[0] (innermost) and dtN = step_respa[ilevel].
 ------------------------------------------------------------------------- */
 
 void FixIlves::post_force_respa(int vflag, int ilevel, int iloop)
@@ -779,8 +755,12 @@ void FixIlves::post_force_respa(int vflag, int ilevel, int iloop)
 }
 
 /* ----------------------------------------------------------------------
-   RATTLE-style velocity projection: remove the component of relative velocity
-   along each constrained bond.  The velocity constraint is linear, so this is a
+   Project the velocities onto the constraint manifold once at the start of a
+   run (remove the relative velocity along each constrained bond), the analogue
+   of fix shake correct_velocities, so the run begins constraint-consistent.
+   This is not repeated every step: the position-constraint force already keeps
+   the bonds rigid, exactly as fix shake (which likewise does not project
+   velocities during the run).  The velocity constraint is linear, so this is a
    block-Jacobi sweep (exact in one pass for an isolated bond) driven uniformly
    across ranks by the all-reduced residual.  Reuses the xpred buffer as the
    velocity work array (forward-communicated without a PBC shift) and dx as the
@@ -1062,18 +1042,13 @@ void FixIlves::build_constraint_list()
   }
 
   // (re)build the ILVES solver for the current constraint topology.
-  // Phase 1 is serial single-thread: always one OpenMP thread.
+  // the solver is serial single-thread (one OpenMP thread).
 
   delete ilves_solver;
   ilves_solver = nullptr;
-  if (nconstraints > 0) {
-    if (variant == ILVES_FAST)
-      ilves_solver = new ILVES::IlvesSym(lmp, nconstraints, clist_a.data(), clist_b.data(),
-                                         clist_d.data(), invmass.data(), 1);
-    else
-      ilves_solver = new ILVES::IlvesAsym(lmp, nconstraints, clist_a.data(), clist_b.data(),
-                                          clist_d.data(), invmass.data(), 1);
-  }
+  if (nconstraints > 0)
+    ilves_solver = new ILVES::IlvesAsym(lmp, nconstraints, clist_a.data(), clist_b.data(),
+                                        clist_d.data(), invmass.data(), 1);
 }
 
 /* ----------------------------------------------------------------------

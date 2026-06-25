@@ -23,8 +23,8 @@
    The Newton iteration is global (convergence is the all-reduced maximum
    relative violation), so the fix drives the loop and the MPI communication
    uniformly across all ranks, calling these per-rank primitives:
-     prepare()   -> assemble g(x) (and, for the symmetric variant, the constant
-                    Jacobian + factorization); returns the local max violation
+     prepare()   -> assemble g(x) and the Jacobian + factorization; returns the
+                    local max violation
      step(dx)    -> solve the linear system; accumulate per-atom position
                     increments into dx (home + ghost)
      recompute() -> accumulate the multipliers; reassemble g(x); return the

@@ -31,6 +31,8 @@ Examples
    dump 4a     all custom/adios 100 dump_adios.bp id v_p x y z
    dump 2 subgroup custom/adios 100 dump_adios.bp mass type xs ys zs vx vy vz
 
+Example input scripts available: examples/PACKAGES/adios/rerun/in.first, examples/PACKAGES/adios/balance/in.adios_balance, examples/PACKAGES/adios/balance/in.adios_balance2
+
 Description
 """""""""""
 

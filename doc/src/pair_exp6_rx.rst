@@ -30,6 +30,8 @@ Examples
    pair_coeff * * exp6.params 1fluid 1fluid none 10.0
    pair_coeff * * exp6.params 1fluid 1fluid polynomial filename 10.0
 
+Example input scripts available: examples/PACKAGES/dpd-react/dpdrx-shardlow/in.dpdrx-shardlow
+
 Description
 """""""""""
 

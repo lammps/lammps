@@ -35,6 +35,8 @@ Examples
    fix 2 all nph iso 1.01325 1.01325 1
    fix 2 all qtb temp 300 damp 1 seed 47508 f_max 120.0 N_f 100
 
+Example input scripts available: examples/PACKAGES/qtb/methane_qbmsst/in.methane_qbmsst, examples/PACKAGES/qtb/alpha_quartz_qbmsst/in.alpha_quartz_qbmsst, examples/PACKAGES/qtb/methane_qtb/in.methane_qtb
+
 Description
 """""""""""
 

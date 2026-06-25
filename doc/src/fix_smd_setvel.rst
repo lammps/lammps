@@ -29,6 +29,8 @@ Examples
 
    fix top_velocity top_group smd/setvel 1.0 0.0 0.0
 
+Example input scripts available: examples/PACKAGES/machdyn/rubber_strip_pull/in.rubber_strip_pull, examples/PACKAGES/machdyn/aluminum_strip_pull/in.aluminum_strip_pull
+
 Description
 """""""""""
 

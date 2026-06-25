@@ -23,6 +23,8 @@ Examples
    newton off
    newton on off
 
+Example input scripts available: examples/granular/in.sync_verlet, examples/bpm/pour/in.bpm.pour, examples/bpm/metamaterial/in.bpm.metamaterial
+
 Description
 """""""""""
 

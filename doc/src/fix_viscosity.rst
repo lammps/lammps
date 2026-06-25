@@ -32,6 +32,8 @@ Examples
    fix 1 all viscosity 100 x z 20
    fix 1 all viscosity 50 x z 20 swap 2 vtarget 1.5
 
+Example input scripts available: examples/VISCOSITY/in.mp.2d, examples/ASPHERE/dimer/in.dimer.mp, examples/ASPHERE/box/in.box.mp
+
 Description
 """""""""""
 

@@ -55,6 +55,8 @@ Examples
    fix 1 sub rattle 0.0001 20 10 t 5 6 m 1.0 a 31
    fix 1 sub rattle 0.0001 20 10 t 5 6 m 1.0 a 31 mol myMol
 
+Example input scripts available: examples/python/in.pair_python_spce, examples/template/in.hybrid, examples/python/in.pair_python_long
+
 Description
 """""""""""
 

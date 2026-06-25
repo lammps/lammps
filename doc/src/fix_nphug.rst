@@ -49,6 +49,8 @@ Examples
    fix myhug all nphug temp 1.0 1.0 10.0 z 40.0 40.0 70.0
    fix myhug all nphug temp 1.0 1.0 10.0 iso 40.0 40.0 70.0 drag 200.0 tchain 1 pchain 0
 
+Example input scripts available: examples/hugoniostat/in.hugoniostat
+
 Description
 """""""""""
 

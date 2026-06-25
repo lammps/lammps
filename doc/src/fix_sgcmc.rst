@@ -43,6 +43,8 @@ Examples
    fix vc all sgcmc 20 0.2 700.0 -0.7 randseed 324234 variance 2000.0 0.05
    fix 2  all sgcmc 20 0.1 700.0 -0.7 window_moves 20
 
+Example input scripts available: examples/mc/in.sgcmc.eam
+
 Description
 """""""""""
 

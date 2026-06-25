@@ -20,6 +20,8 @@ Examples
 
    compute 1 all smd/tlsph/strain
 
+Example input scripts available: examples/PACKAGES/machdyn/rubber_strip_pull/in.rubber_strip_pull, examples/PACKAGES/machdyn/aluminum_strip_pull/in.aluminum_strip_pull
+
 Description
 """""""""""
 

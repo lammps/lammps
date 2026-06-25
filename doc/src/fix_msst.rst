@@ -37,6 +37,8 @@ Examples
    fix 2 all msst z 50.0 q 1.0e4 mu 1.0e4  v0 4.3419e+03 p0 3.7797e+03 e0 -9.72360e+02 tscale 0.01
    fix 1 all msst y 100.0 q 1.0e5 mu 1.0e5 dftb yes beta 0.5
 
+Example input scripts available: examples/msst/in.msst
+
 Description
 """""""""""
 

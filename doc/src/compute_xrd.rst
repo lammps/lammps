@@ -42,6 +42,8 @@ Examples
    fix 1 all ave/histo/weight 1 1 1 0.087 0.87 250 c_1[1] c_1[2] mode vector file Rad2Theta.xrd
    fix 2 all ave/histo/weight 1 1 1 10 100 250 c_2[1] c_2[2] mode vector file Deg2Theta.xrd
 
+Example input scripts available: examples/PACKAGES/diffraction/in.BulkNi
+
 Description
 """""""""""
 

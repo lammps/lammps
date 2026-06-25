@@ -21,6 +21,8 @@ Examples
 
    compute mine flow temp/region boundary
 
+Example input scripts available: examples/KAPPA/in.heat, examples/KAPPA/in.ehex, examples/KAPPA/in.langevin
+
 Description
 """""""""""
 

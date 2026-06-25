@@ -62,6 +62,8 @@ Examples
    pair_coeff * * 100.0 3.0
    pair_coeff OW OW 100.0 3.5 9.0
 
+Example input scripts available: examples/PACKAGES/gle/in.h2o-quantum, examples/PACKAGES/gle/in.h2o-smart, examples/PACKAGES/interlayer/aip_water_2dm/in.gr_water
+
 Description
 """""""""""
 

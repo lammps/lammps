@@ -73,6 +73,8 @@ Examples
    pair_coeff * * 100.0 3.0
    pair_coeff OW OW 100.0 3.5 9.0
 
+Example input scripts available: examples/balance/in.balance.kspace
+
 Description
 """""""""""
 

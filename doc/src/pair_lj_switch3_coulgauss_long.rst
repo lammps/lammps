@@ -54,6 +54,8 @@ Examples
    pair_style mm3/switch3/coulgauss/long   12.0 10.0 3.0
    pair_coeff 1  0.2 2.5 1.2
 
+Example input scripts available: examples/PACKAGES/yaff/mof5/in.mof5, examples/PACKAGES/yaff/mil53al/in.mil53a
+
 Description
 """""""""""
 

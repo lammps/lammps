@@ -66,6 +66,8 @@ Examples
    labelmap atom 1 Li
    fix 2 ion gcmc 10 1000 1000 Li 29494 298.0 -0.5 0.01
 
+Example input scripts available: examples/mc
+
 Description
 """""""""""
 

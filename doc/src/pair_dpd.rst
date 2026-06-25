@@ -44,6 +44,8 @@ Examples
    pair_coeff * * lj/cut 1.0 1.0
    pair_coeff * * dpd/tstat 1.0
 
+Example input scripts available: examples/PACKAGES/dpd-basic/dpd_tstat/in.dpd_tstat, examples/PACKAGES/srp/in.srp, examples/PACKAGES/dpd-basic/dpd/in.dpd
+
 Description
 """""""""""
 

@@ -30,6 +30,8 @@ Examples
    pair_style mesocnt/viscous 60.0 chain topology
    pair_coeff * * C_10_10.mesocnt 0.001 20.0 0.2 2 4
 
+Example input scripts available: examples/PACKAGES/mesont/in.film_mesocnt
+
 Description
 """""""""""
 

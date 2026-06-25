@@ -44,6 +44,8 @@ Examples
    compute 5 defects voronoi/atom occupation
    compute 6 all voronoi/atom neighbors yes
 
+Example input scripts available: examples/voronoi/in.voronoi.2d, examples/voronoi/in.voronoi.data, examples/voronoi/in.voronoi
+
 Description
 """""""""""
 

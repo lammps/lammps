@@ -32,6 +32,8 @@ Examples
    pair_coeff * * drip  C.drip     C NULL
    pair_coeff * * rebo  CH.airebo  C H
 
+Example input scripts available: examples/PACKAGES/interlayer/drip/in.C_drip, examples/PACKAGES/interlayer/drip/in.CH_drip
+
 Description
 """""""""""
 

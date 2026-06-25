@@ -31,6 +31,8 @@ Examples
    pair_coeff 1 2 atm 2 0.100
    pair_coeff 2 2 atm 2 0.125
 
+Example input scripts available: examples/atm/in.atm
+
 Description
 """""""""""
 

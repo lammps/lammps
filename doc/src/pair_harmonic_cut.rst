@@ -25,6 +25,8 @@ Examples
    pair_coeff * * 0.2 2.0
    pair_coeff 1 1 0.5 2.5
 
+Example input scripts available: examples/python/in.pair_python_harmonic, examples/wall/in.wall.lepton, examples/wall/in.wall.table
+
 Description
 """""""""""
 

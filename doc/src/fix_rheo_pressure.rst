@@ -34,6 +34,8 @@ Examples
    fix 1 all rheo/pressure 1 linear 2 cubic 10.0
    fix 1 all rheo/pressure * linear * background 0.1
 
+Example input scripts available: examples/rheo/taylor-green/in.rheo.taylor.green, examples/rheo/balloon/in.rheo.balloon, examples/rheo/poiseuille/in.rheo.poiseuille
+
 Description
 """""""""""
 

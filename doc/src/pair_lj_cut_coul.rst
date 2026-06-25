@@ -133,6 +133,8 @@ Examples
    pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.0 1.0 2.5
 
+Example input scripts available: examples/template/in.hybrid, examples/QUANTUM/PySCF/in.mixture.mm, examples/QUANTUM/NWChem/in.water.mm
+
 Description
 """""""""""
 

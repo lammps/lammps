@@ -24,6 +24,8 @@ Examples
    compute 1 all temp/com
    compute myTemp mobile temp/com
 
+Example input scripts available: examples/ASPHERE/vesicle/in.vesicle, examples/PACKAGES/drude/swm4-ndp/in.swm4-ndp.nh, examples/PACKAGES/ti/in.ti_spring
+
 Description
 """""""""""
 

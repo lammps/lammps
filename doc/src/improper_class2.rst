@@ -23,6 +23,8 @@ Examples
    improper_coeff 1 100.0 0
    improper_coeff * aa 0.0 0.0 0.0 115.06 130.01 115.06
 
+Example input scripts available: examples/replicate/in.replicate.cnt, examples/PACKAGES/class2xe/in.NVT_class2xe.script, examples/PACKAGES/reaction/create_atoms_polystyrene/in.grow_styrene
+
 Description
 """""""""""
 

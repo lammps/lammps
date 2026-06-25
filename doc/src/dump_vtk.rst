@@ -25,6 +25,8 @@ Examples
    dump dmpvtk all vtk 100 dump*.myforce.vtk id type vx fx
    dump dmpvtp flow vtk 100 dump*.%.displace.vtp id type c_myD[1] c_myD[2] c_myD[3] v_ke
 
+Example input scripts available: examples/PACKAGES/vtk/in.vtk, examples/PACKAGES/vtk/in.vtp
+
 Description
 """""""""""
 

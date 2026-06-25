@@ -38,6 +38,8 @@ Examples
    fix 1 all bocs temp 300.0 300.0 100.0 cgiso 0.986 0.986 1000.0 cubic_spline input_Fv.dat
    thermo_modify press 1_press
 
+Example input scripts available: examples/PACKAGES/bocs/in.methanol
+
 Description
 """""""""""
 

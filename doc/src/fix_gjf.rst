@@ -37,6 +37,8 @@ Examples
    fix 1 all gjf 10.0 100.0 100.0 48279 vel vfull method 4
    fix 2 all gjf 10.0 10.0 1.0 26488 method 7 0.95
 
+Example input scripts available: examples/gjf/in.gjf.vfull, examples/gjf/in.gjf.vhalf
+
 Description
 """""""""""
 .. versionadded:: 12Jun2025

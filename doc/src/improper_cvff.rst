@@ -23,6 +23,8 @@ Examples
    improper_style cvff
    improper_coeff 1 80.0 -1 4
 
+Example input scripts available: examples/PACKAGES/mbx/mof_ff_lammps+1_h2o_mbx/in.mbx_mof_1h2o
+
 Description
 """""""""""
 

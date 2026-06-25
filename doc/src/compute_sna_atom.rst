@@ -110,6 +110,8 @@ Examples
    compute bgrid all sna/grid/local grid 200 200 200 1.4 0.95 6 2.0 1.0
    compute bnnn all sna/atom 9.0 0.99363 8 0.5 1.0 rmin0 0.0 nnn 24 wmode 1 delta 0.2
 
+Example input scripts available: examples/snap/in.snap.grid, examples/snap/in.snap.compute, examples/snap/in.snap.compute.quadratic
+
 Description
 """""""""""
 

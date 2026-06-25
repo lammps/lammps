@@ -27,6 +27,8 @@ Examples
    pair_coeff 1 1 hertz 1000.0 50.0 tangential linear_history 500.0 1.0 0.4 damping viscoelastic
    pair_coeff 2 2 hertz 500.0 50.0 tangential linear_history 250.0 1.0 0.1 damping viscoelastic
 
+Example input scripts available: examples/ASPHERE/superellipsoid_gran
+
 Description
 """""""""""
 

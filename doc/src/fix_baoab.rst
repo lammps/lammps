@@ -33,6 +33,8 @@ Examples
    fix 1 all baoab 1.0 1.0 10.0 48279 zero yes
    fix 2 all baoab 300.0 400.0 200.0 77777
 
+Example input scripts available: examples/PACKAGES/baoab/in.baoab_lj
+
 .. versionadded:: TBD
 
 Description

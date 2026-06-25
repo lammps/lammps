@@ -29,6 +29,8 @@ Examples
    variable lz equal lz
    variable reciprocalViscosity equal v_V/${A}/v_density*39.4784/v_lz/v_lz*100  # 1/(Pa*s)
 
+Example input scripts available: examples/VISCOSITY/in.cos.1000SPCE
+
 Description
 """""""""""
 

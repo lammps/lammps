@@ -28,6 +28,8 @@ Examples
    temper/npt 2500000 1000 300 nptfix  0 32285 $p
    temper/npt 5000000 2000 $t nptfix 0 12523 1 $w
 
+Example input scripts available: examples/PACKAGES/temper_npt/in.temper_npt
+
 Description
 """""""""""
 

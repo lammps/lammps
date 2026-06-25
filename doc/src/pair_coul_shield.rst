@@ -25,6 +25,8 @@ Examples
    pair_style coul/shield 16.0 1
    pair_coeff 1 2 0.70
 
+Example input scripts available: examples/PACKAGES/interlayer/ilp_graphene_hbn
+
 Description
 """""""""""
 

@@ -90,6 +90,8 @@ Examples
    create_atoms 1 mesh open_box.stl meshmode qrand 0.1 units box
    create_atoms 1 mesh funnel.stl meshmode bisect 4.0 units box radscale 0.9
 
+Example input scripts available: examples/template/in.mol-restart-mix, examples/template/in.tmpl-restart-mix, examples/mdi/in.aimdpy.qm
+
 Description
 """""""""""
 

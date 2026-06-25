@@ -43,6 +43,8 @@ Examples
    fix walls all wall/reflect xlo 0.0 ylo 10.0 units box
    fix top all wall/reflect zhi v_pressdown
 
+Example input scripts available: examples/reaxff/water/in.water.acks2.field, examples/reaxff/water/in.water.qeq.field, examples/wall/in.wall.specular
+
 Description
 """""""""""
 

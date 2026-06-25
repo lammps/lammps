@@ -25,6 +25,8 @@ Examples
 
    fix 1 all reaxff/bonds 100 bonds.reaxff
 
+Example input scripts available: examples/reaxff/in.reaxff.tatb-shielded, examples/reaxff/in.reaxff.tatb
+
 Description
 """""""""""
 

@@ -21,6 +21,8 @@ Examples
 
    compute 1 fluid omega/chunk molchunk
 
+Example input scripts available: examples/PACKAGES/addtorque_group/in.addtorque
+
 Description
 """""""""""
 

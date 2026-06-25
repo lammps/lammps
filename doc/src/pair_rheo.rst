@@ -28,6 +28,8 @@ Examples
    pair_style rheo 3.0 rho/damp 1.0 artificial/visc 2.0
    pair_coeff * *
 
+Example input scripts available: examples/rheo/taylor-green/in.rheo.taylor.green, examples/rheo/balloon/in.rheo.balloon, examples/rheo/poiseuille/in.rheo.poiseuille
+
 Description
 """""""""""
 

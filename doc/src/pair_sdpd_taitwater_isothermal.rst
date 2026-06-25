@@ -22,6 +22,8 @@ Examples
    pair_style sdpd/taitwater/isothermal 300. 1. 28681
    pair_coeff * * 1000.0 1430.0 2.4
 
+Example input scripts available: examples/PACKAGES/dpd-smooth/equipartition-verification/in.lammps, examples/PACKAGES/dpd-smooth/2d-diffusion/in.lammps, examples/PACKAGES/dpd-smooth/2d-diffusion-in-shear-flow/in.lammps
+
 Description
 """""""""""
 

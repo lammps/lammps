@@ -30,6 +30,8 @@ Examples
    fix 1 all heat/flow constant 1.0
    fix 1 all heat/flow type 1.0 0.5
 
+Example input scripts available: examples/granular/in.pour.heat
+
 Description
 """""""""""
 

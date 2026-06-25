@@ -90,6 +90,8 @@ Examples
    fix 1 all deform 1 xy erate 0.001 remap v
    fix 1 all deform 10 y delta -0.5 0.5 xz vel 1.0
 
+Example input scripts available: examples/multi/in.powerlaw, examples/nemd/in.nemd, examples/multi/in.granular
+
 Description
 """""""""""
 

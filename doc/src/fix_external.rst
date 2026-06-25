@@ -34,6 +34,8 @@ Examples
    fix 1 all external pf/callback 100 1
    fix 1 all external pf/array 10
 
+Example input scripts available: examples/COUPLE/python/in.fix_external
+
 Description
 """""""""""
 

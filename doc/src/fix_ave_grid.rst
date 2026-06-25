@@ -72,6 +72,8 @@ Examples
    fix 1 all ave/grid 10000 1 10000 10 10 10 fx fy fz c_myMSD[*]
    fix 1 flow ave/grid 100 10 1000 20 20 30 f_TTM:grid:data
 
+Example input scripts available: examples/grid
+
 Description
 """""""""""
 

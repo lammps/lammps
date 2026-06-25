@@ -36,6 +36,8 @@ Examples
    compute 1 all entropy/atom 0.25 5. avg yes 5.
    compute 1 all entropy/atom 0.125 7.3 avg yes 5.1 local yes
 
+Example input scripts available: examples/PACKAGES/entropy/in.entropy
+
 Description
 """""""""""
 

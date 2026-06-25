@@ -32,6 +32,8 @@ Examples
 
    fix cor all filter/corotate b 4 19 a 3 5 2
 
+Example input scripts available: examples/PACKAGES/filter_corotate/in.peptide, examples/PACKAGES/filter_corotate/in.bpti
+
 Description
 """""""""""
 

@@ -62,6 +62,8 @@ Examples
    fix 1 all brownian/asphere 1.0 1294019 gamma_t_eigen 1.0 2.0 3.0 gamma_r_eigen 4.0 7.0 8.0 dipole 1.0 0.0 0.0
 
 
+Example input scripts available: examples/PACKAGES/brownian/align_self/in.alignself_dipole, examples/PACKAGES/brownian/align_self/in.alignself_quat
+
 Description
 """""""""""
 

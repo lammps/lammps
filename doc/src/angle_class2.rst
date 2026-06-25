@@ -40,6 +40,8 @@ Examples
    angle_coeff 1 bb 10.5872 1.0119 1.5228
    angle_coeff * ba 3.6551 24.895 1.0119 1.5228
 
+Example input scripts available: examples/replicate/in.replicate.cnt, examples/PACKAGES/class2xe/in.NVT_class2xe.script, examples/PACKAGES/reaction/create_atoms_polystyrene/in.grow_styrene
+
 Description
 """""""""""
 

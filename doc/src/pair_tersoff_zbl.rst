@@ -30,6 +30,8 @@ Examples
    pair_style tersoff/zbl
    pair_coeff * * SiC.tersoff.zbl Si C Si
 
+Example input scripts available: examples/threebody/in.threebody, examples/PACKAGES/electron_stopping/in.cascade_SiSi
+
 Description
 """""""""""
 

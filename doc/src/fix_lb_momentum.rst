@@ -29,6 +29,8 @@ Examples
    fix 1 sphere lb/momentum
    fix 1 all lb/momentum linear 1 1 0
 
+Example input scripts available: examples/PACKAGES/latboltz/polymer/in.polymer, examples/PACKAGES/latboltz/microrheology/in.microrheology
+
 Description
 """""""""""
 

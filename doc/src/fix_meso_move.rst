@@ -45,6 +45,8 @@ Examples
    fix 2 boundary meso/move rotate 0.0 0.0 0.0 0.0 0.0 1.0 5.0
    fix 2 boundary meso/move variable v_myx v_myy NULL v_VX v_VY NULL
 
+Example input scripts available: examples/PACKAGES/dpd-smooth/2d-diffusion-in-shear-flow/in.lammps
+
 Description
 """""""""""
 

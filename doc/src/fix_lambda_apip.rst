@@ -48,6 +48,8 @@ Examples
    fix 2 all lambda/apip 3.0 3.5 time_averaged_zone 4.0 12.0 110 110 min_delta_lambda 0.01
    fix 2 mobile lambda/apip 3.0 3.5 time_averaged_zone 4.0 12.0 110 110 min_delta_lambda 0.01 group_ignore_lambda_input immobile lambda_non_group fast
 
+Example input scripts available: examples/PACKAGES/apip/in.surface.balance, examples/PACKAGES/apip/in.vacancy.dynamic.lambda
+
 Description
 """""""""""
 The potential energy :math:`E_i` of an atom :math:`i` of an adaptive-precision

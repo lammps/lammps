@@ -26,6 +26,8 @@ Examples
    pair_style hybrid/overlay table spline 500 local/density
    pair_coeff * * local/density  benzene_water.localdensity.table
 
+Example input scripts available: examples/PACKAGES/local_density/benzene_water/in.benzene_water, examples/PACKAGES/local_density/methanol_implicit_water/in.methanol_implicit_water
+
 Description
 """""""""""
 

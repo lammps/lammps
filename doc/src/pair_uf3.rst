@@ -33,6 +33,8 @@ Examples
     pair_style uf3 3
     pair_coeff * * NbSn.uf3 Nb Sn
 
+Example input scripts available: examples/PACKAGES/uf3/in.uf3.Nb
+
 Description
 """""""""""
 

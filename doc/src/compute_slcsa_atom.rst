@@ -29,6 +29,8 @@ Examples
    compute b1 all sna/atom 9.0 0.99363 8 0.5 1.0 rmin0 0.0 nnn 24 wmode 1 delta 0.3
    compute b2 all slcsa/atom 8 4 mean_descriptors.dat lda_scalings.dat lr_decision.dat lr_bias.dat maha_thresholds.dat c_b1[1]
 
+Example input scripts available: examples/PACKAGES/sna_nnn_slcsa/in.slcsa
+
 Description
 """""""""""
 

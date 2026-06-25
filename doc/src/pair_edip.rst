@@ -27,6 +27,8 @@ Examples
    pair_style edip
    pair_coeff * * Si.edip Si
 
+Example input scripts available: examples/PACKAGES/edip
+
 Description
 """""""""""
 

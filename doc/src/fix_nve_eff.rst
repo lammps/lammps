@@ -20,6 +20,8 @@ Examples
 
    fix 1 all nve/eff
 
+Example input scripts available: examples/PACKAGES/eff/Be-solid/in.Be-solid.spe, examples/PACKAGES/eff/Li-dendritic/in.Li-dendritic.min, examples/PACKAGES/eff/CH4/in.ch4.dynamics
+
 Description
 """""""""""
 

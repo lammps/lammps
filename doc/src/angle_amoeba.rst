@@ -20,6 +20,8 @@ Examples
    angle_coeff * ba 3.6551 24.895 1.0119 1.5228
    angle_coeff * ub -7.6 1.5537
 
+Example input scripts available: examples/amoeba
+
 Description
 """""""""""
 

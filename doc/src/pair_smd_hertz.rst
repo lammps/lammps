@@ -18,6 +18,8 @@ Examples
    pair_style smd/hertz 1.0
    pair_coeff 1 1 <contact_stiffness>
 
+Example input scripts available: examples/PACKAGES/machdyn/rubber_rings_3d/in.rubber_rings_3d
+
 Description
 """""""""""
 

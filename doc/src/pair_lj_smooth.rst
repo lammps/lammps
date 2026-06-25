@@ -27,6 +27,8 @@ Examples
    pair_coeff * * 10.0 1.5
    pair_coeff 1 1 20.0 1.3 7.0 9.0
 
+Example input scripts available: examples/relres/in.22DMH.real
+
 Description
 """""""""""
 

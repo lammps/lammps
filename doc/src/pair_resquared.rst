@@ -24,6 +24,8 @@ Examples
    pair_style resquared 10.0
    pair_coeff * * 1.0 1.0 1.7 3.4 3.4 1.0 1.0 1.0
 
+Example input scripts available: examples/ellipse/in.ellipse.resquared, examples/PACKAGES/ees/in.fix_wall_region, examples/PACKAGES/ees/in.fix_wall
+
 Description
 """""""""""
 

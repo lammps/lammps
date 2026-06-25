@@ -22,6 +22,8 @@ Examples
    improper_style distharm
    improper_coeff 1 25.0 0.5
 
+Example input scripts available: examples/PACKAGES/yaff/mof5/in.mof5, examples/PACKAGES/yaff/mil53al/in.mil53a
+
 Description
 """""""""""
 

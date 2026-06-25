@@ -23,6 +23,8 @@ Examples
 
    pair_style smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION
 
+Example input scripts available: examples/PACKAGES/machdyn/fluid_structure_interaction/in.fluid_structure_interaction
+
 Description
 """""""""""
 

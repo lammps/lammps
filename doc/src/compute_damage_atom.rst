@@ -20,6 +20,8 @@ Examples
 
    compute 1 all damage/atom
 
+Example input scripts available: examples/peri
+
 Description
 """""""""""
 

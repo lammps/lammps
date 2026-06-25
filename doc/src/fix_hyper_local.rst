@@ -39,6 +39,8 @@ Examples
    fix 1 all hyper/local 1.0 0.3 0.8 300.0
    fix 1 all hyper/local 1.0 0.3 0.8 300.0 bound 0.1 reset 0
 
+Example input scripts available: examples/hyper/in.hyper.local
+
 Description
 """""""""""
 

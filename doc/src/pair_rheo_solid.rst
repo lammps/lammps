@@ -18,6 +18,8 @@ Examples
    pair_style rheo/solid
    pair_coeff * * 1.0 1.5 1.0
 
+Example input scripts available: examples/rheo/balloon/in.rheo.balloon, examples/rheo/ice-cubes/in.rheo.ice.cubes, examples/rheo/oxidation/in.rheo.oxidation
+
 Description
 """""""""""
 

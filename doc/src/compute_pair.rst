@@ -26,6 +26,8 @@ Examples
    compute 1 all pair tersoff 2 epair
    compute 1 all pair reaxff
 
+Example input scripts available: examples/reaxff/HNS/in.reaxff.hns, examples/dreiding/in.dreiding, examples/reaxff/in.reaxff.rdx-shielded
+
 Description
 """""""""""
 

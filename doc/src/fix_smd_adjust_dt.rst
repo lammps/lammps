@@ -25,6 +25,8 @@ Examples
 
    fix 1 all smd/adjust_dt 0.1
 
+Example input scripts available: examples/PACKAGES/machdyn/rubber_strip_pull/in.rubber_strip_pull, examples/PACKAGES/machdyn/rubber_rings_3d/in.rubber_rings_3d, examples/PACKAGES/machdyn/funnel_flow/in.funnel_flow
+
 Description
 """""""""""
 

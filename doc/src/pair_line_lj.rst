@@ -25,6 +25,8 @@ Examples
    pair_coeff 1 2 1.0 2.0 1.0 1.5 1.12 5.0
    pair_coeff 1 2 1.0 0.0 1.0 1.0 2.5
 
+Example input scripts available: examples/ASPHERE/line/in.line, examples/ASPHERE/line/in.line.srd
+
 Description
 """""""""""
 

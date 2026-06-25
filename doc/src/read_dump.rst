@@ -71,6 +71,8 @@ Examples
    read_dump dump.bp 5000 x y z vx vy vz format adios
    read_dump dump.bp 5000 x y z vx vy vz format adios timeout 60.0
 
+Example input scripts available: examples/rerun/in.read_dump, examples/PACKAGES/adios/rerun/in.read_dump, examples/PACKAGES/adios/balance/in.adios_balance2
+
 Description
 """""""""""
 

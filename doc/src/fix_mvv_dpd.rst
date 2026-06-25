@@ -38,6 +38,8 @@ Examples
    fix 1 all mvv/tdpd
    fix 1 all mvv/tdpd 0.5
 
+Example input scripts available: examples/PACKAGES/dpd-meso/mdpd/in.mdpd, examples/PACKAGES/dpd-meso/edpd/in.edpd, examples/PACKAGES/dpd-meso/tdpd/in.tdpd
+
 Description
 """""""""""
 

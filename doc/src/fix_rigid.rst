@@ -152,6 +152,8 @@ Examples
    read_restart data.rigid fix 0 NULL Bodies
    fix 1 clump rigid/small custom i_bodyid
 
+Example input scripts available: examples/mc/in.hmc.rigid, examples/rigid/in.rigid.molecule, examples/rigid/in.rigid.small
+
 Description
 """""""""""
 

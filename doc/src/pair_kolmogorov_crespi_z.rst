@@ -23,6 +23,8 @@ Examples
    pair_coeff * * rebo                 CH.rebo    C C
    pair_coeff 1 2 kolmogorov/crespi/z  CC.KC      C C
 
+Example input scripts available: examples/PACKAGES/interlayer/kolmogorov_crespi_z/in.atom-diffusion, examples/PACKAGES/interlayer/kolmogorov_crespi_z/in.bilayer-graphene
+
 Description
 """""""""""
 

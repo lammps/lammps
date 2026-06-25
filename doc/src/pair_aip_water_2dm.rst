@@ -41,6 +41,8 @@ Examples
    pair_coeff  2 3   coul/shield          1.333
    pair_coeff  2 4   coul/shield          1.333
 
+Example input scripts available: examples/PACKAGES/interlayer/aip_water_2dm/in.gr_water, examples/PACKAGES/interlayer/aip_water_2dm/in.gr_water.opt
+
 Description
 """""""""""
 

@@ -58,6 +58,8 @@ Examples
    pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/lj 4 9.0 11.0 90 170.0
    pair_coeff 1 2 hbond/dreiding/lj 3 i 9.5 2.75 4 9.0 11.0 90.0
 
+Example input scripts available: examples/dreiding/in.dreiding
+
 Description
 """""""""""
 

@@ -20,6 +20,8 @@ Examples
 
    compute 1 all ke/atom/eff
 
+Example input scripts available: examples/PACKAGES/eff/H_plasma/in.h2bulk.nve, examples/PACKAGES/eff/H_plasma/in.h2bulk.nve.ang
+
 Description
 """""""""""
 

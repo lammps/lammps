@@ -31,6 +31,8 @@ Examples
    fix 1 all ipi my.server.com 12345
    fix 1 all ipi mysocket 666 unix reset
 
+Example input scripts available: examples/PACKAGES/ipi/in.graphene
+
 Description
 """""""""""
 

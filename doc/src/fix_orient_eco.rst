@@ -26,6 +26,8 @@ Examples
    fix gb all orient/eco 0.08 0.25 3.524 sigma5.ori
 
 
+Example input scripts available: examples/PACKAGES/orient_eco/in.orient_eco
+
 Description
 """""""""""
 

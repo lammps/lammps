@@ -110,6 +110,8 @@ Examples
    pair_coeff * * 100.0 2.0
    pair_coeff 1 1 100.0 2.0 150.0 3.5
 
+Example input scripts available: examples/cmap/in.cmap, examples/peptide/in.peptide, examples/charmmfsw/in.charmmfsw
+
 Description
 """""""""""
 

@@ -56,6 +56,8 @@ Examples
    pair_style lambda/input/csp/apip bcc cutoff 5.0 N_buffer 2
    pair_style lambda/input/csp/apip 14
 
+Example input scripts available: examples/PACKAGES/apip/in.surface.balance, examples/PACKAGES/apip/in.vacancy.dynamic.lambda
+
 Description
 """""""""""
 

@@ -43,6 +43,8 @@ Examples
    # (quartz modeled with the BKS force field, metal units)
    fix 2 all qbmsst z 72 q 40 tscale 0.05 damp 1 seed 47508 f_max 120.0 N_f 100 eta 1.0 beta 500 T_init 300
 
+Example input scripts available: examples/PACKAGES/qtb/methane_qbmsst/in.methane_qbmsst, examples/PACKAGES/qtb/alpha_quartz_qbmsst/in.alpha_quartz_qbmsst
+
 Two example input scripts are given, including shocked
 :math:`\alpha\textrm{-quartz}` and shocked liquid methane.  The input
 script first equilibrates an initial state with the quantum thermal

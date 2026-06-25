@@ -30,6 +30,8 @@ Example
 
    fix 1 all ti/spring 50.0 2000 1000 function 2
 
+Example input scripts available: examples/PACKAGES/ti/in.ti_spring
+
 Description
 """""""""""
 

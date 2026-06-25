@@ -35,6 +35,8 @@ Examples
    fix 1 all rheo/viscosity * constant 1.0
    fix 1 all rheo/viscosity 1 constant 1.0 2 power 0.1 5e-4 0.001 0.5
 
+Example input scripts available: examples/rheo/taylor-green/in.rheo.taylor.green, examples/rheo/balloon/in.rheo.balloon, examples/rheo/poiseuille/in.rheo.poiseuille
+
 Description
 """""""""""
 

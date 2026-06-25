@@ -26,6 +26,8 @@ Examples
    minimize 1.0e-4 1.0e-6 100 1000
    minimize 0.0 1.0e-8 1000 100000
 
+Example input scripts available: examples/fire/in.meam.fire, examples/template/in.mol-restart-mix, examples/template/in.tmpl-restart-mix
+
 Description
 """""""""""
 

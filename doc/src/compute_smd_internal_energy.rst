@@ -20,6 +20,8 @@ Examples
 
    compute 1 all smd/internal/energy
 
+Example input scripts available: examples/PACKAGES/machdyn/rubber_rings_3d/in.rubber_rings_3d, examples/PACKAGES/machdyn/funnel_flow/in.funnel_flow, examples/PACKAGES/machdyn/fluid_structure_interaction/in.fluid_structure_interaction
+
 Description
 """""""""""
 

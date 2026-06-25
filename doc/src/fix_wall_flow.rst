@@ -37,6 +37,8 @@ Examples
 
    fix 1 all wall/flow x 0.4 1.5 593894 4 2.0 4.0 6.0 8.0
 
+Example input scripts available: examples/wall/in.wall.flow
+
 Description
 """""""""""
 

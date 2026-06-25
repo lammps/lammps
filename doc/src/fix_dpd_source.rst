@@ -45,6 +45,8 @@ Examples
    fix 1 all tdpd/source 2 cuboid 0.0 0.0 0.0 20.0 10.0 10.0 0.01
    fix 1 all tdpd/source 1 region lower -0.01
 
+Example input scripts available: examples/PACKAGES/dpd-meso/edpd/in.edpd, examples/PACKAGES/dpd-meso/tdpd/in.tdpd, examples/PACKAGES/dpd-meso/edpd/in.edpd-region
+
 Description
 """""""""""
 

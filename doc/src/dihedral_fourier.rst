@@ -23,6 +23,8 @@ Examples
    dihedral_style fourier
    dihedral_coeff 1 3 -0.846200 3 0.0 7.578800 1 0 0.138000 2 -180.0
 
+Example input scripts available: examples/amoeba/in.ubiquitin
+
 Description
 """""""""""
 

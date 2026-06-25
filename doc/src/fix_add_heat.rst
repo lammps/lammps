@@ -42,6 +42,8 @@ Examples
    fix 1 all add/heat constant v_heat
    fix 1 all add/heat linear 10.0 1.0 overwrite yes
 
+Example input scripts available: examples/rheo/oxidation/in.rheo.oxidation
+
 Description
 """""""""""
 

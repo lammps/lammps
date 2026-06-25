@@ -21,6 +21,8 @@ Examples
    pair_style multi/lucy linear 1000
    pair_coeff * * multibody.table ENTRY1 7.0
 
+Example input scripts available: examples/PACKAGES/dpd-react/multi-lucy/in.multi-lucy
+
 Description
 """""""""""
 

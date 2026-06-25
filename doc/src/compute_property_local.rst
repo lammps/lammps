@@ -81,6 +81,8 @@ Examples
    compute 1 all property/local btype batom1 batom2
    compute 1 all property/local atype aatom2
 
+Example input scripts available: examples/bpm/pour/in.bpm.pour
+
 Description
 """""""""""
 

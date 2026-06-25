@@ -28,6 +28,8 @@ Examples
    fix 3 all nve/spin lattice moving
    fix 1 all nve/spin lattice frozen
 
+Example input scripts available: examples/SPIN/read_restart/in.spin.read_data, examples/SPIN/read_restart/in.spin.restart, examples/SPIN/test_problems/validation_nvt/in.spin.nvt_lattice
+
 Description
 """""""""""
 

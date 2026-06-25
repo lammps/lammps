@@ -34,6 +34,8 @@ Examples
    fix 1 all temp/csvr 300.0 300.0 100.0 54324
    fix 1 all temp/csld 100.0 300.0 10.0 123321
 
+Example input scripts available: examples/PACKAGES/entropy/in.entropy
+
 Description
 """""""""""
 

@@ -58,6 +58,8 @@ Examples
    pair_style lj/spica/coul/msm 10.0 12.0
    pair_coeff 1 1 lj9_6 100.0 3.5 12.0
 
+Example input scripts available: examples/PACKAGES/cgspica/sds-monolayer/in.sds-regular
+
 Description
 """""""""""
 

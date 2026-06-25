@@ -34,6 +34,8 @@ Examples
    fix 1 all acks2/reaxff 1 0.0 10.0 1.0e-6 reaxff
    fix 1 all acks2/reaxff 1 0.0 10.0 1.0e-6 param.acks2 maxiter 500
 
+Example input scripts available: examples/reaxff/water/in.water.acks2, examples/reaxff/water/in.water.acks2.field
+
 Description
 """""""""""
 

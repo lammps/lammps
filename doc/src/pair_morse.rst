@@ -44,6 +44,8 @@ Examples
    pair_coeff * * 100.0 2.0 1.5
    pair_coeff 1 1 100.0 2.0 1.5 3.0
 
+Example input scripts available: examples/wall/in.wall.lepton, examples/wall/in.wall.table, examples/PACKAGES/momb/in.system
+
 Description
 """""""""""
 

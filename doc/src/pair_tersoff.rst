@@ -46,6 +46,8 @@ Examples
    pair_style tersoff shift 0.05
    pair_coeff * * Si.tersoff Si
 
+Example input scripts available: examples/tersoff/in.hBN_shift, examples/tersoff/in.tersoff, examples/threebody/in.threebody
+
 Description
 """""""""""
 

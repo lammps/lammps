@@ -20,6 +20,8 @@ Examples
 
    compute 1 all sph/e/atom
 
+Example input scripts available: examples/grid/in.sph
+
 Description
 """""""""""
 

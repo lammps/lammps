@@ -30,6 +30,8 @@ Examples
    pair_coeff * * 100.0 1.0
    pair_coeff 1 1 100.0 1.0
 
+Example input scripts available: examples/body/in.cubes, examples/body/in.pour3d, examples/GRAPHICS/in.cubes-and-pyramids
+
 Description
 """""""""""
 

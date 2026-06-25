@@ -160,8 +160,9 @@ columns containing the constraint-force components ``(fx, fy, fz)`` added by
 the fix on the current time step, accessible as ``f_<ID>[1]``, ``f_<ID>[2]``,
 and ``f_<ID>[3]``.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported to add the
-contribution of the constraint forces to the global pressure.
+By default the constraint forces are not added to the pressure virial; use
+:doc:`fix_modify <fix_modify>` *virial yes* to include their contribution to the
+global pressure.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""

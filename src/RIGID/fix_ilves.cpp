@@ -110,9 +110,11 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   // temperature computes to query dof()
   dof_flag = 1;
 
-  // the constraint forces contribute to the global pressure virial
+  // the constraint forces can contribute to the global pressure virial; this is
+  // opt-in via fix_modify virial yes (the post-restart and per-atom-mass virial
+  // are not yet reproducible enough to enable by default)
   virial_global_flag = 1;
-  thermo_virial = 1;
+  for (int i = 0; i < 6; ++i) virial[i] = 0.0;
 
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix ilves", error);
 
@@ -549,6 +551,16 @@ void FixIlves::grow_arrays_local()
 int FixIlves::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int m = 0;
+  // commstage 2 carries the per-atom inverse mass (one value, zero-padded to
+  // the 3-wide buffer); never shifted
+  if (commstage == 2) {
+    for (int i = 0; i < n; ++i) {
+      buf[m++] = invmass[list[i]];
+      buf[m++] = 0.0;
+      buf[m++] = 0.0;
+    }
+    return m;
+  }
   // commstage 1 carries velocities (no periodic-image shift); commstage 0
   // carries predicted positions (shifted across periodic boundaries)
   if ((pbc_flag == 0) || (commstage == 1)) {
@@ -583,6 +595,13 @@ void FixIlves::unpack_forward_comm(int n, int first, double *buf)
 {
   int m = 0;
   const int last = first + n;
+  if (commstage == 2) {
+    for (int i = first; i < last; ++i) {
+      invmass[i] = buf[m++];
+      m += 2;
+    }
+    return;
+  }
   for (int i = first; i < last; ++i) {
     xpred[i][0] = buf[m++];
     xpred[i][1] = buf[m++];
@@ -672,11 +691,16 @@ void FixIlves::build_constraint_list()
 
   const int nall = atom->nlocal + atom->nghost;
   invmass.assign(nall, 0.0);
-  for (int k = 0; k < nconstraints; ++k) {
-    const int a = clist_a[k];
-    const int b = clist_b[k];
-    invmass[a] = rmass ? 1.0 / rmass[a] : 1.0 / mass[type[a]];
-    invmass[b] = rmass ? 1.0 / rmass[b] : 1.0 / mass[type[b]];
+  for (int i = 0; i < nlocal; ++i)
+    invmass[i] = rmass ? 1.0 / rmass[i] : 1.0 / mass[type[i]];
+
+  // communicate the inverse mass to the ghosts, so a constraint partner owned by
+  // another rank (or a periodic image) has the correct value regardless of
+  // whether the atom style communicates per-atom mass to ghosts.
+
+  if (atom->nghost > 0) {
+    commstage = 2;
+    comm->forward_comm(this);
   }
 
   // (re)build the ILVES solver for the current constraint topology.

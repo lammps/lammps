@@ -14,11 +14,12 @@ Syntax
 * tol = convergence tolerance on the relative bond-length error
 * iter = maximum number of Newton iterations per time step
 * N = print constraint statistics every this many time steps (0 = never)
-* selectors = one or more of *b*, *t*, *m*, each followed by one or more numeric values
+* selectors = one or more of *b*, *a*, *t*, *m*, each followed by one or more numeric values
 
   .. parsed-literal::
 
        *b* values = one or more bond types
+       *a* values = one or more angle types
        *t* values = one or more atom types
        *m* values = one or more atom masses
 
@@ -41,15 +42,16 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all ilves 1.0e-6 25 0 b 4 6 8 10
-   fix 2 wat ilves 1.0e-8 25 1000 t 1 m 1.008 store yes
+   fix 2 wat ilves 1.0e-8 25 1000 b 18 a 31
    fix 3 all ilves 1.0e-6 25 0 b 1 variant full
+   fix 4 sol ilves 1.0e-8 25 0 t 1 m 1.008 store yes
 
 Description
 """""""""""
 
 .. versionadded:: TBD
 
-Apply bond-length constraints using the ILVES algorithm of
+Apply bond-length and angle constraints using the ILVES algorithm of
 :ref:`(Lopez-Villellas) <Lopez-Villellas2025>`.  ILVES enforces holonomic
 distance constraints with Newton's method on a sparse system of nonlinear
 equations.  Unlike :doc:`fix shake <fix_shake>`, ILVES handles arbitrarily
@@ -63,12 +65,6 @@ topology handling) is reused largely unchanged, while the interface to the
 LAMMPS data structures and the time integration follow :doc:`fix shake
 <fix_shake>` and :doc:`fix rattle <fix_shake>`.
 
-.. note::
-
-   In this version *fix ilves* constrains bond lengths only.  Angle
-   constraints (imposed as a "virtual" distance constraint between the two
-   outer atoms of an angle) are not yet supported.
-
 User interface
 ^^^^^^^^^^^^^^
 
@@ -79,20 +75,35 @@ tolerance :math:`\frac{|g_k|}{d_k^2}` (where :math:`g_k = \frac{1}{2}(|s_k|^2
 number of Newton iterations per step, and the frequency of statistics output
 (0 turns it off).
 
-Then one or more groups of selectors (``b``, ``t``, ``m`` lists) pick which
-bonds get constrained.  A bond is constrained when **both** of its atoms are
-in the fix group AND at least one of the selectors matches:
+Then one or more groups of selectors (``b``, ``a``, ``t``, ``m`` lists) pick
+which bonds and angles get constrained.  A bond is constrained when **both** of
+its atoms are in the fix group AND at least one of the selectors matches:
 
 * the bond type is in the *b* list, or
 * either atom type is in the *t* list, or
 * either atom mass is within 0.1 mass units of any value in the *m* list.
 
-For each bond that is selected, *fix ilves* sets the corresponding
-``bond_type`` to its negative value so that the configured :doc:`bond_style
-<bond_style>` skips the (now rigid) interaction and thus avoids
-double-counting of bonded forces.  This mirrors how :doc:`fix shake
-<fix_shake>` handles the same problem and is reversed automatically when the
-fix is deleted.
+An angle whose type is in the *a* list contributes a "virtual bond" constraint
+on the distance between its two outer atoms (A and C of an A-B-C angle), which
+together with the two constrained legs makes the angle rigid.  The angle is
+constrained when all three of its atoms are in the fix group, its type is
+selected, and **both** flanking bonds (A-B and B-C) are themselves constrained.
+The A-C target distance is computed from the two bond equilibrium lengths and
+the angle equilibrium value via the law of cosines, identical to :doc:`fix shake
+<fix_shake>`.
+
+For each bond or angle that is selected, *fix ilves* sets the corresponding
+``bond_type`` or ``angle_type`` to its negative value so that the configured
+:doc:`bond_style <bond_style>` / :doc:`angle_style <angle_style>` skips the
+(now rigid) interaction and thus avoids double-counting of bonded forces.  This
+mirrors how :doc:`fix shake <fix_shake>` handles the same problem and is
+reversed automatically when the fix is deleted.
+
+Unlike :doc:`fix shake <fix_shake>`, which only supports small isolated
+clusters, the legs and the A-C virtual bond of an angle become part of the same
+connected constraint cluster that the ILVES solver handles directly, so angles
+sharing atoms (or angles within larger constrained networks) need no special
+casing.
 
 Algorithm
 ^^^^^^^^^

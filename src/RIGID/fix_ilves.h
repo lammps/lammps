@@ -62,9 +62,10 @@ class FixIlves : public Fix {
   std::vector<int> type_flag;     // [ntypes+1] constrain bonds touching these atom types
   std::vector<double> mass_list;  // constrain bonds touching atoms of these masses
 
-  int molecular;                     // copy of atom->molecular
-  std::vector<double> bond_distance; // [nbondtypes+1] equilibrium bond lengths
-  int types_negated;                 // 1 once constrained bond types have been negated
+  int molecular;                      // copy of atom->molecular
+  std::vector<double> bond_distance;  // [nbondtypes+1] equilibrium bond lengths
+  std::vector<double> angle_distance; // [nangletypes+1] equilibrium A-C distances
+  int types_negated;                  // 1 once constrained bond/angle types have been negated
 
   int store_flag;     // 1 to expose per-atom constraint forces via array_atom
   double **fstore;    // per-atom constraint forces (when store_flag)
@@ -107,8 +108,11 @@ class FixIlves : public Fix {
   void project_velocities();
   void grow_arrays_local();
   void stats();
-  void negate_bond_types(int sign);    // sign < 0 negate, sign > 0 restore
+  void negate_bond_types(int sign);     // sign < 0 negate, sign > 0 restore
+  void negate_angle_types(int sign);    // sign < 0 negate, sign > 0 restore
   int bond_selected(int i, int j, int btype);
+  int angle_selected(int i, int m, int &a, int &c, int &atype);
+  int find_bond_type(int i, int j);
   int masscheck(double massone);
 };
 

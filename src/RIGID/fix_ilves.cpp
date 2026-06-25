@@ -34,6 +34,7 @@
 
 #include "fix_ilves.h"
 
+#include "angle.h"
 #include "atom.h"
 #include "bond.h"
 #include "citeme.h"
@@ -170,12 +171,6 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     if (nvalues == 0) error->all(FLERR, "Fix ilves selector '{}' needs one or more values", sel);
   }
 
-  // angle constraints are not yet implemented in this phase
-
-  for (int i = 1; i <= atom->nangletypes; ++i)
-    if (angle_flag[i])
-      error->all(FLERR, "Fix ilves angle constraints are not yet implemented");
-
   // optional keyword/value pairs
 
   while (iarg < narg) {
@@ -228,9 +223,12 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
 
 FixIlves::~FixIlves()
 {
-  // restore the bond types we negated so the bonded styles act on them again
+  // restore the bond/angle types we negated so the bonded styles act on them again
 
-  if (types_negated && atom->bond_type) negate_bond_types(1);
+  if (types_negated) {
+    if (atom->bond_type) negate_bond_types(1);
+    if (atom->angle_type) negate_angle_types(1);
+  }
 
   delete ilves_solver;
   memory->destroy(xpred);
@@ -267,6 +265,49 @@ void FixIlves::init()
   for (int i = 1; i <= atom->nbondtypes; ++i)
     bond_distance[i] = force->bond->equilibrium_distance(i);
 
+  // equilibrium A-C "virtual bond" distances for the selected angle types,
+  // from the two leg bond lengths and the angle via the law of cosines (as in
+  // fix shake).  computed per angle type from a representative angle and
+  // reduced across ranks so every rank agrees.
+
+  angle_distance.assign(atom->nangletypes + 1, 0.0);
+  int any_angle = 0;
+  for (int i = 1; i <= atom->nangletypes; ++i) any_angle += angle_flag[i];
+  if (any_angle) {
+    if (!force->angle)
+      error->all(FLERR, "Fix ilves angle constraints require an angle style");
+
+    std::vector<double> ad(atom->nangletypes + 1, 0.0);
+    int *num_angle = atom->num_angle;
+    int **angle_type = atom->angle_type;
+    tagint **angle_atom1 = atom->angle_atom1;
+    tagint **angle_atom2 = atom->angle_atom2;
+    tagint **angle_atom3 = atom->angle_atom3;
+    tagint *tag = atom->tag;
+    int n = atom->nlocal;
+
+    if (num_angle) {
+      for (int i = 0; i < n; ++i) {
+        for (int m = 0; m < num_angle[i]; ++m) {
+          const int at = abs(angle_type[i][m]);
+          if ((at == 0) || !angle_flag[at] || (ad[at] > 0.0)) continue;
+          if (angle_atom2[i][m] != tag[i]) continue;    // process at the center atom
+          const int a0 = atom->map(angle_atom1[i][m]);
+          const int c0 = atom->map(angle_atom3[i][m]);
+          if ((a0 < 0) || (c0 < 0)) continue;
+          const int tab = find_bond_type(i, a0);
+          const int tbc = find_bond_type(i, c0);
+          if ((tab == 0) || (tbc == 0)) continue;
+          const double th = force->angle->equilibrium_angle(at);
+          const double b1 = bond_distance[tab], b2 = bond_distance[tbc];
+          ad[at] = sqrt(b1 * b1 + b2 * b2 - 2.0 * b1 * b2 * cos(th));
+        }
+      }
+    }
+    MPI_Allreduce(ad.data(), angle_distance.data(), atom->nangletypes + 1, MPI_DOUBLE, MPI_MAX,
+                  world);
+  }
+
   // timestep factors for predicting unconstrained positions and converting
   // the Lagrange multipliers to forces, identical to fix shake (SHAKE form).
 
@@ -287,6 +328,7 @@ void FixIlves::setup_pre_neighbor()
 
   if (!types_negated) {
     negate_bond_types(-1);
+    negate_angle_types(-1);
     types_negated = 1;
   }
 
@@ -297,10 +339,13 @@ void FixIlves::setup_pre_neighbor()
 
 void FixIlves::setup(int vflag)
 {
-  bigint nc = nconstraints, nctot = 0;
-  MPI_Allreduce(&nc, &nctot, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+  bigint nb = 0, na = 0;
+  for (int k = 0; k < nconstraints; ++k)
+    if (clist_btype[k] > 0) ++nb; else ++na;
+  bigint nc[2] = {nb, na}, nctot[2] = {0, 0};
+  MPI_Allreduce(nc, nctot, 2, MPI_LMP_BIGINT, MPI_SUM, world);
   if (comm->me == 0)
-    utils::logmesg(lmp, "Fix ilves: constraining {} bond(s)\n", nctot);
+    utils::logmesg(lmp, "Fix ilves: constraining {} bond(s) and {} angle(s)\n", nctot[0], nctot[1]);
 
   // schedule the next statistics output
 
@@ -684,6 +729,25 @@ void FixIlves::build_constraint_list()
     }
   }
 
+  // angle "virtual bond" constraints: the A-C distance of a selected angle
+  // A-B-C whose two flanking bonds are themselves constrained, which makes the
+  // triangle (and hence the angle) rigid.
+
+  int *num_angle = atom->num_angle;
+  if (num_angle) {
+    for (int i = 0; i < nlocal; ++i) {
+      if (!(mask[i] & groupbit)) continue;
+      for (int m = 0; m < num_angle[i]; ++m) {
+        int a, c, atype;
+        if (!angle_selected(i, m, a, c, atype)) continue;
+        clist_a.push_back(a);
+        clist_b.push_back(c);
+        clist_d.push_back(angle_distance[atype]);
+        clist_btype.push_back(-atype);    // negative marks an A-C angle constraint
+      }
+    }
+  }
+
   nconstraints = (int) clist_a.size();
 
   // per-atom inverse mass (1/m) for the constrained atoms, handed to the solver.
@@ -757,6 +821,100 @@ void FixIlves::negate_bond_types(int sign)
 }
 
 /* ----------------------------------------------------------------------
+   return the (positive) type of the bond between atoms i and j, or 0 if there
+   is no such bond available locally.  searches the bond list of whichever of
+   the two atoms is a local (owned) atom.
+------------------------------------------------------------------------- */
+
+int FixIlves::find_bond_type(int i, int j)
+{
+  int *num_bond = atom->num_bond;
+  tagint **bond_atom = atom->bond_atom;
+  int **bond_type = atom->bond_type;
+  tagint *tag = atom->tag;
+  const int n = atom->nlocal;
+
+  if (!num_bond) return 0;
+
+  if (i < n) {
+    const tagint tj = tag[j];
+    for (int m = 0; m < num_bond[i]; ++m)
+      if (bond_atom[i][m] == tj) return abs(bond_type[i][m]);
+  }
+  if (j < n) {
+    const tagint ti = tag[i];
+    for (int m = 0; m < num_bond[j]; ++m)
+      if (bond_atom[j][m] == ti) return abs(bond_type[j][m]);
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   decide whether angle m of (local center) atom i is constrained.  it is when
+   its type is selected, all three atoms are in the group, both flanking bonds
+   are themselves selected (constrained), and the A-C distance is known.  fills
+   the (local/ghost, closest-image) outer-atom indices a, c and the angle type.
+------------------------------------------------------------------------- */
+
+int FixIlves::angle_selected(int i, int m, int &a, int &c, int &atype)
+{
+  int **angle_type = atom->angle_type;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom2 = atom->angle_atom2;
+  tagint **angle_atom3 = atom->angle_atom3;
+  tagint *tag = atom->tag;
+
+  atype = abs(angle_type[i][m]);
+  if ((atype == 0) || !angle_flag[atype] || (angle_distance[atype] <= 0.0)) return 0;
+  if (angle_atom2[i][m] != tag[i]) return 0;    // only process at the center atom
+
+  const int a0 = atom->map(angle_atom1[i][m]);
+  const int c0 = atom->map(angle_atom3[i][m]);
+  if ((a0 < 0) || (c0 < 0)) return 0;
+  a = domain->closest_image(i, a0);
+  c = domain->closest_image(i, c0);
+
+  if (!(mask[a] & groupbit) || !(mask[c] & groupbit)) return 0;
+
+  const int tab = find_bond_type(i, a);
+  const int tbc = find_bond_type(i, c);
+  if ((tab == 0) || (tbc == 0)) return 0;
+  if (!bond_selected(i, a, tab) || !bond_selected(i, c, tbc)) return 0;
+
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
+   negate (sign<0) or restore (sign>0) the angle_type of selected angles.
+------------------------------------------------------------------------- */
+
+void FixIlves::negate_angle_types(int sign)
+{
+  int n = atom->nlocal;
+  int *num_angle = atom->num_angle;
+  int **angle_type = atom->angle_type;
+
+  if (!num_angle) return;
+
+  type = atom->type;    // angle_selected() / bond_selected() read these
+  mask = atom->mask;
+  mass = atom->mass;
+  rmass = atom->rmass;
+
+  for (int i = 0; i < n; ++i) {
+    if (!(mask[i] & groupbit)) continue;
+    for (int m = 0; m < num_angle[i]; ++m) {
+      int a, c, atype;
+      if (!angle_selected(i, m, a, c, atype)) continue;
+      if ((sign < 0) && (angle_type[i][m] > 0))
+        angle_type[i][m] = -angle_type[i][m];
+      else if ((sign > 0) && (angle_type[i][m] < 0))
+        angle_type[i][m] = -angle_type[i][m];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    a bond between local i and (local/ghost) j of (positive) type btype is
    selected when its type, either atom type, or either atom mass matches.
 ------------------------------------------------------------------------- */
@@ -810,9 +968,12 @@ bigint FixIlves::dof(int igroup)
 void FixIlves::stats()
 {
   const int nb = atom->nbondtypes + 1;
-  std::vector<bigint> bcount(nb, 0), bcount_all(nb, 0);
+  const int na = atom->nangletypes + 1;
+  std::vector<bigint> bcount(nb, 0), bcount_all(nb, 0), acount(na, 0), acount_all(na, 0);
   std::vector<double> bsum(nb, 0.0), bmin(nb, 1.0e20), bmax(nb, 0.0);
   std::vector<double> bsum_all(nb, 0.0), bmin_all(nb, 0.0), bmax_all(nb, 0.0);
+  std::vector<double> asum(na, 0.0), amin(na, 1.0e20), amax(na, 0.0);
+  std::vector<double> asum_all(na, 0.0), amin_all(na, 0.0), amax_all(na, 0.0);
 
   double **xx = atom->x;
   for (int k = 0; k < nconstraints; ++k) {
@@ -821,16 +982,28 @@ void FixIlves::stats()
     const double dy0 = xx[b][1] - xx[a][1];
     const double dz0 = xx[b][2] - xx[a][2];
     const double r = sqrt(dx0 * dx0 + dy0 * dy0 + dz0 * dz0);
-    ++bcount[t];
-    bsum[t] += r;
-    if (r < bmin[t]) bmin[t] = r;
-    if (r > bmax[t]) bmax[t] = r;
+    if (t > 0) {    // bond constraint
+      ++bcount[t];
+      bsum[t] += r;
+      if (r < bmin[t]) bmin[t] = r;
+      if (r > bmax[t]) bmax[t] = r;
+    } else {    // A-C angle constraint, type encoded as -t
+      const int at = -t;
+      ++acount[at];
+      asum[at] += r;
+      if (r < amin[at]) amin[at] = r;
+      if (r > amax[at]) amax[at] = r;
+    }
   }
 
   MPI_Allreduce(bcount.data(), bcount_all.data(), nb, MPI_LMP_BIGINT, MPI_SUM, world);
   MPI_Allreduce(bsum.data(), bsum_all.data(), nb, MPI_DOUBLE, MPI_SUM, world);
   MPI_Allreduce(bmin.data(), bmin_all.data(), nb, MPI_DOUBLE, MPI_MIN, world);
   MPI_Allreduce(bmax.data(), bmax_all.data(), nb, MPI_DOUBLE, MPI_MAX, world);
+  MPI_Allreduce(acount.data(), acount_all.data(), na, MPI_LMP_BIGINT, MPI_SUM, world);
+  MPI_Allreduce(asum.data(), asum_all.data(), na, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(amin.data(), amin_all.data(), na, MPI_DOUBLE, MPI_MIN, world);
+  MPI_Allreduce(amax.data(), amax_all.data(), na, MPI_DOUBLE, MPI_MAX, world);
 
   if (comm->me == 0) {
     utils::logmesg(lmp, "Fix ilves constraint statistics at step {} (max {} Newton iterations):\n",
@@ -839,6 +1012,11 @@ void FixIlves::stats()
       if (bcount_all[t] == 0) continue;
       utils::logmesg(lmp, "  bond type {}: count {}  ave {:.6g}  spread {:.3g}\n", t, bcount_all[t],
                      bsum_all[t] / (double) bcount_all[t], bmax_all[t] - bmin_all[t]);
+    }
+    for (int t = 1; t < na; ++t) {
+      if (acount_all[t] == 0) continue;
+      utils::logmesg(lmp, "  angle type {} (A-C): count {}  ave {:.6g}  spread {:.3g}\n", t,
+                     acount_all[t], asum_all[t] / (double) acount_all[t], amax_all[t] - amin_all[t]);
     }
   }
 

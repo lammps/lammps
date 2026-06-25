@@ -1,7 +1,11 @@
 .. index:: pair_style dispersion/d3
+.. index:: pair_style dispersion/d3/kk
+.. index:: pair_style dispersion/d3/omp
 
 pair_style dispersion/d3 command
 ================================
+
+Accelerator Variants: *dispersion/d3/kk*, *dispersion/d3/omp*
 
 Syntax
 """"""

@@ -83,8 +83,7 @@ void PairDispersionD3OMP::calc_coordination_number()
 
   // Begin parallel region, the central atoms indexed by ii are assigned to different threads.
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
-  shared(force,atom,list,fix,cn,dc6,cutsq,r0ab,r2r4,rcov,s6,s8,rs6,rs8,alpha,a1,a2,dampingCode,cn_thr,eatom,vatom,stderr,comm) \
+  #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED() \
   firstprivate(inum,nthreads)
   #endif
   {
@@ -189,8 +188,7 @@ void PairDispersionD3OMP::compute(int eflag, int vflag)
 
 // Parallel direct force computation and some other quantities calculation.
 #if defined(_OPENMP)
-#pragma omp parallel default(none) \
-shared(eflag,vflag,force,atom,list,fix,cn,dc6,cutsq,r0ab,r2r4,rcov,s6,s8,rs6,rs8,alpha,a1,a2,dampingCode,cn_thr,eatom,vatom,stderr,comm) \
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag) \
 firstprivate(inum,nthreads,nall)
 #endif
   {
@@ -235,8 +233,7 @@ firstprivate(inum,nthreads,nall)
   // Process the second phase with the combined dc6 values
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
-  shared(eflag,vflag,force,atom,list,fix,cn,dc6,cutsq,r0ab,r2r4,rcov,s6,s8,rs6,rs8,alpha,a1,a2,dampingCode,cn_thr,eatom,vatom,stderr,comm) \
+  #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag) \
   firstprivate(inum,nthreads,nall)
   #endif
   {
@@ -636,4 +633,3 @@ double PairDispersionD3OMP::memory_usage()
   bytes += PairDispersionD3::memory_usage();
   return bytes;
 }
-

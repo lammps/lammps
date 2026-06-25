@@ -39,6 +39,7 @@ class FixIlves : public Fix {
   void min_setup(int) override;
   void pre_neighbor() override;
   void post_force(int) override;
+  void post_force_respa(int, int, int) override;
   void min_post_force(int) override;
   void end_of_step() override;
 
@@ -112,10 +113,21 @@ class FixIlves : public Fix {
   int maxatom;    // current allocated length of the above per-atom arrays
   int commstage;  // 0 = forward-comm positions (PBC shift), 1 = velocities (no shift)
 
-  // timestep factors, as in fix shake
-  double dtv;          // = dt
+  // timestep factors, as in fix shake.  for r-RESPA dtfsq/inv_dtfsq are
+  // recomputed per level in post_force_respa (= dtf_inner * step_respa[ilevel]).
+  double dtv;          // = dt (or step_respa[0] for r-RESPA)
   double dtfsq;        // = dt^2 * ftm2v
   double inv_dtfsq;    // = 1 / dtfsq
+
+  // r-RESPA support, mirroring fix shake (SHAKE-form coupling, so the full-step
+  // dtf_inner is used, not the half-step rattle form)
+  int respa;                   // 0 = velocity Verlet, 1 = r-RESPA
+  int nlevels_respa;           // number of r-RESPA levels
+  int *loop_respa;             // sub-cycling factor at each level (Respa-owned)
+  double *step_respa;          // timestep at each level (Respa-owned)
+  class FixRespa *fix_respa;   // holds the per-level forces (f_level)
+  double dtf_inner;            // = step_respa[0] * ftm2v
+  double dtf_innerhalf;        // = 0.5 * step_respa[0] * ftm2v
 
   // cached local ptrs to atom-class quantities
   double **x, **v, **f;
@@ -124,6 +136,8 @@ class FixIlves : public Fix {
   int nlocal;
 
   void build_constraint_list();
+  int run_newton();          // drive prepared xpred onto the constraint manifold; returns # iters
+  int solve_constraints();   // run_newton, then turn the displacement into forces; returns # iters
   void apply_linear_restraint();
   double min_harmonic_bond(int a, int b, double d, double k);
   void project_velocities();

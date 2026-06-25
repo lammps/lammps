@@ -41,12 +41,15 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_respa.h"
 #include "force.h"
 #include "group.h"
 #include "ilves_asym.h"
 #include "ilves_sym.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
+#include "respa.h"
 #include "update.h"
 
 #include <cmath>
@@ -109,8 +112,9 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     fstore(nullptr),
     maxstore(0), niter_max(0), nconstraints(0), ilves_solver(nullptr),
     xpred(nullptr), xpred0(nullptr), dx(nullptr), maxatom(0), commstage(0), dtv(0.0), dtfsq(0.0),
-    inv_dtfsq(0.0), x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr),
-    type(nullptr), mask(nullptr), nlocal(0)
+    inv_dtfsq(0.0), respa(0), nlevels_respa(0), loop_respa(nullptr), step_respa(nullptr),
+    fix_respa(nullptr), dtf_inner(0.0), dtf_innerhalf(0.0), x(nullptr), v(nullptr), f(nullptr),
+    mass(nullptr), rmass(nullptr), type(nullptr), mask(nullptr), nlocal(0)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ilves);
 
@@ -289,6 +293,7 @@ int FixIlves::setmask()
   int mask = 0;
   mask |= PRE_NEIGHBOR;
   mask |= POST_FORCE;
+  mask |= POST_FORCE_RESPA;
   mask |= END_OF_STEP;
   mask |= MIN_PRE_NEIGHBOR;
   mask |= MIN_POST_FORCE;
@@ -302,9 +307,17 @@ void FixIlves::init()
   if (!force->bond)
     error->all(FLERR, "Fix ilves requires a bond style to define equilibrium bond lengths");
 
-  // r-RESPA is not supported yet
-  if (utils::strmatch(update->integrate_style, "^respa"))
-    error->all(FLERR, "Fix ilves does not support run_style respa");
+  // detect r-RESPA and cache its level structure (as in fix shake).  the
+  // per-level timestep factors and the FixRespa pointer are set in setup().
+  respa = 0;
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    auto *respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
+    respa = 1;
+    nlevels_respa = respa_ptr->nlevels;
+    loop_respa = respa_ptr->loop;
+    step_respa = respa_ptr->step;
+  }
 
   // equilibrium bond lengths per bond type, as in fix shake
 
@@ -382,11 +395,14 @@ void FixIlves::init()
   }
 
   // timestep factors for predicting unconstrained positions and converting
-  // the Lagrange multipliers to forces, identical to fix shake (SHAKE form).
+  // the constraint multipliers to forces, identical to fix shake (SHAKE form).
+  // for r-RESPA these are level-dependent and set in setup()/post_force_respa.
 
-  dtv = update->dt;
-  dtfsq = update->dt * update->dt * force->ftm2v;
-  inv_dtfsq = 1.0 / dtfsq;
+  if (!respa) {
+    dtv = update->dt;
+    dtfsq = update->dt * update->dt * force->ftm2v;
+    inv_dtfsq = 1.0 / dtfsq;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -432,11 +448,50 @@ void FixIlves::setup(int vflag)
   }
   if (output_every) stats();
 
-  // project the initial velocities onto the constraint manifold (remove the
-  // component along each bond), so the run starts constraint-consistent
+  // remove the velocity component along each bond so the run starts with
+  // constraint-consistent velocities (as fix rattle does)
   project_velocities();
 
-  post_force(vflag);
+  // precompute the constraint forces for the first integration step
+  if (!respa) {
+    post_force(vflag);
+  } else {
+    // find the FixRespa that stores the per-level forces, and set the SHAKE-form
+    // (full-step) timestep factors used to predict the unconstrained positions
+    if (update->whichflag > 0) {
+      auto fixes = modify->get_fix_by_style("^RESPA");
+      if (fixes.size() > 0)
+        fix_respa = dynamic_cast<FixRespa *>(fixes.front());
+      else
+        error->all(FLERR, "Run style respa did not create fix RESPA");
+    }
+    dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
+    dtf_inner = step_respa[0] * force->ftm2v;
+
+    // step-0 virial: one Verlet-style solve on the total force (atom->f still
+    // holds the summed per-level forces at this point), so the reported initial
+    // pressure equals the Verlet value.  the per-level precompute below would
+    // instead count the initial constraint reaction once per level.
+    dtv = update->dt;
+    dtfsq = update->dt * update->dt * force->ftm2v;
+    inv_dtfsq = 1.0 / dtfsq;
+    post_force(vflag);
+
+    // precompute the per-level constraint forces for the first step (so the
+    // first r-RESPA half-kick is constrained), swapping each level's stored
+    // force into atom->f around the call (as fix shake does).  the virial is
+    // disabled here so it is not changed from the Verlet-style value above.
+    dtv = step_respa[0];
+    const int saved_vflag_global = vflag_global;
+    vflag_global = 0;
+    auto *respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    for (int ilevel = 0; ilevel < nlevels_respa; ++ilevel) {
+      respa_ptr->copy_flevel_f(ilevel);
+      post_force_respa(0, ilevel, loop_respa[ilevel] - 1);
+      respa_ptr->copy_f_flevel(ilevel);
+    }
+    vflag_global = saved_vflag_global;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -487,7 +542,6 @@ void FixIlves::post_force(int vflag)
   mass = atom->mass;
   rmass = atom->rmass;
   nlocal = atom->nlocal;
-  const int nall = nlocal + atom->nghost;
 
   if (output_every && (update->ntimestep == next_output)) {
     stats();
@@ -535,17 +589,37 @@ void FixIlves::post_force(int vflag)
     xpred0[i][2] = xpred[i][2];
   }
 
+  // solve the constraint system on the prepared prediction and add the forces
+
+  const int numit = solve_constraints();
+
+  // add this step's constraint contribution to the global pressure virial
+
+  if (numit > 0 && vflag_global) ilves_solver->add_global_virial(virial, inv_dtfsq);
+}
+
+/* ----------------------------------------------------------------------
+   Run the global Newton iteration that drives the predicted positions xpred
+   onto the constraint manifold, and return the number of iterations taken.
+   xpred must already be prepared by the caller; on return it holds the
+   constrained positions (home + ghost).  solve_constraints then turns the
+   net displacement into a force.
+
+   The loop is driven uniformly on all ranks: the convergence test uses the
+   all-reduced maximum residual, so every rank takes the same number of
+   iterations and joins the same collective communication even if it owns no
+   constraints.  Cross-rank coupling is a block-Jacobi sweep: each iteration
+   reverse-sums the per-atom position increments to their owners, applies them,
+   and forward-communicates the predicted positions back to the ghosts.
+------------------------------------------------------------------------- */
+
+int FixIlves::run_newton()
+{
+  const int nall = nlocal + atom->nghost;
+
   // zero the per-iteration increment buffer (home + ghost)
 
   for (int i = 0; i < nall; ++i) dx[i][0] = dx[i][1] = dx[i][2] = 0.0;
-
-  // Global Newton iteration.  The loop is driven uniformly on all ranks: the
-  // convergence test uses the all-reduced maximum residual, so every rank takes
-  // the same number of iterations and participates in the same collective
-  // communication even if it owns no constraints.  Cross-rank coupling is a
-  // block-Jacobi sweep: each iteration reverse-sums the per-atom position
-  // increments to their owners, applies them, and forward-communicates the
-  // predicted positions back to the ghosts.
 
   commstage = 0;    // forward-comm predicted positions (with PBC shift)
   comm->forward_comm(this);
@@ -576,9 +650,22 @@ void FixIlves::post_force(int vflag)
   }
 
   if (numit > niter_max) niter_max = numit;
+  return numit;
+}
 
-  // convert the net constrained displacement of each owned atom into a force,
-  // identical to the multiplier-to-force coupling of fix shake (f += m*dx/dtfsq)
+/* ----------------------------------------------------------------------
+   Drive the predicted positions xpred onto the constraint manifold (relative to
+   xpred0, the saved unconstrained prediction) with the Newton iteration, then
+   convert the net constrained displacement of each owned atom into a force on
+   atom->f (and fstore when store yes), exactly as the multiplier-to-force
+   coupling of fix shake (f += m*dx/dtfsq), using the current inv_dtfsq.  Returns
+   the number of Newton iterations taken.  Shared by post_force and
+   post_force_respa; the caller sets the timestep factors and prepares xpred.
+------------------------------------------------------------------------- */
+
+int FixIlves::solve_constraints()
+{
+  const int numit = run_newton();
 
   if (numit > 0) {
     for (int i = 0; i < nlocal; ++i) {
@@ -597,8 +684,98 @@ void FixIlves::post_force(int vflag)
         fstore[i][2] = fcz;
       }
     }
-    if (vflag_global) ilves_solver->add_global_virial(virial, inv_dtfsq);
   }
+
+  return numit;
+}
+
+/* ----------------------------------------------------------------------
+   enforce the constraints from within r-RESPA.  Like post_force but the
+   unconstrained-position prediction and the multiplier-to-force conversion use
+   the level-dependent effective timestep, exactly as fix shake does:
+     xpred = x + dt0*v + (dt0*dtN/m) fN
+                       + sum_{j<N} (1/2 dt0*dtj/m) f_level[j]
+   with dt0 = step_respa[0] (innermost) and dtN = step_respa[ilevel].  The
+   velocity (RATTLE) projection is unchanged and still done once per outer step
+   in end_of_step.
+------------------------------------------------------------------------- */
+
+void FixIlves::post_force_respa(int vflag, int ilevel, int iloop)
+{
+  x = atom->x;
+  v = atom->v;
+  f = atom->f;
+  type = atom->type;
+  mass = atom->mass;
+  rmass = atom->rmass;
+  nlocal = atom->nlocal;
+
+  // statistics output only on the outermost level
+
+  if (output_every && (ilevel == nlevels_respa - 1) && (update->ntimestep == next_output)) {
+    stats();
+    next_output += output_every;
+  }
+
+  // effective timestep for this level (SHAKE/full-step form)
+
+  dtfsq = dtf_inner * step_respa[ilevel];
+  inv_dtfsq = 1.0 / dtfsq;
+
+  // the global virial accumulates the per-level contributions: zero it at the
+  // innermost level's last sub-iteration (as fix shake does), then add each
+  // level's contribution at that level's last sub-iteration
+
+  const bool last_iloop = (iloop == loop_respa[ilevel] - 1);
+  if ((ilevel == 0) && last_iloop && vflag) v_init(vflag);
+
+  grow_arrays_local();
+
+  if (store_flag) {
+    if (nlocal > maxstore) {
+      memory->destroy(fstore);
+      maxstore = atom->nmax;
+      memory->create(fstore, maxstore, 3, "ilves:fstore");
+      array_atom = fstore;
+    }
+    for (int i = 0; i < nlocal; ++i) fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
+  }
+
+  // the near-linear-angle restraint is a force-field-like force; add it once
+  // per step at the innermost level only, so it is not counted at every level
+
+  if ((linear_mode == LINEAR_RESTRAIN) && (ilevel == 0)) apply_linear_restraint();
+
+  // predict the unconstrained positions, including this and all inner levels
+
+  double ***f_level = fix_respa->f_level;
+  for (int i = 0; i < nlocal; ++i) {
+    const double m = rmass ? rmass[i] : mass[type[i]];
+    if (m > 0.0) {
+      const double invm = 1.0 / m;
+      const double dtfm = dtfsq * invm;
+      xpred[i][0] = x[i][0] + dtv * v[i][0] + dtfm * f[i][0];
+      xpred[i][1] = x[i][1] + dtv * v[i][1] + dtfm * f[i][1];
+      xpred[i][2] = x[i][2] + dtv * v[i][2] + dtfm * f[i][2];
+      for (int j = 0; j < ilevel; ++j) {
+        const double c = dtf_innerhalf * step_respa[j] * invm;
+        xpred[i][0] += c * f_level[i][j][0];
+        xpred[i][1] += c * f_level[i][j][1];
+        xpred[i][2] += c * f_level[i][j][2];
+      }
+    } else {
+      xpred[i][0] = x[i][0];
+      xpred[i][1] = x[i][1];
+      xpred[i][2] = x[i][2];
+    }
+    xpred0[i][0] = xpred[i][0];
+    xpred0[i][1] = xpred[i][1];
+    xpred0[i][2] = xpred[i][2];
+  }
+
+  const int numit = solve_constraints();
+
+  if (numit > 0 && last_iloop && vflag_global) ilves_solver->add_global_virial(virial, inv_dtfsq);
 }
 
 /* ----------------------------------------------------------------------

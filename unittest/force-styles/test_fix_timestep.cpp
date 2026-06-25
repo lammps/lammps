@@ -434,8 +434,10 @@ TEST(FixTimestep, plain)
         }
     }
 
-    // rigid fixes need work to test properly with r-RESPA.
-    // fix nve/limit cannot work with r-RESPA
+    // rigid and constraint (shake/rattle/ilves) fixes do not reduce to plain
+    // velocity Verlet under the harness r-RESPA setup (the per-level constraint
+    // forces differ from a single Verlet constraint), so the verlet reference
+    // cannot be reused for them.  fix nve/limit cannot work with r-RESPA.
     ifix = lmp->modify->get_fix_by_id("test");
     if (ifix && !utils::strmatch(ifix->style, "^rigid") &&
         !utils::strmatch(ifix->style, "^ilves") && !utils::strmatch(ifix->style, "^nve/limit") &&

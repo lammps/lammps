@@ -278,7 +278,10 @@ Only one ``fix ilves`` instance may be defined at a time.  ``fix ilves`` and
 :doc:`fix shake <fix_shake>` must not be used together for overlapping sets of
 constrained atoms.
 
-``fix ilves`` does not support :doc:`run_style respa <run_style>`.
+``fix ilves`` supports :doc:`run_style respa <run_style>`.  As for
+:doc:`fix shake <fix_shake>`, the constraints are enforced at every r-RESPA
+level using the level-dependent effective timestep, and the velocities are
+projected onto the constraint manifold once per outer step.
 
 All atoms of a constraint cluster must lie within the communication cutoff of
 each other on every rank.  For small clusters (water, methyl, hydrogen-only

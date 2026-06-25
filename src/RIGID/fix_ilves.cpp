@@ -41,6 +41,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "ilves_asym.h"
 #include "ilves_sym.h"
 #include "memory.h"
@@ -101,6 +102,10 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
 
   comm_forward = 3;
   comm_reverse = 3;
+
+  // this fix removes degrees of freedom (one per constraint); tell the
+  // temperature computes to query dof()
+  dof_flag = 1;
 
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix ilves", error);
 
@@ -585,4 +590,24 @@ int FixIlves::masscheck(double massone)
   for (const double mv : mass_list)
     if (fabs(mv - massone) <= MASSDELTA) return 1;
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   number of degrees of freedom removed by the constraints for atoms in igroup.
+   each distance constraint removes one DOF; count each once (clist_a is local,
+   so a constraint is owned by exactly one rank).
+------------------------------------------------------------------------- */
+
+bigint FixIlves::dof(int igroup)
+{
+  const int igroupbit = group->bitmask[igroup];
+  int *amask = atom->mask;
+
+  bigint n = 0;
+  for (int k = 0; k < nconstraints; ++k)
+    if ((amask[clist_a[k]] & igroupbit) && (amask[clist_b[k]] & igroupbit)) ++n;
+
+  bigint nall = 0;
+  MPI_Allreduce(&n, &nall, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+  return nall;
 }

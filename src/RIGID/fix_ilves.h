@@ -44,6 +44,8 @@ class FixIlves : public Fix {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
+  bigint dof(int) override;
+
  protected:
   // user settings
   double tolerance;       // convergence tolerance on relative bond-length error

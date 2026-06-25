@@ -1079,7 +1079,7 @@ void PairDispersionD3::set_funcpar(std::string &functional_name)
           {"hf/mixed", 41}, {"hf/sv", 42},       {"hf/minis", 43}, {"b3-lyp/6-31gd", 44},
           {"hcth120", 45},  {"pw1pw", 46},       {"pwgga", 47},    {"hsesol", 48},
           {"hf3c", 49},     {"hf3cv", 50},       {"pbeh3c", 51},   {"pbeh-3c", 52},
-          {"mn15", 53}};
+          {"mn15", 53},     {"r2scan", 54}};
 
       int functionalCode = functionalMap[functional_name];
       switch (functionalCode) {

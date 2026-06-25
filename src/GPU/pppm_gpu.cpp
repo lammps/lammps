@@ -108,6 +108,11 @@ void PPPMGPU::init()
 
   PPPM::init();
 
+  // slab correction is not (yet) supported for triclinic boxes with pppm/gpu
+
+  if (domain->triclinic && slabflag)
+    error->all(FLERR,"Cannot (yet) use pppm/gpu with triclinic box and slab correction");
+
   // ensure no conflict with fix balance
 
   for (int i = 0; i < modify->nfix; i++)

@@ -50,7 +50,7 @@ template <typename T> static GranSubMod *gran_sub_mod_creator(GranularModel *gm,
 /* ---------------------------------------------------------------------- */
 
 GranularModel::GranularModel(LAMMPS *lmp) :
-    Pointers(lmp), sub_models(nullptr), history(nullptr), xi(nullptr), xj(nullptr), vi(nullptr),
+    Pointers(lmp), sub_models{}, history(nullptr), xi(nullptr), xj(nullptr), vi(nullptr),
     vj(nullptr), omegai(nullptr), omegaj(nullptr)
 {
   limit_damping = 0;

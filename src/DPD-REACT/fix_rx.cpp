@@ -72,7 +72,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     stoichReactants(nullptr), stoichProducts(nullptr), kR(nullptr), pairDPDE(nullptr),
     dpdThetaLocal(nullptr), sumWeights(nullptr), sparseKinetics_nu(nullptr),
     sparseKinetics_nuk(nullptr), sparseKinetics_inu(nullptr),
-    sparseKinetics_isIntegralReaction(nullptr), diagnosticCounterPerODE(nullptr),
+    sparseKinetics_isIntegralReaction(nullptr), diagnosticCounterPerODE{},
     id_fix_species(nullptr), id_fix_species_old(nullptr), fix_species(nullptr),
     fix_species_old(nullptr)
 {

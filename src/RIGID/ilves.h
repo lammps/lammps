@@ -74,6 +74,10 @@ class Ilves {
   // initial multiplier handling.  returns the local max relative violation
   real recompute(double **x, double **xprime, bool first_iter);
 
+  // add the constraint contribution to the 6-component global virial:
+  // sum over owned constraints of -lambda*inv_dtfsq * r (x) r
+  void add_global_virial(double *v6, real inv_dtfsq) const;
+
   int num_constraints() const { return mol->bonds.num; }
   const Molecule *molecule() const { return mol.get(); }
 

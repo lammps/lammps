@@ -107,6 +107,10 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   // temperature computes to query dof()
   dof_flag = 1;
 
+  // the constraint forces contribute to the global pressure virial
+  virial_global_flag = 1;
+  thermo_virial = 1;
+
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix ilves", error);
 
   molecular = atom->molecular;
@@ -278,7 +282,7 @@ void FixIlves::pre_neighbor()
 
 /* ---------------------------------------------------------------------- */
 
-void FixIlves::post_force(int /*vflag*/)
+void FixIlves::post_force(int vflag)
 {
   x = atom->x;
   v = atom->v;
@@ -288,6 +292,8 @@ void FixIlves::post_force(int /*vflag*/)
   rmass = atom->rmass;
   nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
+
+  v_init(vflag);
 
   grow_arrays_local();
 
@@ -358,6 +364,7 @@ void FixIlves::post_force(int /*vflag*/)
       f[i][1] += fac * (xpred[i][1] - xpred0[i][1]);
       f[i][2] += fac * (xpred[i][2] - xpred0[i][2]);
     }
+    if (vflag_global) ilves_solver->add_global_virial(virial, inv_dtfsq);
   }
 }
 

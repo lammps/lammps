@@ -213,6 +213,28 @@ void Ilves::update_current_lagr(const int partition, const bool first_time)
    pre-zeroed; the caller reverse-sums dx to the owning ranks and applies it.
 ------------------------------------------------------------------------- */
 
+void Ilves::add_global_virial(double *const v6, const real inv_dtfsq) const
+{
+  // for constraint k the force on atom a is +lambda_k*inv_dtfsq*r_k (r_k = x_b -
+  // x_a) and on atom b is the negative of that; the pairwise virial contribution
+  // is (x_a - x_b) (x) f_a = -lambda_k*inv_dtfsq * r_k (x) r_k.
+  for (size_t p = 0; p < schur_solver->part_data.size(); ++p) {
+    const auto &pdata = schur_solver->part_data[p];
+    for (int grow = pdata.part[0], lrow = 0; grow < pdata.part[1]; ++grow, ++lrow) {
+      const real s = -current_lagr[p][lrow] * inv_dtfsq;
+      const real rx = x_ab[XX][grow], ry = x_ab[YY][grow], rz = x_ab[ZZ][grow];
+      v6[0] += s * rx * rx;
+      v6[1] += s * ry * ry;
+      v6[2] += s * rz * rz;
+      v6[3] += s * rx * ry;
+      v6[4] += s * rx * rz;
+      v6[5] += s * ry * rz;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 real Ilves::recompute(double **const x, double **const xprime, const bool first_iter)
 {
   update_current_lagr(0, first_iter);

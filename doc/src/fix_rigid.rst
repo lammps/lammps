@@ -12,9 +12,13 @@
 .. index:: fix rigid/small/omp
 .. index:: fix rigid/small/kk
 .. index:: fix rigid/nve/small
+.. index:: fix rigid/nve/small/kk
 .. index:: fix rigid/nvt/small
+.. index:: fix rigid/nvt/small/kk
 .. index:: fix rigid/npt/small
+.. index:: fix rigid/npt/small/kk
 .. index:: fix rigid/nph/small
+.. index:: fix rigid/nph/small/kk
 
 fix rigid command
 =================
@@ -49,14 +53,22 @@ Accelerator Variants: *rigid/small/omp*, *rigid/small/kk*
 fix rigid/nve/small command
 ===========================
 
+Accelerator Variants: *rigid/nve/small/kk*
+
 fix rigid/nvt/small command
 ===========================
+
+Accelerator Variants: *rigid/nvt/small/kk*
 
 fix rigid/npt/small command
 ===========================
 
+Accelerator Variants: *rigid/npt/small/kk*
+
 fix rigid/nph/small command
 ===========================
+
+Accelerator Variants: *rigid/nph/small/kk*
 
 Syntax
 """"""
@@ -905,6 +917,25 @@ Restrictions
 These fixes are all part of the RIGID package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
+
+The Kokkos versions of these fixes (the */kk* accelerator variants of
+*rigid/small* and of *rigid/nve/small*, *rigid/nvt/small*,
+*rigid/npt/small*, and *rigid/nph/small*) implement a subset of the
+functionality of the corresponding non-accelerated styles.  The
+*langevin* thermostat is experimental with Kokkos and may be unstable
+when running with MPI domain decomposition (more than one MPI rank);
+results should be validated against the non-Kokkos style.  Reading body
+properties from a file (the *infile* keyword) is likewise experimental,
+and the *gravity* keyword is not supported.
+
+The Kokkos atom exchange (migration) and atom sorting must run on the
+same side (both on the host or both on the device), because the device
+sort reorders the rigid-body owner atoms that the device exchange
+produced.  This is satisfied by the defaults (host on CPU/OpenMP builds,
+device on GPU builds) and by passing matching settings such as ``-pk
+kokkos comm device sort device``.  An inconsistent override (for example
+``-pk kokkos comm device`` while sorting stays on the host) is rejected
+with an error.
 
 Assigning a temperature via the :doc:`velocity create <velocity>`
 command to a system with :doc:`rigid bodies <fix_rigid>` may not have

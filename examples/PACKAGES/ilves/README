@@ -34,6 +34,16 @@ Rhodopsin (membrane protein benchmark, bench/data.rhodo)
   in.rhodo-allbonds   -- constrain hydrogen bonds and selected heavy-atom bond
                          types as well
 
+Near-linear angles (coarse-grain polymer chains, data.cg-polymers)
+-----------------------------------------------------------------
+  in.cg-polymers      -- chains whose backbone angles have a 180 degree
+                         equilibrium.  The A-C "virtual bond" of an angle is
+                         rank-deficient near 180 degrees, so this uses
+                         "linearangle skip 165": the backbone bonds are held
+                         rigid by fix ilves while the (intentionally soft)
+                         backbone angle is left to the cosine/squared
+                         angle_style.
+
 The data.peptide and data.rhodo files are symbolic links to the data files of
 the standard examples/peptide and bench benchmarks.
 

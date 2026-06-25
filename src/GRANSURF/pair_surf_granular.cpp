@@ -1585,14 +1585,14 @@ double PairSurfGranular::calculate_3d_forces(std::vector<int> *composite_surfs)
       }
 
       // for connected edges, find component outside of plane created by 2 surf norms
-      if (which1 != -1) {
+      if (which1 != -1 && contact_surfs[n].ck1 != -1) {
         m = contacts_map[contact_surfs[n].ck1];
         MathExtra::copy3(contact_surfs[m].surf_norm, knorm);
         dist = dist_away_from_2_tris(jnorm, knorm, dr);
         min_dist_c = MIN(min_dist_c, dist * rmag);
       }
 
-      if (which2 != -1) {
+      if (which2 != -1 && contact_surfs[n].ck2 != -1) {
         m = contacts_map[contact_surfs[n].ck2];
         MathExtra::copy3(contact_surfs[m].surf_norm, knorm);
         dist = dist_away_from_2_tris(jnorm, knorm, dr);

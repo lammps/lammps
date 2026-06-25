@@ -45,6 +45,8 @@ class BondHarmonicKokkos : public BondHarmonic {
   void coeff(int, char **) override;
   void read_restart(FILE *) override;
 
+  class TuneKokkos* tuner;
+
   template<int NEWTON_BOND, int EVFLAG>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

@@ -456,11 +456,29 @@ in lieu of the volfactor.  This turns off all kspace forces in the z
 direction.  The *nozforce* option is not supported by MSM. For MSM,
 any combination of periodic, non-periodic, or shrink-wrapped
 boundaries can be set using :doc:`boundary <boundary>` (the slab
-approximation in not needed).  The *slab* keyword is not currently
-supported by Ewald or PPPM when using a triclinic simulation cell. The
-slab correction has also been extended to point dipole interactions
-:ref:`(Klapp) <Klapp>` in :doc:`kspace_style <kspace_style>`
-*ewald/disp*, *ewald/dipole*, and *pppm/dipole*\ .
+approximation is not needed).  The *slab* keyword with a *volfactor*
+value (the Yeh-Berkowitz EW3DC correction) supports triclinic
+(non-orthogonal) simulation cells for :doc:`kspace_style <kspace_style>`
+*ewald*, *ewald/disp*, *pppm*, *pppm/cg*, and *pppm/kk* (and the OpenMP
+variants that reuse the same slab-correction setup).  Because the slab
+normal must be the Cartesian z axis, only an *xy* tilt is allowed: a
+triclinic slab box with a non-zero *xz* or *yz* tilt is rejected with an
+error.  The z box length must be held fixed for the duration of the run.
+Triclinic cells are not yet supported with the *slab* keyword for the
+*pppm/tip4p*, *pppm/stagger*, *esp*, *pppm/gpu*, or *pppm/intel* styles,
+nor for the *slab nozforce* and *slab ew2d* options.
+
+The slab correction has also been extended to point dipole
+interactions :ref:`(Klapp) <Klapp>` in :doc:`kspace_style
+<kspace_style>` *ewald/disp*, *ewald/dipole*, and *pppm/dipole*\ .
+This dipole slab correction is currently limited to orthogonal
+(non-triclinic) simulation cells.
+
+.. versionchanged:: TBD
+
+   The *slab* correction with a *volfactor* value now supports triclinic
+   simulation cells for the *ewald*, *ewald/disp*, *pppm*, *pppm/cg*, and
+   *pppm/kk* styles.
 
 .. note::
 

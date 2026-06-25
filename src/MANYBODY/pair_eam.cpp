@@ -35,8 +35,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
-{
+PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp), type2rhor(nullptr), type2z2r(nullptr){
   restartinfo = 0;
   manybody_flag = 1;
   atomic_energy_enable = 1;

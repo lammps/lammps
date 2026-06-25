@@ -38,7 +38,8 @@ using namespace MathConst;
 PairBuckCoulCut::PairBuckCoulCut(LAMMPS *lmp) :
     Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), cut_coul(nullptr), cut_coulsq(nullptr),
     a(nullptr), rho(nullptr), c(nullptr), rhoinv(nullptr), buck1(nullptr), buck2(nullptr),
-    offset(nullptr){
+    offset(nullptr)
+{
   born_matrix_enable = 1;
   writedata = 1;
 }

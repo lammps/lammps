@@ -33,7 +33,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperDistance::ImproperDistance(LAMMPS *lmp) : Improper(lmp), k(nullptr), chi(nullptr){
+ImproperDistance::ImproperDistance(LAMMPS *lmp) : Improper(lmp), k(nullptr), chi(nullptr)
+{
   // the first atom in the quadruplet is the atom of symmetry
 
   symmatoms[0] = 1;

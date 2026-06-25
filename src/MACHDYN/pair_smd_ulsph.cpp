@@ -54,7 +54,8 @@ using namespace Eigen;
 
 PairULSPH::PairULSPH(LAMMPS *lmp) :
     Pair(lmp), rho0(nullptr), onerad_dynamic(nullptr), onerad_frozen(nullptr),
-    maxrad_dynamic(nullptr), maxrad_frozen(nullptr){
+    maxrad_dynamic(nullptr), maxrad_frozen(nullptr)
+{
 
         // per-type arrays
         Q1 = nullptr;

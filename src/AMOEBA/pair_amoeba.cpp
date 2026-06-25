@@ -66,7 +66,8 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) :
     aspc(nullptr), a_ualt(nullptr), ap_ualt(nullptr), b_ualt(nullptr), bp_ualt(nullptr),
     c_ualt(nullptr), cp_ualt(nullptr), bpred(nullptr), bpredp(nullptr), bpreds(nullptr),
     bpredps(nullptr), radmin(nullptr), epsilon(nullptr), radmin4(nullptr), epsilon4(nullptr),
-    uad(nullptr), uap(nullptr), ubd(nullptr), ubp(nullptr), fp_uind(nullptr){
+    uad(nullptr), uap(nullptr), ubd(nullptr), ubp(nullptr), fp_uind(nullptr)
+{
   amoeba = true;
   mystyle = "amoeba";
 

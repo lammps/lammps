@@ -39,7 +39,8 @@ using dbl3_t = struct {
 /* ---------------------------------------------------------------------- */
 
 FixNHAsphereOMP::FixNHAsphereOMP(LAMMPS *lmp, int narg, char **arg) :
-    FixNHOMP(lmp, narg, arg), avec(nullptr){
+    FixNHOMP(lmp, narg, arg), avec(nullptr)
+{
 }
 
 /* ---------------------------------------------------------------------- */

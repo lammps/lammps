@@ -30,7 +30,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-FixNVK::FixNVK(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), step_respa(nullptr){
+FixNVK::FixNVK(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), step_respa(nullptr)
+{
   if (narg < 3)
     error->all(FLERR,"Illegal fix nvk command");
   if (igroup) error->all(FLERR,"Fix nvk only supports group all");

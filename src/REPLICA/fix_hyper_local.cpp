@@ -51,7 +51,8 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
     biascoeff(nullptr), numbond(nullptr), maxhalf(nullptr), eligible(nullptr),
     maxhalfstrain(nullptr), old2now(nullptr), tagold(nullptr), xold(nullptr), maxstrain(nullptr),
     maxstrain_domain(nullptr), biasflag(nullptr), bias(nullptr), cpage(nullptr), clist(nullptr),
-    numcoeff(nullptr){
+    numcoeff(nullptr)
+{
   // error checks
 
   if (atom->map_style == Atom::MAP_NONE)

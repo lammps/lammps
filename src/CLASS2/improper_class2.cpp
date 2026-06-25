@@ -37,7 +37,8 @@ using namespace MathConst;
 ImproperClass2::ImproperClass2(LAMMPS *lmp) :
     Improper(lmp), k0(nullptr), chi0(nullptr), aa_k1(nullptr), aa_k2(nullptr), aa_k3(nullptr),
     aa_theta0_1(nullptr), aa_theta0_2(nullptr), aa_theta0_3(nullptr), setflag_i(nullptr),
-    setflag_aa(nullptr){
+    setflag_aa(nullptr)
+{
   writedata = 1;
 
   // the second atom in the quadruplet is the atom of symmetry

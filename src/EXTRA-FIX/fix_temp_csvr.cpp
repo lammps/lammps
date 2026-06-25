@@ -44,7 +44,8 @@ static constexpr int PRNGSIZE = 98+2+3;
 /* ---------------------------------------------------------------------- */
 
 FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), tstr(nullptr), id_temp(nullptr), temperature(nullptr), random(nullptr){
+    Fix(lmp, narg, arg), tstr(nullptr), id_temp(nullptr), temperature(nullptr), random(nullptr)
+{
   if (narg != 7) error->all(FLERR,"Incorrect number of arguments for fix {} command", style);
 
   // CSVR thermostat should be applied every step

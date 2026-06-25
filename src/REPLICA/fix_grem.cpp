@@ -44,7 +44,8 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), temperature(nullptr), pressure(nullptr), ke(nullptr), pe(nullptr){
+    Fix(lmp, narg, arg), temperature(nullptr), pressure(nullptr), ke(nullptr), pe(nullptr)
+{
   if (narg < 7) error->all(FLERR,"Illegal fix grem command");
 
   scalar_flag = 1;

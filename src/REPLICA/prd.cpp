@@ -51,7 +51,8 @@ PRD::PRD(LAMMPS *lmp) :
     Command(lmp), loop_setting(nullptr), dist_setting(nullptr), counts(nullptr),
     displacements(nullptr), tagall(nullptr), xall(nullptr), imageall(nullptr),
     random_select(nullptr), random_clock(nullptr), random_dephase(nullptr), compute_event(nullptr),
-    fix_event(nullptr), velocity(nullptr), temperature(nullptr), finish(nullptr){}
+    fix_event(nullptr), velocity(nullptr), temperature(nullptr), finish(nullptr)
+{}
 
 /* ----------------------------------------------------------------------
    perform PRD simulation on one or more replicas

@@ -48,7 +48,8 @@ TAD::TAD(LAMMPS *lmp) :
     Command(lmp), min_style(nullptr), min_style_neb(nullptr), neb(nullptr), fix_neb(nullptr),
     compute_event(nullptr), fix_event(nullptr), fix_revert(nullptr), fix_event_list(nullptr),
     neb_logfilename(nullptr), uscreen_neb(nullptr), ulogfile_neb(nullptr), uscreen_lammps(nullptr),
-    ulogfile_lammps(nullptr), finish(nullptr){
+    ulogfile_lammps(nullptr), finish(nullptr)
+{
   deltconf = deltstop = deltfirst = 0.0;
 }
 

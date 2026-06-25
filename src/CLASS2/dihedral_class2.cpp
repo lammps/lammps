@@ -46,7 +46,8 @@ DihedralClass2::DihedralClass2(LAMMPS *lmp) :
     at_theta0_2(nullptr), aat_k(nullptr), aat_theta0_1(nullptr), aat_theta0_2(nullptr),
     bb13t_k(nullptr), bb13t_r10(nullptr), bb13t_r30(nullptr), setflag_d(nullptr),
     setflag_mbt(nullptr), setflag_ebt(nullptr), setflag_at(nullptr), setflag_aat(nullptr),
-    setflag_bb13t(nullptr){
+    setflag_bb13t(nullptr)
+{
   writedata = 1;
 }
 

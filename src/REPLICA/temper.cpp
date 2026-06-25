@@ -42,7 +42,8 @@ using namespace LAMMPS_NS;
 
 Temper::Temper(LAMMPS *lmp) :
     Command(lmp), ranswap(nullptr), ranboltz(nullptr), whichfix(nullptr), set_temp(nullptr),
-    temp2world(nullptr), world2temp(nullptr), world2root(nullptr){}
+    temp2world(nullptr), world2temp(nullptr), world2root(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

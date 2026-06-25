@@ -44,7 +44,8 @@ using namespace LAMMPS_NS;
 
 TemperGrem::TemperGrem(LAMMPS *lmp) :
     Command(lmp), ranswap(nullptr), ranboltz(nullptr), whichfix(nullptr), set_lambda(nullptr),
-    lambda2world(nullptr), world2lambda(nullptr), world2root(nullptr), fix_grem(nullptr){}
+    lambda2world(nullptr), world2lambda(nullptr), world2root(nullptr), fix_grem(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

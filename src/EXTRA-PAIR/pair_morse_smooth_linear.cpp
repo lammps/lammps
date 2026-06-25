@@ -31,7 +31,8 @@ using namespace LAMMPS_NS;
 
 PairMorseSmoothLinear::PairMorseSmoothLinear(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), d0(nullptr), alpha(nullptr), r0(nullptr), morse1(nullptr),
-    der_at_cutoff(nullptr), offset(nullptr){
+    der_at_cutoff(nullptr), offset(nullptr)
+{
   writedata = 1;
 }
 

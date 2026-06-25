@@ -59,7 +59,8 @@ static constexpr double SMALL =     0.001;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperRing::ImproperRing(LAMMPS *lmp) : Improper(lmp), k(nullptr), chi(nullptr){
+ImproperRing::ImproperRing(LAMMPS *lmp) : Improper(lmp), k(nullptr), chi(nullptr)
+{
   // the second atom in the quadruplet is the atom of symmetry
 
   symmatoms[1] = 1;

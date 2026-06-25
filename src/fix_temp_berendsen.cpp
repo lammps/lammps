@@ -37,7 +37,8 @@ enum{CONSTANT,EQUAL};
 /* ---------------------------------------------------------------------- */
 
 FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), tstr(nullptr), id_temp(nullptr), temperature(nullptr), tflag(0){
+    Fix(lmp, narg, arg), tstr(nullptr), id_temp(nullptr), temperature(nullptr), tflag(0)
+{
   if (narg != 6)
     error->all(FLERR,"Illegal fix {} command: expected 6 arguments but found {}", style, narg);
 

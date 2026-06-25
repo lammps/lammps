@@ -23,7 +23,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecTDPD::AtomVecTDPD(LAMMPS *lmp) : AtomVec(lmp), cc_flux(nullptr), vest(nullptr){
+AtomVecTDPD::AtomVecTDPD(LAMMPS *lmp) : AtomVec(lmp), cc_flux(nullptr), vest(nullptr)
+{
   molecular = Atom::ATOMIC;
   mass_type = PER_TYPE;
   forceclearflag = 1;

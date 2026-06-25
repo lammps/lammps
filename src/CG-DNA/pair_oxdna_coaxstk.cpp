@@ -53,7 +53,8 @@ PairOxdnaCoaxstk::PairOxdnaCoaxstk(LAMMPS *lmp) :
     dtheta_cxst5_c(nullptr), a_cxst6(nullptr), theta_cxst6_0(nullptr), dtheta_cxst6_ast(nullptr),
     b_cxst6(nullptr), dtheta_cxst6_c(nullptr), a_cxst3p(nullptr), cosphi_cxst3p_ast(nullptr),
     b_cxst3p(nullptr), cosphi_cxst3p_c(nullptr), a_cxst4p(nullptr), cosphi_cxst4p_ast(nullptr),
-    b_cxst4p(nullptr), cosphi_cxst4p_c(nullptr), nxyz_xtrct(nullptr), fix_lrf(nullptr){
+    b_cxst4p(nullptr), cosphi_cxst4p_c(nullptr), nxyz_xtrct(nullptr), fix_lrf(nullptr)
+{
   single_enable = 0;
   writedata = 0;
   trim_flag = 0;

@@ -32,7 +32,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondClass2::BondClass2(LAMMPS *lmp) : Bond(lmp), r0(nullptr), k2(nullptr), k3(nullptr), k4(nullptr){
+BondClass2::BondClass2(LAMMPS *lmp) : Bond(lmp), r0(nullptr), k2(nullptr), k3(nullptr), k4(nullptr)
+{
   born_matrix_enable = 1;
 }
 

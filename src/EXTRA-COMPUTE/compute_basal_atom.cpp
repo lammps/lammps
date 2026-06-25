@@ -37,7 +37,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeBasalAtom::ComputeBasalAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), list(nullptr){
+    Compute(lmp, narg, arg), list(nullptr)
+{
   if (narg != 3) error->all(FLERR, "Illegal compute basal/atom command");
 
   peratom_flag = 1;

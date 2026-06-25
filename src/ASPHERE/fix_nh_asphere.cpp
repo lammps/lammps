@@ -28,7 +28,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) :
-    FixNH(lmp, narg, arg), avec(nullptr){}
+    FixNH(lmp, narg, arg), avec(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

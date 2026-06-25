@@ -28,7 +28,8 @@ static constexpr int EXTRA = 1000;
 
 /* ---------------------------------------------------------------------- */
 
-BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp), styles(nullptr), keywords(nullptr), map(nullptr){
+BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp), styles(nullptr), keywords(nullptr), map(nullptr)
+{
   writedata = 0;
   nstyles = 0;
   has_quartic = -1;

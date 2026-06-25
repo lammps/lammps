@@ -35,7 +35,8 @@ static constexpr int DELTA = 10000;
 
 PairBodyNparticle::PairBodyNparticle(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr),
-    lj3(nullptr), lj4(nullptr), avec(nullptr), bptr(nullptr){
+    lj3(nullptr), lj4(nullptr), avec(nullptr), bptr(nullptr)
+{
   dmax = nmax = 0;
   discrete = nullptr;
   dnum = dfirst = nullptr;

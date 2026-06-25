@@ -39,7 +39,8 @@ using namespace MathConst;
 PairBornCoulWolf::PairBornCoulWolf(LAMMPS *lmp) :
     Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), a(nullptr), rho(nullptr), sigma(nullptr),
     c(nullptr), d(nullptr), rhoinv(nullptr), born1(nullptr), born2(nullptr), born3(nullptr),
-    offset(nullptr){
+    offset(nullptr)
+{
   writedata = 1;
   single_enable = 0;
 }

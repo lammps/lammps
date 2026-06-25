@@ -40,7 +40,8 @@ static constexpr double EPSILON = 1.0e-10;
 /* ---------------------------------------------------------------------- */
 
 PairDPDfdtEnergy::PairDPDfdtEnergy(LAMMPS *lmp) :
-    Pair(lmp), cut(nullptr), a0(nullptr), sigma(nullptr), kappa(nullptr), alpha(nullptr){
+    Pair(lmp), cut(nullptr), a0(nullptr), sigma(nullptr), kappa(nullptr), alpha(nullptr)
+{
   random = nullptr;
   duCond = nullptr;
   duMech = nullptr;

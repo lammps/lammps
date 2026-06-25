@@ -45,7 +45,8 @@ static constexpr int PRNGSIZE = 98+2+3;
 
 FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), vhold(nullptr), tstr(nullptr), id_temp(nullptr), temperature(nullptr),
-    random(nullptr){
+    random(nullptr)
+{
   if (narg != 7) error->all(FLERR,"Illegal fix temp/csld command");
 
   // CSLD thermostat should be applied every step

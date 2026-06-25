@@ -39,7 +39,8 @@ using namespace MathConst;
 
 PairMIECut::PairMIECut(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), gamR(nullptr), gamA(nullptr),
-    Cmie(nullptr), mie1(nullptr), mie2(nullptr), mie3(nullptr), mie4(nullptr), offset(nullptr){
+    Cmie(nullptr), mie1(nullptr), mie2(nullptr), mie3(nullptr), mie4(nullptr), offset(nullptr)
+{
   respa_enable = 1;
   cut_respa = nullptr;
 }

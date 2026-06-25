@@ -37,7 +37,8 @@ using namespace MathConst;
 
 PairBorn::PairBorn(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), a(nullptr), rho(nullptr), sigma(nullptr), c(nullptr), d(nullptr),
-    rhoinv(nullptr), born1(nullptr), born2(nullptr), born3(nullptr), offset(nullptr){
+    rhoinv(nullptr), born1(nullptr), born2(nullptr), born3(nullptr), offset(nullptr)
+{
   born_matrix_enable = 1;
   writedata = 1;
 }

@@ -33,7 +33,8 @@ static constexpr int DELTA = 20;
 
 PairTriLJ::PairTriLJ(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr),
-    lj3(nullptr), lj4(nullptr), avec(nullptr){
+    lj3(nullptr), lj4(nullptr), avec(nullptr)
+{
   dmax = nmax = 0;
   discrete = nullptr;
   dnum = dfirst = nullptr;

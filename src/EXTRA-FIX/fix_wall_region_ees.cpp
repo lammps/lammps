@@ -36,7 +36,8 @@ using MathSpecial::powint;
 /* ---------------------------------------------------------------------- */
 
 FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), avec(nullptr), idregion(nullptr), region(nullptr){
+    Fix(lmp, narg, arg), avec(nullptr), idregion(nullptr), region(nullptr)
+{
   if (narg != 7) error->all(FLERR, "Illegal fix wall/region/ees command");
 
   scalar_flag = 1;

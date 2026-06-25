@@ -28,7 +28,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), pvID(nullptr), cvID(nullptr), pcompute(nullptr), pfix(nullptr){
+    Fix(lmp, narg, arg), pvID(nullptr), cvID(nullptr), pcompute(nullptr), pfix(nullptr)
+{
   if (narg != 11) error->all(FLERR,"Illegal fix controller command");
 
   vector_flag = 1;

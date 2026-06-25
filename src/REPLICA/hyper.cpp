@@ -39,7 +39,8 @@ enum{NOHYPER,GLOBAL,LOCAL};
 /* ---------------------------------------------------------------------- */
 
 Hyper::Hyper(LAMMPS *_lmp) :
-    Command(_lmp), fix_hyper(nullptr), fix_event(nullptr), compute_event(nullptr), finish(nullptr){}
+    Command(_lmp), fix_hyper(nullptr), fix_event(nullptr), compute_event(nullptr), finish(nullptr)
+{}
 
 /* ----------------------------------------------------------------------
    perform hyperdynamics simulation

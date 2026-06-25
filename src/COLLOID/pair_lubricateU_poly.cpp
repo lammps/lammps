@@ -44,7 +44,8 @@ static constexpr double TOL = 1e-3;   // tolerance for conjugate gradient
 
 /* ---------------------------------------------------------------------- */
 
-PairLubricateUPoly::PairLubricateUPoly(LAMMPS *lmp) : PairLubricateU(lmp), wallfix(nullptr){}
+PairLubricateUPoly::PairLubricateUPoly(LAMMPS *lmp) : PairLubricateU(lmp), wallfix(nullptr)
+{}
 
 /* ----------------------------------------------------------------------
    It first has to solve for the velocity of the particles such that

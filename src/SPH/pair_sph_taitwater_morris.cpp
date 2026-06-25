@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairSPHTaitwaterMorris::PairSPHTaitwaterMorris(LAMMPS *lmp) :
-    Pair(lmp), rho0(nullptr), soundspeed(nullptr), B(nullptr), cut(nullptr), viscosity(nullptr){
+    Pair(lmp), rho0(nullptr), soundspeed(nullptr), B(nullptr), cut(nullptr), viscosity(nullptr)
+{
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->vest_flag != 1))
     error->all(FLERR, Error::NOLASTLINE, "Pair sph/taitwater/morris requires atom attributes "
                "energy, density, and velocity estimates, e.g. in atom_style sph");

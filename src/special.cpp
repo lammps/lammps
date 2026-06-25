@@ -30,7 +30,8 @@ static constexpr int RVOUS = 1;   // 0 for irregular, 1 for all2all
 
 /* ---------------------------------------------------------------------- */
 
-Special::Special(LAMMPS *lmp) : Pointers(lmp), atomIDs(nullptr), procowner(nullptr){
+Special::Special(LAMMPS *lmp) : Pointers(lmp), atomIDs(nullptr), procowner(nullptr)
+{
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 

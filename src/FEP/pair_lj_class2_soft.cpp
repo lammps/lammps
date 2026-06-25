@@ -32,7 +32,8 @@ using namespace MathConst;
 
 PairLJClass2Soft::PairLJClass2Soft(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr),
-    lj2(nullptr), lj3(nullptr), offset(nullptr){
+    lj2(nullptr), lj3(nullptr), offset(nullptr)
+{
   writedata = 1;
   centroidstressflag = CENTROID_SAME;
 }

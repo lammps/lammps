@@ -74,7 +74,8 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     sparseKinetics_nuk(nullptr), sparseKinetics_inu(nullptr),
     sparseKinetics_isIntegralReaction(nullptr), diagnosticCounterPerODE(nullptr),
     id_fix_species(nullptr), id_fix_species_old(nullptr), fix_species(nullptr),
-    fix_species_old(nullptr){
+    fix_species_old(nullptr)
+{
   if (narg < 7 || narg > 12) error->all(FLERR,"Illegal fix rx command");
   nevery = 1;
 

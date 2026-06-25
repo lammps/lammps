@@ -35,7 +35,8 @@ using namespace MathConst;
 
 PairGaussCut::PairGaussCut(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), hgauss(nullptr), sigmah(nullptr), rmh(nullptr), pgauss(nullptr),
-    offset(nullptr){
+    offset(nullptr)
+{
   respa_enable = 0;
   writedata = 1;
 }

@@ -34,7 +34,8 @@ using namespace LAMMPS_NS;
 
 PairLJGromacsCoulGromacs::PairLJGromacsCoulGromacs(LAMMPS *lmp) :
     Pair(lmp), epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
-    lj4(nullptr), ljsw1(nullptr), ljsw2(nullptr), ljsw3(nullptr), ljsw4(nullptr), ljsw5(nullptr){
+    lj4(nullptr), ljsw1(nullptr), ljsw2(nullptr), ljsw3(nullptr), ljsw4(nullptr), ljsw5(nullptr)
+{
   writedata = 1;
 }
 

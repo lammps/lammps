@@ -52,7 +52,8 @@ CommTiled::CommTiled(LAMMPS *lmp) :
     cutghostmulti(nullptr), sendbox_multi(nullptr), nexchproc(nullptr), nexchprocmax(nullptr),
     exchproc(nullptr), exchnum(nullptr), buf_send(nullptr), buf_recv(nullptr), requests(nullptr),
     rcbinfo(nullptr), overlap(nullptr), prd(nullptr), boxlo(nullptr), boxhi(nullptr),
-    sublo(nullptr), subhi(nullptr){
+    sublo(nullptr), subhi(nullptr)
+{
   style = Comm::TILED;
   layout = Comm::LAYOUT_UNIFORM;
   init_pointers();

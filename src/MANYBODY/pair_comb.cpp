@@ -49,7 +49,8 @@ static constexpr int MAXNEIGH = 24;
 
 /* ---------------------------------------------------------------------- */
 
-PairComb::PairComb(LAMMPS *lmp) : Pair(lmp), qf(nullptr), charge(nullptr), typeno(nullptr){
+PairComb::PairComb(LAMMPS *lmp) : Pair(lmp), qf(nullptr), charge(nullptr), typeno(nullptr)
+{
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;

@@ -41,7 +41,8 @@ using MathSpecial::mdftaper;
 /* ---------------------------------------------------------------------- */
 
 FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
-    FixQEq(lmp, narg, arg), streitz(nullptr){
+    FixQEq(lmp, narg, arg), streitz(nullptr)
+{
   alpha = 0.20;
   vtype = 0;
   drtap = 0.0;

@@ -35,7 +35,8 @@ static constexpr int MAXLINE = 1024;
 
 /* ---------------------------------------------------------------------- */
 
-PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp), scale(nullptr){
+PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp), scale(nullptr)
+{
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;

@@ -78,7 +78,8 @@ static const double  MIN_ETOL_MAG = 1.0e-8;
 ------------------------------------------------------------------------- */
 
 MinHFTN::MinHFTN(LAMMPS *lmp) :
-    Min(lmp), _daAVectors(nullptr), _daExtraAtom(nullptr), _daExtraGlobal(nullptr){
+    Min(lmp), _daAVectors(nullptr), _daExtraAtom(nullptr), _daExtraGlobal(nullptr)
+{
   searchflag = 1;
 
   for (int  i = 1; i < NUM_HFTN_ATOM_BASED_VECTORS; i++)

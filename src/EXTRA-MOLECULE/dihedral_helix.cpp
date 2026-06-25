@@ -40,7 +40,8 @@ static constexpr double SMALLER =   0.00001;
 /* ---------------------------------------------------------------------- */
 
 DihedralHelix::DihedralHelix(LAMMPS *lmp) :
-    Dihedral(lmp), aphi(nullptr), bphi(nullptr), cphi(nullptr){
+    Dihedral(lmp), aphi(nullptr), bphi(nullptr), cphi(nullptr)
+{
   writedata = 1;
   born_matrix_enable = 1;
 }

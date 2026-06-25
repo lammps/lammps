@@ -59,7 +59,8 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
     etaint_dot(nullptr), etaint_dotdot(nullptr), etaint_mass(nullptr), etadrude(nullptr),
     etadrude_dot(nullptr), etadrude_dotdot(nullptr), etadrude_mass(nullptr), etap(nullptr),
     etap_dot(nullptr), etap_dotdot(nullptr), etap_mass(nullptr), mass_mol(nullptr), v_mol(nullptr),
-    v_mol_tmp(nullptr){
+    v_mol_tmp(nullptr)
+{
   if (narg < 4) error->all(FLERR, "Illegal fix {} command", style);
 
   restart_global = 1;

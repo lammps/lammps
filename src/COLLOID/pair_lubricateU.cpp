@@ -44,7 +44,8 @@ static constexpr double TOL = 1e-4;   // tolerance for conjugate gradient
 /* ---------------------------------------------------------------------- */
 
 PairLubricateU::PairLubricateU(LAMMPS *lmp) :
-    Pair(lmp), wallfix(nullptr), cut_inner(nullptr), cut(nullptr){
+    Pair(lmp), wallfix(nullptr), cut_inner(nullptr), cut(nullptr)
+{
   single_enable = 0;
 
   // pair lubricateU cannot compute virial as F dot r

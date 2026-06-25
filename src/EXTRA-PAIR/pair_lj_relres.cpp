@@ -57,7 +57,8 @@ PairLJRelRes::PairLJRelRes(LAMMPS *lmp) :
     ljf1(nullptr), ljf2(nullptr), ljf3(nullptr), ljf4(nullptr), ljsw0(nullptr), ljsw1(nullptr),
     ljsw2(nullptr), ljsw3(nullptr), ljsw4(nullptr), ljswf0(nullptr), ljswf1(nullptr),
     ljswf2(nullptr), ljswf3(nullptr), ljswf4(nullptr), offset(nullptr), offsetsp(nullptr),
-    offsetsm(nullptr){
+    offsetsm(nullptr)
+{
   if (lmp->citeme) lmp->citeme->add(cite_relres);
   writedata = 1;
 }

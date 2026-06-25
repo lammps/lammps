@@ -38,7 +38,9 @@ static constexpr double SMALL = 0.001;
 /* ---------------------------------------------------------------------- */
 
 AngleCharmm::AngleCharmm(LAMMPS *_lmp) :
-    Angle(_lmp), k(nullptr), theta0(nullptr), k_ub(nullptr), r_ub(nullptr) {}
+    Angle(_lmp), k(nullptr), theta0(nullptr), k_ub(nullptr), r_ub(nullptr)
+{
+}
 
 /* ---------------------------------------------------------------------- */
 

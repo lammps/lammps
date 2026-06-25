@@ -71,7 +71,8 @@ static constexpr const char *mesh_name[] = {"recursive bisection", "quasi-random
 CreateAtoms::CreateAtoms(LAMMPS *lmp) :
     Command(lmp), basistype(nullptr), xmol(nullptr), vstr(nullptr), xstr(nullptr), ystr(nullptr),
     zstr(nullptr), groupname(nullptr), flag(nullptr), next(nullptr), region(nullptr),
-    onemol(nullptr), ranmol(nullptr), ranlatt(nullptr){
+    onemol(nullptr), ranmol(nullptr), ranlatt(nullptr)
+{
 }
 
 /* ---------------------------------------------------------------------- */

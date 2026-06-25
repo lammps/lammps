@@ -44,7 +44,8 @@ static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */
 
-PairLebedevaZ::PairLebedevaZ(LAMMPS *lmp) : Pair(lmp), offset(nullptr){
+PairLebedevaZ::PairLebedevaZ(LAMMPS *lmp) : Pair(lmp), offset(nullptr)
+{
   single_enable = 0;
   restartinfo = 0;
   manybody_flag = 1;

@@ -34,7 +34,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairCoulTT::PairCoulTT(LAMMPS *lmp) :
-    Pair(lmp), cut(nullptr), scale(nullptr), b(nullptr), c(nullptr), ntt(nullptr){
+    Pair(lmp), cut(nullptr), scale(nullptr), b(nullptr), c(nullptr), ntt(nullptr)
+{
     fix_drude = nullptr;
 }
 

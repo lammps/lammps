@@ -52,7 +52,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), c_pe(nullptr), sublo(nullptr), subhi(nullptr){
+    Fix(lmp, narg, arg), c_pe(nullptr), sublo(nullptr), subhi(nullptr)
+{
   if (narg != 11) utils::missing_cmd_args(FLERR, "fix gemc", error);
 
   // must have only two boxes

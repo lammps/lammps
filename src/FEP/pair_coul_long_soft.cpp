@@ -38,7 +38,8 @@ using namespace EwaldConst;
 /* ---------------------------------------------------------------------- */
 
 PairCoulLongSoft::PairCoulLongSoft(LAMMPS *lmp) :
-    Pair(lmp), scale(nullptr), lambda(nullptr), lam1(nullptr), lam2(nullptr){
+    Pair(lmp), scale(nullptr), lambda(nullptr), lam1(nullptr), lam2(nullptr)
+{
   ewaldflag = pppmflag = 1;
   qdist = 0.0;
 }

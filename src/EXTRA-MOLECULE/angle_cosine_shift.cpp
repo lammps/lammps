@@ -37,7 +37,8 @@ static constexpr double SMALL = 0.001;
 /* ---------------------------------------------------------------------- */
 
 AngleCosineShift::AngleCosineShift(LAMMPS *lmp) :
-    Angle(lmp), k(nullptr), a(nullptr), theta(nullptr), ksint(nullptr){
+    Angle(lmp), k(nullptr), a(nullptr), theta(nullptr), ksint(nullptr)
+{
   kcost = nullptr;
 }
 

@@ -39,7 +39,8 @@ static constexpr double SMALL = 0.001;
 
 AngleCross::AngleCross(LAMMPS *lmp) :
     Angle(lmp), kss(nullptr), kbs0(nullptr), kbs1(nullptr), r00(nullptr), r01(nullptr),
-    theta0(nullptr){}
+    theta0(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

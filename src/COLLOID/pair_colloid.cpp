@@ -36,7 +36,8 @@ using namespace MathSpecial;
 PairColloid::PairColloid(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), a12(nullptr), d1(nullptr), d2(nullptr), diameter(nullptr),
     a1(nullptr), a2(nullptr), offset(nullptr), sigma(nullptr), sigma3(nullptr), sigma6(nullptr),
-    lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), form(nullptr){
+    lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), form(nullptr)
+{
   writedata = 1;
 }
 

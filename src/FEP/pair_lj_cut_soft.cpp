@@ -40,7 +40,8 @@ using namespace MathConst;
 
 PairLJCutSoft::PairLJCutSoft(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr),
-    lj2(nullptr), lj3(nullptr), offset(nullptr), cut_respa(nullptr){
+    lj2(nullptr), lj3(nullptr), offset(nullptr), cut_respa(nullptr)
+{
   respa_enable = 1;
   writedata = 1;
   allocated = 0;

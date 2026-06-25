@@ -39,7 +39,8 @@ static constexpr double TOLERANCE = 0.05;
 
 DihedralFourier::DihedralFourier(LAMMPS *lmp) :
     Dihedral(lmp), k(nullptr), cos_shift(nullptr), sin_shift(nullptr), shift(nullptr),
-    multiplicity(nullptr), nterms(nullptr){
+    multiplicity(nullptr), nterms(nullptr)
+{
   writedata = 1;
   nterms_max = 0;
 }

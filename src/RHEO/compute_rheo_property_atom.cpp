@@ -47,7 +47,8 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
     buf(nullptr), pack_choice(nullptr), fix_rheo(nullptr), fix_pressure(nullptr),
     fix_thermal(nullptr), fix_oxidation(nullptr), compute_interface(nullptr),
     compute_kernel(nullptr), compute_surface(nullptr), compute_vshift(nullptr),
-    compute_grad(nullptr){
+    compute_grad(nullptr)
+{
   if (narg < 4) utils::missing_cmd_args(FLERR, "compute property/atom", error);
 
   peratom_flag = 1;

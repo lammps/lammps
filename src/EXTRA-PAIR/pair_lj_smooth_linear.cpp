@@ -34,7 +34,8 @@ using namespace LAMMPS_NS;
 
 PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), ljcut(nullptr), dljcut(nullptr),
-    lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr){
+    lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr)
+{
   single_hessian_enable = 1;
 }
 

@@ -44,7 +44,8 @@ using namespace MathSpecial;
 /* ---------------------------------------------------------------------- */
 
 PairBrownian::PairBrownian(LAMMPS *lmp) :
-    Pair(lmp), wallfix(nullptr), cut_inner(nullptr), cut(nullptr){
+    Pair(lmp), wallfix(nullptr), cut_inner(nullptr), cut(nullptr)
+{
   single_enable = 0;
   random = nullptr;
 }

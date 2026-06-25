@@ -54,7 +54,8 @@ PairOxdnaXstk::PairOxdnaXstk(LAMMPS *lmp) :
     b_xst4(nullptr), dtheta_xst4_c(nullptr), a_xst7(nullptr), theta_xst7_0(nullptr),
     dtheta_xst7_ast(nullptr), b_xst7(nullptr), dtheta_xst7_c(nullptr), a_xst8(nullptr),
     theta_xst8_0(nullptr), dtheta_xst8_ast(nullptr), b_xst8(nullptr), dtheta_xst8_c(nullptr),
-    nxyz_xtrct(nullptr), fix_lrf(nullptr){
+    nxyz_xtrct(nullptr), fix_lrf(nullptr)
+{
   single_enable = 0;
   writedata = 0;
   trim_flag = 0;

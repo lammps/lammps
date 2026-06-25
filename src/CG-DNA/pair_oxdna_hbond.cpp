@@ -52,7 +52,8 @@ PairOxdnaHbond::PairOxdnaHbond(LAMMPS *lmp) :
     dtheta_hb4_ast(nullptr), b_hb4(nullptr), dtheta_hb4_c(nullptr), a_hb7(nullptr),
     theta_hb7_0(nullptr), dtheta_hb7_ast(nullptr), b_hb7(nullptr), dtheta_hb7_c(nullptr),
     a_hb8(nullptr), theta_hb8_0(nullptr), dtheta_hb8_ast(nullptr), b_hb8(nullptr),
-    dtheta_hb8_c(nullptr), nxyz_xtrct(nullptr), fix_lrf(nullptr){
+    dtheta_hb8_c(nullptr), nxyz_xtrct(nullptr), fix_lrf(nullptr)
+{
   single_enable = 0;
   writedata = 0;
   trim_flag = 0;

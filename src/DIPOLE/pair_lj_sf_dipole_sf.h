@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class PairLJSFDipoleSF : public Pair {
  public:
   PairLJSFDipoleSF(class LAMMPS *_lmp) :
-    Pair(_lmp), cut_lj(nullptr), cut_ljsq(nullptr), cut_coul(nullptr), cut_coulsq(nullptr),
-    epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr),
-    scale(nullptr){};
+      Pair(_lmp), cut_lj(nullptr), cut_ljsq(nullptr), cut_coul(nullptr), cut_coulsq(nullptr),
+      epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr),
+      scale(nullptr) {};
   ~PairLJSFDipoleSF() override;
   void compute(int, int) override;
   void settings(int, char **) override;

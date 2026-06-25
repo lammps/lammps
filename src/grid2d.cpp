@@ -54,7 +54,8 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny) :
     sresponse(nullptr), rresponse(nullptr), send(nullptr), recv(nullptr), copy(nullptr),
     requests_remap(nullptr), send_remap(nullptr), recv_remap(nullptr), overlap_procs(nullptr),
     xsplit(nullptr), ysplit(nullptr), zsplit(nullptr), grid2proc(nullptr), rcbinfo(nullptr),
-    overlap_list(nullptr){
+    overlap_list(nullptr)
+{
   gridcomm = gcomm;
   MPI_Comm_rank(gridcomm, &me);
   MPI_Comm_size(gridcomm, &nprocs);

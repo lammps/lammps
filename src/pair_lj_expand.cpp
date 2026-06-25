@@ -31,7 +31,8 @@ using namespace MathConst;
 
 PairLJExpand::PairLJExpand(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), shift(nullptr), lj1(nullptr),
-    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr){
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr)
+{
   writedata = 1;
 }
 

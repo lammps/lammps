@@ -33,7 +33,8 @@ static constexpr double INERTIA = 0.4;    // moment of inertia prefactor for sph
 /* ---------------------------------------------------------------------- */
 
 ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), id_bias(nullptr), tbias(nullptr){
+    Compute(lmp, narg, arg), id_bias(nullptr), tbias(nullptr)
+{
   if (narg < 3) utils::missing_cmd_args(FLERR, "compute temp/sphere", error);
 
   scalar_flag = vector_flag = 1;

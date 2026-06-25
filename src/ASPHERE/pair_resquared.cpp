@@ -37,7 +37,8 @@ PairRESquared::PairRESquared(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), shape1(nullptr), shape2(nullptr), lshape(nullptr), well(nullptr),
     epsilon(nullptr), sigma(nullptr), form(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
     lj4(nullptr), offset(nullptr), setwell(nullptr), avec(nullptr), cr60(pow(60.0, 1.0 / 3.0)),
-    b_alpha(45.0 / 56.0){
+    b_alpha(45.0 / 56.0)
+{
   single_enable = 1;
 
   cr60 = pow(60.0, 1.0 / 3.0);

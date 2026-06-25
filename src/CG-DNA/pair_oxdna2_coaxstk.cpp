@@ -51,7 +51,8 @@ PairOxdna2Coaxstk::PairOxdna2Coaxstk(LAMMPS *lmp) :
     a_cxst5(nullptr), theta_cxst5_0(nullptr), dtheta_cxst5_ast(nullptr), b_cxst5(nullptr),
     dtheta_cxst5_c(nullptr), a_cxst6(nullptr), theta_cxst6_0(nullptr), dtheta_cxst6_ast(nullptr),
     b_cxst6(nullptr), dtheta_cxst6_c(nullptr), AA_cxst1(nullptr), BB_cxst1(nullptr),
-    nxyz_xtrct(nullptr), fix_lrf(nullptr){
+    nxyz_xtrct(nullptr), fix_lrf(nullptr)
+{
   // dummy sequence-specific coaxial stacking strength
   // A:0 C:1 G:2 T:3, 3'- [i] X [j] -5'
 

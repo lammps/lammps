@@ -69,7 +69,8 @@ NStencil::NStencil(LAMMPS *lmp) :
     bininvx_multi(nullptr), bininvy_multi(nullptr), bininvz_multi(nullptr),
     stencil_mbinx_multi(nullptr), stencil_mbiny_multi(nullptr), stencil_mbinz_multi(nullptr),
     stencil_binsizex_multi(nullptr), stencil_binsizey_multi(nullptr),
-    stencil_binsizez_multi(nullptr){
+    stencil_binsizez_multi(nullptr)
+{
   last_stencil = -1;
 
   xyzflag = 0;

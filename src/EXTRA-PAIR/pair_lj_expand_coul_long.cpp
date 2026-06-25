@@ -42,7 +42,8 @@ using namespace EwaldConst;
 
 PairLJExpandCoulLong::PairLJExpandCoulLong(LAMMPS *lmp) :
     Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr),
-    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), shift(nullptr){
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), shift(nullptr)
+{
   ewaldflag = pppmflag = 1;
   respa_enable = 1;
   writedata = 1;

@@ -30,7 +30,8 @@ enum{KEYWORD,COMPUTE,FIX,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 ComputeSpecAtom::ComputeSpecAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), buf(nullptr), vbuf(nullptr){
+    Compute(lmp, narg, arg), buf(nullptr), vbuf(nullptr)
+{
   if (narg < 4) error->all(FLERR,"Illegal compute spec/atom command");
 
   peratom_flag = 1;

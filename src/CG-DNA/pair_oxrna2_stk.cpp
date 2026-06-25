@@ -51,7 +51,8 @@ PairOxrna2Stk::PairOxrna2Stk(LAMMPS *lmp) :
     dtheta_st10_ast(nullptr), b_st10(nullptr), dtheta_st10_c(nullptr), a_st1(nullptr),
     cosphi_st1_ast(nullptr), b_st1(nullptr), cosphi_st1_c(nullptr), a_st2(nullptr),
     cosphi_st2_ast(nullptr), b_st2(nullptr), cosphi_st2_c(nullptr), nxyz_xtrct(nullptr),
-    fix_lrf(nullptr){
+    fix_lrf(nullptr)
+{
   single_enable = 0;
   writedata = 0;
   trim_flag = 0;

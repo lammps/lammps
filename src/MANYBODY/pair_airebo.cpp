@@ -53,7 +53,8 @@ const char *style[3] = {"airebo", "rebo", "airebo/morse"};
 
 PairAIREBO::PairAIREBO(LAMMPS *lmp) :
     Pair(lmp), variant(AIREBO), cutljsq(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
-    lj4(nullptr), closestdistsq(nullptr){
+    lj4(nullptr), closestdistsq(nullptr)
+{
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;

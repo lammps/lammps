@@ -32,7 +32,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonicShift::BondHarmonicShift(LAMMPS *lmp) : Bond(lmp), k(nullptr), r0(nullptr), r1(nullptr){
+BondHarmonicShift::BondHarmonicShift(LAMMPS *lmp) : Bond(lmp), k(nullptr), r0(nullptr), r1(nullptr)
+{
   born_matrix_enable = 1;
 }
 

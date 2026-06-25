@@ -34,7 +34,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairThole::PairThole(LAMMPS *lmp) :
-    Pair(lmp), cut(nullptr), scale(nullptr), polar(nullptr), thole(nullptr), ascreen(nullptr){
+    Pair(lmp), cut(nullptr), scale(nullptr), polar(nullptr), thole(nullptr), ascreen(nullptr)
+{
     fix_drude = nullptr;
 }
 

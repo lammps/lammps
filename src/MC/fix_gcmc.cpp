@@ -75,7 +75,8 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
     sublo(nullptr), subhi(nullptr), local_gas_list(nullptr), cutsq(nullptr), molcoords(nullptr),
     molq(nullptr), molimage(nullptr), pair(nullptr), random_equal(nullptr),
     random_unequal(nullptr), model_atom(nullptr), onemols(nullptr), fixrigid(nullptr),
-    fixshake(nullptr), idrigid(nullptr), idshake(nullptr), c_pe(nullptr){
+    fixshake(nullptr), idrigid(nullptr), idshake(nullptr), c_pe(nullptr)
+{
   if (narg < 11) utils::missing_cmd_args(FLERR, "fix gcmc", error);
 
   if (atom->molecular == Atom::TEMPLATE)

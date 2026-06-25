@@ -46,7 +46,8 @@ enum{REGULAR,ESKM};
 
 /* ---------------------------------------------------------------------- */
 
-DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), groupmap(nullptr), fp(nullptr){
+DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), groupmap(nullptr), fp(nullptr)
+{
   external_force_clear = 0;
 }
 

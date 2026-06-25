@@ -24,7 +24,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVETri::FixNVETri(LAMMPS *lmp, int narg, char **arg) : FixNVE(lmp, narg, arg), avec(nullptr){
+FixNVETri::FixNVETri(LAMMPS *lmp, int narg, char **arg) : FixNVE(lmp, narg, arg), avec(nullptr)
+{
   if (narg != 3) error->all(FLERR,"Illegal fix nve/tri command");
 
   time_integrate = 1;

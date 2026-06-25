@@ -40,7 +40,8 @@ static constexpr double SMALL = 0.001;
 /* ---------------------------------------------------------------------- */
 
 AngleCosinePeriodic::AngleCosinePeriodic(LAMMPS *lmp) :
-    Angle(lmp), k(nullptr), multiplicity(nullptr), b(nullptr){
+    Angle(lmp), k(nullptr), multiplicity(nullptr), b(nullptr)
+{
   born_matrix_enable = 1;
 }
 

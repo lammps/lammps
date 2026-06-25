@@ -45,7 +45,8 @@ static constexpr int MAXNEIGH = 24;
 
 PairCoulStreitz::PairCoulStreitz(LAMMPS *lmp) :
     Pair(lmp), scale(nullptr), qeq_x(nullptr), qeq_j(nullptr), qeq_g(nullptr), qeq_z(nullptr),
-    qeq_c(nullptr){
+    qeq_c(nullptr)
+{
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;

@@ -38,7 +38,8 @@ using namespace MathConst;
 PairLJCutCoulCutSoft::PairLJCutCoulCutSoft(LAMMPS *lmp) :
     Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), cut_coul(nullptr), cut_coulsq(nullptr),
     epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
-    lj4(nullptr), offset(nullptr){
+    lj4(nullptr), offset(nullptr)
+{
   writedata = 1;
   centroidstressflag = CENTROID_SAME;
 }

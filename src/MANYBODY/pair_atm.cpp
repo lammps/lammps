@@ -46,7 +46,8 @@ static const char cite_atm_package[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairATM::PairATM(LAMMPS *lmp) : Pair(lmp), nu(nullptr){
+PairATM::PairATM(LAMMPS *lmp) : Pair(lmp), nu(nullptr)
+{
   if (lmp->citeme) lmp->citeme->add(cite_atm_package);
 
   single_enable = 0;

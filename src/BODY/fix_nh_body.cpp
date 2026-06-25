@@ -28,7 +28,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNHBody::FixNHBody(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg), avec(nullptr){
+FixNHBody::FixNHBody(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg), avec(nullptr)
+{
 }
 
 /* ---------------------------------------------------------------------- */

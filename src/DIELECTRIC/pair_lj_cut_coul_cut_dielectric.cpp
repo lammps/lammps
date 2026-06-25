@@ -36,7 +36,8 @@ static constexpr double EPSILON = 1.0e-6;
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulCutDielectric::PairLJCutCoulCutDielectric(LAMMPS *_lmp) :
-    PairLJCutCoulCut(_lmp), avec(nullptr){
+    PairLJCutCoulCut(_lmp), avec(nullptr)
+{
   efield = nullptr;
   epot = nullptr;
   nmax = 0;

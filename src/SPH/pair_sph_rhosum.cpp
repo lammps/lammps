@@ -28,7 +28,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHRhoSum::PairSPHRhoSum(LAMMPS *lmp) : Pair(lmp), cut(nullptr){
+PairSPHRhoSum::PairSPHRhoSum(LAMMPS *lmp) : Pair(lmp), cut(nullptr)
+{
   if (atom->rho_flag != 1)
     error->all(FLERR, Error::NOLASTLINE,
                "Pair sph/rhosum requires atom attribute density, e.g. in atom_style sph");

@@ -76,7 +76,8 @@ static const char* cite_fix_nvt_manifold_rattle =
 
 FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
                                            int error_on_unknown_keyword ) :
-    FixNVEManifoldRattle(lmp,narg,arg, 0), fix_id(nullptr){
+    FixNVEManifoldRattle(lmp,narg,arg, 0), fix_id(nullptr)
+{
   if (lmp->citeme) lmp->citeme->add(cite_fix_nvt_manifold_rattle);
 
   if (narg < 6 ) error->all(FLERR,"Illegal fix nvt/manifold/rattle command");

@@ -50,7 +50,8 @@ PairOxdnaStk::PairOxdnaStk(LAMMPS *lmp) :
     dtheta_st5_c(nullptr), a_st6(nullptr), theta_st6_0(nullptr), dtheta_st6_ast(nullptr),
     b_st6(nullptr), dtheta_st6_c(nullptr), a_st1(nullptr), cosphi_st1_ast(nullptr), b_st1(nullptr),
     cosphi_st1_c(nullptr), a_st2(nullptr), cosphi_st2_ast(nullptr), b_st2(nullptr),
-    cosphi_st2_c(nullptr), nxyz_xtrct(nullptr), fix_lrf(nullptr){
+    cosphi_st2_c(nullptr), nxyz_xtrct(nullptr), fix_lrf(nullptr)
+{
   // sequence-specific stacking strength
   // A:0 C:1 G:2 T:3, 3'- [i][j] -5'
 

@@ -30,7 +30,8 @@ using namespace LAMMPS_NS;
 
 PairMorse::PairMorse(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), d0(nullptr), alpha(nullptr), r0(nullptr), morse1(nullptr),
-    offset(nullptr){
+    offset(nullptr)
+{
   writedata = 1;
 }
 

@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairZero::PairZero(LAMMPS *lmp) : Pair(lmp), cut(nullptr){
+PairZero::PairZero(LAMMPS *lmp) : Pair(lmp), cut(nullptr)
+{
   coeffflag = 1;
   writedata = 1;
   single_enable = 1;

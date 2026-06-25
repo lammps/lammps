@@ -30,7 +30,8 @@ static constexpr double INERTIA = 0.2;          // moment of inertia prefactor f
 
 /* ---------------------------------------------------------------------- */
 
-FixNVEDot::FixNVEDot(LAMMPS *lmp, int narg, char **arg) : FixNVE(lmp, narg, arg), avec(nullptr){}
+FixNVEDot::FixNVEDot(LAMMPS *lmp, int narg, char **arg) : FixNVE(lmp, narg, arg), avec(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

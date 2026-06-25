@@ -34,7 +34,8 @@ static constexpr int DELTA = 10000;
 PairLineLJ::PairLineLJ(LAMMPS *lmp) :
     Pair(lmp), subsize(nullptr), epsilon(nullptr), sigma(nullptr), cutsub(nullptr),
     cutsubsq(nullptr), cut(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr),
-    avec(nullptr), size(nullptr){
+    avec(nullptr), size(nullptr)
+{
   dmax = nmax = 0;
   discrete = nullptr;
   dnum = dfirst = nullptr;

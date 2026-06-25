@@ -53,7 +53,8 @@ PairOxdnaExcv::PairOxdnaExcv(LAMMPS *lmp) :
     lj2_bsbs(nullptr), b_bsbs(nullptr), cut_bsbs_c(nullptr), cutsq_bsbs_c(nullptr),
     sigma4_bsbs(nullptr), cut4_bsbs_ast(nullptr), cut4sq_bsbs_ast(nullptr), lj14_bsbs(nullptr),
     lj24_bsbs(nullptr), b4_bsbs(nullptr), cut4_bsbs_c(nullptr), cut4sq_bsbs_c(nullptr),
-    nxyz_xtrct(nullptr), fix_lrf(nullptr){
+    nxyz_xtrct(nullptr), fix_lrf(nullptr)
+{
   single_enable = 0;
   writedata = 0;
 

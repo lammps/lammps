@@ -36,7 +36,8 @@ using namespace EwaldConst;
 
 PairLJClass2CoulLongSoft::PairLJClass2CoulLongSoft(LAMMPS *lmp) :
     Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), sigma(nullptr),
-    lambda(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr){
+    lambda(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr)
+{
   ewaldflag = pppmflag = 1;
   writedata = 1;
 }

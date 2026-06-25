@@ -44,7 +44,8 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr){
+PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
+{
   single_enable = 1;
   no_virial_fdotr_compute = 1;
   centroidstressflag = CENTROID_NOTAVAIL;

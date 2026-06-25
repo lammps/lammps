@@ -30,7 +30,8 @@ enum { NONE, CONSTANT, TYPE };
 
 /* ---------------------------------------------------------------------- */
 
-FixHeatFlow::FixHeatFlow(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), cp_type(nullptr){
+FixHeatFlow::FixHeatFlow(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), cp_type(nullptr)
+{
   if (narg < 4) utils::missing_cmd_args(FLERR, "fix heat/flow", error);
 
   cp_style = NONE;

@@ -41,7 +41,8 @@ using namespace EwaldConst;
 
 PairNMCutCoulLong::PairNMCutCoulLong(LAMMPS *lmp) :
     Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), e0(nullptr), r0(nullptr), nn(nullptr),
-    mm(nullptr), nm(nullptr), e0nm(nullptr), r0n(nullptr), r0m(nullptr), offset(nullptr){
+    mm(nullptr), nm(nullptr), e0nm(nullptr), r0n(nullptr), r0m(nullptr), offset(nullptr)
+{
   ewaldflag = pppmflag = 1;
   ftable = nullptr;
 }

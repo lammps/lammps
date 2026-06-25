@@ -92,7 +92,8 @@ bool ReadData::is_data_section(const std::string &keyword)
 /* ---------------------------------------------------------------------- */
 ReadData::ReadData(LAMMPS *_lmp) :
     Command(_lmp), coeffarg(nullptr), lmap(nullptr), fix_index(nullptr), fix_header(nullptr),
-    fix_section(nullptr){
+    fix_section(nullptr)
+{
   MPI_Comm_rank(world, &me);
   line = new char[MAXLINE];
   keyword = new char[MAXLINE];

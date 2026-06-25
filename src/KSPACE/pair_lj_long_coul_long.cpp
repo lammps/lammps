@@ -45,7 +45,8 @@ using namespace EwaldConst;
 PairLJLongCoulLong::PairLJLongCoulLong(LAMMPS *lmp) :
     Pair(lmp), cut_lj(nullptr), cut_lj_read(nullptr), cut_ljsq(nullptr), epsilon_read(nullptr),
     epsilon(nullptr), sigma_read(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr),
-    lj3(nullptr), lj4(nullptr), offset(nullptr){
+    lj3(nullptr), lj4(nullptr), offset(nullptr)
+{
   dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;
   writedata = 1;

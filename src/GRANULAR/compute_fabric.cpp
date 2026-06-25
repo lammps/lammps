@@ -40,7 +40,8 @@ enum { CN, BR, FN, FT };
 /* ---------------------------------------------------------------------- */
 
 ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), tensor_style(nullptr), list(nullptr){
+    Compute(lmp, narg, arg), tensor_style(nullptr), list(nullptr)
+{
   if (narg < 3) error->all(FLERR, "Illegal compute fabric command");
 
   if (strcmp(arg[3], "type") == 0)

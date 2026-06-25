@@ -53,7 +53,8 @@ static const char cite_pair_mdpd[] =
 
 PairMDPD::PairMDPD(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), cut_r(nullptr), A_att(nullptr), B_rep(nullptr), gamma(nullptr),
-    sigma(nullptr){
+    sigma(nullptr)
+{
   if (lmp->citeme) lmp->citeme->add(cite_pair_mdpd);
 
   writedata = 1;

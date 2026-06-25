@@ -74,7 +74,8 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) :
     Pair(lmp), cut(nullptr), epsilon(nullptr), rm(nullptr), alpha(nullptr), rminv(nullptr),
     buck1(nullptr), buck2(nullptr), offset(nullptr), mol2param(nullptr), nparams(0),
     params(nullptr), nspecies(0), site1(nullptr), site2(nullptr), coeffAlpha(nullptr),
-    coeffEps(nullptr), coeffRm(nullptr), fractionalWeighting(true){
+    coeffEps(nullptr), coeffRm(nullptr), fractionalWeighting(true)
+{
   writedata = 1;
   nmax_exp6 = 0;
   exp6_epsilon1 = exp6_alpha1 = exp6_rm1 = exp6_mixWtSite1 = nullptr;

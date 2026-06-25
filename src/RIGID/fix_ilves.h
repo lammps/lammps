@@ -38,6 +38,7 @@ class FixIlves : public Fix {
   void setup(int) override;
   void pre_neighbor() override;
   void post_force(int) override;
+  void end_of_step() override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
@@ -83,6 +84,7 @@ class FixIlves : public Fix {
   double **xpred0;
   double **dx;
   int maxatom;    // current allocated length of the above per-atom arrays
+  int commstage;  // 0 = forward-comm positions (PBC shift), 1 = velocities (no shift)
 
   // timestep factors, as in fix shake
   double dtv;          // = dt
@@ -96,6 +98,7 @@ class FixIlves : public Fix {
   int nlocal;
 
   void build_constraint_list();
+  void project_velocities();
   void grow_arrays_local();
   void negate_bond_types(int sign);    // sign < 0 negate, sign > 0 restore
   int bond_selected(int i, int j, int btype);

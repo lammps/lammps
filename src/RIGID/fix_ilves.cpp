@@ -91,9 +91,9 @@ static const char cite_fix_ilves[] =
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), tolerance(1.0e-4), max_iter(25), output_every(0), next_output(0),
     variant(ILVES_FAST), molecular(0), types_negated(0), nconstraints(0), ilves_solver(nullptr),
-    xpred(nullptr), xpred0(nullptr), dx(nullptr), maxatom(0), dtv(0.0), dtfsq(0.0), inv_dtfsq(0.0),
-    x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), mask(nullptr),
-    nlocal(0)
+    xpred(nullptr), xpred0(nullptr), dx(nullptr), maxatom(0), commstage(0), dtv(0.0), dtfsq(0.0),
+    inv_dtfsq(0.0), x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr),
+    type(nullptr), mask(nullptr), nlocal(0)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ilves);
 
@@ -219,6 +219,7 @@ int FixIlves::setmask()
   int mask = 0;
   mask |= PRE_NEIGHBOR;
   mask |= POST_FORCE;
+  mask |= END_OF_STEP;
   return mask;
 }
 
@@ -270,7 +271,20 @@ void FixIlves::setup(int vflag)
   if (comm->me == 0)
     utils::logmesg(lmp, "Fix ilves: constraining {} bond(s)\n", nctot);
 
+  // project the initial velocities onto the constraint manifold (remove the
+  // component along each bond), so the run starts constraint-consistent
+  project_velocities();
+
   post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::end_of_step()
+{
+  // RATTLE-style velocity constraint: remove the relative velocity along each
+  // bond after the final velocity update
+  project_velocities();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -329,6 +343,7 @@ void FixIlves::post_force(int vflag)
   // increments to their owners, applies them, and forward-communicates the
   // predicted positions back to the ghosts.
 
+  commstage = 0;    // forward-comm predicted positions (with PBC shift)
   comm->forward_comm(this);
   double local = ilves_solver ? ilves_solver->prepare(x, xpred) : 0.0;
   double ptau;
@@ -369,6 +384,76 @@ void FixIlves::post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   RATTLE-style velocity projection: remove the component of relative velocity
+   along each constrained bond.  The velocity constraint is linear, so this is a
+   block-Jacobi sweep (exact in one pass for an isolated bond) driven uniformly
+   across ranks by the all-reduced residual.  Reuses the xpred buffer as the
+   velocity work array (forward-communicated without a PBC shift) and dx as the
+   per-atom increment accumulator.
+------------------------------------------------------------------------- */
+
+void FixIlves::project_velocities()
+{
+  x = atom->x;
+  v = atom->v;
+  nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+
+  grow_arrays_local();
+
+  for (int i = 0; i < nlocal; ++i) {
+    xpred[i][0] = v[i][0];
+    xpred[i][1] = v[i][1];
+    xpred[i][2] = v[i][2];
+  }
+  commstage = 1;
+  comm->forward_comm(this);
+
+  for (int iter = 0; iter < max_iter; ++iter) {
+    for (int i = 0; i < nall; ++i) dx[i][0] = dx[i][1] = dx[i][2] = 0.0;
+
+    double local = 0.0;
+    for (int k = 0; k < nconstraints; ++k) {
+      const int a = clist_a[k], b = clist_b[k];
+      const double rx = x[b][0] - x[a][0];
+      const double ry = x[b][1] - x[a][1];
+      const double rz = x[b][2] - x[a][2];
+      const double rr = rx * rx + ry * ry + rz * rz;
+      const double vrel = (xpred[b][0] - xpred[a][0]) * rx + (xpred[b][1] - xpred[a][1]) * ry +
+          (xpred[b][2] - xpred[a][2]) * rz;
+      const double res = fabs(vrel) / rr;
+      if (res > local) local = res;
+      const double mu = vrel / ((invmass[a] + invmass[b]) * rr);
+      dx[a][0] += mu * invmass[a] * rx;
+      dx[a][1] += mu * invmass[a] * ry;
+      dx[a][2] += mu * invmass[a] * rz;
+      dx[b][0] -= mu * invmass[b] * rx;
+      dx[b][1] -= mu * invmass[b] * ry;
+      dx[b][2] -= mu * invmass[b] * rz;
+    }
+
+    double global = 0.0;
+    MPI_Allreduce(&local, &global, 1, MPI_DOUBLE, MPI_MAX, world);
+    if (global < tolerance) break;
+
+    comm->reverse_comm(this);
+    for (int i = 0; i < nlocal; ++i) {
+      xpred[i][0] += dx[i][0];
+      xpred[i][1] += dx[i][1];
+      xpred[i][2] += dx[i][2];
+    }
+    commstage = 1;
+    comm->forward_comm(this);
+  }
+
+  for (int i = 0; i < nlocal; ++i) {
+    v[i][0] = xpred[i][0];
+    v[i][1] = xpred[i][1];
+    v[i][2] = xpred[i][2];
+  }
+}
+
+/* ----------------------------------------------------------------------
    (re)allocate the predicted-position / increment buffers to hold local+ghost
 ------------------------------------------------------------------------- */
 
@@ -392,7 +477,9 @@ void FixIlves::grow_arrays_local()
 int FixIlves::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int m = 0;
-  if (pbc_flag == 0) {
+  // commstage 1 carries velocities (no periodic-image shift); commstage 0
+  // carries predicted positions (shifted across periodic boundaries)
+  if ((pbc_flag == 0) || (commstage == 1)) {
     for (int i = 0; i < n; ++i) {
       const int j = list[i];
       buf[m++] = xpred[j][0];

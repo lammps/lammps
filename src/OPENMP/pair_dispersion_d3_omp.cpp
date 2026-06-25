@@ -64,8 +64,8 @@ void PairDispersionD3OMP::calc_coordination_number()
 {
   int nlocal = atom->nlocal;
   const int nthreads = comm->nthreads;
-  int nall = nlocal + atom->nghost; 
-  
+  int nall = nlocal + atom->nghost;
+
 
   int newton_pair = force->newton_pair;
 
@@ -107,7 +107,7 @@ void PairDispersionD3OMP::calc_coordination_number()
     thr->timer(Timer::PAIR);
 
   }
-    
+
   // communicate coordination number
   communicationStage = 1;
   if (newton_pair) comm->reverse_comm(this);
@@ -118,7 +118,7 @@ template <int NEWTON_PAIR>
 void PairDispersionD3OMP::eval_coordination(int iifrom, int iito, ThrData * const thr)
 {
 
-  const auto * _noalias const x = (dbl3_t *) atom->x[0];	
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
   const int * _noalias const ilist = list->ilist;
@@ -160,7 +160,7 @@ void PairDispersionD3OMP::eval_coordination(int iifrom, int iito, ThrData * cons
       if (NEWTON_PAIR || j < nlocal) { thr_cn[j] += cn_ij; }
     }
   }
-  
+
   // Contribute thread-local cn to global cn
   for (int i = 0; i < atom->nmax; i++) {
     // No need for atomic if newton_pair is false
@@ -221,19 +221,19 @@ firstprivate(inum,nthreads,nall)
     }
     thr->timer(Timer::PAIR);
   } // end of omp parallel region
-  
+
 
   // Communication stage 2 for dc6 values in preparation for calculation of indirect forces in the second phase
   communicationStage = 2;
   if (force->newton_pair) {
     comm->reverse_comm(this);
   }
-  
+
   comm->forward_comm(this);
 
 
   // Process the second phase with the combined dc6 values
-  
+
   #if defined(_OPENMP)
   #pragma omp parallel default(none) \
   shared(eflag,vflag,force,atom,list,fix,cn,dc6,cutsq,r0ab,r2r4,rcov,s6,s8,rs6,rs8,alpha,a1,a2,dampingCode,cn_thr,eatom,vatom,stderr,comm) \
@@ -269,7 +269,7 @@ firstprivate(inum,nthreads,nall)
     reduce_thr(this, eflag, vflag_either, thr);
   } //end of omp parallel region
 
-  
+
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -355,7 +355,7 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
 
   // Thread-local dc6 array to avoid race conditions
   double *thr_dc6 = new double[atom->nmax]();  // Initialize to zero. Consider if we can dodge this.
-  
+
   // Loop over assigned atoms
   for (int ii = iifrom; ii < iito; ++ii) {
     int i = ilist[ii];
@@ -368,48 +368,48 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
     int jnum = numneigh[i];
     const int * _noalias const jlist = firstneigh[i];
 
-    
+
     for (int jj = 0; jj < jnum; jj++) {
       int j = jlist[jj];
       double factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
-      
+
       double delx = xtmp - x[j].x;
       double dely = ytmp - x[j].y;
       double delz = ztmp - x[j].z;
-      
+
       double rsq = delx * delx + dely * dely + delz * delz;
-   
+
       int jtype = type[j];
-      
+
       if (rsq < cutsq[itype][jtype]) {
 
-        
+
         double r2inv = 1.0 / rsq;
         double r6inv = r2inv * r2inv * r2inv;
         double r8inv = r2inv * r2inv * r2inv * r2inv;
         double r10inv = r2inv * r2inv * r2inv * r2inv * r2inv;
 
         // Modified from original code to avoid race conditions
-	      double c6_res[3] = {};        
+              double c6_res[3] = {};
         get_dC6(itype, jtype, cn[i], cn[j], c6_res);
-        
-        
+
+
         double C6 = c6_res[0];
         double C8 = 3.0 * C6 * r2r4[itype] * r2r4[jtype] * AUTOANG * AUTOANG;
 
         double alpha6 = alpha;
         double alpha8 = alpha + 2;
-        
+
         double t6, t8, damp6, damp8, e6, e8;
         double tmp6, tmp8, fpair1, fpair2, fpair;
         t6 = t8 = e6 = e8 = evdwl = fpair = fpair1 = fpair2 = 0.0;
 
         // Damping code selection - now using the passed dampingCode parameter
         switch (dampingCode) {
-	        // Written to avoid using sqrt and pow()
-          case 1: /* Original damping */ 
+                // Written to avoid using sqrt and pow()
+          case 1: /* Original damping */
             {
               double ip6 = rs6 * r0ab[type[i]][type[j]];
               double ip8 = rs8 * r0ab[type[i]][type[j]];
@@ -419,7 +419,7 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
 
               t6 = pow_general(ip6, alpha6) * pow_general(rsq, -half_alpha6);
               t8 = pow_general(ip8, alpha8) * pow_general(rsq, -half_alpha8);
-              
+
               damp6 = 1.0 / (1.0 + 6.0 * t6);
               damp8 = 1.0 / (1.0 + 6.0 * t8);
 
@@ -435,7 +435,7 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
               fpair = fpair1 + fpair2;
               fpair *= factor_lj;
             } break;
-	    // Written to avoid pow
+            // Written to avoid pow
           case 2: {    // zerom
 
             double r = sqrt(rsq);
@@ -502,27 +502,27 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
             fpair = -(tmp6 + tmp8);
             fpair *= factor_lj;
           } break;
-          
+
           default: {
             error->all(FLERR, Error::NOLASTLINE, "Damping code {} unknown", dampingCode);
           } break;
         }
-        
+
         if (EFLAG) evdwl = -(s6 * e6 + s8 * e8) * factor_lj;
-        
+
         double rest = (s6 * e6 + s8 * e8) / C6;
 
         // Update thread-local dc6
         double dc6_contrib_i = rest * c6_res[1];
         thr_dc6[i] += dc6_contrib_i;
-        
-        if (NEWTON_PAIR || j < nlocal) { 
+
+        if (NEWTON_PAIR || j < nlocal) {
           double dc6_contrib_j = rest * c6_res[2];
-          thr_dc6[j] += dc6_contrib_j; 
+          thr_dc6[j] += dc6_contrib_j;
         }
 
 
-        
+
         f[i].x += delx * fpair;
         f[i].y += dely * fpair;
         f[i].z += delz * fpair;
@@ -552,7 +552,7 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairDispersionD3OMP::eval_second_phase(int iifrom, int iito, ThrData * const thr)
 {
-  
+
   const auto * _noalias const x = (dbl3_t *) atom->x[0];
   auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int * _noalias const type = atom->type;
@@ -573,7 +573,7 @@ void PairDispersionD3OMP::eval_second_phase(int iifrom, int iito, ThrData * cons
     xtmp = x[i].x;
     ytmp = x[i].y;
     ztmp = x[i].z;
-    
+
     int jnum = numneigh[i];
     const int * _noalias const jlist = firstneigh[i];
     fxtmp=fytmp=fztmp=0.0;
@@ -616,7 +616,7 @@ void PairDispersionD3OMP::eval_second_phase(int iifrom, int iito, ThrData * cons
         }
 
         // Update virial (no energy contributions in this phase)
-	      if (EVFLAG) ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, 0.0, 0.0, fpair, delx, dely, delz, thr);
+              if (EVFLAG) ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, 0.0, 0.0, fpair, delx, dely, delz, thr);
 
       }
     }

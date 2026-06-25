@@ -655,7 +655,7 @@ struct PairDispersionD3KernelA {
 
             t6 = kk_pow_general(ip6, alpha6) * kk_pow_general(rsq, -half_alpha6);
             t8 = kk_pow_general(ip8, alpha8) * kk_pow_general(rsq, -half_alpha8);
-            
+
             damp6 = 1.0f / (1.0f + 6.0f * t6);
             damp8 = 1.0f / (1.0f + 6.0f * t8);
 
@@ -893,7 +893,7 @@ struct PairDispersionD3KernelB {
     dst.evdwl += src.evdwl;
     for (int i = 0; i < 6; i++) dst.v[i] += src.v[i];
   }
-  
+
 
   // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -1079,7 +1079,7 @@ class PairDispersionD3Kokkos : public PairDispersionD3, public KokkosBase {
   typedef ArrayTypes<LMPHostType> HAT;
   typedef EV_FLOAT value_type;
   PairDispersionD3Kokkos(class LAMMPS *);
-  ~PairDispersionD3Kokkos() override; 
+  ~PairDispersionD3Kokkos() override;
 
   void calc_coordination_number();
   void compute(int, int) override;

@@ -14,8 +14,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors:
-      Yizhong R. Hu 
-      Marc L. Descoteaux 
+      Yizhong R. Hu
+      Marc L. Descoteaux
       Ulrik Unneberg
       William C. Witt
       Affiliation: Harvard University
@@ -49,7 +49,7 @@ template<class DeviceType>
 PairDispersionD3Kokkos<DeviceType>::PairDispersionD3Kokkos(LAMMPS *lmp) : PairDispersionD3(lmp)
 {
   respa_enable = 0;
-  
+
   nmax = 0;
   comm_forward = 2;
   comm_reverse = 2;
@@ -371,9 +371,9 @@ void PairDispersionD3Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_cutsq.template sync<DeviceType>();
   k_mxci.template sync<DeviceType>();
   k_c6ab.template sync<DeviceType>();
-  if (eflag || vflag) 
+  if (eflag || vflag)
     atomKK->modified(execution_space,datamask_modify);
-  else 
+  else
     atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
@@ -393,7 +393,7 @@ void PairDispersionD3Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
   inum = list->inum;
-  
+
 
   if constexpr (std::is_same_v<DeviceType,LMPDeviceType>) {
     need_dup = false;

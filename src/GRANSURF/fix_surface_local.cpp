@@ -66,7 +66,14 @@ FixSurfaceLocal *FixSurfaceLocal::fptr;
 /* ---------------------------------------------------------------------- */
 
 FixSurfaceLocal::FixSurfaceLocal(LAMMPS *lmp, int narg, char **arg) :
-  FixSurface(lmp, narg, arg)
+    FixSurface(lmp, narg, arg), connect2d(nullptr), connect3d(nullptr), atom2connect(nullptr),
+    tstr(nullptr), input_modes(nullptr), input_stypes(nullptr), input_smols(nullptr),
+    input_sources(nullptr), avec_line(nullptr), avec_tri(nullptr), ipc(nullptr), tpc(nullptr),
+    pool2d(nullptr), pool3d(nullptr), connect2atom(nullptr), neigh_p1(nullptr), neigh_p2(nullptr),
+    neigh_e1(nullptr), neigh_e2(nullptr), neigh_e3(nullptr), neigh_c1(nullptr), neigh_c2(nullptr),
+    neigh_c3(nullptr), points(nullptr), lines(nullptr), tris(nullptr), connect2dall(nullptr),
+    connect3dall(nullptr), plines(nullptr), etris(nullptr), ctris(nullptr), pts(nullptr),
+    bincount(nullptr), binfirst(nullptr)
 {
   create_attribute = 1;
 
@@ -76,10 +83,6 @@ FixSurfaceLocal::FixSurfaceLocal(LAMMPS *lmp, int narg, char **arg) :
   // just store info for use in post_constructor()
 
   ninput = 0;
-  input_modes = nullptr;
-  input_sources = nullptr;
-  input_stypes = nullptr;
-  input_smols = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {

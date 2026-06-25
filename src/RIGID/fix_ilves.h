@@ -65,6 +65,10 @@ class FixIlves : public Fix {
   std::vector<double> bond_distance; // [nbondtypes+1] equilibrium bond lengths
   int types_negated;                 // 1 once constrained bond types have been negated
 
+  int store_flag;     // 1 to expose per-atom constraint forces via array_atom
+  double **fstore;    // per-atom constraint forces (when store_flag)
+  int maxstore;       // current allocated length of fstore
+
   // local constraint list, rebuilt every reneighbor.
   // constraint k joins local/ghost atoms clist_a[k] and clist_b[k] with target
   // distance clist_d[k]; clist_btype[k] is the (positive) bond type for stats.
@@ -100,6 +104,7 @@ class FixIlves : public Fix {
   void build_constraint_list();
   void project_velocities();
   void grow_arrays_local();
+  void stats();
   void negate_bond_types(int sign);    // sign < 0 negate, sign > 0 restore
   int bond_selected(int i, int j, int btype);
   int masscheck(double massone);

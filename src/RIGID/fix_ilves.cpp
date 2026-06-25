@@ -90,7 +90,8 @@ static const char cite_fix_ilves[] =
 
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), tolerance(1.0e-4), max_iter(25), output_every(0), next_output(0),
-    variant(ILVES_FAST), molecular(0), types_negated(0), nconstraints(0), ilves_solver(nullptr),
+    variant(ILVES_FAST), molecular(0), types_negated(0), store_flag(0), fstore(nullptr),
+    maxstore(0), nconstraints(0), ilves_solver(nullptr),
     xpred(nullptr), xpred0(nullptr), dx(nullptr), maxatom(0), commstage(0), dtv(0.0), dtfsq(0.0),
     inv_dtfsq(0.0), x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr),
     type(nullptr), mask(nullptr), nlocal(0)
@@ -183,9 +184,21 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
       else
         error->all(FLERR, "Unknown fix ilves variant: {}", arg[iarg + 1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg], "store") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves store", error);
+      store_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
     } else {
       error->all(FLERR, "Unknown fix ilves keyword: {}", arg[iarg]);
     }
+  }
+
+  // with store yes, expose the per-atom constraint forces as a 3-column array
+
+  if (store_flag) {
+    peratom_flag = 1;
+    size_peratom_cols = 3;
+    peratom_freq = 1;
   }
 
   // require at least one selector
@@ -210,6 +223,7 @@ FixIlves::~FixIlves()
   memory->destroy(xpred);
   memory->destroy(xpred0);
   memory->destroy(dx);
+  memory->destroy(fstore);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -271,6 +285,18 @@ void FixIlves::setup(int vflag)
   if (comm->me == 0)
     utils::logmesg(lmp, "Fix ilves: constraining {} bond(s)\n", nctot);
 
+  // schedule the next statistics output
+
+  const bigint ntimestep = update->ntimestep;
+  if (output_every) {
+    next_output = ntimestep + output_every;
+    if (ntimestep % output_every != 0)
+      next_output = (ntimestep / output_every) * output_every + output_every;
+  } else {
+    next_output = -1;
+  }
+  if (output_every) stats();
+
   // project the initial velocities onto the constraint manifold (remove the
   // component along each bond), so the run starts constraint-consistent
   project_velocities();
@@ -307,9 +333,26 @@ void FixIlves::post_force(int vflag)
   nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
 
+  if (output_every && (update->ntimestep == next_output)) {
+    stats();
+    next_output += output_every;
+  }
+
   v_init(vflag);
 
   grow_arrays_local();
+
+  // (re)allocate and zero the per-atom constraint-force store
+
+  if (store_flag) {
+    if (nlocal > maxstore) {
+      memory->destroy(fstore);
+      maxstore = atom->nmax;
+      memory->create(fstore, maxstore, 3, "ilves:fstore");
+      array_atom = fstore;
+    }
+    for (int i = 0; i < nlocal; ++i) fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
+  }
 
   // predict the unconstrained positions for owned atoms (fix shake style) and
   // save them, so the net constrained displacement can be turned into a force
@@ -375,9 +418,17 @@ void FixIlves::post_force(int vflag)
       const double m = rmass ? rmass[i] : mass[type[i]];
       if (m <= 0.0) continue;
       const double fac = m * inv_dtfsq;
-      f[i][0] += fac * (xpred[i][0] - xpred0[i][0]);
-      f[i][1] += fac * (xpred[i][1] - xpred0[i][1]);
-      f[i][2] += fac * (xpred[i][2] - xpred0[i][2]);
+      const double fcx = fac * (xpred[i][0] - xpred0[i][0]);
+      const double fcy = fac * (xpred[i][1] - xpred0[i][1]);
+      const double fcz = fac * (xpred[i][2] - xpred0[i][2]);
+      f[i][0] += fcx;
+      f[i][1] += fcy;
+      f[i][2] += fcz;
+      if (store_flag) {
+        fstore[i][0] = fcx;
+        fstore[i][1] = fcy;
+        fstore[i][2] = fcz;
+      }
     }
     if (vflag_global) ilves_solver->add_global_virial(virial, inv_dtfsq);
   }
@@ -704,4 +755,44 @@ bigint FixIlves::dof(int igroup)
   bigint nall = 0;
   MPI_Allreduce(&n, &nall, 1, MPI_LMP_BIGINT, MPI_SUM, world);
   return nall;
+}
+
+/* ----------------------------------------------------------------------
+   print per-bond-type constraint statistics: count, average length, and the
+   spread (max - min) of the constrained bond lengths across all ranks.
+------------------------------------------------------------------------- */
+
+void FixIlves::stats()
+{
+  const int nb = atom->nbondtypes + 1;
+  std::vector<bigint> bcount(nb, 0), bcount_all(nb, 0);
+  std::vector<double> bsum(nb, 0.0), bmin(nb, 1.0e20), bmax(nb, 0.0);
+  std::vector<double> bsum_all(nb, 0.0), bmin_all(nb, 0.0), bmax_all(nb, 0.0);
+
+  double **xx = atom->x;
+  for (int k = 0; k < nconstraints; ++k) {
+    const int a = clist_a[k], b = clist_b[k], t = clist_btype[k];
+    const double dx0 = xx[b][0] - xx[a][0];
+    const double dy0 = xx[b][1] - xx[a][1];
+    const double dz0 = xx[b][2] - xx[a][2];
+    const double r = sqrt(dx0 * dx0 + dy0 * dy0 + dz0 * dz0);
+    ++bcount[t];
+    bsum[t] += r;
+    if (r < bmin[t]) bmin[t] = r;
+    if (r > bmax[t]) bmax[t] = r;
+  }
+
+  MPI_Allreduce(bcount.data(), bcount_all.data(), nb, MPI_LMP_BIGINT, MPI_SUM, world);
+  MPI_Allreduce(bsum.data(), bsum_all.data(), nb, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(bmin.data(), bmin_all.data(), nb, MPI_DOUBLE, MPI_MIN, world);
+  MPI_Allreduce(bmax.data(), bmax_all.data(), nb, MPI_DOUBLE, MPI_MAX, world);
+
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "Fix ilves constraint statistics at step {}:\n", update->ntimestep);
+    for (int t = 1; t < nb; ++t) {
+      if (bcount_all[t] == 0) continue;
+      utils::logmesg(lmp, "  bond type {}: count {}  ave {:.6g}  spread {:.3g}\n", t, bcount_all[t],
+                     bsum_all[t] / (double) bcount_all[t], bmax_all[t] - bmin_all[t]);
+    }
+  }
 }

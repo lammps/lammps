@@ -33,6 +33,13 @@ Syntax
        *mode* value = *converge* or *fixed*
          *converge* = iterate until the tolerance is met (default)
          *fixed* = always perform *iter* Newton iterations
+       *linearangle* values = style threshold
+         style = *error* or *skip* or *restrain*
+           *error* = stop if a selected angle type is near-linear (default)
+           *skip* = do not constrain near-linear angle types
+           *restrain* = replace the near-linear A-C constraint with a stiff harmonic restraint
+         threshold = equilibrium angle (in degrees) at or above which an angle type is near-linear
+       *kbond* value = force constant of the *restrain* substitute (in the active unit system)
        *store* value = *yes* or *no*
          *yes* exposes the per-atom constraint forces via a per-atom array
 
@@ -45,6 +52,7 @@ Examples
    fix 2 wat ilves 1.0e-8 25 1000 b 18 a 31
    fix 3 all ilves 1.0e-6 25 0 b 1 variant full
    fix 4 sol ilves 1.0e-8 25 0 t 1 m 1.008 store yes
+   fix 5 co2 ilves 1.0e-8 25 0 b 1 a 1 linearangle restrain 170 kbond 2000
 
 Description
 """""""""""
@@ -104,6 +112,32 @@ clusters, the legs and the A-C virtual bond of an angle become part of the same
 connected constraint cluster that the ILVES solver handles directly, so angles
 sharing atoms (or angles within larger constrained networks) need no special
 casing.
+
+Near-linear angles
+^^^^^^^^^^^^^^^^^^
+
+As the equilibrium angle approaches 180 degrees the A-C virtual bond becomes
+rank-deficient: the A-C distance is nearly stationary with respect to the angle,
+so the constraint is ill-conditioned and the solve degrades and eventually fails.
+Angle types whose equilibrium angle is at or above the *linearangle* threshold
+(default 175 degrees) are therefore treated specially according to the
+*linearangle* style:
+
+* *error* (default): stop with an error identifying the offending angle type(s).
+* *skip*: do not constrain those angle types at all.  Their two flanking bonds
+  are still held rigid, but the angle itself is left to the configured
+  :doc:`angle_style <angle_style>`, which is the recommended choice when the
+  force field provides a (well-behaved) angle term for the near-linear angle.
+* *restrain*: replace the rank-deficient A-C constraint with a stiff harmonic
+  restraint on the A-C distance, :math:`E = k\,(r_{AC} - d_{AC})^2`, with force
+  constant *k* set by the *kbond* keyword (default 1000 in the active unit
+  system).  Because the A-C distance is insensitive to the angle near 180
+  degrees, this is a soft control on the angle itself; *skip* gives tighter
+  angle behavior when a force-field angle term is available.
+
+The restraint energy of the *restrain* substitute is available as the global
+scalar of this fix and, with :doc:`fix_modify <fix_modify>` *energy yes*, is
+added to the potential energy and the thermodynamic output.
 
 Algorithm
 ^^^^^^^^^
@@ -171,9 +205,14 @@ columns containing the constraint-force components ``(fx, fy, fz)`` added by
 the fix on the current time step, accessible as ``f_<ID>[1]``, ``f_<ID>[2]``,
 and ``f_<ID>[3]``.
 
+This fix computes a global scalar, the potential energy of the *linearangle
+restrain* substitute (zero unless that mode is active), accessible as
+``f_<ID>``.
+
 By default the constraint forces are not added to the pressure virial; use
 :doc:`fix_modify <fix_modify>` *virial yes* to include their contribution to the
-global pressure.
+global pressure.  Likewise the restraint energy is included in the potential
+energy only with :doc:`fix_modify <fix_modify>` *energy yes*.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -184,9 +223,8 @@ first reneighbor.  Redeclare the same ``fix ilves`` command after
 :doc:`read_restart <read_restart>` to restore the constraints (the negated
 bond types are preserved in the restart file).
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported.  This fix
-computes no global or per-atom energy and is not invoked during
-:doc:`energy minimization <minimize>`.
+The :doc:`fix_modify <fix_modify>` *virial* and *energy* options are supported.
+This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
@@ -227,8 +265,8 @@ Related commands
 Default
 """""""
 
-The keyword defaults are *variant* = *fast*, *mode* = *converge*, and
-*store* = *no*.
+The keyword defaults are *variant* = *fast*, *mode* = *converge*,
+*linearangle* = *error* 175, *kbond* = 1000, and *store* = *no*.
 
 ----------
 

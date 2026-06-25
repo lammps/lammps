@@ -45,6 +45,7 @@
 #include "group.h"
 #include "ilves_asym.h"
 #include "ilves_sym.h"
+#include "math_const.h"
 #include "memory.h"
 #include "update.h"
 
@@ -56,7 +57,12 @@ using namespace FixConst;
 
 namespace {
 enum { ILVES_FAST, ILVES_FULL };
+enum { LINEAR_ERROR, LINEAR_SKIP, LINEAR_RESTRAIN };
 constexpr double MASSDELTA = 0.1;
+// default force constant (kcal/mol/Angstrom^2-equivalent, in the active unit
+// system) for the near-linear-angle harmonic A-C restraint when the user does
+// not set one with the kbond keyword
+constexpr double KBOND_AUTO = 1000.0;
 
 // keywords that terminate the b/a/t/m selector lists
 int is_keyword(const char *s)
@@ -92,7 +98,8 @@ static const char cite_fix_ilves[] =
 
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), tolerance(1.0e-4), max_iter(25), output_every(0), next_output(0),
-    variant(ILVES_FAST), fixed_iter(0), molecular(0), types_negated(0), store_flag(0),
+    variant(ILVES_FAST), fixed_iter(0), linear_mode(LINEAR_ERROR), linear_threshold(175.0),
+    kbond(-1.0), molecular(0), types_negated(0), store_flag(0),
     fstore(nullptr),
     maxstore(0), niter_max(0), nconstraints(0), ilves_solver(nullptr),
     xpred(nullptr), xpred0(nullptr), dx(nullptr), maxatom(0), commstage(0), dtv(0.0), dtfsq(0.0),
@@ -116,6 +123,15 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   // are not yet reproducible enough to enable by default)
   virial_global_flag = 1;
   for (int i = 0; i < 6; ++i) virial[i] = 0.0;
+
+  // the linearangle restrain substitute is a real potential; expose its energy
+  // as the fix's global scalar (opt-in to the thermodynamic output via
+  // fix_modify energy yes, as for other restraint-style fixes)
+  scalar_flag = 1;
+  global_freq = 1;
+  extscalar = 1;
+  energy_global_flag = 1;
+  erestraint = 0.0;
 
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix ilves", error);
 
@@ -196,6 +212,25 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
       else
         error->all(FLERR, "Unknown fix ilves mode: {}", arg[iarg + 1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg], "linearangle") == 0) {
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix ilves linearangle", error);
+      if (strcmp(arg[iarg + 1], "error") == 0)
+        linear_mode = LINEAR_ERROR;
+      else if (strcmp(arg[iarg + 1], "skip") == 0)
+        linear_mode = LINEAR_SKIP;
+      else if (strcmp(arg[iarg + 1], "restrain") == 0)
+        linear_mode = LINEAR_RESTRAIN;
+      else
+        error->all(FLERR, "Unknown fix ilves linearangle mode: {}", arg[iarg + 1]);
+      linear_threshold = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      if ((linear_threshold <= 0.0) || (linear_threshold >= 180.0))
+        error->all(FLERR, "Fix ilves linearangle threshold must be between 0 and 180 degrees");
+      iarg += 3;
+    } else if (strcmp(arg[iarg], "kbond") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves kbond", error);
+      kbond = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (kbond <= 0.0) error->all(FLERR, "Fix ilves kbond must be > 0");
+      iarg += 2;
     } else {
       error->all(FLERR, "Unknown fix ilves keyword: {}", arg[iarg]);
     }
@@ -271,11 +306,37 @@ void FixIlves::init()
   // reduced across ranks so every rank agrees.
 
   angle_distance.assign(atom->nangletypes + 1, 0.0);
+  angle_linear.assign(atom->nangletypes + 1, 0);
   int any_angle = 0;
   for (int i = 1; i <= atom->nangletypes; ++i) any_angle += angle_flag[i];
   if (any_angle) {
     if (!force->angle)
       error->all(FLERR, "Fix ilves angle constraints require an angle style");
+
+    // classify near-linear angle types (theta0 >= linear_threshold).  the A-C
+    // virtual bond becomes rank-deficient near 180 degrees, so these are handled
+    // per linear_mode instead of by an ordinary distance constraint.
+    const double thresh_rad = linear_threshold * MathConst::MY_PI / 180.0;
+    std::string linear_types;
+    for (int i = 1; i <= atom->nangletypes; ++i) {
+      if (!angle_flag[i]) continue;
+      const double th = force->angle->equilibrium_angle(i);
+      if (th >= thresh_rad) {
+        angle_linear[i] = 1;
+        linear_types += " " + std::to_string(i);
+      }
+    }
+    if (!linear_types.empty()) {
+      if (linear_mode == LINEAR_ERROR)
+        error->all(FLERR, "Fix ilves angle type(s){} have an equilibrium angle at or above the "
+                          "linearangle threshold of {} degrees and cannot be rigidly constrained; "
+                          "use the linearangle keyword to skip or restrain them",
+                   linear_types, linear_threshold);
+      else if (comm->me == 0)
+        error->warning(FLERR, "Fix ilves treating near-linear angle type(s){} with linearangle "
+                              "mode {}", linear_types,
+                       (linear_mode == LINEAR_SKIP) ? "skip" : "restrain");
+    }
 
     std::vector<double> ad(atom->nangletypes + 1, 0.0);
     int *num_angle = atom->num_angle;
@@ -415,6 +476,11 @@ void FixIlves::post_force(int vflag)
     }
     for (int i = 0; i < nlocal; ++i) fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
   }
+
+  // add the near-linear-angle restraint forces (linearangle restrain) to
+  // atom->f before predicting positions, so they enter the dynamics like any
+  // other force.  uses the dx buffer as scratch (zeroed and reused by the solve)
+  if (linear_mode == LINEAR_RESTRAIN) apply_linear_restraint();
 
   // predict the unconstrained positions for owned atoms (fix shake style) and
   // save them, so the net constrained displacement can be turned into a force
@@ -705,6 +771,9 @@ void FixIlves::build_constraint_list()
   clist_b.clear();
   clist_d.clear();
   clist_btype.clear();
+  rlist_a.clear();
+  rlist_c.clear();
+  rlist_d.clear();
 
   if (num_bond) {
     for (int i = 0; i < nlocal; ++i) {
@@ -740,6 +809,18 @@ void FixIlves::build_constraint_list()
       for (int m = 0; m < num_angle[i]; ++m) {
         int a, c, atype;
         if (!angle_selected(i, m, a, c, atype)) continue;
+        if (angle_linear[atype]) {
+          // near-linear angle: the A-C virtual bond is rank-deficient.  with
+          // linearangle skip do nothing (the angle is left to the bonded style);
+          // with restrain record the A-C pair for the stiff harmonic bond
+          // substitute applied in post_force.
+          if (linear_mode == LINEAR_RESTRAIN) {
+            rlist_a.push_back(a);
+            rlist_c.push_back(c);
+            rlist_d.push_back(angle_distance[atype]);
+          }
+          continue;
+        }
         clist_a.push_back(a);
         clist_b.push_back(c);
         clist_d.push_back(angle_distance[atype]);
@@ -779,6 +860,51 @@ void FixIlves::build_constraint_list()
     else
       ilves_solver = new ILVES::IlvesAsym(lmp, nconstraints, clist_a.data(), clist_b.data(),
                                           clist_d.data(), invmass.data(), 1);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   add the stiff harmonic A-C "virtual bond" restraint for near-linear angle
+   types (linearangle restrain mode) to atom->f.  E = k (r - d)^2 with r the
+   current A-C distance and d the law-of-cosines target; this replaces the
+   rank-deficient holonomic A-C constraint with a well-behaved distance
+   restraint.  forces are accumulated into the dx buffer (home + ghost) and
+   reverse-summed to the owning ranks, then added to atom->f, so the restraint
+   is part of the force used to predict positions for the constraint solve.
+------------------------------------------------------------------------- */
+
+void FixIlves::apply_linear_restraint()
+{
+  const double k = (kbond > 0.0) ? kbond : KBOND_AUTO;
+  const int nall = atom->nlocal + atom->nghost;
+  double **xx = atom->x;
+
+  for (int i = 0; i < nall; ++i) dx[i][0] = dx[i][1] = dx[i][2] = 0.0;
+
+  erestraint = 0.0;
+  const int nr = (int) rlist_a.size();
+  for (int kk = 0; kk < nr; ++kk) {
+    const int a = rlist_a[kk], c = rlist_c[kk];
+    const double ux = xx[c][0] - xx[a][0];
+    const double uy = xx[c][1] - xx[a][1];
+    const double uz = xx[c][2] - xx[a][2];
+    const double r = sqrt(ux * ux + uy * uy + uz * uz);
+    if (r < 1.0e-10) continue;
+    const double dr = r - rlist_d[kk];
+    erestraint += k * dr * dr;
+    // F_a = 2k(r-d)/r * (x_c - x_a)  (toward c when stretched), F_c = -F_a
+    const double fac = 2.0 * k * dr / r;
+    dx[a][0] += fac * ux; dx[a][1] += fac * uy; dx[a][2] += fac * uz;
+    dx[c][0] -= fac * ux; dx[c][1] -= fac * uy; dx[c][2] -= fac * uz;
+  }
+
+  comm->reverse_comm(this);    // sum ghost restraint forces into their owners
+
+  double **ff = atom->f;
+  for (int i = 0; i < atom->nlocal; ++i) {
+    ff[i][0] += dx[i][0];
+    ff[i][1] += dx[i][1];
+    ff[i][2] += dx[i][2];
   }
 }
 
@@ -906,6 +1032,9 @@ void FixIlves::negate_angle_types(int sign)
     for (int m = 0; m < num_angle[i]; ++m) {
       int a, c, atype;
       if (!angle_selected(i, m, a, c, atype)) continue;
+      // a near-linear angle handled by linearangle skip keeps its bonded-style
+      // term (it is not constrained), so leave its type sign alone
+      if (angle_linear[atype] && (linear_mode == LINEAR_SKIP)) continue;
       if ((sign < 0) && (angle_type[i][m] > 0))
         angle_type[i][m] = -angle_type[i][m];
       else if ((sign > 0) && (angle_type[i][m] < 0))
@@ -958,6 +1087,19 @@ bigint FixIlves::dof(int igroup)
   bigint nall = 0;
   MPI_Allreduce(&n, &nall, 1, MPI_LMP_BIGINT, MPI_SUM, world);
   return nall;
+}
+
+/* ----------------------------------------------------------------------
+   global potential energy of the near-linear-angle restrain substitute,
+   summed over all ranks (each restrained angle is counted once at its local
+   center).  zero unless linearangle restrain is active.
+------------------------------------------------------------------------- */
+
+double FixIlves::compute_scalar()
+{
+  double all = 0.0;
+  MPI_Allreduce(&erestraint, &all, 1, MPI_DOUBLE, MPI_SUM, world);
+  return all;
 }
 
 /* ----------------------------------------------------------------------

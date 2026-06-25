@@ -46,6 +46,7 @@ class FixIlves : public Fix {
   void unpack_reverse_comm(int, int *, double *) override;
 
   bigint dof(int) override;
+  double compute_scalar() override;
 
  protected:
   // user settings
@@ -56,6 +57,15 @@ class FixIlves : public Fix {
   int variant;            // ILVES_FAST (symmetric) or ILVES_FULL (asymmetric)
   int fixed_iter;         // 1 = run exactly max_iter iterations (no convergence test)
 
+  // near-linear angle handling.  the A-C "virtual bond" of an angle becomes
+  // rank-deficient as the equilibrium angle approaches 180 degrees, so angle
+  // types whose theta0 is at or above linear_threshold (in degrees) are treated
+  // specially according to linear_mode.
+  int linear_mode;          // LINEAR_ERROR, LINEAR_SKIP, or LINEAR_RESTRAIN
+  double linear_threshold;  // degrees; angle types with theta0 >= this are near-linear
+  double kbond;             // force constant for the restrain substitute (< 0 = auto)
+  double erestraint;        // potential energy of the restrain substitute (this rank)
+
   // selectors (which bonds/angles to constrain), as in fix shake
   std::vector<int> bond_flag;     // [nbondtypes+1]  constrain these bond types
   std::vector<int> angle_flag;    // [nangletypes+1] constrain these angle types (deferred)
@@ -65,6 +75,7 @@ class FixIlves : public Fix {
   int molecular;                      // copy of atom->molecular
   std::vector<double> bond_distance;  // [nbondtypes+1] equilibrium bond lengths
   std::vector<double> angle_distance; // [nangletypes+1] equilibrium A-C distances
+  std::vector<int> angle_linear;      // [nangletypes+1] 1 if type is near-linear (theta0>=threshold)
   int types_negated;                  // 1 once constrained bond/angle types have been negated
 
   int store_flag;     // 1 to expose per-atom constraint forces via array_atom
@@ -78,6 +89,12 @@ class FixIlves : public Fix {
   int nconstraints;
   std::vector<int> clist_a, clist_b, clist_btype;
   std::vector<double> clist_d;
+
+  // near-linear angles handled by the restrain substitute, rebuilt every
+  // reneighbor: a stiff harmonic bond on the A-C "virtual bond" between the
+  // outer atoms rlist_a/rlist_c (local or ghost) with target distance rlist_d.
+  std::vector<int> rlist_a, rlist_c;
+  std::vector<double> rlist_d;
 
   // the ported ILVES solver, rebuilt every reneighbor from the constraint list
   ILVES::Ilves *ilves_solver;
@@ -105,6 +122,7 @@ class FixIlves : public Fix {
   int nlocal;
 
   void build_constraint_list();
+  void apply_linear_restraint();
   void project_velocities();
   void grow_arrays_local();
   void stats();

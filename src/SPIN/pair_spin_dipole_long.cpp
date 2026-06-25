@@ -39,8 +39,8 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinDipoleLong::PairSpinDipoleLong(LAMMPS *lmp) : PairSpin(lmp)
-{
+PairSpinDipoleLong::PairSpinDipoleLong(LAMMPS *lmp) :
+    PairSpin(lmp), sigma(nullptr), cut_spin_long(nullptr){
   ewaldflag = pppmflag = spinflag = 1;
 
   hbar = force->hplanck/MY_2PI;                 // eV/(rad.THz)

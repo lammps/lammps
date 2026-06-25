@@ -41,8 +41,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) : PairSpin(lmp)
-{
+PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) :
+    PairSpin(lmp), sigma(nullptr), cut_spin_long(nullptr){
   spinflag = 1;
 
   hbar = force->hplanck/MY_2PI;                       // eV/(rad.THz)

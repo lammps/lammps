@@ -38,8 +38,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperInversionHarmonic::ImproperInversionHarmonic(LAMMPS *lmp) : Improper(lmp)
-{
+ImproperInversionHarmonic::ImproperInversionHarmonic(LAMMPS *lmp) :
+    Improper(lmp), kw(nullptr), w0(nullptr){
   writedata = 1;
 
   // the first atom in the quadruplet is the atom of symmetry

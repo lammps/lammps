@@ -873,9 +873,8 @@ int Variable::next(int narg, char **arg)
         fp = fopen("tmp.lammps.variable.lock","r");
         if (fp == nullptr) goto uloop_again;
 
-        buf[0] = buf[1] = '\0';
-        auto tmp = fread(buf,1,64,fp);
-        (void) tmp; // can be safely ignored, suppress compiler warning in a portable way
+        auto nread = fread(buf,1,sizeof(buf)-1,fp);
+        buf[nread] = '\0';
 
         if (strlen(buf) > 0) {
           nextindex = std::stoi(buf);

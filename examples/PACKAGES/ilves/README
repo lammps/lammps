@@ -1,10 +1,41 @@
-Example for the fix ilves bond constraint solver.
+Examples for the fix ilves bond and angle constraint solver.
 
+fix ilves enforces rigid bond lengths (and, via an A-C "virtual bond", rigid
+angles) using the ILVES algorithm.  These inputs mirror the standard LAMMPS
+peptide and rhodopsin benchmarks so the results can be compared directly with
+the equivalent fix shake / fix rattle runs.
+
+Each fix ilves run gives the same dynamics on any number of MPI ranks (to the
+solver tolerance) and prints per-type constraint statistics every N steps.
+
+Basic example
+-------------
   mol.dimer   -- molecule template for a rigid diatomic (dumbbell)
   in.dimer    -- a Lennard-Jones fluid of rigid dimers whose bonds are held
                  rigid by fix ilves; demonstrates the basic usage and the
                  per-bond-type constraint statistics output
 
+Peptide (solvated protein, CHARMM force field, data.peptide)
+------------------------------------------------------------
+  in.peptide-fast     -- constrain the hydrogen bonds of the protein and the
+                         O-H bonds + H-O-H angle of every water; variant fast
+  in.peptide-full     -- same constraints, variant full (exact-Newton)
+  in.peptide-allbonds -- constrain all protein bonds plus the rigid waters
+  in.peptide-mix      -- fix ilves on the protein, fix shake on the water,
+                         showing the two can be combined on disjoint atoms
+  in.peptide-shake    -- reference run using fix shake (for comparison)
+  in.peptide-rattle   -- reference run using fix rattle (for comparison)
+
+Rhodopsin (membrane protein benchmark, bench/data.rhodo)
+--------------------------------------------------------
+  in.rhodo-fast       -- constrain all hydrogen bonds + the rigid waters
+  in.rhodo-full       -- same constraints, variant full
+  in.rhodo-allbonds   -- constrain hydrogen bonds and selected heavy-atom bond
+                         types as well
+
+The data.peptide and data.rhodo files are symbolic links to the data files of
+the standard examples/peptide and bench benchmarks.
+
 Run with, e.g.:
-  lmp -in in.dimer            # serial
-  mpirun -np 4 lmp -in in.dimer   # 4 MPI ranks (gives the same dynamics)
+  lmp -in in.peptide-fast              # serial
+  mpirun -np 4 lmp -in in.peptide-fast # 4 MPI ranks (same dynamics)

@@ -1,0 +1,498 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1993-ge7102f4d63-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Rhodopsin model
+
+units           real
+neigh_modify    delay 5 every 1
+atom_style      full
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+pair_style      lj/charmm/coul/long 8.0 10.0
+pair_modify     mix arithmetic
+kspace_style    pppm 1e-4
+comm_modify cutoff 30.0
+
+read_data       data.rhodo
+Reading data file ...
+  orthogonal box = (-27.5 -38.5 -36.3646) to (27.5 38.5 36.3615)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  32000 atoms
+  reading velocities ...
+  32000 velocities
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  8 = max angles/atom
+  scanning dihedrals ...
+  18 = max dihedrals/atom
+  scanning impropers ...
+  2 = max impropers/atom
+  orthogonal box = (-27.5 -38.5 -36.3646) to (27.5 38.5 36.3615)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  27723 bonds
+  reading angles ...
+  40467 angles
+  reading dihedrals ...
+  56829 dihedrals
+  reading impropers ...
+  1034 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+    12 = max # of 1-3 neighbors
+    24 = max # of 1-4 neighbors
+    26 = max # of special neighbors
+  special bonds CPU = 0.009 seconds
+  read_data CPU = 0.239 seconds
+
+fix             1 all ilves 0.0001 100 50 m 1.0 12 15 16 a 232 variant fast
+fix             2 all npt temp 300.0 300.0 100.0                 z 0.0 0.0 1000.0 mtk no pchain 0 tchain 1
+
+special_bonds   charmm
+
+thermo          50
+thermo_style    multi
+timestep        2.0
+
+run             100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix ilves command: doi:10.1021/acs.jctc.5c01376
+
+@Article{LopezVillellas2025,
+ author = {L{\'o}pez-Villellas, Lori{\'e}n and Mikkelsen, Carl Christian Kjelgaard and Galano-Frutos, Juan Jos{\'e} and Marco-Sola, Santiago and Alastruey-Bened{\'e}, Jes{\'u}s and Ib{\'a}{\~n}ez, Pablo and Echenique, Pablo and Moret{\'o}, Miquel and {De Rosa}, Maria Cristina and Garc{\'i}a-Risue{\~n}o, Pablo},
+ title = {ILVES: Accurate and Efficient Bond Length and Angle Constraints in Molecular Dynamics},
+ journal = {J.~Chem.\ Theory Comput.},
+ volume = 21,
+ pages = {8711--8719},
+ year = 2025
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.24883488
+  grid = 25 32 32
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.035547797
+  estimated relative force accuracy = 0.00010705113
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 41070 25600
+Generated 2278 of 2278 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 5 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 30
+  binsize = 6, bins = 10 13 13
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/charmm/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Fix ilves: constraining 27722 bond(s) and 4233 angle(s)
+Fix ilves constraint statistics at step 0 (max 0 Newton iterations):
+  bond type 1: count 20  ave 1.51378  spread 0.143
+  bond type 2: count 304  ave 1.5291  spread 0.178
+  bond type 3: count 23  ave 1.51858  spread 0.0942
+  bond type 4: count 20  ave 1.33446  spread 0.135
+  bond type 5: count 21  ave 1.33199  spread 0.111
+  bond type 6: count 327  ave 1.35083  spread 0.168
+  bond type 7: count 347  ave 1.23039  spread 0.129
+  bond type 8: count 309  ave 1.40467  spread 0.162
+  bond type 9: count 10  ave 1.39492  spread 0.0687
+  bond type 10: count 49  ave 1.50709  spread 0.119
+  bond type 11: count 5  ave 1.37915  spread 0.0654
+  bond type 12: count 252  ave 1.07999  spread 0.000176
+  bond type 13: count 5  ave 1.36783  spread 0.0734
+  bond type 14: count 18  ave 1.41616  spread 0.14
+  bond type 15: count 1  ave 1.5115  spread 0
+  bond type 16: count 49  ave 1.52274  spread 0.123
+  bond type 17: count 27  ave 1.34961  spread 0.0826
+  bond type 18: count 27  ave 1.23835  spread 0.0944
+  bond type 19: count 46  ave 1.25585  spread 0.117
+  bond type 20: count 198  ave 1.34974  spread 0.129
+  bond type 21: count 396  ave 1.51071  spread 0.19
+  bond type 22: count 396  ave 1.1  spread 0.000185
+  bond type 23: count 200  ave 1.53264  spread 0.184
+  bond type 24: count 200  ave 1.22109  spread 0.11
+  bond type 25: count 198  ave 1.32437  spread 0.174
+  bond type 26: count 2  ave 1.67271  spread 0.000667
+  bond type 27: count 20  ave 1.54881  spread 0.153
+  bond type 28: count 20  ave 1.08  spread 0.000137
+  bond type 29: count 20  ave 1.45295  spread 0.0786
+  bond type 30: count 20  ave 1.5311  spread 0.102
+  bond type 31: count 20  ave 1.53912  spread 0.112
+  bond type 32: count 80  ave 1.111  spread 0.000174
+  bond type 33: count 40  ave 1.11099  spread 0.000117
+  bond type 34: count 20  ave 1.46655  spread 0.106
+  bond type 35: count 6  ave 1.34683  spread 0.054
+  bond type 36: count 6  ave 1.50049  spread 0.0885
+  bond type 37: count 6  ave 1.08299  spread 0.000102
+  bond type 38: count 12  ave 1.37738  spread 0.0542
+  bond type 39: count 6  ave 1.06998  spread 0.000122
+  bond type 40: count 12  ave 1.31435  spread 0.0869
+  bond type 41: count 5  ave 1.39955  spread 0.0436
+  bond type 42: count 5  ave 1.46023  spread 0.0595
+  bond type 43: count 5  ave 1.38674  spread 0.0677
+  bond type 44: count 1  ave 1.43147  spread 0
+  bond type 45: count 1  ave 1.38898  spread 0
+  bond type 46: count 1  ave 1.08099  spread 0
+  bond type 47: count 1  ave 1.31968  spread 0
+  bond type 48: count 1  ave 1.08101  spread 0
+  bond type 49: count 1  ave 1.48618  spread 0
+  bond type 50: count 1  ave 1.08101  spread 0
+  bond type 51: count 1  ave 1.38509  spread 0
+  bond type 52: count 1  ave 1.57321  spread 0
+  bond type 53: count 1  ave 1.43781  spread 0
+  bond type 54: count 1  ave 1.08098  spread 0
+  bond type 55: count 1  ave 1.081  spread 0
+  bond type 56: count 1  ave 1.2507  spread 0
+  bond type 57: count 1  ave 1.42501  spread 0
+  bond type 58: count 1  ave 1.54113  spread 0
+  bond type 59: count 1  ave 1.55957  spread 0
+  bond type 60: count 1  ave 1.5299  spread 0
+  bond type 61: count 1  ave 1.59922  spread 0
+  bond type 62: count 1  ave 1.341  spread 0
+  bond type 63: count 1  ave 1.081  spread 0
+  bond type 64: count 1  ave 1.42813  spread 0
+  bond type 65: count 1  ave 1.081  spread 0
+  bond type 66: count 1  ave 1.55923  spread 0
+  bond type 67: count 80  ave 1.53331  spread 0.186
+  bond type 68: count 246  ave 1.55376  spread 0.182
+  bond type 69: count 196  ave 1.54291  spread 0.19
+  bond type 70: count 108  ave 1.11099  spread 0.000155
+  bond type 71: count 305  ave 1.07999  spread 0.000169
+  bond type 72: count 304  ave 1.45916  spread 0.162
+  bond type 73: count 1  ave 1.50325  spread 0
+  bond type 74: count 27  ave 1.42191  spread 0.112
+  bond type 75: count 94  ave 1.54441  spread 0.16
+  bond type 76: count 23  ave 1.55156  spread 0.11
+  bond type 77: count 5  ave 1.52511  spread 0.146
+  bond type 78: count 626  ave 1.111  spread 0.000179
+  bond type 79: count 46  ave 1.07999  spread 0.00015
+  bond type 80: count 7  ave 1.4921  spread 0.0756
+  bond type 81: count 1  ave 1.40606  spread 0
+  bond type 82: count 23  ave 1.4545  spread 0.0809
+  bond type 83: count 10  ave 1.4543  spread 0.11
+  bond type 84: count 15  ave 1.43221  spread 0.079
+  bond type 85: count 24  ave 1.80773  spread 0.169
+  bond type 86: count 2  ave 1.80504  spread 0.0779
+  bond type 87: count 2  ave 1.55188  spread 0.036
+  bond type 88: count 717  ave 1.11099  spread 0.000196
+  bond type 89: count 16  ave 1.80592  spread 0.141
+  bond type 90: count 198  ave 1.55698  spread 0.189
+  bond type 91: count 99  ave 1.111  spread 0.000163
+  bond type 92: count 99  ave 1.44045  spread 0.122
+  bond type 93: count 2501  ave 1.5398  spread 0.239
+  bond type 94: count 200  ave 1.53292  spread 0.165
+  bond type 95: count 6194  ave 1.111  spread 0.000246
+  bond type 96: count 198  ave 1.08  spread 0.000163
+  bond type 97: count 99  ave 1.52021  spread 0.166
+  bond type 98: count 297  ave 1.43341  spread 0.138
+  bond type 99: count 600  ave 1.111  spread 0.000205
+  bond type 100: count 891  ave 1.08  spread 0.000225
+  bond type 101: count 297  ave 1.49581  spread 0.194
+  bond type 102: count 327  ave 0.996992  spread 0.000219
+  bond type 103: count 54  ave 0.999995  spread 0.000174
+  bond type 104: count 12  ave 1  spread 0.000162
+  bond type 105: count 5  ave 0.97599  spread 3.2e-05
+  bond type 106: count 60  ave 0.960002  spread 0.000107
+  bond type 107: count 35  ave 0.999991  spread 0.000156
+  bond type 108: count 33  ave 1.04001  spread 0.000129
+  bond type 109: count 1  ave 1.01301  spread 0
+  bond type 110: count 6  ave 1.32501  spread 0.000101
+  bond type 112: count 8466  ave 0.957197  spread 0.000273
+  bond type 113: count 198  ave 1.48065  spread 0.105
+  bond type 114: count 198  ave 1.5786  spread 0.202
+  angle type 232 (A-C): count 4233  ave 1.51389  spread 0.000242
+Per MPI rank memory allocation (min/avg/max) = 288.3 | 288.3 | 288.3 Mbytes
+------------ Step              0 ----- CPU =            0 (sec) -------------
+TotEng   =    -30160.2616 KinEng   =     19178.7632 Temp     =       301.3996 
+PotEng   =    -49339.0249 E_bond   =         0.0062 E_angle  =     10921.3742 
+E_dihed  =      5211.7865 E_impro  =       213.5116 E_vdwl   =     -2307.8634 
+E_coul   =    207025.8934 E_long   =   -270403.7333 Press    =     15456.8048 
+Volume   =    307995.0335
+Fix ilves constraint statistics at step 50 (max 10 Newton iterations):
+  bond type 1: count 20  ave 1.49111  spread 0.00308
+  bond type 2: count 304  ave 1.49115  spread 0.00323
+  bond type 3: count 23  ave 1.49107  spread 0.0031
+  bond type 4: count 20  ave 1.30042  spread 0.00243
+  bond type 5: count 21  ave 1.36587  spread 0.00286
+  bond type 6: count 327  ave 1.34551  spread 0.00295
+  bond type 7: count 347  ave 1.23145  spread 0.00279
+  bond type 8: count 309  ave 1.37586  spread 0.00302
+  bond type 9: count 10  ave 1.36936  spread 0.00258
+  bond type 10: count 49  ave 1.49095  spread 0.00308
+  bond type 11: count 5  ave 1.36675  spread 0.0015
+  bond type 12: count 252  ave 1.08069  spread 0.0036
+  bond type 13: count 5  ave 1.37052  spread 0.00184
+  bond type 14: count 18  ave 1.412  spread 0.00232
+  bond type 15: count 1  ave 1.52196  spread 0
+  bond type 16: count 49  ave 1.52304  spread 0.00332
+  bond type 17: count 27  ave 1.36114  spread 0.00274
+  bond type 18: count 27  ave 1.23073  spread 0.00262
+  bond type 19: count 46  ave 1.26073  spread 0.00261
+  bond type 20: count 198  ave 1.34158  spread 0.00291
+  bond type 21: count 396  ave 1.50319  spread 0.00326
+  bond type 22: count 396  ave 1.10057  spread 0.0039
+  bond type 23: count 200  ave 1.5235  spread 0.00328
+  bond type 24: count 200  ave 1.22057  spread 0.00265
+  bond type 25: count 198  ave 1.33466  spread 0.00276
+  bond type 26: count 2  ave 1.81818  spread 0.000342
+  bond type 27: count 20  ave 1.52787  spread 0.00294
+  bond type 28: count 20  ave 1.08058  spread 0.0022
+  bond type 29: count 20  ave 1.43533  spread 0.00296
+  bond type 30: count 20  ave 1.53885  spread 0.00322
+  bond type 31: count 20  ave 1.53776  spread 0.00319
+  bond type 32: count 80  ave 1.11159  spread 0.0029
+  bond type 33: count 40  ave 1.11184  spread 0.00341
+  bond type 34: count 20  ave 1.45637  spread 0.0027
+  bond type 35: count 6  ave 1.36063  spread 0.00205
+  bond type 36: count 6  ave 1.50067  spread 0.00163
+  bond type 37: count 6  ave 1.08417  spread 0.0012
+  bond type 38: count 12  ave 1.37114  spread 0.00187
+  bond type 39: count 6  ave 1.07099  spread 0.00141
+  bond type 40: count 12  ave 1.32082  spread 0.00279
+  bond type 41: count 5  ave 1.40086  spread 0.00277
+  bond type 42: count 5  ave 1.4411  spread 0.00226
+  bond type 43: count 5  ave 1.37697  spread 0.00257
+  bond type 44: count 1  ave 1.44643  spread 0
+  bond type 45: count 1  ave 1.34665  spread 0
+  bond type 46: count 1  ave 1.08147  spread 0
+  bond type 47: count 1  ave 1.3392  spread 0
+  bond type 48: count 1  ave 1.08137  spread 0
+  bond type 49: count 1  ave 1.45458  spread 0
+  bond type 50: count 1  ave 1.08273  spread 0
+  bond type 51: count 1  ave 1.34563  spread 0
+  bond type 52: count 1  ave 1.49338  spread 0
+  bond type 53: count 1  ave 1.45779  spread 0
+  bond type 54: count 1  ave 1.08195  spread 0
+  bond type 55: count 1  ave 1.08095  spread 0
+  bond type 56: count 1  ave 1.27398  spread 0
+  bond type 57: count 1  ave 1.32986  spread 0
+  bond type 58: count 1  ave 1.51458  spread 0
+  bond type 59: count 1  ave 1.51243  spread 0
+  bond type 60: count 1  ave 1.48612  spread 0
+  bond type 61: count 1  ave 1.53421  spread 0
+  bond type 62: count 1  ave 1.31777  spread 0
+  bond type 63: count 1  ave 1.08087  spread 0
+  bond type 64: count 1  ave 1.47053  spread 0
+  bond type 65: count 1  ave 1.08104  spread 0
+  bond type 66: count 1  ave 1.49142  spread 0
+  bond type 67: count 80  ave 1.50074  spread 0.00301
+  bond type 68: count 246  ave 1.53899  spread 0.00337
+  bond type 69: count 196  ave 1.53915  spread 0.00319
+  bond type 70: count 108  ave 1.1119  spread 0.00289
+  bond type 71: count 305  ave 1.08069  spread 0.00348
+  bond type 72: count 304  ave 1.43095  spread 0.00305
+  bond type 73: count 1  ave 1.48108  spread 0
+  bond type 74: count 27  ave 1.42101  spread 0.00293
+  bond type 75: count 94  ave 1.53116  spread 0.00319
+  bond type 76: count 23  ave 1.52877  spread 0.00245
+  bond type 77: count 5  ave 1.51051  spread 0.00257
+  bond type 78: count 626  ave 1.11181  spread 0.00414
+  bond type 79: count 46  ave 1.08081  spread 0.00284
+  bond type 80: count 7  ave 1.49111  spread 0.00286
+  bond type 81: count 1  ave 1.43003  spread 0
+  bond type 82: count 23  ave 1.43083  spread 0.00295
+  bond type 83: count 10  ave 1.48095  spread 0.00301
+  bond type 84: count 15  ave 1.42101  spread 0.00203
+  bond type 85: count 24  ave 1.81916  spread 0.00378
+  bond type 86: count 2  ave 1.81694  spread 0.00188
+  bond type 87: count 2  ave 1.53113  spread 0.00238
+  bond type 88: count 717  ave 1.11176  spread 0.00451
+  bond type 89: count 16  ave 1.81714  spread 0.00338
+  bond type 90: count 198  ave 1.53935  spread 0.00336
+  bond type 91: count 99  ave 1.11132  spread 0.00296
+  bond type 92: count 99  ave 1.43115  spread 0.00302
+  bond type 93: count 2501  ave 1.53147  spread 0.00338
+  bond type 94: count 200  ave 1.52928  spread 0.00334
+  bond type 95: count 6194  ave 1.11156  spread 0.0042
+  bond type 96: count 198  ave 1.08066  spread 0.00358
+  bond type 97: count 99  ave 1.51144  spread 0.00324
+  bond type 98: count 297  ave 1.43127  spread 0.00311
+  bond type 99: count 600  ave 1.11177  spread 0.00376
+  bond type 100: count 891  ave 1.08079  spread 0.00374
+  bond type 101: count 297  ave 1.51098  spread 0.00327
+  bond type 102: count 327  ave 0.998208  spread 0.00311
+  bond type 103: count 54  ave 1.00067  spread 0.0026
+  bond type 104: count 12  ave 1.00042  spread 0.00241
+  bond type 105: count 5  ave 0.977062  spread 0.00118
+  bond type 106: count 60  ave 0.960666  spread 0.00285
+  bond type 107: count 35  ave 1.00063  spread 0.00267
+  bond type 108: count 33  ave 1.04073  spread 0.00239
+  bond type 109: count 1  ave 1.01314  spread 0
+  bond type 110: count 6  ave 1.32633  spread 0.00181
+  bond type 112: count 8466  ave 0.957879  spread 0.00387
+  bond type 113: count 198  ave 1.48081  spread 0.0032
+  bond type 114: count 198  ave 1.6014  spread 0.00347
+  angle type 232 (A-C): count 4233  ave 1.515  spread 0.00461
+------------ Step             50 ----- CPU =     8.736318 (sec) -------------
+TotEng   =    -29245.9896 KinEng   =     19032.6878 Temp     =       299.1040 
+PotEng   =    -48278.6774 E_bond   =         0.0761 E_angle  =     11146.6385 
+E_dihed  =      5313.4365 E_impro  =       233.8947 E_vdwl   =     -2581.1703 
+E_coul   =    208013.9746 E_long   =   -270405.5275 Press    =     15208.2345 
+Volume   =    314022.0332
+Fix ilves constraint statistics at step 100 (max 8 Newton iterations):
+  bond type 1: count 20  ave 1.49233  spread 0.0058
+  bond type 2: count 304  ave 1.49226  spread 0.00588
+  bond type 3: count 23  ave 1.49204  spread 0.00574
+  bond type 4: count 20  ave 1.30082  spread 0.00461
+  bond type 5: count 21  ave 1.36674  spread 0.00536
+  bond type 6: count 327  ave 1.34599  spread 0.00537
+  bond type 7: count 347  ave 1.23272  spread 0.00496
+  bond type 8: count 309  ave 1.37666  spread 0.00561
+  bond type 9: count 10  ave 1.3707  spread 0.00489
+  bond type 10: count 49  ave 1.49182  spread 0.00586
+  bond type 11: count 5  ave 1.36847  spread 0.00253
+  bond type 12: count 252  ave 1.08136  spread 0.00534
+  bond type 13: count 5  ave 1.37088  spread 0.00276
+  bond type 14: count 18  ave 1.41316  spread 0.00497
+  bond type 15: count 1  ave 1.52199  spread 0
+  bond type 16: count 49  ave 1.5239  spread 0.00608
+  bond type 17: count 27  ave 1.36215  spread 0.00529
+  bond type 18: count 27  ave 1.2313  spread 0.00468
+  bond type 19: count 46  ave 1.2614  spread 0.00495
+  bond type 20: count 198  ave 1.34317  spread 0.0053
+  bond type 21: count 396  ave 1.50432  spread 0.00596
+  bond type 22: count 396  ave 1.10111  spread 0.00538
+  bond type 23: count 200  ave 1.52495  spread 0.00608
+  bond type 24: count 200  ave 1.22101  spread 0.00452
+  bond type 25: count 198  ave 1.33531  spread 0.00522
+  bond type 26: count 2  ave 1.81835  spread 0.000137
+  bond type 27: count 20  ave 1.52845  spread 0.00526
+  bond type 28: count 20  ave 1.08103  spread 0.00514
+  bond type 29: count 20  ave 1.43653  spread 0.00553
+  bond type 30: count 20  ave 1.54038  spread 0.00601
+  bond type 31: count 20  ave 1.53836  spread 0.00591
+  bond type 32: count 80  ave 1.1121  spread 0.00537
+  bond type 33: count 40  ave 1.11237  spread 0.00444
+  bond type 34: count 20  ave 1.45779  spread 0.00506
+  bond type 35: count 6  ave 1.36146  spread 0.00385
+  bond type 36: count 6  ave 1.5011  spread 0.00234
+  bond type 37: count 6  ave 1.08526  spread 0.00353
+  bond type 38: count 12  ave 1.37197  spread 0.00416
+  bond type 39: count 6  ave 1.07177  spread 0.00311
+  bond type 40: count 12  ave 1.32168  spread 0.00503
+  bond type 41: count 5  ave 1.4017  spread 0.00495
+  bond type 42: count 5  ave 1.44207  spread 0.00407
+  bond type 43: count 5  ave 1.37879  spread 0.00461
+  bond type 44: count 1  ave 1.44801  spread 0
+  bond type 45: count 1  ave 1.34787  spread 0
+  bond type 46: count 1  ave 1.08137  spread 0
+  bond type 47: count 1  ave 1.33974  spread 0
+  bond type 48: count 1  ave 1.08157  spread 0
+  bond type 49: count 1  ave 1.45468  spread 0
+  bond type 50: count 1  ave 1.0841  spread 0
+  bond type 51: count 1  ave 1.34549  spread 0
+  bond type 52: count 1  ave 1.49303  spread 0
+  bond type 53: count 1  ave 1.4578  spread 0
+  bond type 54: count 1  ave 1.08105  spread 0
+  bond type 55: count 1  ave 1.08117  spread 0
+  bond type 56: count 1  ave 1.27398  spread 0
+  bond type 57: count 1  ave 1.33163  spread 0
+  bond type 58: count 1  ave 1.51683  spread 0
+  bond type 59: count 1  ave 1.5124  spread 0
+  bond type 60: count 1  ave 1.4878  spread 0
+  bond type 61: count 1  ave 1.53413  spread 0
+  bond type 62: count 1  ave 1.31852  spread 0
+  bond type 63: count 1  ave 1.08122  spread 0
+  bond type 64: count 1  ave 1.47198  spread 0
+  bond type 65: count 1  ave 1.08112  spread 0
+  bond type 66: count 1  ave 1.491  spread 0
+  bond type 67: count 80  ave 1.50141  spread 0.00558
+  bond type 68: count 246  ave 1.53986  spread 0.00611
+  bond type 69: count 196  ave 1.5402  spread 0.00602
+  bond type 70: count 108  ave 1.11254  spread 0.00449
+  bond type 71: count 305  ave 1.08122  spread 0.00616
+  bond type 72: count 304  ave 1.43189  spread 0.0057
+  bond type 73: count 1  ave 1.48188  spread 0
+  bond type 74: count 27  ave 1.42205  spread 0.00549
+  bond type 75: count 94  ave 1.53216  spread 0.00593
+  bond type 76: count 23  ave 1.52925  spread 0.00564
+  bond type 77: count 5  ave 1.51097  spread 0.00452
+  bond type 78: count 626  ave 1.11248  spread 0.00524
+  bond type 79: count 46  ave 1.08152  spread 0.0046
+  bond type 80: count 7  ave 1.49211  spread 0.00429
+  bond type 81: count 1  ave 1.43028  spread 0
+  bond type 82: count 23  ave 1.43157  spread 0.00548
+  bond type 83: count 10  ave 1.48196  spread 0.00558
+  bond type 84: count 15  ave 1.42162  spread 0.00455
+  bond type 85: count 24  ave 1.81991  spread 0.00715
+  bond type 86: count 2  ave 1.81861  spread 0.00527
+  bond type 87: count 2  ave 1.53264  spread 0.00482
+  bond type 88: count 717  ave 1.11245  spread 0.00549
+  bond type 89: count 16  ave 1.81842  spread 0.00594
+  bond type 90: count 198  ave 1.54056  spread 0.00612
+  bond type 91: count 99  ave 1.11158  spread 0.00404
+  bond type 92: count 99  ave 1.43219  spread 0.00565
+  bond type 93: count 2501  ave 1.5328  spread 0.00624
+  bond type 94: count 200  ave 1.53043  spread 0.0061
+  bond type 95: count 6194  ave 1.11199  spread 0.00597
+  bond type 96: count 198  ave 1.0812  spread 0.00487
+  bond type 97: count 99  ave 1.51268  spread 0.00597
+  bond type 98: count 297  ave 1.43242  spread 0.00571
+  bond type 99: count 600  ave 1.11237  spread 0.00498
+  bond type 100: count 891  ave 1.08145  spread 0.00543
+  bond type 101: count 297  ave 1.5118  spread 0.00593
+  bond type 102: count 327  ave 0.999237  spread 0.00534
+  bond type 103: count 54  ave 1.00122  spread 0.00452
+  bond type 104: count 12  ave 1.00112  spread 0.00422
+  bond type 105: count 5  ave 0.977823  spread 0.00286
+  bond type 106: count 60  ave 0.961395  spread 0.00412
+  bond type 107: count 35  ave 1.00125  spread 0.00476
+  bond type 108: count 33  ave 1.04141  spread 0.00424
+  bond type 109: count 1  ave 1.01315  spread 0
+  bond type 110: count 6  ave 1.32656  spread 0.00358
+  bond type 112: count 8466  ave 0.958399  spread 0.00527
+  bond type 113: count 198  ave 1.48143  spread 0.00583
+  bond type 114: count 198  ave 1.60268  spread 0.00638
+  angle type 232 (A-C): count 4233  ave 1.51582  spread 0.00653
+------------ Step            100 ----- CPU =     17.99942 (sec) -------------
+TotEng   =    -28401.9197 KinEng   =     18749.5117 Temp     =       294.6538 
+PotEng   =    -47151.4314 E_bond   =         0.0190 E_angle  =     11217.2187 
+E_dihed  =      5368.1562 E_impro  =       225.3849 E_vdwl   =     -3308.7076 
+E_coul   =    209735.8578 E_long   =   -270389.3603 Press    =     12389.4836 
+Volume   =    331321.1401
+Loop time of 17.9994 on 1 procs for 100 steps with 32000 atoms
+
+Performance: 0.960 ns/day, 24.999 hours/ns, 5.556 timesteps/s, 177.783 katom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 11.118     | 11.118     | 11.118     |   0.0 | 61.77
+Bond    | 0.40831    | 0.40831    | 0.40831    |   0.0 |  2.27
+Kspace  | 0.71509    | 0.71509    | 0.71509    |   0.0 |  3.97
+Neigh   | 2.817      | 2.817      | 2.817      |   0.0 | 15.65
+Comm    | 0.092882   | 0.092882   | 0.092882   |   0.0 |  0.52
+Output  | 0.0002133  | 0.0002133  | 0.0002133  |   0.0 |  0.00
+Modify  | 2.8289     | 2.8289     | 2.8289     |   0.0 | 15.72
+Other   |            | 0.01884    |            |       |  0.10
+
+Nlocal:          32000 ave       32000 max       32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:         179707 ave      179707 max      179707 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.11892e+07 ave 1.11892e+07 max 1.11892e+07 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 11189171
+Ave neighs/atom = 349.66159
+Ave special neighs/atom = 7.431875
+Neighbor list builds = 15
+Dangerous builds = 2
+Total wall time: 0:00:18

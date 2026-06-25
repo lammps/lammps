@@ -22,8 +22,7 @@ using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
-NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
-{
+NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp), requestor(nullptr){
   // default ID = 0
 
   id = 0;

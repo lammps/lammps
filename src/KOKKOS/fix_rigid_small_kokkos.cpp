@@ -64,11 +64,15 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
 
   grow_arrays(atom->nmax);
 
-  // for now, keep these 0 so communication uses super class methods
-  // during initialization
-  // exchange_comm_device = 1;
-  // forward_comm_device = 1;
-  // reverse_comm_device = 1;
+  // For the device instantiation, declare device-exchange support immediately so
+  // CommKokkos::exchange() does not permanently switch to exchange_comm_legacy=true
+  // on the first (setup-time) call.  pack/unpack_exchange_kokkos handle the
+  // pre-setup state correctly: all atoms have bodytag=0 sentinels before
+  // create_bodies() runs, so the exchange is effectively a no-op for body data.
+  // forward/reverse/sort flags are set in setup_device_push() after the
+  // host-side setup routines have populated the body arrays.
+  if (std::is_same<DeviceType,LMPDeviceType>::value)
+    exchange_comm_device = 1;
 }
 
 
@@ -143,9 +147,17 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
 {
   if (!setupflag) return;
 
-  // device kernels/comm hold the current state; copy it to the host so the
-  // base-class (host) pack_exchange/copy_arrays/unpack_exchange operate on
-  // valid data during Comm::exchange
+  // Device exchange path: pack_exchange_kokkos reads from the device DualViews
+  // which are always authoritative during the run; no host flush needed.
+  // Only skip the flush when CommKokkos is actually using the device exchange
+  // path (exchange_comm_legacy==false).  For OpenMP/Serial builds the global
+  // default is exchange_comm_legacy=1 even though we set exchange_comm_device=1,
+  // so CommBrick::exchange() is called and the base-class pack_exchange() reads
+  // from the host arrays -- we must not skip the flush in that case.
+  if (exchange_comm_device && !commKK->exchange_comm_legacy) return;
+
+  // Host exchange path: flush device→host so the base-class
+  // pack_exchange/copy_arrays/unpack_exchange see valid data.
   copy_body_host();
   k_bodytag.sync_host();
   k_bodyown.sync_host();
@@ -245,14 +257,9 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
   // command-line override is needed and other fixes may use their own setting.
   // (The rigid/small/host instantiation keeps host comm/sort, execution_space
   // == Host, which CommKokkos already forces.)
-  // Atom exchange (migration of body-owning atoms between subdomains) runs on
-  // the host: the device pack/unpack_exchange path does not correctly migrate
-  // the per-body Body data, which loses bodies (and then atoms) at np>1.  The
-  // host FixRigidSmall::pack_exchange path is proven correct; pre_exchange()
-  // and pre_neighbor() sync the tied DualViews around it.  Forward/reverse comm
-  // and sorting remain on the device.
+  // exchange_comm_device is already 1 for the device instantiation (set in
+  // the constructor) so CommKokkos doesn't fall back to the legacy path.
   if (std::is_same<DeviceType,LMPDeviceType>::value) {
-    exchange_comm_device = 0;
     forward_comm_device = 1;
     sort_device = 1;
     reverse_comm_device = 1;
@@ -279,24 +286,47 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
   }
   Kokkos::Profiling::pushRegion("rigid/small pre_neighbor");
 
-  // Comm::exchange just migrated atoms (and bodies) on the host; push the
-  // updated state back to the device.  Stale ghost bodies are dropped here and
-  // rebuilt by the BODY_SENDLIST/FULL_BODY comm below.
   nghost_body = 0;
-  k_bodytag.modify_host();
-  k_bodyown.modify_host();
-  k_atom2body.modify_host();
-  k_xcmimage.modify_host();
-  k_displace.modify_host();
-  k_vatom.modify_host();
-  k_bodytag.template sync<DeviceType>();
-  k_bodyown.template sync<DeviceType>();
-  k_atom2body.template sync<DeviceType>();
-  k_xcmimage.template sync<DeviceType>();
-  k_displace.template sync<DeviceType>();
-  k_vatom.template sync<DeviceType>();
-  refresh_atom_views();
-  copy_body_device();
+
+  // True when CommKokkos is actually executing the device exchange path.
+  // For OpenMP/Serial, exchange_comm_legacy defaults to 1 so CommBrick::exchange()
+  // runs host pack/unpack even though exchange_comm_device=1; for GPU builds
+  // with exchange_comm_legacy=0 the device path is used.
+  bool using_device_exchange = exchange_comm_device && !commKK->exchange_comm_legacy;
+
+  if (!using_device_exchange) {
+    // Host exchange path: Comm::exchange migrated atoms and bodies on the host;
+    // push the updated state back to the device.
+    k_bodytag.modify_host();
+    k_bodyown.modify_host();
+    k_atom2body.modify_host();
+    k_xcmimage.modify_host();
+    k_displace.modify_host();
+    k_vatom.modify_host();
+    k_bodytag.template sync<DeviceType>();
+    k_bodyown.template sync<DeviceType>();
+    k_atom2body.template sync<DeviceType>();
+    k_xcmimage.template sync<DeviceType>();
+    k_displace.template sync<DeviceType>();
+    k_vatom.template sync<DeviceType>();
+    refresh_atom_views();
+    copy_body_device();  // push host body[] → d_body
+  } else {
+    // Device exchange path: pack/unpack_exchange_kokkos already updated all
+    // per-atom DualViews and d_body on the device.  Do NOT push stale host
+    // data to the device — just mark the device side as authoritative and
+    // refresh the d_* view aliases.
+    k_body.modify_device();
+    k_bodytag.template modify<DeviceType>();
+    k_bodyown.template modify<DeviceType>();
+    k_atom2body.template modify<DeviceType>();
+    k_xcmimage.template modify<DeviceType>();
+    k_displace.template modify<DeviceType>();
+    k_vatom.template modify<DeviceType>();
+    refresh_atom_views();
+    // d_body is already the correct device view; no copy needed
+    d_body = k_body.view_device();
+  }
 
   int triclinic = domain->triclinic;
   int xperiodic = domain->xperiodic;
@@ -343,7 +373,6 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
     }
   );
 
-  nghost_body = 0;
   max_body_sent = 0;
   n_body_recv.clear();
   n_body_sent.clear();

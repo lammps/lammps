@@ -62,11 +62,9 @@ Molecule::Molecule(const int nbonds,
     int max_latom_id = std::numeric_limits<int>::min();
     int min_latom_id = std::numeric_limits<int>::max();
 
-    #pragma omp parallel
     {
         // Separate the bond lengths into two arrays to be SIMD friendly
         // and precompute sigma2.
-        #pragma omp for reduction(max:max_latom_id) reduction(min:min_latom_id)
         for (int bond = 0; bond < bonds.num; ++bond) {
             // Atom indices (into the position / force / invmass arrays).
             const int a = catom1[bond];
@@ -100,7 +98,6 @@ Molecule::Molecule(const int nbonds,
         }
         // Implicit wait.
 
-        #pragma omp master
         {
             // Resize atom.graph.xadj.
             atoms.graph.xadj.resize(max_latom_id - min_latom_id + 2, -2);
@@ -125,10 +122,8 @@ Molecule::Molecule(const int nbonds,
             }
         }
 
-        #pragma omp barrier
 
         // Apply the new numbering to the local atom ids.
-        #pragma omp for
         for (int bond = 0; bond < bonds.num; ++bond) {
             bonds.latom1[bond] = atoms.graph.xadj[bonds.latom1[bond] - min_latom_id];
             bonds.latom2[bond] = atoms.graph.xadj[bonds.latom2[bond] - min_latom_id];
@@ -137,7 +132,6 @@ Molecule::Molecule(const int nbonds,
 
         // Reinitialize atom.graph.xadj. See later why it is initialized with
         // 1s.
-        #pragma omp for
         for (int atom = 0; atom < atoms.num; ++atom) {
             atoms.graph.xadj[atom + 1] = 1;
         }
@@ -146,7 +140,6 @@ Molecule::Molecule(const int nbonds,
         // Construct the atomic graph.
 
         // Compute xadj and adj.
-        #pragma omp master
         {
             atoms.graph.nnodes = atoms.num;
             atoms.graph.xadj.resize(atoms.num + 1);
@@ -198,10 +191,8 @@ Molecule::Molecule(const int nbonds,
             }
         }
 
-        #pragma omp barrier // Wait for adj to be computed.
 
         // Sort adj.
-        #pragma omp for nowait
         for (int atom = 0; atom < atoms.num; ++atom) {
             // Atoms are connected to themselves.
             atoms.graph.adj[atoms.graph.xadj[atom + 1] - 1] = atom;
@@ -216,7 +207,6 @@ Molecule::Molecule(const int nbonds,
         // Construct the bond graph.
 
         // Resize xadj and adj. Compute xadj.
-        #pragma omp master
         {
             bonds.graph.nnodes = bonds.num;
 
@@ -243,10 +233,8 @@ Molecule::Molecule(const int nbonds,
             bonds.graph.adj.resize(bonds.graph.xadj.back());
         }
 
-        #pragma omp barrier // Wait for xadj and adj to be resized.
 
         // Fill adj.
-        #pragma omp for
         for (int bond = 0; bond < bonds.num; ++bond) {
             const int la = bonds.latom1[bond];
             const int lb = bonds.latom2[bond];

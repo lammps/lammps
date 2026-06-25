@@ -23,9 +23,9 @@
      * "AlignedAllocator" -> std::allocator (the scalar port drops SIMD, so the
                              special alignment is unnecessary)
      * the DIM / XX / YY / ZZ dimension constants and square()
-     * OpenMP entry points: the real ones when built with OpenMP, otherwise
-       no-op stubs so the per-partition OpenMP code the solver carries compiles
-       and runs correctly on a single thread.
+
+   The base solver is serial: it uses no OpenMP directives or runtime calls.
+   Threading is provided separately by the OPENMP package.
 
    See ilves_graph.h for full attribution.
 ------------------------------------------------------------------------- */
@@ -34,19 +34,6 @@
 #define LMP_ILVES_COMPAT_H
 
 #include <memory>
-
-#ifdef _OPENMP
-#include <omp.h>
-#else
-typedef int omp_lock_t;
-inline int omp_get_thread_num() { return 0; }
-inline int omp_get_num_threads() { return 1; }
-inline int omp_get_max_threads() { return 1; }
-inline void omp_init_lock(omp_lock_t *) {}
-inline void omp_destroy_lock(omp_lock_t *) {}
-inline void omp_set_lock(omp_lock_t *) {}
-inline void omp_unset_lock(omp_lock_t *) {}
-#endif
 
 namespace LAMMPS_NS {
 namespace ILVES {

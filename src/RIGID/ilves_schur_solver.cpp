@@ -640,23 +640,23 @@ SchurLinearSolver::SchurLinearSolver(Graph &matrix,
                                      std::vector<int> &perm) {
 
     FillMatrixGenerator fill_matrix_generator(matrix, upper_tri, parts);
-    auto [fill_matrix,
-          is_fillin,
-          perm_aux] = std::move(fill_matrix_generator.get_fill_matrix());
-    perm = std::move(perm_aux);
+    // bind plain reference variables to the returned tuple (rather than a
+    // structured binding) to keep the names usable with the widest set of C++
+    // compilers/standards
+    auto fill_tuple = fill_matrix_generator.get_fill_matrix();
+    Graph &fill_matrix = std::get<0>(fill_tuple);
+    std::vector<bool> &is_fillin = std::get<1>(fill_tuple);
+    perm = std::move(std::get<2>(fill_tuple));
 
     const int nparts = parts.size() - 1;
 
     part_data.resize(nparts);
 
-    #pragma omp parallel num_threads(nparts - 1)
     {
-        #pragma omp for schedule(static)
         for (int i = 0; i < nparts - 1; ++i) {
             part_data[i].populate_part(fill_matrix, is_fillin, parts, i);
         }
 
-        #pragma omp master
         {
             part_data[nparts - 1].populate_part(fill_matrix,
                                                 is_fillin,
@@ -696,7 +696,6 @@ void SchurLinearSolver::factor(void (PartitionData::*factor_function)()) {
      * General block factorization.
      */
     const int nlocal_parts = part_data.size() - 1;
-    #pragma omp for schedule(static) nowait
     for (int p = 0; p < nlocal_parts; ++p) {
         (part_data[p].*factor_function)();
 
@@ -704,7 +703,6 @@ void SchurLinearSolver::factor(void (PartitionData::*factor_function)()) {
             // Add the local contributions to the Schur complement LHS
             for (const auto &map : part_data[p].lhs_local_to_shared) {
                 // Add the contribution
-                #pragma omp atomic
                 part_data.back().lhs[map.schur_idx] += part_data[p].lhs[map.local_idx];
             }
         }
@@ -714,9 +712,7 @@ void SchurLinearSolver::factor(void (PartitionData::*factor_function)()) {
         /*
          * Schur block factorization.
          */
-        #pragma omp barrier
 
-        #pragma omp master
         { (part_data.back().*factor_function)(); }
     }
 }
@@ -731,13 +727,11 @@ void SchurLinearSolver::solve(void (PartitionData::*forward_function)(),
     /*
      * General block forward substition.
      */
-    #pragma omp for schedule(static) nowait
     for (int p = 0; p < nlocal_parts; ++p) {
         (part_data[p].*forward_function)();
 
         if (!empty_schur) {
             for (const auto &map : part_data[p].rhs_local_to_shared) {
-                #pragma omp atomic
                 part_data.back().rhs[map.schur_idx] += part_data[p].rhs[map.local_idx];
             }
         }
@@ -747,9 +741,7 @@ void SchurLinearSolver::solve(void (PartitionData::*forward_function)(),
      * Schur block forward and backward substitution.
      */
     if (!empty_schur) {
-        #pragma omp barrier
 
-        #pragma omp master
         {
             // Forward sweep for the Schur complement system
             (part_data.back().*forward_function)();
@@ -757,13 +749,11 @@ void SchurLinearSolver::solve(void (PartitionData::*forward_function)(),
             (part_data.back().*backward_function)();
         }
 
-        #pragma omp barrier
     }
 
     /*
      * General block backward substitution.
      */
-    #pragma omp for schedule(static) nowait
     for (int p = 0; p < nlocal_parts; ++p) {
         if (!empty_schur) {
             // Copy back the rhs of the Schur complement.
@@ -787,11 +777,6 @@ SchurLinearSolver::FillMatrixGenerator::FillMatrixGenerator(const Graph &matrix,
 
     const int nparts = parts.size() - 1;
 
-    shared_rows_locks.resize(parts[nparts] - parts[nparts - 1]);
-    for (auto &lock : shared_rows_locks) {
-        omp_init_lock(&lock);
-    }
-
     fillin_matrix.nnodes = matrix.num_nodes();
     fillin_matrix.xadj.resize(matrix.num_nodes() + 1);
 
@@ -800,15 +785,11 @@ SchurLinearSolver::FillMatrixGenerator::FillMatrixGenerator(const Graph &matrix,
         part_data.emplace_back(*this, part);
     }
 
-    #pragma omp parallel num_threads(nparts - 1)
     {
         // Initialize shared partition
-        #pragma omp master
         { part_data[nparts - 1].init_matrices(); }
 
-        #pragma omp barrier
 
-        #pragma omp for schedule(static)
         for (int part = 0; part < nparts - 1; ++part) {
             // Initialize private partitions.
             part_data[part].init_matrices();
@@ -818,23 +799,19 @@ SchurLinearSolver::FillMatrixGenerator::FillMatrixGenerator(const Graph &matrix,
             part_data[part].compute_fillins();
         }   // Implicit wait.
 
-        #pragma omp master
         {
             // Compute the fillins fo the private partitions.
             part_data[nparts - 1].init_active_rows();
             part_data[nparts - 1].compute_fillins();
         }
 
-        #pragma omp barrier
 
-        #pragma omp for schedule(static)
         for (int part = 0; part < nparts; ++part) {
             // Apply the permutation in all the partitions.
             part_data[part].apply_permutation();
         }   // Implicit wait.
 
         // Compute xadj.
-        #pragma omp master
         {
             fillin_matrix.xadj[0] = 0;
 
@@ -858,23 +835,13 @@ SchurLinearSolver::FillMatrixGenerator::FillMatrixGenerator(const Graph &matrix,
             is_fillin.resize(fillin_matrix.xadj.back());
         }
 
-        #pragma omp barrier
 
-        // std::vector<bool> is not thread-safe for write accesses, since it
-        // uses a bitmap. We serialize this loop as it is not performance
-        // critical.
-        // #pragma omp for schedule(static)
         // Partition data to the final structure
-        #pragma omp master
         {
             for (int part = 0; part < nparts; ++part) {
                 part_data[part].copy_aux_to_final();
             }
         }
-    }
-
-    for (auto &lock : shared_rows_locks) {
-        omp_destroy_lock(&lock);
     }
 }
 
@@ -1061,17 +1028,12 @@ int SchurLinearSolver::FillMatrixGenerator::PartitionData::PartitionData::num_pe
     return parent.matrix.xadj[last_row_plus1()] - parent.matrix.xadj[first_row()];
 }
 
-omp_lock_t *
-SchurLinearSolver::FillMatrixGenerator::PartitionData::should_lock(const int row) const {
+bool
+SchurLinearSolver::FillMatrixGenerator::PartitionData::redirect_to_shared(const int row) const {
     const bool shared_part = ami_shared_part();
     const int first_shared_row = parent.part_data.back().first_row();
 
-    if (!shared_part && row >= first_shared_row) {
-        return &parent.shared_rows_locks[row - first_shared_row];
-    }
-    else {
-        return nullptr;
-    }
+    return !shared_part && row >= first_shared_row;
 }
 
 void SchurLinearSolver::FillMatrixGenerator::PartitionData::
@@ -1117,13 +1079,9 @@ void SchurLinearSolver::FillMatrixGenerator::PartitionData::
 
 void SchurLinearSolver::FillMatrixGenerator::PartitionData::update_neighbors(const int row,
                                                                              const int col) {
-    auto *lock = should_lock(col);
+    const bool shared = redirect_to_shared(col);
 
-    if (lock) {
-        omp_set_lock(lock);
-    }
-
-    auto &col_part_data = lock ? parent.part_data.back() : *this;
+    auto &col_part_data = shared ? parent.part_data.back() : *this;
 
     const int lrow = grow_to_prow(row);
     const int lcol = col_part_data.grow_to_prow(col);
@@ -1193,10 +1151,7 @@ void SchurLinearSolver::FillMatrixGenerator::PartitionData::update_neighbors(con
         ++row_it;
     }
 
-    if (lock) {
-        omp_unset_lock(lock);
-    }
-    else {
+    if (!shared) {
         update_active_row(lcol, col_old_deg, false);
     }
 }

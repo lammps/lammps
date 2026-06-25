@@ -15,8 +15,9 @@
    ILVES constraint solver: parallel Schur-complement sparse direct solver.
    Ported near-verbatim from GROMACS 2021 ILVES (LGPL-2.1),
    src/gromacs/mdlib/schur_linear_solver.{cpp,h}.  Only the namespace, the
-   include paths, and the real/AlignedAllocator/OpenMP spellings (supplied by
-   ilves_compat.h) differ from upstream.  See ilves_graph.h for attribution.
+   include paths, and the real/AlignedAllocator spellings (supplied by
+   ilves_compat.h) differ from upstream, and the OpenMP directives are removed
+   (this base solver is serial).  See ilves_graph.h for attribution.
 ------------------------------------------------------------------------- */
 
 #ifndef LMP_ILVES_SCHUR_SOLVER_H
@@ -391,9 +392,6 @@ private:
         const bool upper_tri;
         const std::vector<int> &parts;
 
-        // One mutex per row of the shared partition.
-        std::vector<omp_lock_t> shared_rows_locks;
-
         // The fillin matrix.
         Graph fillin_matrix;
         // The new ordering of the rows.
@@ -491,14 +489,14 @@ private:
             void update_active_row(int lrow, int old_deg, bool disable);
 
             /**
-             * Should I use a lock to access the row (global id)?
-             * A pointer to the lock if true, nullptr otherwise.
+             * Does updating this row (global id) from the current local
+             * partition write into the shared partition?  (In the original
+             * parallel code this was also the condition for taking a lock.)
              *
              * @param row The global id of the row.
-             * @return omp_lock_t* A pointer to the lock that should be used to
-             * access the row. Nullptr if no lock should be used.
+             * @return true if the update is redirected to the shared partition.
              */
-            omp_lock_t *should_lock(int row) const;
+            bool redirect_to_shared(int row) const;
 
             /**
              * Merge the neighbors of the column with the neighbors of the row,

@@ -12,12 +12,13 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   ILVES constraint solver: Schur-complement sparse direct solver.
-   Ported near-verbatim from GROMACS 2021 ILVES (LGPL-2.1),
-   src/gromacs/mdlib/schur_linear_solver.{cpp,h}.  Only the namespace, the
-   include paths, and the use of plain double (LAMMPS is double precision on the
-   CPU) differ from upstream, and the OpenMP directives are removed (this base
-   solver is serial).  See ilves_graph.h for attribution.
+   ILVES constraint solver: sparse direct (LU) solver.
+   Specialized from the GROMACS 2021 ILVES Schur-complement solver (LGPL-2.1),
+   src/gromacs/mdlib/schur_linear_solver.{cpp,h}.  This port is serial, so the
+   matrix is a single block (no MPI/OpenMP partitioning) and the Schur-complement
+   layer reduces to a plain sparse LU factorization with forward/backward solve.
+   The symbolic phase (minimal-degree reordering and fill-in computation) is
+   retained from upstream.  See ilves_graph.h for full attribution.
 ------------------------------------------------------------------------- */
 
 #ifndef LMP_ILVES_SCHUR_SOLVER_H
@@ -25,16 +26,17 @@
 
 #include <list>
 #include <map>
-#include <set>
+#include <tuple>
 #include <vector>
 
 #include "ilves_graph.h"
 #include "ilves_mempool.h"
 
 /**
- * A class that can be used to solve linear systems of equations
- * using the Schur complement method. This class only works with structurally
- * symmetric matrices.
+ * A sparse direct solver for a structurally symmetric matrix.  The matrix is
+ * stored in CSR form with a fill-reducing reordering computed once at
+ * construction; it is factored in place (LU) and solved by forward/backward
+ * substitution.
  */
 
 namespace LAMMPS_NS {
@@ -42,160 +44,36 @@ namespace ILVES {
 
 class SchurLinearSolver {
 public:
-    class PartitionData {
-    public:
-        int part[2];      // Global indices assigned to this partition.
-                          // part[0] = first index of the partition.
-                          // part[1] = last index of the partition + 1.
-        int local_rows;   // The number of rows in the local subsystem.
-        int schur_rows;   // The number of rows in the Schur complement
-                          // subsystem.
+    // reordered adjacency (CSR) including fill-in.  the numeric factor is held
+    // in lhs, indexed in lockstep with fill_matrix.adj
+    Graph fill_matrix;
 
-        Graph fill_matrix;
+    // global row and column index of each stored entry (in CSR order)
+    std::vector<int> grows;
+    std::vector<int> gcols;
 
-        // Local rows and colums to global (whole matrix) rows and columns.
-        std::vector<int> grows;
-        std::vector<int> gcols;
+    // is entry i a fill-in (true) or an original nonzero (false)?
+    std::vector<bool> is_fillin;
 
-        // Is entry i a fillin?
-        std::vector<bool> is_fillin;
+    // index into lhs / fill_matrix.adj of the diagonal entry of each row
+    std::vector<int> diag;
 
-        // The index of the diagonal entries.
-        std::vector<int> diag;
+    // numeric left-hand side (one per entry) and right-hand side (one per row)
+    std::vector<double> lhs;
+    std::vector<double> rhs;
 
-        // Mapping from local Schur idx to shared Schur block (last block) idx.
-        struct localToSharedSchurMap {
-            int local_idx;
-            int schur_idx;
-        };
+    // scratch row used during the factorization
+    std::vector<double> scratch;
 
-        // Left-hand-side and right-hand-side local to shared Schur maps.
-        std::vector<localToSharedSchurMap> lhs_local_to_shared;
-        std::vector<localToSharedSchurMap> rhs_local_to_shared;
-
-        // Left-hand-side and right-hand-side data.
-        std::vector<double> lhs;
-        std::vector<double> rhs;
-
-        // Scratch vector used during the factorization.
-        std::vector<double> scratch;
-
-        /**
-         * Populates the partition data given the global fill-in matrix,
-         * the global fill-in, the partition id and the partitioning.
-         *
-         * @param gfill_matrix The global fill-in adjacency matrix.
-         * @param gis_fillin For each edge in the global fill-in matrix, is it a
-         * fill-in (true) or not (false)?
-         * @param parts A vector that contains the partitioning of the
-         * matrix. p[0] is the first row of partition 0. p[1] is the first row
-         * of partition 1, and the last row + 1 of partition 0.
-         * ...
-         * @param part_id The id of the partition.
-         */
-        void populate_part(const Graph &gfill_matrix,
-                           const std::vector<bool> &gis_fillin,
-                           const std::vector<int> &parts,
-                           int part_id);
-
-        /**
-         * Performs the LU factorization of the local partition.
-         * The factorization is performed in-place. The local left-hand-side
-         * of the system must be overwritten previos calling this function.
-         *
-         */
-        void LU_factor();
-
-        /**
-         * Performs the forward substitution of the local partition.
-         * The substitution is performed in-place. Prior to calling this
-         * function LU_factor must be called and the rhs of the partitions must
-         * be overwritten.
-         *
-         */
-        void LU_forward();
-
-        /**
-         * Performs the backward substitution of the local partition.
-         * The substitution is performed in-place. Prior to calling this
-         * function LU_factor and LU_forward must be called.
-         *
-         */
-        void LU_backward();
-
-        /**
-         * Estimate the memory used by this partition (fill-in matrix, the
-         * local-to-shared maps, and the factorization work arrays).
-         *
-         * @return The size of the partition storage in bytes.
-         */
-        double memory_usage() const;
-
-    private:
-        /**
-         * Populates the local partition data given the global fill-in matrix,
-         * the global fill-in vector and the rows of the Schur partition.
-         *
-         * @param gfill_matrix The global fill-in adjacency matrix.
-         * @param gis_fillin For each edge in the global fill-in matrix, is it a
-         * fill-in (true) or not (false)?
-         * @param part_schur part_schur[0] = first row of the Schur partition.
-         *                   part_schur[1] = last row of the Schur partition
-         * + 1.
-         */
-        void populate_local_part(const Graph &gfill_matrix,
-                                 const std::vector<bool> &gis_fillin,
-                                 const int part_schur[2]);
-
-        /**
-         * Populates the Schur partition data given the global fill-in matrix,
-         * the global fill-in vector.
-         *
-         * @param gfill_matrix The global fill-in adjacency matrix.
-         * @param gis_fillin For each edge in the global fill-in matrix, is it a
-         * fill-in (true) or not (false)?
-         */
-        void populate_schur_part(const Graph &gfill_matrix,
-                                 const std::vector<bool> &gis_fillin);
-    };
-
-    // The data of each partition. The last entry of the vector is the Schur
-    // (shared) partition.
-    std::vector<PartitionData> part_data;
+    // number of rows (= number of constraints)
+    int nrows;
 
     /**
-     * Constructs a SchurLinearSolver object given an adjacency matrix and
-     * n partitions. The matrix must be structurally symmetric, and the rows of
-     * the first n-1 partitions only can have non-zero entries in their own
-     * columns or columns of the last partition. Example of a valid partitioned
-     * adjacency matrix:
-     *
-     *   ------------
-     *   |xxx|  | x |
-     *   |xxf|  | f |
-     *   |xfx|  | fx|
-     *   |-----------
-     *   |   |x |xx |
-     *   |   | x| xx|
-     *   |-----------
-     *   |   |x |xfx|
-     *   |xff|xx|fxf|
-     *   |  x| x|xfx|
-     *   ------------
-     *
-     * Partition 0 has rows 0-2.
-     * Partition 1 has rows 3-4.
-     * Partition 2 has rows 5-7.
-     *
-     * In partition 0 there are non-zero columns between columns 3-4.
-     * In partition 1 there are non-zero columns between columns 0-2.
-     * Partition 2 is connected to any partition.
+     * Constructs the solver for a structurally symmetric adjacency MATRIX.
+     * Computes a fill-reducing reordering and the resulting fill-in structure,
+     * then sizes the factor / solve work arrays.
      *
      * @param matrix Structurally symmetric adjacency matrix.
-     * @param parts A vector of size N + 1 that contains the partition of the
-     * matrix. p[0] is the first row of partition 0. p[1] is the first row of
-     * partition 1, and the last row + 1 of partition 0.
-     * ...
      * @param perm The array will be overwritten with the permutation applied
      * to the original matrix to reduce the number of fillins. The permutation
      * is given as in MATLAB. Example:
@@ -204,28 +82,22 @@ public:
      *  Old position 1 is now position 1
      *  Old position 0 is now position 2
      */
-    SchurLinearSolver(Graph &matrix,
-                      const std::vector<int> &parts,
-                      std::vector<int> &perm);
+    SchurLinearSolver(Graph &matrix, std::vector<int> &perm);
 
     /**
-     * Performs the LU factorization of the linear-system described by
-     * the object. Prior to calling this function the lhs of the partitions must
-     * be overwritten.
-     *
+     * Performs the in-place LU factorization of the matrix.  The lhs must be
+     * filled before calling this function.
      */
     void LU_factor();
 
     /**
-     * Performs the forward+backward substitution of linear-system
-     * described by the object. Prior to calling this function LU_factor must
-     * be called and the rhs of the partitions must be overwritten.
-     *
+     * Performs the forward + backward substitution.  LU_factor must have been
+     * called and the rhs filled before calling this function.
      */
     void LU_solve();
 
     /**
-     * Estimate the memory used by the solver, summed over all partitions.
+     * Estimate the memory used by the solver.
      *
      * @return The size of the solver storage in bytes.
      */
@@ -233,26 +105,18 @@ public:
 
 private:
     /**
-     * Helper function to apply a factorization to the linear system using
-     * one of the available PartitionData factorization functions.
+     * Populate the CSR and work arrays from the global fill-in matrix.
      *
-     * @param factor_function Pointer to the desired PartitionData factorization
-     * function.
+     * @param gfill_matrix The global fill-in adjacency matrix.
+     * @param gis_fillin For each edge in gfill_matrix, is it a fill-in?
      */
-    void factor(void (PartitionData::*factor_function)());
+    void populate(const Graph &gfill_matrix, const std::vector<bool> &gis_fillin);
 
-    /**
-     * Helper function to apply the forward+backward substitution to the linear
-     * system using one of the available PartitionData forward+backward
-     * functions.
-     *
-     * @param factor_function Pointer to the desired PartitionData forward
-     * function.
-     * @param backward_function Pointer to the desired PartitionData backward
-     * function.
-     */
-    void solve(void (PartitionData::*forward_function)(),
-               void (PartitionData::*backward_function)());
+    /** Forward substitution (lower-triangular solve), in place on rhs. */
+    void LU_forward();
+
+    /** Backward substitution (upper-triangular solve), in place on rhs. */
+    void LU_backward();
 
     // Auxiliary class to generate the minimum fill-in matrix.
     class FillMatrixGenerator {

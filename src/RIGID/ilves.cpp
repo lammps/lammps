@@ -35,15 +35,11 @@ Ilves::Ilves(LAMMPS *const _lmp, const int nbonds, const int *const catom1, cons
 
   for (int d = 0; d < DIM; ++d) x_ab[d].resize(mol->bonds.num);
 
-  // The solver is serial: a single local partition holding all bonds plus an
-  // empty Schur partition.  (The Schur-complement solver is structured as local
-  // partitions coupled through a shared block; with one partition that shared
-  // block is empty, so this reduces to a plain sparse direct solve.)
-  std::vector<int> partitioning = {0, mol->bonds.num, mol->bonds.num};
-
+  // build the sparse direct solver for the constraint connectivity; it computes
+  // a fill-reducing reordering, returned in schur_solver_perm
   std::vector<int> schur_solver_perm;
   schur_solver = std::unique_ptr<SchurLinearSolver>(
-      new SchurLinearSolver(mol->bonds.graph, partitioning, schur_solver_perm));
+      new SchurLinearSolver(mol->bonds.graph, schur_solver_perm));
 
   // apply the fill-reducing permutation the solver computed; the bond graph is
   // no longer needed afterwards, so do not renumber it
@@ -51,101 +47,82 @@ Ilves::Ilves(LAMMPS *const _lmp, const int nbonds, const int *const catom1, cons
 
   make_weights();
 
-  // The current_lagr vectors must be as large as the rhs in order to swap them.
-  current_lagr.resize(schur_solver->part_data.size());
-  for (size_t p = 0; p < schur_solver->part_data.size(); ++p)
-    current_lagr[p].resize(schur_solver->part_data[p].rhs.size());
+  // current_lagr must be as large as the rhs so the two can be swapped
+  current_lagr.resize(schur_solver->rhs.size());
 }
 
 /* ----------------------------------------------------------------------
-   Compute the part of the right-hand side g(x) for rows [gstart, gend).
-   Returns the largest relative (squared) bond-length violation of that part.
-   The bond vectors use raw differences: the partner index already refers to
-   the closest periodic image (Domain::closest_image), so no minimum-image
-   correction is needed here.
+   Compute the right-hand side g(x) (the bond-length violations) into the solver
+   rhs.  Returns the largest relative (squared) bond-length violation.  The bond
+   vectors use raw differences: the partner index already refers to the closest
+   periodic image (Domain::closest_image), so no minimum-image correction is
+   needed here.
 ------------------------------------------------------------------------- */
 
-double Ilves::make_rhs_scalar(double **const x, double **const xprime, const bool compute_x_ab,
-                            double *const rhs, const int gstart, const int gend, const int lstart)
+double Ilves::make_rhs(double **const x, double **const xprime, const bool compute_x_ab)
 {
-  const bool xprime_ab_empty = xprime_ab.back().empty();
+  const bool fill_xprime_ab = !xprime_ab.back().empty();
+  const int n = mol->bonds.num;
+  double *const rhs = schur_solver->rhs.data();
 
   double rel = 0;
 
-  for (int grow = gstart, lrow = lstart; grow < gend; ++grow, ++lrow) {
-    const int a = mol->bonds.atom1[grow];
-    const int b = mol->bonds.atom2[grow];
+  for (int k = 0; k < n; ++k) {
+    const int a = mol->bonds.atom1[k];
+    const int b = mol->bonds.atom2[k];
 
     if (compute_x_ab)
-      for (int d = 0; d < DIM; ++d) x_ab[d][grow] = x[b][d] - x[a][d];
+      for (int d = 0; d < DIM; ++d) x_ab[d][k] = x[b][d] - x[a][d];
 
     double rcd[DIM];
     for (int d = 0; d < DIM; ++d) rcd[d] = xprime[b][d] - xprime[a][d];
-    if (!xprime_ab_empty)
-      for (int d = 0; d < DIM; ++d) xprime_ab[d][grow] = rcd[d];
+    if (fill_xprime_ab)
+      for (int d = 0; d < DIM; ++d) xprime_ab[d][k] = rcd[d];
 
     const double scalar = rcd[XX] * rcd[XX] + rcd[YY] * rcd[YY] + rcd[ZZ] * rcd[ZZ];
 
-    rhs[lrow] = 0.5 * (scalar - mol->bonds.sigma2[grow]);
+    rhs[k] = 0.5 * (scalar - mol->bonds.sigma2[k]);
 
-    rel = std::max(rel, std::abs(rhs[lrow]) * mol->bonds.invsigma2[grow]);
+    rel = std::max(rel, std::abs(rhs[k]) * mol->bonds.invsigma2[k]);
   }
 
   return rel;
 }
 
-double Ilves::make_rhs(const int partition, double **const x, double **const xprime,
-                     const bool compute_x_ab)
-{
-  auto &pdata = schur_solver->part_data[partition];
-
-  // Nullify the schur entries of the rhs.
-  for (int row = pdata.local_rows; row < pdata.local_rows + pdata.schur_rows; ++row)
-    pdata.rhs[row] = 0;
-
-  return make_rhs_scalar(x, xprime, compute_x_ab, pdata.rhs.data(), pdata.part[0], pdata.part[1], 0);
-}
-
 /* ----------------------------------------------------------------------
-   Compute the left-hand side (Jacobian) of partition PARTITION from the bond
-   vectors xab1 and xab2 (each x_ab or xprime_ab).
+   Compute the left-hand side (Jacobian) from the bond vectors xab1 and xab2
+   (each x_ab or xprime_ab), one stored matrix entry at a time.
 ------------------------------------------------------------------------- */
 
-void Ilves::make_lhs_scalar(const int partition, const BondVecs &xab1, const BondVecs &xab2,
-                            const int lrowstart)
+void Ilves::make_lhs(const BondVecs &xab1, const BondVecs &xab2)
 {
-  auto &pdata = schur_solver->part_data[partition];
-  const auto &weights = part_lhs_weights[partition];
+  const int nentries = (int) schur_solver->lhs.size();
+  double *const lhs = schur_solver->lhs.data();
+  const int *const grows = schur_solver->grows.data();
+  const int *const gcols = schur_solver->gcols.data();
 
-  const int lrowend = pdata.lhs.size();
-  for (int lrow = lrowstart; lrow < lrowend; ++lrow) {
-    const int grow = pdata.grows[lrow];
-    const int gcol = pdata.gcols[lrow];
+  for (int e = 0; e < nentries; ++e) {
+    const int grow = grows[e];
+    const int gcol = gcols[e];
 
     const double scalar = xab1[XX][grow] * xab2[XX][gcol] + xab1[YY][grow] * xab2[YY][gcol] +
         xab1[ZZ][grow] * xab2[ZZ][gcol];
 
-    pdata.lhs[lrow] = weights[lrow] * scalar;
+    lhs[e] = lhs_weights[e] * scalar;
   }
-}
-
-void Ilves::make_lhs(const int partition, const BondVecs &xab1, const BondVecs &xab2)
-{
-  make_lhs_scalar(partition, xab1, xab2, 0);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Ilves::update_current_lagr(const int partition, const bool first_time)
+void Ilves::update_current_lagr(const bool first_time)
 {
-  auto &pdata = schur_solver->part_data[partition];
-
   if (first_time) {
-    std::swap(current_lagr[partition], pdata.rhs);
+    std::swap(current_lagr, schur_solver->rhs);
   } else {
-    auto *rhs_data = pdata.rhs.data();
-    auto *current_lagr_data = current_lagr[partition].data();
-    for (int lrow = 0; lrow < pdata.local_rows; ++lrow) current_lagr_data[lrow] += rhs_data[lrow];
+    const int n = mol->bonds.num;
+    auto *rhs_data = schur_solver->rhs.data();
+    auto *current_lagr_data = current_lagr.data();
+    for (int k = 0; k < n; ++k) current_lagr_data[k] += rhs_data[k];
   }
 }
 
@@ -160,18 +137,16 @@ void Ilves::add_global_virial(double *const v6, const double inv_dtfsq) const
   // for constraint k the force on atom a is +lambda_k*inv_dtfsq*r_k (r_k = x_b -
   // x_a) and on atom b is the negative of that; the pairwise virial contribution
   // is (x_a - x_b) (x) f_a = -lambda_k*inv_dtfsq * r_k (x) r_k.
-  for (size_t p = 0; p < schur_solver->part_data.size(); ++p) {
-    const auto &pdata = schur_solver->part_data[p];
-    for (int grow = pdata.part[0], lrow = 0; grow < pdata.part[1]; ++grow, ++lrow) {
-      const double s = -current_lagr[p][lrow] * inv_dtfsq;
-      const double rx = x_ab[XX][grow], ry = x_ab[YY][grow], rz = x_ab[ZZ][grow];
-      v6[0] += s * rx * rx;
-      v6[1] += s * ry * ry;
-      v6[2] += s * rz * rz;
-      v6[3] += s * rx * ry;
-      v6[4] += s * rx * rz;
-      v6[5] += s * ry * rz;
-    }
+  const int n = mol->bonds.num;
+  for (int k = 0; k < n; ++k) {
+    const double s = -current_lagr[k] * inv_dtfsq;
+    const double rx = x_ab[XX][k], ry = x_ab[YY][k], rz = x_ab[ZZ][k];
+    v6[0] += s * rx * rx;
+    v6[1] += s * ry * ry;
+    v6[2] += s * rz * rz;
+    v6[3] += s * rx * ry;
+    v6[4] += s * rx * rz;
+    v6[5] += s * ry * rz;
   }
 }
 
@@ -179,25 +154,26 @@ void Ilves::add_global_virial(double *const v6, const double inv_dtfsq) const
 
 double Ilves::recompute(double **const x, double **const xprime, const bool first_iter)
 {
-  update_current_lagr(0, first_iter);
-  return make_rhs(0, x, xprime, false);
+  update_current_lagr(first_iter);
+  return make_rhs(x, xprime, false);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Ilves::accumulate_increment(const int partition, double **const dx) const
+void Ilves::accumulate_increment(double **const dx) const
 {
-  const auto &pdata = schur_solver->part_data[partition];
+  const int n = mol->bonds.num;
+  const auto *rhs = schur_solver->rhs.data();
 
-  for (int grow = pdata.part[0], lrow = 0; grow < pdata.part[1]; ++grow, ++lrow) {
-    const int a = mol->bonds.atom1[grow];
-    const int b = mol->bonds.atom2[grow];
+  for (int k = 0; k < n; ++k) {
+    const int a = mol->bonds.atom1[k];
+    const int b = mol->bonds.atom2[k];
 
-    const double rhs_a = pdata.rhs[lrow] * mol->atoms.invmass[a];
-    const double rhs_b = pdata.rhs[lrow] * mol->atoms.invmass[b];
+    const double rhs_a = rhs[k] * mol->atoms.invmass[a];
+    const double rhs_b = rhs[k] * mol->atoms.invmass[b];
     for (int d = 0; d < DIM; ++d) {
-      dx[a][d] += rhs_a * x_ab[d][grow];
-      dx[b][d] -= rhs_b * x_ab[d][grow];
+      dx[a][d] += rhs_a * x_ab[d][k];
+      dx[b][d] -= rhs_b * x_ab[d][k];
     }
   }
 }
@@ -211,37 +187,29 @@ void Ilves::accumulate_increment(const int partition, double **const dx) const
 
 void Ilves::make_weights()
 {
-  const int nparts = schur_solver->part_data.size();
-  part_lhs_weights.resize(nparts);
+  const int nentries = schur_solver->fill_matrix.num_edges();
+  lhs_weights.resize(nentries);
 
-  for (int p = 0; p < nparts; ++p) {
-    const auto &pdata = schur_solver->part_data[p];
-    const auto &pmatrix = pdata.fill_matrix;
+  for (int i = 0; i < nentries; ++i) {
+    const int row = schur_solver->grows[i];
+    const int col = schur_solver->gcols[i];
 
-    auto &pweights = part_lhs_weights[p];
-    pweights.resize(pmatrix.num_edges());
+    const int arow1 = mol->bonds.atom1[row];
+    const int arow2 = mol->bonds.atom2[row];
 
-    for (int i = 0; i < pmatrix.num_edges(); ++i) {
-      const int row = pdata.grows[i];
-      const int col = pdata.gcols[i];
+    if (schur_solver->is_fillin[i]) {
+      lhs_weights[i] = 0;
+    } else if (row != col) {
+      const int acol1 = mol->bonds.atom1[col];
+      const int acol2 = mol->bonds.atom2[col];
 
-      const int arow1 = mol->bonds.atom1[row];
-      const int arow2 = mol->bonds.atom2[row];
+      const int common = ((arow1 == acol1) || (arow1 == acol2)) ? arow1 : arow2;
 
-      if (pdata.is_fillin[i]) {
-        pweights[i] = 0;
-      } else if (row != col) {
-        const int acol1 = mol->bonds.atom1[col];
-        const int acol2 = mol->bonds.atom2[col];
+      lhs_weights[i] = mol->atoms.invmass[common];
 
-        const int common = ((arow1 == acol1) || (arow1 == acol2)) ? arow1 : arow2;
-
-        pweights[i] = mol->atoms.invmass[common];
-
-        if ((arow1 == acol2) || (arow2 == acol1)) pweights[i] = -pweights[i];
-      } else {
-        pweights[i] = mol->atoms.invmass[arow1] + mol->atoms.invmass[arow2];
-      }
+      if ((arow1 == acol2) || (arow2 == acol1)) lhs_weights[i] = -lhs_weights[i];
+    } else {
+      lhs_weights[i] = mol->atoms.invmass[arow1] + mol->atoms.invmass[arow2];
     }
   }
 }
@@ -255,8 +223,7 @@ double Ilves::memory_usage() const
   double bytes = 0.0;
   if (mol) bytes += mol->memory_usage();
   if (schur_solver) bytes += schur_solver->memory_usage();
-  for (const auto &w : part_lhs_weights) bytes += (double) w.size() * sizeof(double);
-  for (const auto &c : current_lagr) bytes += (double) c.size() * sizeof(double);
+  bytes += (double) (lhs_weights.size() + current_lagr.size()) * sizeof(double);
   for (int d = 0; d < DIM; ++d)
     bytes += (double) (x_ab[d].size() + xprime_ab[d].size()) * sizeof(double);
   return bytes;

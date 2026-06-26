@@ -36,15 +36,15 @@ double IlvesAsym::prepare(double **const x, double **const xprime)
   // Compute g(x); fills the reference bond vectors x_ab and (since xprime_ab is
   // allocated for this variant) the predicted bond vectors xprime_ab.  The
   // exact-Newton Jacobian is reassembled and refactored each step (in step()).
-  return make_rhs(0, x, xprime, true);
+  return make_rhs(x, xprime, true);
 }
 
 void IlvesAsym::step(double **const dx)
 {
-  make_lhs(0, xprime_ab, x_ab);
+  make_lhs(xprime_ab, x_ab);
   schur_solver->LU_factor();
   schur_solver->LU_solve();
-  accumulate_increment(0, dx);
+  accumulate_increment(dx);
 }
 
 }    // namespace ILVES

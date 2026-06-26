@@ -12,16 +12,17 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   ILVES constraint solver: Schur-complement sparse direct solver.
-   Ported near-verbatim from GROMACS 2021 ILVES (LGPL-2.1),
-   src/gromacs/mdlib/schur_linear_solver.cpp.  See ilves_graph.h for full
-   attribution.
+   ILVES constraint solver: sparse direct (LU) solver.
+   Specialized from the GROMACS 2021 ILVES Schur-complement solver (LGPL-2.1),
+   src/gromacs/mdlib/schur_linear_solver.cpp.  Serial single-block port: the
+   Schur-complement partitioning reduces to a plain sparse LU solve.  The
+   minimal-degree reordering / fill-in generator is retained from upstream.
+   See ilves_graph.h for full attribution.
 ------------------------------------------------------------------------- */
 
 #include "ilves_schur_solver.h"
 
 #include <algorithm>
-#include <cmath>
 #include <functional>
 #include <iterator>
 #include <map>
@@ -35,71 +36,74 @@
 namespace LAMMPS_NS {
 namespace ILVES {
 
-void SchurLinearSolver::PartitionData::populate_part(const Graph &gfill_matrix,
-                                                     const std::vector<bool> &gis_fillin,
-                                                     const std::vector<int> &parts,
-                                                     const int part_id) {
+SchurLinearSolver::SchurLinearSolver(Graph &matrix, std::vector<int> &perm) {
+    nrows = matrix.num_nodes();
 
-    part[0] = parts[part_id];
-    part[1] = parts[part_id + 1];
+    // a single block spanning all rows; the empty trailing Schur block keeps
+    // the fill-in generator's partitioned interface unchanged
+    const std::vector<int> parts = {0, nrows, nrows};
 
-    /*
-     * Example of partitioned matrix. x regular entries and f for fillin
-     * entries.
-     *
-     *  0   1  S
-     * ------------
-     * |xxx|  | x | 0
-     * |xxf|  | f |
-     * |xfx|  | fx|
-     * |-----------
-     * |   |x |xx | 1
-     * |   | x| xx|
-     * |-----------
-     * |   |x |xfx| S
-     * |xff|xx|fxf|
-     * |  x| x|xfx|
-     * ------------
-     *
-     * The first two vertical blocks (0, 1) are local blocks, while the
-     * last block (S) is the Schur block.
-     * The first two horizontal blocks (0, 1) are local blocks, while the
-     * last block (S) is the Schur block.
-     * Naming of blocks:
-     * local-local = vertical local block and horizontal local block.
-     * local-Schur = vertical local block and horizontal Schur block.
-     * Schur-local = vertical Schur block and horizontal local block.
-     * Schur-Schur = vertical Schur block and horizontal Schur block.
-     *
-     * A local partition (partitions from 0 to num_part - 2) have local-local,
-     * local-Schur, Schur-local and Schur-Schur blocks. All the entries of the
-     * Schur-Schur block are fillin entries.
-     *
-     * The last partition (num_part - 1) is the Schur partition and only has the
-     * Schur-Schur block.
-     *
-     * const int num_part = part.size() - 1;
-     */
+    FillMatrixGenerator fill_matrix_generator(matrix, parts);
+    // bind plain reference variables to the returned tuple (rather than a
+    // structured binding) to keep the names usable with the widest set of C++
+    // compilers/standards
+    auto fill_tuple = fill_matrix_generator.get_fill_matrix();
+    Graph &gfill_matrix = std::get<0>(fill_tuple);
+    std::vector<bool> &gis_fillin = std::get<1>(fill_tuple);
+    perm = std::move(std::get<2>(fill_tuple));
 
-    const int schur_part = parts.size() - 2;
-    int part_schur[2] = {parts[schur_part], parts[schur_part + 1]};
+    populate(gfill_matrix, gis_fillin);
+}
 
-    if (schur_part == part_id) {
-        populate_schur_part(gfill_matrix, gis_fillin);
-    }
-    else {
-        populate_local_part(gfill_matrix, gis_fillin, part_schur);
+void SchurLinearSolver::populate(const Graph &gfill_matrix,
+                                 const std::vector<bool> &gis_fillin) {
+    const int total_entries = gfill_matrix.num_edges();
+
+    grows.resize(total_entries);
+    gcols.resize(total_entries);
+    is_fillin.resize(total_entries);
+    diag.resize(nrows);
+
+    fill_matrix.nnodes = nrows;
+    fill_matrix.xadj.resize(nrows + 1);
+    fill_matrix.adj.resize(total_entries);
+
+    lhs.resize(total_entries);
+    rhs.resize(nrows);
+    scratch.resize(nrows, 0);
+
+    // Copy the global fill-in matrix into the solver's CSR structure.  With a
+    // single block the local and global row/column indices coincide.
+    int lentry = 0;
+    fill_matrix.xadj[0] = 0;
+    for (int row = 0; row < nrows; ++row) {
+        for (int k = gfill_matrix.xadj[row]; k < gfill_matrix.xadj[row + 1]; ++k) {
+            const int col = gfill_matrix.adj[k];
+
+            grows[lentry] = row;
+            gcols[lentry] = col;
+
+            if (row == col) {
+                diag[row] = lentry;
+            }
+
+            is_fillin[lentry] = gis_fillin[k];
+            fill_matrix.adj[lentry] = col;
+
+            ++lentry;
+        }
+        fill_matrix.xadj[row + 1] = lentry;
     }
 }
 
-void SchurLinearSolver::PartitionData::LU_factor() {
+void SchurLinearSolver::LU_factor() {
     // Isolate the adjacency lists
     const auto &adj = fill_matrix.adj;
     // Isolate the list of row indices
     const auto &xadj = fill_matrix.xadj;
 
-    // Loop over the first local_rows columns of the matrix
-    for (int j = 0; j < local_rows; j++) {
+    // Loop over the columns of the matrix
+    for (int j = 0; j < nrows; j++) {
 
         // Isolate the diagonal entry A(j,j)
         const double pivot = lhs[diag[j]];
@@ -133,27 +137,24 @@ void SchurLinearSolver::PartitionData::LU_factor() {
     }
 }
 
-void SchurLinearSolver::PartitionData::LU_forward() {
-    const auto m = fill_matrix.num_nodes();   // The number of rows
+void SchurLinearSolver::LU_forward() {
     const auto &adj = fill_matrix.adj;
     const auto &xadj = fill_matrix.xadj;
 
-    // Loop over the m rows
-    for (int i = 0; i < m; i++) {
-        // Remove relevant entries from the rhs
-        const int ncols = std::min(i, local_rows);
-        for (int k = xadj[i]; adj[k] < ncols; ++k) {
+    // Loop over the rows, removing the already-solved contributions from the rhs
+    for (int i = 0; i < nrows; i++) {
+        for (int k = xadj[i]; adj[k] < i; ++k) {
             rhs[i] -= lhs[k] * rhs[adj[k]];
         }
     }
 }
 
-void SchurLinearSolver::PartitionData::LU_backward() {
+void SchurLinearSolver::LU_backward() {
     const auto &adj = fill_matrix.adj;
     const auto &xadj = fill_matrix.xadj;
 
-    // Loop backwards over the first n rows
-    for (int i = local_rows - 1; i != -1; --i) {
+    // Loop backwards over the rows
+    for (int i = nrows - 1; i != -1; --i) {
         // Remove the contributions from all variables with index higher than i
         for (int k = diag[i] + 1; k < xadj[i + 1]; ++k) {
             rhs[i] -= lhs[k] * rhs[adj[k]];
@@ -163,398 +164,9 @@ void SchurLinearSolver::PartitionData::LU_backward() {
     }
 }
 
-void SchurLinearSolver::PartitionData::populate_local_part(const Graph &gfill_matrix,
-                                                           const std::vector<bool> &gis_fillin,
-                                                           const int part_schur[2]) {
-
-    // Count the number of entries and compute the mapping from global cols to
-    // local cols.
-    std::vector<int> gcol_to_lcol(gfill_matrix.num_nodes(), -1);
-
-    // Horizontal local blocks.
-    int local_entries = 0;
-    local_rows = part[1] - part[0];
-    for (int row = part[0]; row < part[1]; ++row) {
-        for (int k = gfill_matrix.xadj[row]; k < gfill_matrix.xadj[row + 1]; ++k) {
-            const int col = gfill_matrix.adj[k];   // Global column index.
-
-            gcol_to_lcol[col] = 0;
-            ++local_entries;
-        }
-    }
-    // Horizontal Schur blocks.
-    int schur_entries = 0;
-    // Horizontal Schur-Schur blocks.
-    int schur_schur_entries = 0;
-    schur_rows = 0;
-    for (int row = part_schur[0]; row < part_schur[1]; ++row) {
-        for (int k = gfill_matrix.xadj[row]; k < gfill_matrix.xadj[row + 1]; ++k) {
-            const int col = gfill_matrix.adj[k];   // Global column index.
-
-            /*
-             * Check if entry is part of the ith Schur-local block
-             * or part of the Schur-Schur block. We only want to take
-             * into account rows in the schur-schur block if the rowth
-             * row of the ith Schur-local is not empty.
-             *
-             * The marked row in the following example is not taken into
-             * account in the 0th partition, as the first row of the
-             * 0th local-Schur block is empty.
-             *  0   1  S
-             * ------------
-             * |xxx|  | x | 0
-             * |xxf|  | f |
-             * |xfx|  | fx|
-             * |-----------
-             * |   |x |xx | 1
-             * |   | x| xx|
-             * |-----------
-             * |   |x |xfx| S <--- Not taken into account in 0th partition.
-             * |xff|xx|fxf|
-             * |  x| x|xfx|
-             * ------------
-             *
-             *
-             */
-
-            const bool schur_schur = part_schur[0] <= col && col < part_schur[1];
-            const bool part_schur_local = part[0] <= col && col < part[1];
-
-            // Take Schur-Schur entry into account only if there is at least one
-            // entry in same column in the local-Schur block and there is at
-            // least one entry in the same row in the Schur-local block.
-            const bool part_schur_schur = schur_schur && gcol_to_lcol[col] != -1 &&
-                                          gcol_to_lcol[row] != -1;
-
-            if (part_schur_local || part_schur_schur) {
-                gcol_to_lcol[col] = 0;
-                ++schur_entries;
-
-                if (part_schur_schur) {
-                    ++schur_schur_entries;
-                }
-            }
-        }
-        // Only if current row's Schur-local block is not empty.
-        if (gcol_to_lcol[row] != -1) {
-            ++schur_rows;
-        }
-    }
-
-    const int total_rows = local_rows + schur_rows;
-    const int total_entries = local_entries + schur_entries;
-
-    grows.resize(total_entries);
-    gcols.resize(total_entries);
-
-    is_fillin.resize(total_entries);
-
-    diag.resize(total_rows);
-
-    lhs_local_to_shared.resize(schur_schur_entries);
-    rhs_local_to_shared.resize(schur_rows);
-
-    fill_matrix.nnodes = total_rows;
-    fill_matrix.xadj.resize(total_rows + 1);
-    fill_matrix.adj.resize(total_entries);
-
-    lhs.resize(total_entries);
-    rhs.resize(total_rows);
-    scratch.resize(total_rows, 0);
-
-    // Compute the mapping from global cols to local cols.
-    for (int gcol = 0, lcol = 0; gcol < gcol_to_lcol.size(); ++gcol) {
-        if (gcol_to_lcol[gcol] != -1) {
-            gcol_to_lcol[gcol] = lcol;
-            ++lcol;
-        }
-    }
-
-    // Populate the structures.
-
-    int lentry = 0;   // Entry index.
-    int lrow = 0;     // Local row index.
-
-    fill_matrix.xadj[0] = 0;
-
-    // Loop over the rows of the local horizontal block.
-    for (int row = part[0]; row < part[1]; ++row) {
-        for (int k = gfill_matrix.xadj[row]; k < gfill_matrix.xadj[row + 1]; ++k) {
-            const int col = gfill_matrix.adj[k];   // Global column index.
-
-            // every entry is in either the local-local or the local-Schur
-            // block, so no block check is needed here
-            const int lcol = gcol_to_lcol[col];
-
-            grows[lentry] = row;
-            gcols[lentry] = col;
-
-            if (lrow == lcol) {
-                diag[lrow] = lentry;
-            }
-
-            is_fillin[lentry] = gis_fillin[k];
-
-            fill_matrix.adj[lentry] = lcol;
-
-            ++lentry;
-        }
-        fill_matrix.xadj[lrow + 1] = lentry;
-        ++lrow;
-    }
-
-    // The schur_schur block local index. Used to compute the mapping.
-    int schur_schur_lentry = 0;
-    int lhs_local_to_shared_idx = 0;
-    int rhs_local_to_shared_idx = 0;
-    // Loop over the rows of the horizontal Schur block.
-    for (int row = part_schur[0]; row < part_schur[1]; ++row) {
-        for (int k = gfill_matrix.xadj[row]; k < gfill_matrix.xadj[row + 1]; ++k) {
-            const int col = gfill_matrix.adj[k];   // Global column index.
-            const bool schur_schur = part_schur[0] <= col && col < part_schur[1];
-            const bool part_schur_local = part[0] <= col && col < part[1];
-            // Same logic as before.
-            const bool part_schur_schur = schur_schur && gcol_to_lcol[col] != -1 &&
-                                          gcol_to_lcol[row] != -1;
-
-            if (part_schur_local || part_schur_schur) {
-                const int lcol = gcol_to_lcol[col];
-
-                grows[lentry] = row;
-                gcols[lentry] = col;
-
-                if (part_schur_local) {
-                    is_fillin[lentry] = gis_fillin[k];
-                }
-                else if (part_schur_schur) {
-                    // We need to update the mapping.
-                    lhs_local_to_shared[lhs_local_to_shared_idx] = {lentry,
-                                                                    schur_schur_lentry};
-                    ++lhs_local_to_shared_idx;
-
-                    // The Schur-Schur block in a local partition is always
-                    // filled with fillins.
-                    is_fillin[lentry] = true;
-                }
-
-                if (lrow == lcol) {
-                    diag[lrow] = lentry;
-                }
-
-                fill_matrix.adj[lentry] = lcol;
-
-                ++lentry;
-            }
-
-            if (schur_schur) {
-                ++schur_schur_lentry;
-            }
-        }
-        // Only if current row's Schur-local block is not empty.
-        if (gcol_to_lcol[row] != -1) {
-            const int schur_schur_row = row - part_schur[0];
-            rhs_local_to_shared[rhs_local_to_shared_idx] = {lrow, schur_schur_row};
-            ++rhs_local_to_shared_idx;
-
-            fill_matrix.xadj[lrow + 1] = lentry;
-
-            ++lrow;
-        }
-    }
-}
-
-void SchurLinearSolver::PartitionData::populate_schur_part(const Graph &gfill_matrix,
-                                                           const std::vector<bool>
-                                                               &gis_fillin) {
-
-    local_rows = part[1] - part[0];
-    schur_rows = 0;   // No schur rows in the Schur partition.
-
-    // Count the number of entries
-
-    int total_entries = 0;
-    for (int row = part[0]; row < part[1]; ++row) {
-        for (int k = gfill_matrix.xadj[row]; k < gfill_matrix.xadj[row + 1]; ++k) {
-            const int col = gfill_matrix.adj[k];   // Global column index.
-
-            // Check if entry is part of the Schur-Schur block.
-            const bool schur_schur = part[0] <= col && col < part[1];
-
-            if (schur_schur) {
-                ++total_entries;
-            }
-        }
-    }
-
-    // Reserve the required space.
-    grows.resize(total_entries);
-    gcols.resize(total_entries);
-
-    is_fillin.resize(total_entries);
-
-    diag.resize(local_rows);
-
-    fill_matrix.nnodes = local_rows;
-    fill_matrix.xadj.resize(local_rows + 1);
-    fill_matrix.adj.resize(total_entries);
-
-    lhs.resize(total_entries);
-    rhs.resize(local_rows);
-    scratch.resize(local_rows, 0);
-
-    // Populate the structures.
-
-    int lentry = 0;   // Entry index.
-    int lrow = 0;     // Local row index.
-
-    fill_matrix.xadj[0] = 0;
-
-    for (int row = part[0]; row < part[1]; ++row) {
-        for (int k = gfill_matrix.xadj[row]; k < gfill_matrix.xadj[row + 1]; ++k) {
-            const int col = gfill_matrix.adj[k];   // Global column index.
-
-            // Check if entry is part of the Schur-Schur block.
-            const bool schur_schur = part[0] <= col && col < part[1];
-
-            if (schur_schur) {
-                // The local column index is the global column index
-                // minus the first row of the Schur block.
-                const int lcol = col - part[0];
-
-                grows[lentry] = row;
-                gcols[lentry] = col;
-
-                if (lrow == lcol) {
-                    diag[lrow] = lentry;
-                }
-
-                is_fillin[lentry] = gis_fillin[k];
-
-                fill_matrix.adj[lentry] = lcol;
-
-                ++lentry;
-            }
-        }
-        fill_matrix.xadj[lrow + 1] = lentry;
-        ++lrow;
-    }
-}
-
-SchurLinearSolver::SchurLinearSolver(Graph &matrix,
-                                     const std::vector<int> &parts,
-                                     std::vector<int> &perm) {
-
-    FillMatrixGenerator fill_matrix_generator(matrix, parts);
-    // bind plain reference variables to the returned tuple (rather than a
-    // structured binding) to keep the names usable with the widest set of C++
-    // compilers/standards
-    auto fill_tuple = fill_matrix_generator.get_fill_matrix();
-    Graph &fill_matrix = std::get<0>(fill_tuple);
-    std::vector<bool> &is_fillin = std::get<1>(fill_tuple);
-    perm = std::move(std::get<2>(fill_tuple));
-
-    const int nparts = parts.size() - 1;
-
-    part_data.resize(nparts);
-
-    {
-        for (int i = 0; i < nparts - 1; ++i) {
-            part_data[i].populate_part(fill_matrix, is_fillin, parts, i);
-        }
-
-        {
-            part_data[nparts - 1].populate_part(fill_matrix,
-                                                is_fillin,
-                                                parts,
-                                                nparts - 1);
-        }
-    }
-}
-
-void SchurLinearSolver::LU_factor() {
-    factor(&SchurLinearSolver::PartitionData::LU_factor);
-}
-
 void SchurLinearSolver::LU_solve() {
-    solve(&PartitionData::LU_forward, &PartitionData::LU_backward);
-}
-
-void SchurLinearSolver::factor(void (PartitionData::*factor_function)()) {
-
-    const bool empty_schur = part_data.back().local_rows == 0;
-
-    /*
-     * General block factorization.
-     */
-    const int nlocal_parts = part_data.size() - 1;
-    for (int p = 0; p < nlocal_parts; ++p) {
-        (part_data[p].*factor_function)();
-
-        if (!empty_schur) {
-            // Add the local contributions to the Schur complement LHS
-            for (const auto &map : part_data[p].lhs_local_to_shared) {
-                // Add the contribution
-                part_data.back().lhs[map.schur_idx] += part_data[p].lhs[map.local_idx];
-            }
-        }
-    }
-
-    if (!empty_schur) {
-        /*
-         * Schur block factorization.
-         */
-
-        { (part_data.back().*factor_function)(); }
-    }
-}
-
-void SchurLinearSolver::solve(void (PartitionData::*forward_function)(),
-                              void (PartitionData::*backward_function)()) {
-
-    const bool empty_schur = part_data.back().local_rows == 0;
-
-    const int nlocal_parts = part_data.size() - 1;
-
-    /*
-     * General block forward substition.
-     */
-    for (int p = 0; p < nlocal_parts; ++p) {
-        (part_data[p].*forward_function)();
-
-        if (!empty_schur) {
-            for (const auto &map : part_data[p].rhs_local_to_shared) {
-                part_data.back().rhs[map.schur_idx] += part_data[p].rhs[map.local_idx];
-            }
-        }
-    }
-
-    /*
-     * Schur block forward and backward substitution.
-     */
-    if (!empty_schur) {
-
-        {
-            // Forward sweep for the Schur complement system
-            (part_data.back().*forward_function)();
-            // Backward sweep for the Schur complement system
-            (part_data.back().*backward_function)();
-        }
-
-    }
-
-    /*
-     * General block backward substitution.
-     */
-    for (int p = 0; p < nlocal_parts; ++p) {
-        if (!empty_schur) {
-            // Copy back the rhs of the Schur complement.
-            for (const auto &map : part_data[p].rhs_local_to_shared) {
-                part_data[p].rhs[map.local_idx] = part_data.back().rhs[map.schur_idx];
-            }
-        }
-
-        (part_data[p].*backward_function)();
-    }
+    LU_forward();
+    LU_backward();
 }
 
 SchurLinearSolver::FillMatrixGenerator::FillMatrixGenerator(const Graph &matrix,
@@ -938,21 +550,12 @@ void SchurLinearSolver::FillMatrixGenerator::PartitionData::update_neighbors(con
     }
 }
 
-double SchurLinearSolver::PartitionData::memory_usage() const
+double SchurLinearSolver::memory_usage() const
 {
     double bytes = fill_matrix.memory_usage();
     bytes += (double) (grows.size() + gcols.size() + diag.size()) * sizeof(int);
     bytes += (double) is_fillin.size() / 8.0;    // std::vector<bool> is bit-packed
-    bytes += (double) (lhs_local_to_shared.size() + rhs_local_to_shared.size()) *
-        sizeof(localToSharedSchurMap);
     bytes += (double) (lhs.size() + rhs.size() + scratch.size()) * sizeof(double);
-    return bytes;
-}
-
-double SchurLinearSolver::memory_usage() const
-{
-    double bytes = 0.0;
-    for (const auto &pd : part_data) bytes += pd.memory_usage();
     return bytes;
 }
 

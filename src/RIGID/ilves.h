@@ -93,26 +93,25 @@ class Ilves {
   std::unique_ptr<Molecule> mol;
   std::unique_ptr<SchurLinearSolver> schur_solver;
 
-  // weights of the entries of the lhs (one vector per partition)
-  std::vector<VecDouble> part_lhs_weights;
-  // current approximation of the Lagrange multipliers (one vector per partition)
-  std::vector<VecDouble> current_lagr;
+  // weights of the entries of the lhs (one per stored matrix entry)
+  VecDouble lhs_weights;
+  // current approximation of the Lagrange multipliers (one per constraint)
+  VecDouble current_lagr;
 
   // x_ab[d][k]      = (x[b]-x[a])[d]      using reference positions x
   // xprime_ab[d][k] = (xprime[b]-xprime[a])[d] using predicted positions xprime
   BondVecs x_ab;
   BondVecs xprime_ab;
 
-  double make_rhs_scalar(double **x, double **xprime, bool compute_x_ab, double *rhs, int gstart,
-                       int gend, int lstart);
-  double make_rhs(int partition, double **x, double **xprime, bool compute_x_ab);
+  // assemble g(x) into the solver rhs; returns the local max relative violation
+  double make_rhs(double **x, double **xprime, bool compute_x_ab);
 
-  void make_lhs_scalar(int partition, const BondVecs &xab1, const BondVecs &xab2, int lrowstart);
-  void make_lhs(int partition, const BondVecs &xab1, const BondVecs &xab2);
+  // assemble the Jacobian into the solver lhs from the two bond-vector sets
+  void make_lhs(const BondVecs &xab1, const BondVecs &xab2);
 
-  void update_current_lagr(int partition, bool first_time);
+  void update_current_lagr(bool first_time);
   // accumulate this iteration's position increments into dx (home + ghost)
-  void accumulate_increment(int partition, double **dx) const;
+  void accumulate_increment(double **dx) const;
 
  private:
   void make_weights();

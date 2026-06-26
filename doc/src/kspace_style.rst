@@ -568,10 +568,19 @@ Note that the long-range electrostatic solvers in LAMMPS assume conducting
 metal (tinfoil) boundary conditions for both charge and dipole
 interactions. Vacuum boundary conditions are not currently supported.
 
-The *ewald/disp*, *ewald*, *esp*, *pppm*, and *msm* styles support
-non-orthogonal (triclinic symmetry) simulation boxes. However,
+The *ewald/disp*, *ewald*, *esp*, *pppm*, *pppm/disp*, and *msm* styles
+support non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
+
+.. versionchanged:: TBD
+
+Triclinic (non-orthogonal) box support was added to the *pppm/disp*
+style.  It requires *ik* differentiation (the default; the
+:doc:`kspace_modify <kspace_modify>` *diff ad* option is not supported
+together with a triclinic box) and is currently limited to fully
+periodic systems (the slab correction is not yet available for a
+triclinic box).
 
 Most of the base kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the :doc:`Build

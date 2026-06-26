@@ -110,6 +110,11 @@ FixRigidSmallKokkos<DeviceType>::~FixRigidSmallKokkos()
   memoryKK->destroy_kokkos(k_xcmimage, xcmimage);
   memoryKK->destroy_kokkos(k_displace, displace);
   memoryKK->destroy_kokkos(k_vatom, vatom);
+  if (extended) {
+    memoryKK->destroy_kokkos(k_eflags, eflags);
+    if (orientflag) memoryKK->destroy_kokkos(k_orient, orient);
+    if (dorientflag) memoryKK->destroy_kokkos(k_dorient, dorient);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -250,6 +255,37 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
   k_vatom.template sync<DeviceType>();
   refresh_atom_views();
 
+  // extended-particle arrays: setup_bodies_static() filled eflags/orient/dorient
+  // on the host; push them to the device (they then migrate in the device
+  // exchange) and size the exchange payload to carry them.
+  extended_per_atom = 0;
+  if (extended) {
+    k_eflags.modify_host();
+    k_eflags.template sync<DeviceType>();
+    d_eflags = k_eflags.template view<DeviceType>();
+    extended_per_atom = 1;                      // eflags
+    if (orientflag) {
+      k_orient.modify_host();
+      k_orient.template sync<DeviceType>();
+      d_orient = k_orient.template view<DeviceType>();
+      extended_per_atom += orientflag;          // orient cols
+    }
+    if (dorientflag) {
+      k_dorient.modify_host();
+      k_dorient.template sync<DeviceType>();
+      d_dorient = k_dorient.template view<DeviceType>();
+      extended_per_atom += 3;                    // dorient cols
+    }
+    // each migrating body atom now also carries extended_per_atom doubles
+    maxexchange = 1 + 12 + extended_per_atom + bodysize;
+
+    // per-step set_xv/set_v writes these atom-style views for extended particles
+    extended_datamask = 0;
+    if (atom->omega_flag)  extended_datamask |= OMEGA_MASK;
+    if (atom->angmom_flag) extended_datamask |= ANGMOM_MASK;
+    if (atom->mu_flag)     extended_datamask |= MU_MASK;
+  }
+
   // size the body DualView and push host body[] to device
   k_body.sync_host();
   k_body.resize(nmax_body);
@@ -358,6 +394,12 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
     k_xcmimage.template sync<DeviceType>();
     k_displace.template sync<DeviceType>();
     k_vatom.template sync<DeviceType>();
+    if (extended) {                 // base-class host exchange updated eflags/...
+      k_eflags.modify_host();
+      k_eflags.template sync<DeviceType>();
+      if (orientflag) { k_orient.modify_host(); k_orient.template sync<DeviceType>(); }
+      if (dorientflag) { k_dorient.modify_host(); k_dorient.template sync<DeviceType>(); }
+    }
     refresh_atom_views();
     copy_body_device();  // push host body[] → d_body
   } else {
@@ -372,6 +414,11 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
     k_xcmimage.template modify<DeviceType>();
     k_displace.template modify<DeviceType>();
     k_vatom.template modify<DeviceType>();
+    if (extended) {
+      k_eflags.template modify<DeviceType>();
+      if (orientflag) k_orient.template modify<DeviceType>();
+      if (dorientflag) k_dorient.template modify<DeviceType>();
+    }
     refresh_atom_views();
     // d_body is already the correct device view; no copy needed
     d_body = k_body.view_device();
@@ -647,6 +694,17 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
 
   auto d_body = this->d_body;
 
+  // extended particles that carry their own torque (sphere/ellipsoid/line/tri)
+  // contribute it to the body torque; fetch atom torque + eflags on device
+  const bool ext_torque = extended;
+  if (ext_torque) {
+    atomKK->sync(execution_space, TORQUE_MASK);
+    d_torque = atomKK->k_torque.template view<DeviceType>();
+    d_eflags = k_eflags.template view<DeviceType>();
+  }
+  auto d_torque_l = d_torque;
+  auto d_eflags_l = d_eflags;
+
   Kokkos::parallel_for(
     "fix rigid/small zero fcm&tcm",
     Range1D(0,nlocal_body+nghost_body),
@@ -687,6 +745,13 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
       Kokkos::atomic_add(&b.torque[0], dy*d_f(i,2) - dz*d_f(i,1));
       Kokkos::atomic_add(&b.torque[1], dz*d_f(i,0) - dx*d_f(i,2));
       Kokkos::atomic_add(&b.torque[2], dx*d_f(i,1) - dy*d_f(i,0));
+
+      // extended particle's own torque (e.g. granular/dipole) adds to the body
+      if (ext_torque && (d_eflags_l(i) & RigidConst::TORQUE)) {
+        Kokkos::atomic_add(&b.torque[0], d_torque_l(i,0));
+        Kokkos::atomic_add(&b.torque[1], d_torque_l(i,1));
+        Kokkos::atomic_add(&b.torque[2], d_torque_l(i,2));
+      }
     }
   );
 
@@ -857,6 +922,14 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
   d_type = atomKK->k_type.view<DeviceType>();
   int nlocal = atom->nlocal;
 
+  // extended particles: the kernel sets each finite-size particle's
+  // omega/angmom (and dipole mu) from the body's rotational state
+  if (extended) {
+    if (atom->omega_flag)  d_omega  = atomKK->k_omega.template view<DeviceType>();
+    if (atom->angmom_flag) d_angmom = atomKK->k_angmom.template view<DeviceType>();
+    d_eflags = k_eflags.template view<DeviceType>();
+  }
+
   EV_FLOAT ev;
   if(vflag_atom){
     Kokkos::deep_copy(d_vatom, 0.0);
@@ -884,6 +957,7 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
   }
   // TODO: Specialize
   atomKK->modified(execution_space, datamask_modify);
+  if (extended) atomKK->modified(execution_space, extended_datamask);
   Kokkos::Profiling::popRegion();
 }
 
@@ -969,6 +1043,17 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
     double flist[3] = {0.5*fc0, 0.5*fc1, 0.5*fc2};
     v_tally(ev,i,vr,rlist,flist,b.xgc);
   }
+
+  // extended particles: set per-particle rotational state from the body
+  // (mirrors FixRigidSmall::set_xv / set_v extended block)
+  if (extended) {
+    const int ef = d_eflags(i);
+    if (ef & RigidConst::SPHERE) {
+      d_omega(i,0) = b.omega[0];
+      d_omega(i,1) = b.omega[1];
+      d_omega(i,2) = b.omega[2];
+    }
+  }
 }
 
 template<class DeviceType>
@@ -1009,6 +1094,11 @@ void FixRigidSmallKokkos<DeviceType>::refresh_atom_views()
   d_xcmimage  = k_xcmimage.template view<DeviceType>();
   d_displace  = k_displace.template view<DeviceType>();
   d_vatom     = k_vatom.template view<DeviceType>();
+  if (extended) {
+    d_eflags  = k_eflags.template view<DeviceType>();
+    if (orientflag) d_orient  = k_orient.template view<DeviceType>();
+    if (dorientflag) d_dorient = k_dorient.template view<DeviceType>();
+  }
 }
 
 template<class DeviceType>
@@ -1053,12 +1143,17 @@ void FixRigidSmallKokkos<DeviceType>::grow_arrays(int nmax)
     prev_size = nsave;
   }
 
-  // extended-particle arrays are not supported on device; keep them on the
-  // host the same way the base class does (init() errors out if extended)
+  // extended-particle per-atom arrays: tied DualViews so the host setup writes
+  // (setup_bodies_static fills eflags/orient/dorient on the host) alias the
+  // device data, and so they migrate in the device exchange.  Allocated lazily
+  // the first time setup_bodies_static() sets extended (it calls grow_arrays).
   if (extended) {
-    memory->grow(eflags,nmax,"rigid/small:eflags");
-    if (orientflag) memory->grow(orient,nmax,orientflag,"rigid/small:orient");
-    if (dorientflag) memory->grow(dorient,nmax,3,"rigid/small:dorient");
+    memoryKK->grow_kokkos(k_eflags, eflags, nmax, "rigid/small:eflags");
+    if (orientflag) memoryKK->grow_kokkos(k_orient, orient, nmax, orientflag, "rigid/small:orient");
+    if (dorientflag) memoryKK->grow_kokkos(k_dorient, dorient, nmax, 3, "rigid/small:dorient");
+    d_eflags = k_eflags.template view<DeviceType>();
+    if (orientflag) d_orient = k_orient.template view<DeviceType>();
+    if (dorientflag) d_dorient = k_dorient.template view<DeviceType>();
   }
 
   memoryKK->grow_kokkos(k_bodyown, bodyown, nmax, "rigid/small:bodyown");
@@ -1191,6 +1286,22 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
   const int bodysize = this->bodysize;
   const int nsend_local = nsend;
 
+  // extended-particle per-atom data carried alongside each migrating body atom
+  const int ext = extended_per_atom;            // 0 if not extended
+  const int oflag = orientflag;
+  const int dflag = dorientflag;
+  auto d_eflags = this->d_eflags;
+  auto d_orient = this->d_orient;
+  auto d_dorient = this->d_dorient;
+  if (ext) {
+    k_eflags.template sync<DeviceType>();
+    if (oflag) k_orient.template sync<DeviceType>();
+    if (dflag) k_dorient.template sync<DeviceType>();
+    d_eflags = k_eflags.template view<DeviceType>();
+    if (oflag) d_orient = k_orient.template view<DeviceType>();
+    if (dflag) d_dorient = k_dorient.template view<DeviceType>();
+  }
+
   // Variable-stride packing (modeled on fix shake/kk): the first nsend doubles
   // form a header table (d_buf(mysend) = absolute offset of that atom's payload),
   // followed by the densely packed payloads.  A non-body atom costs 1 double, a
@@ -1221,8 +1332,8 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
 
       int size;
       if (btag == 0) size = 1;
-      else if (bown < 0) size = 12;
-      else size = 12 + bodysize;
+      else if (bown < 0) size = 12 + ext;
+      else size = 12 + ext + bodysize;
 
       if (is_final) {
         int m = nsend_local + offset;
@@ -1234,6 +1345,11 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
           d_buf(m++) = d_displace(i,1);
           d_buf(m++) = d_displace(i,2);
           for (int k = 0; k < 6; k++) d_buf(m++) = d_vatom(i,k);
+          if (ext) {                            // extended-particle data
+            d_buf(m++) = d_ubuf(d_eflags(i)).d;
+            for (int k = 0; k < oflag; k++) d_buf(m++) = d_orient(i,k);
+            if (dflag) { d_buf(m++) = d_dorient(i,0); d_buf(m++) = d_dorient(i,1); d_buf(m++) = d_dorient(i,2); }
+          }
           if (bown < 0) {
             d_buf(m++) = 0;
           } else {
@@ -1259,6 +1375,11 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
 #endif
           for (int k = 0; k < 3; k++) d_displace(i,k) = d_displace(j,k);
           for (int k = 0; k < 6; k++) d_vatom(i,k) = d_vatom(j,k);
+          if (ext) {
+            d_eflags(i) = d_eflags(j);
+            for (int k = 0; k < oflag; k++) d_orient(i,k) = d_orient(j,k);
+            if (dflag) { d_dorient(i,0)=d_dorient(j,0); d_dorient(i,1)=d_dorient(j,1); d_dorient(i,2)=d_dorient(j,2); }
+          }
           if (d_bodyown(i) >= 0) d_body(d_bodyown(i)).ilocal = i;
           d_bodyown(j) = -1;
           d_bodytag(j) = -1;
@@ -1316,6 +1437,11 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
   k_vatom.template modify<DeviceType>();
   k_atom2body.template modify<DeviceType>();
   k_bodyown.template modify<DeviceType>();
+  if (ext) {
+    k_eflags.template modify<DeviceType>();
+    if (oflag) k_orient.template modify<DeviceType>();
+    if (dflag) k_dorient.template modify<DeviceType>();
+  }
 
   k_buf.template modify<DeviceType>();
   if (space == HostKK) k_buf.sync_host();
@@ -1350,6 +1476,21 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2
   k_vatom.template sync<DeviceType>();
   k_bodyown.template sync<DeviceType>();
   refresh_atom_views();
+
+  const int ext = extended_per_atom;
+  const int oflag = orientflag;
+  const int dflag = dorientflag;
+  auto d_eflags = this->d_eflags;
+  auto d_orient = this->d_orient;
+  auto d_dorient = this->d_dorient;
+  if (ext) {
+    k_eflags.template sync<DeviceType>();
+    if (oflag) k_orient.template sync<DeviceType>();
+    if (dflag) k_dorient.template sync<DeviceType>();
+    d_eflags = k_eflags.template view<DeviceType>();
+    if (oflag) d_orient = k_orient.template view<DeviceType>();
+    if (dflag) d_dorient = k_dorient.template view<DeviceType>();
+  }
 
   auto d_buf = typename ArrayTypes<DeviceType>::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
@@ -1395,6 +1536,11 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2
         for(int k = 0; k < 6; k++){
           d_vatom(i,k) = d_buf(m++);
         }
+        if (ext) {
+          d_eflags(i) = (int) d_ubuf(d_buf(m++)).i;
+          for (int k = 0; k < oflag; k++) d_orient(i,k) = d_buf(m++);
+          if (dflag) { d_dorient(i,0)=d_buf(m++); d_dorient(i,1)=d_buf(m++); d_dorient(i,2)=d_buf(m++); }
+        }
         if (d_buf(m++) > 0) count++;
       }
     },
@@ -1419,8 +1565,8 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2
       int m = (int) d_buf(irecv);
       if (irecv >= nrecv1_local)
         m = nrecv1extra_local + (int) d_buf(nrecv1extra_local + irecv - nrecv1_local);
-      // payload layout: bodytag(1) xcmimage(1) displace(3) vatom(6) -> flag at +11
-      m += 11;
+      // payload: bodytag(1) xcmimage(1) displace(3) vatom(6) extended(ext) -> flag
+      m += 11 + ext;
 
       // if owning body
       if (d_buf(m) > 0) {
@@ -1443,6 +1589,11 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2
   k_displace.template modify<DeviceType>();
   k_vatom.template modify<DeviceType>();
   k_bodyown.template modify<DeviceType>();
+  if (ext) {
+    k_eflags.template modify<DeviceType>();
+    if (oflag) k_orient.template modify<DeviceType>();
+    if (dflag) k_dorient.template modify<DeviceType>();
+  }
 
   Kokkos::Profiling::popRegion();
 }

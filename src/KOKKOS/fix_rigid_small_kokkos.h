@@ -165,6 +165,25 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   ImageIntView1D d_xcmimage;
   View2D d_displace, d_vatom, d_langextra;
 
+  // extended-particle per-atom data (tied DualViews), only allocated when the
+  // body contains finite-size particles (sphere/ellipsoid/line/tri/dipole).
+  // eflags: per-atom bit flags; orient: orientation rel. to body (ellipsoid/tri/
+  // quat, orientflag cols); dorient: dipole orientation rel. to body (3 cols).
+  DAT::tdual_int_1d k_eflags;
+  DAT::tdual_double_2d_lr k_orient, k_dorient;
+  IntView1D d_eflags;
+  View2D d_orient, d_dorient;
+
+  // atom-style views written per-step for extended particles (set_xv/set_v):
+  // omega (sphere/line), angmom (ellipsoid/tri); torque is read for force accum.
+  typename AT::t_kkfloat_1d_3 d_omega, d_angmom;
+  typename AT::t_kkacc_1d_3 d_torque;
+
+  // extended size added per body atom to the device-exchange payload, and the
+  // atomKK datamask of per-atom views the extended set_xv/set_v kernels modify
+  int extended_per_atom = 0;
+  int extended_datamask = 0;
+
   // 1 once grow_kokkos owns the base per-atom pointers
   bool tied_initialized = false;
 

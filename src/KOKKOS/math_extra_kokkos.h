@@ -88,6 +88,7 @@ namespace MathExtraKokkos {
   KOKKOS_INLINE_FUNCTION void exyz_to_q(double *ex, double *ey, double *ez, double *q);
 
   // quaternion math used by the rigid-body NH (thermostat/barostat) integrator
+  KOKKOS_INLINE_FUNCTION void quatquat(double *a, double *b, double *c);
   KOKKOS_INLINE_FUNCTION void quatvec(double *a, double *b, double *c);
   KOKKOS_INLINE_FUNCTION void invquatvec(double *a, double *b, double *c);
   KOKKOS_INLINE_FUNCTION void no_squish_rotate(int k, double *p, double *q, double *inertia,
@@ -734,6 +735,18 @@ void MathExtraKokkos::exyz_to_q(double *ex, double *ey, double *ez, double *q)
   }
 
   MathExtraKokkos::qnormalize(q);
+}
+
+/* ----------------------------------------------------------------------
+   quaternion multiply: c = a*b
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::quatquat(double *a, double *b, double *c)
+{
+  c[0] = a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3];
+  c[1] = a[0] * b[1] + b[0] * a[1] + a[2] * b[3] - a[3] * b[2];
+  c[2] = a[0] * b[2] + b[0] * a[2] + a[3] * b[1] - a[1] * b[3];
+  c[3] = a[0] * b[3] + b[0] * a[3] + a[1] * b[2] - a[2] * b[1];
 }
 
 /* ----------------------------------------------------------------------

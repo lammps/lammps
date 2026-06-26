@@ -579,7 +579,7 @@ void PPPMDipole::allocate()
                           nxlo_out,nxhi_out,"pppm_dipole:vdz_brick");
   memory->create(density_fft,nfft_both,"pppm_dipole:density_fft");
 
-  memory->create(densityx_fft_dipole,nfft_both,"pppm_dipole:densityy_fft_dipole");
+  memory->create(densityx_fft_dipole,nfft_both,"pppm_dipole:densityx_fft_dipole");
   memory->create(densityy_fft_dipole,nfft_both,"pppm_dipole:densityy_fft_dipole");
   memory->create(densityz_fft_dipole,nfft_both,"pppm_dipole:densityz_fft_dipole");
 
@@ -2599,22 +2599,22 @@ int PPPMDipole::timing_3d(int n, double &time3d)
   time1 = platform::walltime();
 
   for (int i = 0; i < n; i++) {
-    fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
-    fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
-    fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
-    fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
-    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
+    fft1->compute(work1,work1,FFT3d::FORWARD);
+    fft1->compute(work1,work1,FFT3d::FORWARD);
+    fft1->compute(work1,work1,FFT3d::FORWARD);
+    fft1->compute(work1,work1,FFT3d::FORWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
   }
 
   MPI_Barrier(world);

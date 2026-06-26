@@ -29,7 +29,7 @@ namespace ILVES {
 class IlvesAsym : public Ilves {
  public:
   IlvesAsym(LAMMPS *lmp, int nbonds, const int *catom1, const int *catom2, const double *cdist,
-            const double *invmass, int nthreads);
+            const double *invmass);
 
   double prepare(double **x, double **xprime) override;
   void step(double **dx) override;

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   ILVES constraint solver: parallel Schur-complement sparse direct solver.
+   ILVES constraint solver: Schur-complement sparse direct solver.
    Ported near-verbatim from GROMACS 2021 ILVES (LGPL-2.1),
    src/gromacs/mdlib/schur_linear_solver.{cpp,h}.  Only the namespace, the
    include paths, and the use of plain double (LAMMPS is double precision on the
@@ -32,7 +32,7 @@
 #include "ilves_mempool.h"
 
 /**
- * A class that can be used to solve linear systems of equations in parallel
+ * A class that can be used to solve linear systems of equations
  * using the Schur complement method. This class only works with structurally
  * symmetric matrices.
  */
@@ -123,56 +123,6 @@ public:
          */
         void LU_backward();
 
-        /**
-         * Performs the Cholesky factorization of the local partition.
-         * The factorization is performed in-place. The local left-hand-side
-         * of the system must be overwritten previos calling this function.
-         *
-         */
-        void cholesky_factor();
-
-        /**
-         * Performs the forward substitution of the local partition.
-         * The substitution is performed in-place. Prior to calling this
-         * function cholesky_factor must be called and the rhs of the partitions
-         * must be overwritten.
-         *
-         */
-        void cholesky_forward();
-
-        /**
-         * Performs the backward substitution of the local partition.
-         * The substitution is performed in-place. Prior to calling this
-         * function cholesky_factor and cholesky_forward must be called.
-         *
-         */
-        void cholesky_backward();
-
-        /**
-         * Performs the LDLT factorization of the local partition.
-         * The factorization is performed in-place. The local left-hand-side
-         * of the system must be overwritten previos calling this function.
-         *
-         */
-        void LDLT_factor();
-
-        /**
-         * Performs the forward substitution of the local partition.
-         * The substitution is performed in-place. Prior to calling this
-         * function LDLT_factor must be called and the rhs of the partitions
-         * must be overwritten.
-         *
-         */
-        void LDLT_forward();
-
-        /**
-         * Performs the backward substitution of the local partition.
-         * The substitution is performed in-place. Prior to calling this
-         * function LDLT_factor and LDLT_forward must be called.
-         *
-         */
-        void LDLT_backward();
-
     private:
         /**
          * Populates the local partition data given the global fill-in matrix,
@@ -233,14 +183,7 @@ public:
      * In partition 1 there are non-zero columns between columns 0-2.
      * Partition 2 is connected to any partition.
      *
-     * The constructor uses OpenMP to speedup its execution. The performance
-     * is optimal when there are N - 1 available threads.
-     *
      * @param matrix Structurally symmetric adjacency matrix.
-     * @param upper_tri If true, the solver will only use the upper triangular
-     * part of the matrix. Set this parameter to true if you want to use
-     * the Cholesky or LDLT factorizations. Set it to false if you want to use
-     * the LU factorization.
      * @param parts A vector of size N + 1 that contains the partition of the
      * matrix. p[0] is the first row of partition 0. p[1] is the first row of
      * partition 1, and the last row + 1 of partition 0.
@@ -254,83 +197,29 @@ public:
      *  Old position 0 is now position 2
      */
     SchurLinearSolver(Graph &matrix,
-                      bool upper_tri,
                       const std::vector<int> &parts,
                       std::vector<int> &perm);
 
     /**
-     * Performs the parallel LU factorization of the linear-system described by
+     * Performs the LU factorization of the linear-system described by
      * the object. Prior to calling this function the lhs of the partitions must
      * be overwritten.
-     *
-     * The function uses OpenMP for parallelization. The performance is optimal
-     * when there are as many available threads as number of partitions - 1.
      *
      */
     void LU_factor();
 
     /**
-     * Performs the parallel forward+backward substitution of linear-system
+     * Performs the forward+backward substitution of linear-system
      * described by the object. Prior to calling this function LU_factor must
      * be called and the rhs of the partitions must be overwritten.
      *
-     * The function uses OpenMP for parallelization. The performance is optimal
-     * when there are as many available threads as number of partitions - 1.
-     *
      */
     void LU_solve();
-
-    /**
-     * Performs the parallel Cholesky factorization of the linear-system
-     * described by the object. Prior to calling this function the lhs of the
-     * partitions must be overwritten.
-     *
-     * The function uses OpenMP for parallelization. The performance is optimal
-     * when there are as many available threads as number of partitions - 1.
-     *
-     */
-    void cholesky_factor();
-
-    /**
-     * Performs the parallel forward+backward substitution of linear-system
-     * described by the object. Prior to calling this function cholesky_factor
-     * must be called and the rhs of the partitions must be overwritten.
-     *
-     * The function uses OpenMP for parallelization. The performance is optimal
-     * when there are as many available threads as number of partitions - 1.
-     *
-     */
-    void cholesky_solve();
-
-    /**
-     * Performs the parallel LDLT factorization of the linear-system
-     * described by the object. Prior to calling this function the lhs of the
-     * partitions must be overwritten.
-     *
-     * The function uses OpenMP for parallelization. The performance is optimal
-     * when there are as many available threads as number of partitions - 1.
-     *
-     */
-    void LDLT_factor();
-
-    /**
-     * Performs the parallel forward+backward substitution of linear-system
-     * described by the object. Prior to calling this function LDLT_factor must
-     * be called and the rhs of the partitions must be overwritten.
-     *
-     * The function uses OpenMP for parallelization. The performance is optimal
-     * when there are as many available threads as number of partitions - 1.
-     *
-     */
-    void LDLT_solve();
 
 private:
     /**
      * Helper function to apply a factorization to the linear system using
      * one of the available PartitionData factorization functions.
-     *
-     * The function uses OpenMP for parallelization. The performance is optimal
-     * when there are as many available threads as number of partitions - 1.
      *
      * @param factor_function Pointer to the desired PartitionData factorization
      * function.
@@ -341,9 +230,6 @@ private:
      * Helper function to apply the forward+backward substitution to the linear
      * system using one of the available PartitionData forward+backward
      * functions.
-     *
-     * The function uses OpenMP for parallelization. The performance is optimal
-     * when there are as many available threads as number of partitions - 1.
      *
      * @param factor_function Pointer to the desired PartitionData forward
      * function.
@@ -361,14 +247,11 @@ private:
          * fillin matrix of the reordered matrix.
          *
          * @param matrix Adjacency matrix of a structurally symmetric matrix.
-         * @param upper_tri Only keep the upper triangular part of the matrix
-         * when computing the fillin matrix.
          * @param parts A vector of size N + 1 that contains the partitioning of
          * the matrix. p[0] is the first row of partition 0. p[1] is the first
          * row of partition 1, and the last row + 1 of partition 0.
          */
         FillMatrixGenerator(const Graph &matrix,
-                            bool upper_tri,
                             const std::vector<int> &parts);
 
         /**
@@ -388,7 +271,6 @@ private:
 
     private:
         const Graph &matrix;
-        const bool upper_tri;
         const std::vector<int> &parts;
 
         // The fillin matrix.

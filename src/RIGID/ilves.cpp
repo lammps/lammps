@@ -23,89 +23,31 @@
 
 #include <algorithm>
 #include <cmath>
-#include <functional>
 
 namespace LAMMPS_NS {
 namespace ILVES {
 
 Ilves::Ilves(LAMMPS *const _lmp, const int nbonds, const int *const catom1, const int *const catom2,
-             const double *const cdist, const double *const invmass, const int threads,
-             const bool upper_tri) :
-    lmp(_lmp), nthreads(threads)
+             const double *const cdist, const double *const invmass) :
+    lmp(_lmp)
 {
   mol = std::unique_ptr<Molecule>(new Molecule(nbonds, catom1, catom2, cdist, invmass));
 
   for (int d = 0; d < DIM; ++d) x_ab[d].resize(mol->bonds.num);
 
-  const int nparts = nthreads + 1;
-
-  std::vector<int> partitioning(nparts + 1);
-  std::vector<int> bonds_perm_kpart;
-
-  // Partitioning of the bonds between threads.
-  if (nthreads > 1) {
-    std::vector<int> bonds_part_id;
-    std::vector<int> nbonds_per_part(nparts, 0);
-
-    const int block_max_size = std::min(10, mol->bonds.num / nthreads);
-    const bool is_disjoint_mol = disjoint_mol(block_max_size);
-
-    if (is_disjoint_mol) {
-      bonds_part_id = mol->bonds.graph.kway_partition_disjoint(nthreads);
-      for (int bond = 0; bond < mol->bonds.num; ++bond) ++nbonds_per_part[bonds_part_id[bond]];
-    } else {
-      const auto atoms_part_id = mol->atoms.graph.kway_partition(nthreads);
-      bonds_part_id.resize(mol->bonds.num);
-      for (int bond = 0; bond < mol->bonds.graph.num_nodes(); ++bond) {
-        const int la = mol->bonds.latom1[bond];
-        const int lb = mol->bonds.latom2[bond];
-        const int part = (atoms_part_id[la] != atoms_part_id[lb]) ? nthreads : atoms_part_id[la];
-        bonds_part_id[bond] = part;
-        ++nbonds_per_part[part];
-      }
-    }
-
-    partitioning[0] = 0;
-    for (int part = 0; part < nparts; ++part)
-      partitioning[part + 1] = partitioning[part] + nbonds_per_part[part];
-
-    std::vector<int> bonds_part_idx(nparts, 0);
-    for (int p = 1; p < nparts; ++p)
-      bonds_part_idx[p] = bonds_part_idx[p - 1] + nbonds_per_part[p - 1];
-
-    bonds_perm_kpart.resize(mol->bonds.num);
-    std::vector<int> bonds_iperm_kpart(mol->bonds.num);
-    for (int bond = 0; bond < mol->bonds.num; ++bond) {
-      const int part = bonds_part_id[bond];
-      bonds_iperm_kpart[bond] = bonds_part_idx[part];
-      ++bonds_part_idx[part];
-    }
-    for (int bond = 0; bond < mol->bonds.num; ++bond)
-      bonds_perm_kpart[bonds_iperm_kpart[bond]] = bond;
-
-    mol->bonds.graph.renumber_vertices(bonds_perm_kpart, bonds_iperm_kpart);
-  } else {
-    partitioning[0] = 0;
-    partitioning[1] = mol->bonds.num;
-    partitioning[2] = partitioning[1];
-  }
+  // The solver is serial: a single local partition holding all bonds plus an
+  // empty Schur partition.  (The Schur-complement solver is structured as local
+  // partitions coupled through a shared block; with one partition that shared
+  // block is empty, so this reduces to a plain sparse direct solve.)
+  std::vector<int> partitioning = {0, mol->bonds.num, mol->bonds.num};
 
   std::vector<int> schur_solver_perm;
   schur_solver = std::unique_ptr<SchurLinearSolver>(
-      new SchurLinearSolver(mol->bonds.graph, upper_tri, partitioning, schur_solver_perm));
+      new SchurLinearSolver(mol->bonds.graph, partitioning, schur_solver_perm));
 
-  // Construct the final bond permutation.
-  std::vector<int> bonds_perm;
-  if (!bonds_perm_kpart.empty()) {
-    bonds_perm.resize(mol->bonds.num);
-    for (int bond = 0; bond < mol->bonds.num; ++bond)
-      bonds_perm[bond] = bonds_perm_kpart[schur_solver_perm[bond]];
-  } else {
-    bonds_perm = std::move(schur_solver_perm);
-  }
-  // The bond graph is no longer needed, so do not renumber it (it has already
-  // been renumbered after computing the partition).
-  mol->renumber_bonds(bonds_perm, false);
+  // apply the fill-reducing permutation the solver computed; the bond graph is
+  // no longer needed afterwards, so do not renumber it
+  mol->renumber_bonds(schur_solver_perm, false);
 
   make_weights();
 
@@ -258,39 +200,6 @@ void Ilves::accumulate_increment(const int partition, double **const dx) const
       dx[b][d] -= rhs_b * x_ab[d][grow];
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-bool Ilves::disjoint_mol(const int submol_max_size) const
-{
-  auto &graph = mol->bonds.graph;
-
-  std::vector<bool> visited(graph.num_nodes(), false);
-
-  for (int bond = 0; bond < graph.num_nodes(); ++bond) {
-    if (visited[bond]) continue;
-
-    visited[bond] = true;
-    int nneighs = 1;
-
-    std::function<void(const int)> count_neighs = [&](const int node) -> void {
-      for (int k = graph.xadj[node]; k < graph.xadj[node + 1]; ++k) {
-        const int neigh = graph.adj[k];
-        if (visited[neigh]) continue;
-        visited[neigh] = true;
-        ++nneighs;
-        if (nneighs > submol_max_size) return;
-        count_neighs(neigh);
-      }
-    };
-
-    count_neighs(bond);
-
-    if (nneighs > submol_max_size) return false;
-  }
-
-  return true;
 }
 
 /* ----------------------------------------------------------------------

@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   ILVES constraint solver: undirected graph utilities (CSR storage,
-   greedy k-way partitioning, vertex renumbering).
+   ILVES constraint solver: undirected graph utilities (CSR storage and
+   vertex renumbering for fill reduction).
 
    Ported from the GROMACS 2021 reference implementation of ILVES
    (https://github.com/LorienLV/_PAPER_ILVES, LGPL-2.1),
@@ -94,30 +94,6 @@ class Graph {
    * Get the number of edges in the graph.
    */
   int num_edges() const;
-
-  /**
-   * This function assumes that the graph is disjoint and has at least k
-   * disjoint subgraphs. It assigns 1 or more subgraphs to each partition
-   * while attempting to balance the number of nodes in each partition. The
-   * process starts with vertex 0 and continues in order. This function
-   * returns an array of num_nodes() vertices in which each element is an
-   * integer between 0 and k-1, indicating the partition to which the node
-   * belongs.
-   */
-  std::vector<int> kway_partition_disjoint(int k) const;
-
-  /**
-   * Partitions the graph into k partitions heuristically minimizing the
-   * number of edge cuts while attempting to balance the number of nodes in
-   * each partition. The quality of the partitions produced by the greedy
-   * algorithm used of this function heavily depends on the order of the
-   * vertices. Having connected vertices with distant indices will likely
-   * result in very unbalanced partitions with many edge cuts. This function
-   * returns an array of num_nodes() vertices in which each element is an
-   * integer between 0 and k-1, indicating the partition to which the node
-   * belongs.
-   */
-  std::vector<int> kway_partition(int k) const;
 
   /**
    * Renumbers the vertices of a graph using a given permutation of length

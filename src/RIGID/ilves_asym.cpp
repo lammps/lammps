@@ -23,9 +23,9 @@ namespace LAMMPS_NS {
 namespace ILVES {
 
 IlvesAsym::IlvesAsym(LAMMPS *const lmp, const int nbonds, const int *const catom1,
-                     const int *const catom2, const double *const cdist, const double *const invmass,
-                     const int nthreads) :
-    Ilves(lmp, nbonds, catom1, catom2, cdist, invmass, nthreads, false)
+                     const int *const catom2, const double *const cdist,
+                     const double *const invmass) :
+    Ilves(lmp, nbonds, catom1, catom2, cdist, invmass)
 {
   // The asymmetric variant also needs the predicted bond vectors xprime_ab.
   for (int d = 0; d < DIM; ++d) xprime_ab[d].resize(mol->bonds.num);

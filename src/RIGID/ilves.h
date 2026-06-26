@@ -60,7 +60,7 @@ using BondVecs = std::array<VecDouble, DIM>;
 class Ilves {
  public:
   Ilves(LAMMPS *lmp, int nbonds, const int *catom1, const int *catom2, const double *cdist,
-        const double *invmass, int nthreads, bool upper_tri);
+        const double *invmass);
 
   virtual ~Ilves() = default;
 
@@ -85,8 +85,6 @@ class Ilves {
 
  protected:
   LAMMPS *lmp;
-
-  int nthreads;
 
   std::unique_ptr<Molecule> mol;
   std::unique_ptr<SchurLinearSolver> schur_solver;
@@ -113,7 +111,6 @@ class Ilves {
   void accumulate_increment(int partition, double **dx) const;
 
  private:
-  bool disjoint_mol(int submol_max_size) const;
   void make_weights();
 };
 

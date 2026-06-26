@@ -1041,14 +1041,13 @@ void FixIlves::build_constraint_list()
     comm->forward_comm(this);
   }
 
-  // (re)build the ILVES solver for the current constraint topology.
-  // the solver is serial single-thread (one OpenMP thread).
+  // (re)build the ILVES solver for the current constraint topology
 
   delete ilves_solver;
   ilves_solver = nullptr;
   if (nconstraints > 0)
     ilves_solver = new ILVES::IlvesAsym(lmp, nconstraints, clist_a.data(), clist_b.data(),
-                                        clist_d.data(), invmass.data(), 1);
+                                        clist_d.data(), invmass.data());
 }
 
 /* ----------------------------------------------------------------------

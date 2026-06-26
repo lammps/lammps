@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   ILVES constraint solver: parallel Schur-complement sparse direct solver.
+   ILVES constraint solver: Schur-complement sparse direct solver.
    Ported near-verbatim from GROMACS 2021 ILVES (LGPL-2.1),
    src/gromacs/mdlib/schur_linear_solver.cpp.  See ilves_graph.h for full
    attribution.
@@ -163,192 +163,6 @@ void SchurLinearSolver::PartitionData::LU_backward() {
     }
 }
 
-void SchurLinearSolver::PartitionData::cholesky_factor() {
-    const auto &adj = fill_matrix.adj;
-    const auto &xadj = fill_matrix.xadj;
-
-    // Loop over the first local_rows rows of the matrix
-    for (int row = 0; row < local_rows; ++row) {
-        // Take the square root of the diagonal entry A(row,row)
-        const double pivot = std::sqrt(lhs[diag[row]]);
-        const double invpivot = 1.0 / pivot;
-        lhs[diag[row]] = pivot;
-
-        /* In the next loop we scale the upperdiagonal entries of the rowth row
-           with A(row,row)
-              A(row,row+1:n) /= A(row,row).
-           Moreover, we expand the compressed representation of the updated
-           entries into the array WORK
-        */
-        for (int s = diag[row] + 1; s < xadj[row + 1]; ++s) {
-            // Scale the subdiagonal entry
-            lhs[s] *= invpivot;
-            // Copy it into the auxillary vector work
-            scratch[adj[s]] = lhs[s];
-        }
-
-        /* At this point we have to perform a rank 1 update of the submatrix in
-           the current upper right corner, specifically
-
-           A(row+1:n,row+1:n) -= A(row+1:n,row) * A(row+1:n,j)'
-
-           Only the lower triangular part matters. In MATLAB we would write
-
-             for s=row+1:n
-                alpha=A(row,s);
-                A(s,s:n) -= alpha*A(row,s:n);
-             end
-
-          which stresses the fact that only nonzero entries alpha = A(row,s)
-          matter.
-
-        */
-
-        // Loop over the nonzero upperdiagonal elements of the colth row.
-        for (int s = diag[row] + 1; s < xadj[row + 1]; ++s) {
-            // Isolate the nonzero entry
-            const double alpha = lhs[s];
-            // Isolate the index of the row which we have to update
-            const int col = adj[s];
-            // Update the upperdiagonal part of this row
-            for (int t = diag[col]; t < xadj[col + 1]; ++t) {
-                lhs[t] -= alpha * scratch[adj[t]];
-            }
-        }
-
-        /* At this point the jth rank 1 update is complete. We must clear the
-           nonzero entries of SCRATCH, so that it does not contain garbage
-           during the next iteration.
-
-           Notice that we do not bother to fill the entire array with zeros.
-           We only kill those which could be nonzero.
-        */
-        for (int s = diag[row] + 1; s < xadj[row + 1]; ++s) {
-            scratch[adj[s]] = 0;
-        }
-    }
-}
-
-void SchurLinearSolver::PartitionData::cholesky_forward() {
-    const auto &adj = fill_matrix.adj;
-    const auto &xadj = fill_matrix.xadj;
-
-    // Loop over the local_rows rows
-    for (int row = 0; row < local_rows; ++row) {
-        // Divide with diagonal entry
-        // TODO: Tril the graph to use xadj[row] instead of diag[row].
-        rhs[row] /= lhs[diag[row]];
-        /* At this point x[row] has been computed and we must eliminate it from
-           equations row+1, row+2, ..., n-1.
-        */
-
-        // Remove relevant entries from the rhs
-        // TODO: Tril the graph to use xadj[row] instead of diag[row].
-        for (int k = diag[row] + 1; k < xadj[row + 1]; ++k) {
-            // Removing the influence of x[row] from row rows[diag] of the RHS
-            rhs[adj[k]] -= lhs[k] * rhs[row];
-        }
-    }
-}
-
-void SchurLinearSolver::PartitionData::cholesky_backward() {
-    const auto &adj = fill_matrix.adj;
-    const auto &xadj = fill_matrix.xadj;
-
-    // Loop backwards over the first local_rows rows
-    for (int row = local_rows - 1; row != -1; --row) {
-        // Remove the contribution of the variables x[row+1], ..., x[n-1]
-        for (int k = diag[row] + 1; k < xadj[row + 1]; ++k) {
-            rhs[row] -= lhs[k] * rhs[adj[k]];
-        }
-        // Do the central division
-        rhs[row] /= lhs[diag[row]];
-    }
-}
-
-void SchurLinearSolver::PartitionData::LDLT_factor() {
-    const auto &adj = fill_matrix.adj;
-    const auto &xadj = fill_matrix.xadj;
-
-    for (int row = 0; row < local_rows; ++row) {
-        const double pivot = lhs[diag[row]];
-        const double invpivot = 1.0 / pivot;
-
-        /* In the next loop we scale the upperdiagonal entries of the rowth row
-           with A(row,row)
-              A(row,row+1:n) /= A(row,row).
-           Moreover, we expand the compressed representation of the updated
-           entries into the array SCRATCH
-        */
-        for (int s = diag[row] + 1; s < xadj[row + 1]; ++s) {
-            // Copy it into the auxillary vector work
-            scratch[adj[s]] = lhs[s];
-            // Scale the subdiagonal entry AFTER copying it.
-            lhs[s] *= invpivot;
-        }
-
-        // We perform an LU factorization but only using and updating the upper
-        // triangular part of the matrix. Since A is symmetric, when we need to
-        // read A[row][col] we can read A[col][row] instead.
-
-        // Loop over the nonzero upperdiagonal elements of the colth row.
-        for (int s = diag[row] + 1; s < xadj[row + 1]; ++s) {
-            // Isolate the nonzero entry
-            const double alpha = lhs[s];
-            // Isolate the index of the row which we have to update
-            const int col = adj[s];
-            // Update the upperdiagonal part of this row
-            for (int t = diag[col]; t < xadj[col + 1]; ++t) {
-                lhs[t] -= alpha * scratch[adj[t]];
-            }
-        }
-
-        /* At this point the jth rank 1 update is complete. We must clear the
-           nonzero entries of SCRATCH, so that it does not contain garbage
-           during the next iteration.
-
-           Notice that we do not bother to fill the entire array with zeros.
-           We only kill those which could be nonzero.
-        */
-        for (int s = diag[row] + 1; s < xadj[row + 1]; ++s) {
-            scratch[adj[s]] = 0;
-        }
-    }
-}
-
-void SchurLinearSolver::PartitionData::LDLT_forward() {
-    const auto &adj = fill_matrix.adj;
-    const auto &xadj = fill_matrix.xadj;
-
-    // Loop over the local_rows rows
-    for (int row = 0; row < local_rows; ++row) {
-        // Loop over the strictly upperdiagonal entries of the rowth row
-        for (int k = diag[row] + 1; k < xadj[row + 1]; ++k) {
-            rhs[adj[k]] -= lhs[k] * rhs[row];
-        }
-    }
-}
-
-void SchurLinearSolver::PartitionData::LDLT_backward() {
-    const auto &adj = fill_matrix.adj;
-    const auto &xadj = fill_matrix.xadj;
-
-    // Loop backwards over the first n rows
-    for (int row = local_rows - 1; row != -1; --row) {
-        // Isolate the rowth diagonal element
-        const double d = lhs[diag[row]];
-
-        // We only are interested in the strictly upperdiagonal part of the
-        // matrix.
-        for (int k = diag[row] + 1; k < xadj[row + 1]; k++) {
-            // Removing the influence of x[row] from row rows[diag] of the RHS
-            rhs[row] -= lhs[k] * d * rhs[adj[k]];
-        }
-
-        rhs[row] /= d;
-    }
-}
-
 void SchurLinearSolver::PartitionData::populate_local_part(const Graph &gfill_matrix,
                                                            const std::vector<bool> &gis_fillin,
                                                            const int part_schur[2]) {
@@ -468,15 +282,8 @@ void SchurLinearSolver::PartitionData::populate_local_part(const Graph &gfill_ma
         for (int k = gfill_matrix.xadj[row]; k < gfill_matrix.xadj[row + 1]; ++k) {
             const int col = gfill_matrix.adj[k];   // Global column index.
 
-            // Check if entry is part of the local-local block or part of
-            // the local-Schur block. No need to do this, we are always
-            // in one of the two blocks.
-            // const bool ith_local_local = part[part_id] <= col &&
-            //                              col < part[part_id + 1];
-            // const bool ith_local_schur = part[schur_part_id] <= col &&
-            //                              col < part[schur_part_id + 1];
-
-            // if (ith_local_local || ith_local_schur) {
+            // every entry is in either the local-local or the local-Schur
+            // block, so no block check is needed here
             const int lcol = gcol_to_lcol[col];
 
             grows[lentry] = row;
@@ -634,11 +441,10 @@ void SchurLinearSolver::PartitionData::populate_schur_part(const Graph &gfill_ma
 }
 
 SchurLinearSolver::SchurLinearSolver(Graph &matrix,
-                                     const bool upper_tri,
                                      const std::vector<int> &parts,
                                      std::vector<int> &perm) {
 
-    FillMatrixGenerator fill_matrix_generator(matrix, upper_tri, parts);
+    FillMatrixGenerator fill_matrix_generator(matrix, parts);
     // bind plain reference variables to the returned tuple (rather than a
     // structured binding) to keep the names usable with the widest set of C++
     // compilers/standards
@@ -671,20 +477,6 @@ void SchurLinearSolver::LU_factor() {
 
 void SchurLinearSolver::LU_solve() {
     solve(&PartitionData::LU_forward, &PartitionData::LU_backward);
-}
-
-void SchurLinearSolver::cholesky_factor() {
-    factor(&PartitionData::cholesky_factor);
-}
-
-void SchurLinearSolver::cholesky_solve() {
-    solve(&PartitionData::cholesky_forward, &PartitionData::cholesky_backward);
-}
-
-void SchurLinearSolver::LDLT_factor() { factor(&PartitionData::LDLT_factor); }
-
-void SchurLinearSolver::LDLT_solve() {
-    solve(&PartitionData::LDLT_forward, &PartitionData::LDLT_backward);
 }
 
 void SchurLinearSolver::factor(void (PartitionData::*factor_function)()) {
@@ -766,10 +558,8 @@ void SchurLinearSolver::solve(void (PartitionData::*forward_function)(),
 }
 
 SchurLinearSolver::FillMatrixGenerator::FillMatrixGenerator(const Graph &matrix,
-                                                            const bool upper_tri,
                                                             const std::vector<int> &parts)
     : matrix(matrix),
-      upper_tri(upper_tri),
       parts(parts),
       perm(matrix.num_nodes()),
       iperm(matrix.num_nodes()) {
@@ -951,7 +741,6 @@ void SchurLinearSolver::FillMatrixGenerator::PartitionData::apply_permutation() 
     std::vector<MatrixEntry> sortv(parent.matrix.num_nodes());
 
     for (int old_row = first_row(); old_row < last_row_plus1(); ++old_row) {
-        const int row = parent.iperm[old_row];
         const int lold_row = grow_to_prow(old_row);
 
         int nedges = 0;
@@ -961,15 +750,9 @@ void SchurLinearSolver::FillMatrixGenerator::PartitionData::apply_permutation() 
 
             it->id = col;   // Apply the permutation.
 
-            // Remove element.
-            if (parent.upper_tri && col < row) {
-                it = final_matrix[lold_row].erase(it);
-            }
-            else {
-                // Copy into the auxiliary vector.
-                sortv[nedges++] = *it;
-                ++it;
-            }
+            // Copy into the auxiliary vector.
+            sortv[nedges++] = *it;
+            ++it;
         }
 
         // Sort the elements of the row based on the new numbering.

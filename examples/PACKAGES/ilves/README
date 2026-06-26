@@ -33,6 +33,10 @@ Rhodopsin (membrane protein benchmark, bench/data.rhodo)
   in.rhodo-allbonds   -- constrain hydrogen bonds and selected heavy-atom bond
                          types as well with ILVES
 
+Polymetl (long chains of constrained LJ beads)
+----------------------------------------------
+  in.polymelt        -- constrain all bonds of the chains using ILVES
+
 Near-linear angles (coarse-grain polymer chains, data.cg-polymers)
 -----------------------------------------------------------------
   in.cg-polymers      -- chains whose backbone angles have a 180 degree

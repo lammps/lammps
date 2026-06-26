@@ -24,7 +24,7 @@ neigh_modify    every 1 delay 0 check yes
 thermo          100
 thermo_style    custom step temp press pe ke etotal
 
-fix             cstr all ilves 1.0e-6 75 500 b 1 2 a 1 2 linearangle skip 165 # substitute stiff angle potential for constraint
+fix             cstr all ilves 1.0e-4 75 500 b 1 2 a 1 2 linearangle skip 165 # substitute stiff angle potential for constraint
 fix             move all nvt temp 1.5 1.5 0.5
 
 minimize 0 0 100 1000

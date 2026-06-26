@@ -21,7 +21,7 @@ special_bonds   lj 0.0 1.0 1.0
 velocity        all create 1.0 12345 loop geom
 
 fix             1 all nve
-fix             cons all ilves 1.0e-8 25 500 b 1
+fix             cons all ilves 1.0e-4 25 500 b 1
 
 thermo_style    custom step temp epair etotal press
 thermo          250

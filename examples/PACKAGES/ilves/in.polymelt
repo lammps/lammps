@@ -34,4 +34,12 @@ timestep        0.005
 thermo          100
 thermo_style    custom step temp epair etotal press density
 
+# dump           viz all image 100 myimage-*.png mol type bond atom type &
+#                                  size 800 800 view 80 10 zoom 1.4641 box yes 0.025 &
+#                                  shiny 0.2  fsaa yes ssao yes 453983 0.6
+# dump_modify    viz pad 6 boxcolor steelblue backcolor black backcolor2 white adiam 1 0.75 &
+#                color map1 0.243 0.298 0.078 color map2 0.780 0.867 0.529 color map3 0.729 0.525 0.361 &
+#                color map4 0.275 0.953 0.243 color map5 0.992 0.349 0.145 &
+#                amap 1 5 sa 1.0 5 map1 map2 map3 map4 map5
+
 run             500

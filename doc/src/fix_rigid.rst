@@ -927,16 +927,17 @@ when running with MPI domain decomposition (more than one MPI rank);
 results should be validated against the non-Kokkos style.  Reading body
 properties from a file (the *infile* keyword) is likewise experimental.
 
-Rigid bodies built from finite-size *sphere* particles are supported with
-Kokkos (the per-particle angular velocity is set on the device and the
-particle torque is added to the body).  Because the molecule information
-that groups atoms into bodies is supplied for sphere atoms through
-:doc:`fix property/atom <fix_property_atom>` (or an
-:doc:`atom_style hybrid <atom_style>`), which is not itself ported to the
-device, such systems run the atom migration and sorting on the host while
-the rigid-body integration runs on the device.  Other finite-size particle
-types (ellipsoid, line, triangle, dipole) are not yet supported with
-Kokkos.
+Rigid bodies built from finite-size *sphere*, *ellipsoid*, and point
+*dipole* particles are supported with Kokkos: in each integration step the
+per-particle rotational state is updated from the body orientation on the
+device (sphere angular velocity, ellipsoid space-frame quaternion and
+angular momentum, dipole moment direction), and the per-particle torque is
+added to the body.  Because the molecule information that groups these atoms
+into bodies is supplied through :doc:`fix property/atom <fix_property_atom>`
+(or an :doc:`atom_style hybrid <atom_style>`), which is not itself ported to
+the device, such systems run the atom migration and sorting on the host
+while the rigid-body integration runs on the device.  Rigid bodies of *line*
+and *triangle* particles are not yet supported with Kokkos.
 
 The Kokkos atom exchange (migration) and atom sorting must run on the
 same side (both on the host or both on the device), because the device

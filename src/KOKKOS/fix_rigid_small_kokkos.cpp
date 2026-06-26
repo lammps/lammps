@@ -924,10 +924,20 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
 
   // extended particles: the kernel sets each finite-size particle's
   // omega/angmom (and dipole mu) from the body's rotational state
+  AtomVecEllipsoidKokkos *avecEllipKK = nullptr;
   if (extended) {
     if (atom->omega_flag)  d_omega  = atomKK->k_omega.template view<DeviceType>();
     if (atom->angmom_flag) d_angmom = atomKK->k_angmom.template view<DeviceType>();
     if (atom->mu_flag)     d_mu     = atomKK->k_mu.template view<DeviceType>();
+    if (atom->ellipsoid_flag) {
+      avecEllipKK = dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid"));
+      if (avecEllipKK) {
+        avecEllipKK->k_bonus.template sync<DeviceType>();
+        d_bonus = avecEllipKK->k_bonus.template view<DeviceType>();
+        d_ellipsoid = atomKK->k_ellipsoid.template view<DeviceType>();
+        d_rmass = atomKK->k_rmass.template view<DeviceType>();
+      }
+    }
     d_eflags = k_eflags.template view<DeviceType>();
   }
 
@@ -958,7 +968,10 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
   }
   // TODO: Specialize
   atomKK->modified(execution_space, datamask_modify);
-  if (extended) atomKK->modified(execution_space, extended_datamask);
+  if (extended) {
+    atomKK->modified(execution_space, extended_datamask);
+    if (avecEllipKK) avecEllipKK->k_bonus.template modify<DeviceType>();
+  }
   Kokkos::Profiling::popRegion();
 }
 
@@ -1053,6 +1066,27 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
       d_omega(i,0) = b.omega[0];
       d_omega(i,1) = b.omega[1];
       d_omega(i,2) = b.omega[2];
+    }
+    // ellipsoid: compose body orientation with the particle's body-frame
+    // orientation to get its space-frame quaternion, and set its angmom
+    if (ef & RigidConst::ELLIPSOID) {
+      const int e = d_ellipsoid(i);
+      double *shape = d_bonus(e).shape;
+      double *quatatom = d_bonus(e).quat;
+      double orient_i[4] = {d_orient(i,0), d_orient(i,1), d_orient(i,2), d_orient(i,3)};
+      MathExtraKokkos::quatquat(b.quat, orient_i, quatatom);
+      MathExtraKokkos::qnormalize(quatatom);
+      const double rm = d_rmass(i);
+      double ione[3];
+      ione[0] = RigidConst::EINERTIA*rm * (shape[1]*shape[1] + shape[2]*shape[2]);
+      ione[1] = RigidConst::EINERTIA*rm * (shape[0]*shape[0] + shape[2]*shape[2]);
+      ione[2] = RigidConst::EINERTIA*rm * (shape[0]*shape[0] + shape[1]*shape[1]);
+      double exone[3], eyone[3], ezone[3], am[3];
+      MathExtraKokkos::q_to_exyz(quatatom, exone, eyone, ezone);
+      MathExtraKokkos::omega_to_angmom(b.omega, exone, eyone, ezone, ione, am);
+      d_angmom(i,0) = am[0];
+      d_angmom(i,1) = am[1];
+      d_angmom(i,2) = am[2];
     }
     // point dipole: rotate the body-frame dipole orientation into space frame
     if (ef & RigidConst::DIPOLE) {

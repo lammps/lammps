@@ -25,6 +25,7 @@ FixStyle(rigid/small/host,FixRigidSmallKokkos<LMPHostType>);
 #include "fix_rigid_small.h"
 #include "kokkos_base.h"
 #include "comm_kokkos.h"
+#include "atom_vec_ellipsoid_kokkos.h"
 #include "Kokkos_Random.hpp"
 #include <map>
 
@@ -180,6 +181,12 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   typename AT::t_kkfloat_1d_3 d_omega, d_angmom;
   typename AT::t_kkfloat_1d_4 d_mu;
   typename AT::t_kkacc_1d_3 d_torque;
+
+  // ellipsoid bonus (shape read, quat written) reached on the device via the
+  // ellipsoid atom-vec; accessed only through dynamic_cast + inline templates so
+  // the KOKKOS-package fix still links when the ASPHERE package is absent.
+  typename AtomVecEllipsoidKokkosBonusArray<DeviceType>::t_bonus_1d d_bonus;
+  IntView1D d_ellipsoid;
 
   // extended size added per body atom to the device-exchange payload, and the
   // atomKK datamask of per-atom views the extended set_xv/set_v kernels modify

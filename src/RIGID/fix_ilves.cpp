@@ -45,6 +45,7 @@
 #include "force.h"
 #include "group.h"
 #include "ilves.h"
+#include "label_map.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -164,6 +165,20 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   angle_flag.assign(atom->nangletypes + 1, 0);
   type_flag.assign(atom->ntypes + 1, 0);
 
+  // allow the b/a/t selectors to take symbolic type labels (as fix shake does),
+  // unless a selector keyword (b/a/t/m) collides with an actual type label
+  bool allow_typelabels = (atom->labelmapflag != 0);
+  if (allow_typelabels) {
+    for (int i = Atom::ATOM; i < Atom::DIHEDRAL; ++i) {
+      if ((atom->lmap->find_type("b", i) >= 0) || (atom->lmap->find_type("a", i) >= 0) ||
+          (atom->lmap->find_type("t", i) >= 0) || (atom->lmap->find_type("m", i) >= 0))
+        allow_typelabels = false;
+    }
+    if (!allow_typelabels && (comm->me == 0))
+      error->warning(FLERR, "At least one typelabel conflicts with a fix ilves selector: "
+                            "support for typelabels is disabled");
+  }
+
   // parse one or more b/a/t/m selector lists, then optional keyword/value pairs
 
   int iarg = 6;
@@ -177,18 +192,21 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
       if (sel == 'm') {
         mass_list.push_back(utils::numeric(FLERR, arg[iarg], false, lmp));
       } else {
-        int v = utils::inumeric(FLERR, arg[iarg], false, lmp);
+        // type may be given as an integer or, with a labelmap, a symbolic label
+        const int kind = (sel == 'b') ? Atom::BOND : (sel == 'a') ? Atom::ANGLE : Atom::ATOM;
+        const int v = allow_typelabels ? utils::expand_type_int(FLERR, arg[iarg], kind, lmp)
+                                       : utils::inumeric(FLERR, arg[iarg], false, lmp);
         if (sel == 'b') {
           if ((v < 1) || (v > atom->nbondtypes))
-            error->all(FLERR, "Invalid fix ilves bond type {}", v);
+            error->all(FLERR, "Invalid fix ilves bond type {}", arg[iarg]);
           bond_flag[v] = 1;
         } else if (sel == 'a') {
           if ((v < 1) || (v > atom->nangletypes))
-            error->all(FLERR, "Invalid fix ilves angle type {}", v);
+            error->all(FLERR, "Invalid fix ilves angle type {}", arg[iarg]);
           angle_flag[v] = 1;
         } else if (sel == 't') {
           if ((v < 1) || (v > atom->ntypes))
-            error->all(FLERR, "Invalid fix ilves atom type {}", v);
+            error->all(FLERR, "Invalid fix ilves atom type {}", arg[iarg]);
           type_flag[v] = 1;
         }
       }

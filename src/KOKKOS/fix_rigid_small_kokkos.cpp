@@ -260,6 +260,32 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
   // exchange) and size the exchange payload to carry them.
   extended_per_atom = 0;
   if (extended) {
+    // The device set_xv/set_v kernels handle finite spheres, ellipsoids and
+    // point dipoles.  Line and triangle particles (and a per-atom-quaternion
+    // atom_style) are not handled, so error rather than silently skipping their
+    // per-particle orientation update.  eflags was filled on the host by
+    // setup_bodies_static().
+    int has_line = 0, has_tri = 0;
+    for (int i = 0; i < atom->nlocal; i++) {
+      if (eflags[i] & LINE) has_line = 1;
+      if (eflags[i] & TRIANGLE) has_tri = 1;
+    }
+    int loc[2] = {has_line, has_tri}, glob[2];
+    MPI_Allreduce(loc, glob, 2, MPI_INT, MPI_MAX, world);
+    if (glob[0])
+      error->all(FLERR, "fix rigid/small/kk does not yet support line particles "
+                 "in rigid bodies");
+    if (glob[1])
+      error->all(FLERR, "fix rigid/small/kk does not yet support triangle "
+                 "particles in rigid bodies");
+    if (atom->quat_flag)
+      error->all(FLERR, "fix rigid/small/kk does not yet support a per-atom "
+                 "quaternion (atom_style storing quat) in rigid bodies");
+    if (atom->ellipsoid_flag &&
+        dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid")) == nullptr)
+      error->all(FLERR, "fix rigid/small/kk requires the Kokkos ellipsoid atom "
+                 "style; run with the '-sf kk' suffix");
+
     k_eflags.modify_host();
     k_eflags.template sync<DeviceType>();
     d_eflags = k_eflags.template view<DeviceType>();

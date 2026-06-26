@@ -77,7 +77,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   molecular = atom->molecular;
   if (molecular == Atom::ATOMIC)
-    error->all(FLERR, "Cannot use fix {} with non-molecular system", style);
+    error->all(FLERR, Error::COMMAND, "Cannot use fix {} with non-molecular system", style);
 
   // do not store constraint forces by default
 
@@ -158,7 +158,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       else i = utils::inumeric(FLERR, arg[next], false, lmp);
 
       if (i < 1 || i > atom->nbondtypes)
-        error->all(FLERR,"Invalid bond type {} index for {}", arg[next], mystyle);
+        error->all(FLERR, next, "Invalid bond type {} index for {}", arg[next], mystyle);
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
@@ -166,7 +166,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       else i = utils::inumeric(FLERR, arg[next], false, lmp);
 
       if (i < 1 || i > atom->nangletypes)
-        error->all(FLERR,"Invalid angle type {} for {}", arg[next], mystyle);
+        error->all(FLERR, next, "Invalid angle type {} for {}", arg[next], mystyle);
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
@@ -174,17 +174,18 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       else i = utils::inumeric(FLERR, arg[next], false, lmp);
 
       if (i < 1 || i > atom->ntypes)
-        error->all(FLERR,"Invalid atom type {} for {}", arg[next], mystyle);
+        error->all(FLERR, next, "Invalid atom type {} for {}", arg[next], mystyle);
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
       double massone = utils::numeric(FLERR, arg[next], false, lmp);
-      if (massone == 0.0) error->all(FLERR,"Invalid atom mass {} for {}", arg[next], mystyle);
+      if (massone == 0.0)
+        error->all(FLERR, next, "Invalid atom mass {} for {}", arg[next], mystyle);
       if (nmass == atom->ntypes)
-        error->all(FLERR,"Too many masses for {}", mystyle);
+        error->all(FLERR, "Too many masses for {}", mystyle);
       mass_list[nmass++] = massone;
 
-    } else error->all(FLERR,"Unknown {} command option: {}", mystyle, arg[next]);
+    } else error->all(FLERR, next, "Unknown {} command option: {}", mystyle, arg[next]);
     next++;
   }
 
@@ -199,7 +200,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,mystyle+" mol",error);
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1)
-        error->all(FLERR,"Molecule template ID {} for {} does not exist", mystyle, arg[iarg+1]);
+        error->all(FLERR, iarg+1, "Molecule template ID {} for {} does not exist", mystyle, arg[iarg+1]);
       if ((atom->molecules[imol]->nset > 1) && (comm->me == 0))
         error->warning(FLERR,"Molecule template for {} has multiple molecules", mystyle);
       onemols = &atom->molecules[imol];
@@ -208,7 +209,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"kbond") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,mystyle+" kbond",error);
       kbond = utils::numeric(FLERR, arg[iarg+1], false, lmp);
-      if (kbond < 0) error->all(FLERR,"Illegal {} kbond value {}. Must be >= 0.0", mystyle, kbond);
+      if (kbond < 0)
+        error->all(FLERR, iarg+1, "Illegal {} kbond value {}. Must be >= 0.0", mystyle, kbond);
       iarg += 2;
     } else if (strcmp(arg[iarg],"store") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,mystyle+" store",error);
@@ -223,7 +225,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
         peratom_freq = 0;
       }
       iarg += 2;
-    } else error->all(FLERR,"Unknown {} command option: {}", mystyle, arg[iarg]);
+    } else error->all(FLERR, iarg, "Unknown {} command option: {}", mystyle, arg[iarg]);
   }
 
   // error check for Molecule template

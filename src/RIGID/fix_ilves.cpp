@@ -75,8 +75,8 @@ constexpr double KBOND_MIN_FACTOR = 2.0e3;
 // keywords that terminate the b/a/t/m selector lists
 int is_keyword(const char *s)
 {
-  return ((strcmp(s, "store") == 0) || (strcmp(s, "mode") == 0) ||
-          (strcmp(s, "kbond") == 0) || (strcmp(s, "linearangle") == 0));
+  return ((strcmp(s, "store") == 0) || (strcmp(s, "mode") == 0) || (strcmp(s, "kbond") == 0) ||
+          (strcmp(s, "linearangle") == 0));
 }
 
 int is_selector(const char *s)
@@ -105,14 +105,12 @@ static const char cite_fix_ilves[] =
 
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), tolerance(1.0e-4), max_iter(25), output_every(0), next_output(0),
-    fixed_iter(0), linear_mode(LINEAR_ERROR), linear_threshold(175.0),
-    kbond(-1.0), molecular(0), types_negated(0), store_flag(0),
-    fstore(nullptr),
-    maxstore(0), niter_max(0), nconstraints(0), ilves_solver(nullptr),
-    xpred(nullptr), xpred0(nullptr), dx(nullptr), maxatom(0), commstage(0), dtv(0.0), dtfsq(0.0),
-    inv_dtfsq(0.0), respa(0), nlevels_respa(0), loop_respa(nullptr), step_respa(nullptr),
-    fix_respa(nullptr), dtf_inner(0.0), dtf_innerhalf(0.0), x(nullptr), v(nullptr), f(nullptr),
-    mass(nullptr), rmass(nullptr), type(nullptr), mask(nullptr), nlocal(0)
+    fixed_iter(0), linear_mode(LINEAR_ERROR), linear_threshold(175.0), kbond(-1.0), molecular(0),
+    types_negated(0), store_flag(0), fstore(nullptr), maxstore(0), niter_max(0), nconstraints(0),
+    ilves_solver(nullptr), xpred(nullptr), xpred0(nullptr), dx(nullptr), maxatom(0), commstage(0),
+    dtv(0.0), dtfsq(0.0), inv_dtfsq(0.0), respa(0), nlevels_respa(0), loop_respa(nullptr),
+    step_respa(nullptr), fix_respa(nullptr), dtf_inner(0.0), dtf_innerhalf(0.0), x(nullptr),
+    v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), mask(nullptr), nlocal(0)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ilves);
 
@@ -149,15 +147,16 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
 
   molecular = atom->molecular;
   if (molecular == Atom::ATOMIC)
-    error->all(FLERR, "Fix ilves requires a molecular atom style with bond topology");
+    error->all(FLERR, Error::COMMAND,
+               "Fix ilves requires a molecular atom style with bond topology");
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR, "Fix ilves requires an atom map, see atom_modify");
+    error->all(FLERR, Error::COMMAND, "Fix ilves requires an atom map, see atom_modify");
 
   tolerance = utils::numeric(FLERR, arg[3], false, lmp);
   max_iter = utils::inumeric(FLERR, arg[4], false, lmp);
   output_every = utils::inumeric(FLERR, arg[5], false, lmp);
-  if (tolerance <= 0.0) error->all(FLERR, "Fix ilves tolerance must be > 0");
-  if (max_iter <= 0) error->all(FLERR, "Fix ilves iteration count must be > 0");
+  if (tolerance <= 0.0) error->all(FLERR, 3, "Fix ilves tolerance must be > 0");
+  if (max_iter <= 0) error->all(FLERR, 4, "Fix ilves iteration count must be > 0");
 
   // size selector membership tables (1-based type indexing)
 
@@ -175,8 +174,9 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
         allow_typelabels = false;
     }
     if (!allow_typelabels && (comm->me == 0))
-      error->warning(FLERR, "At least one typelabel conflicts with a fix ilves selector: "
-                            "support for typelabels is disabled");
+      error->warning(FLERR,
+                     "At least one typelabel conflicts with a fix ilves selector: "
+                     "support for typelabels is disabled");
   }
 
   // parse one or more b/a/t/m selector lists, then optional keyword/value pairs
@@ -184,7 +184,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while ((iarg < narg) && !is_keyword(arg[iarg])) {
     if (!is_selector(arg[iarg]))
-      error->all(FLERR, "Unknown fix ilves selector or keyword: {}", arg[iarg]);
+      error->all(FLERR, iarg, "Unknown fix ilves selector or keyword: {}", arg[iarg]);
     const char sel = arg[iarg][0];
     ++iarg;
     int nvalues = 0;
@@ -198,15 +198,15 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
                                        : utils::inumeric(FLERR, arg[iarg], false, lmp);
         if (sel == 'b') {
           if ((v < 1) || (v > atom->nbondtypes))
-            error->all(FLERR, "Invalid fix ilves bond type {}", arg[iarg]);
+            error->all(FLERR, iarg, "Invalid fix ilves bond type {}", arg[iarg]);
           bond_flag[v] = 1;
         } else if (sel == 'a') {
           if ((v < 1) || (v > atom->nangletypes))
-            error->all(FLERR, "Invalid fix ilves angle type {}", arg[iarg]);
+            error->all(FLERR, iarg, "Invalid fix ilves angle type {}", arg[iarg]);
           angle_flag[v] = 1;
         } else if (sel == 't') {
           if ((v < 1) || (v > atom->ntypes))
-            error->all(FLERR, "Invalid fix ilves atom type {}", arg[iarg]);
+            error->all(FLERR, iarg, "Invalid fix ilves atom type {}", arg[iarg]);
           type_flag[v] = 1;
         }
       }
@@ -230,7 +230,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg + 1], "fixed") == 0)
         fixed_iter = 1;
       else
-        error->all(FLERR, "Unknown fix ilves mode: {}", arg[iarg + 1]);
+        error->all(FLERR, iarg + 1, "Unknown fix ilves mode: {}", arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "linearangle") == 0) {
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix ilves linearangle", error);
@@ -241,18 +241,19 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg + 1], "restrain") == 0)
         linear_mode = LINEAR_RESTRAIN;
       else
-        error->all(FLERR, "Unknown fix ilves linearangle mode: {}", arg[iarg + 1]);
+        error->all(FLERR, iarg + 1, "Unknown fix ilves linearangle mode: {}", arg[iarg + 1]);
       linear_threshold = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       if ((linear_threshold <= 0.0) || (linear_threshold >= 180.0))
-        error->all(FLERR, "Fix ilves linearangle threshold must be between 0 and 180 degrees");
+        error->all(FLERR, iarg + 2,
+                   "Fix ilves linearangle threshold must be between 0 and 180 degrees");
       iarg += 3;
     } else if (strcmp(arg[iarg], "kbond") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves kbond", error);
       kbond = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      if (kbond <= 0.0) error->all(FLERR, "Fix ilves kbond must be > 0");
+      if (kbond <= 0.0) error->all(FLERR, iarg + 1, "Fix ilves kbond must be > 0");
       iarg += 2;
     } else {
-      error->all(FLERR, "Unknown fix ilves keyword: {}", arg[iarg]);
+      error->all(FLERR, iarg, "Unknown fix ilves keyword: {}", arg[iarg]);
     }
   }
 
@@ -269,7 +270,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   int any = (int) mass_list.size();
   for (int i = 1; i <= atom->nbondtypes; ++i) any += bond_flag[i];
   for (int i = 1; i <= atom->ntypes; ++i) any += type_flag[i];
-  if (any == 0) error->all(FLERR, "Fix ilves requires at least one b/t/m selector");
+  if (any == 0) error->all(FLERR, Error::COMMAND, "Fix ilves requires at least one b/t/m selector");
 
   next_output = 0;
 }
@@ -310,14 +311,17 @@ int FixIlves::setmask()
 void FixIlves::init()
 {
   if (!force->bond)
-    error->all(FLERR, "Fix ilves requires a bond style to define equilibrium bond lengths");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix ilves requires a bond style to define equilibrium bond lengths");
 
   // detect r-RESPA and cache its level structure (as in fix shake).  the
   // per-level timestep factors and the FixRespa pointer are set in setup().
   respa = 0;
   if (utils::strmatch(update->integrate_style, "^respa")) {
     auto *respa_ptr = dynamic_cast<Respa *>(update->integrate);
-    if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
+    if (!respa_ptr)
+      error->all(FLERR, Error::NOLASTLINE, "Failure to access Respa style {}",
+                 update->integrate_style);
     respa = 1;
     nlevels_respa = respa_ptr->nlevels;
     loop_respa = respa_ptr->loop;
@@ -341,7 +345,7 @@ void FixIlves::init()
   for (int i = 1; i <= atom->nangletypes; ++i) any_angle += angle_flag[i];
   if (any_angle) {
     if (!force->angle)
-      error->all(FLERR, "Fix ilves angle constraints require an angle style");
+      error->all(FLERR, Error::NOLASTLINE, "Fix ilves angle constraints require an angle style");
 
     // classify near-linear angle types (theta0 >= linear_threshold).  the A-C
     // virtual bond becomes rank-deficient near 180 degrees, so these are handled
@@ -358,14 +362,16 @@ void FixIlves::init()
     }
     if (!linear_types.empty()) {
       if (linear_mode == LINEAR_ERROR)
-        error->all(FLERR, "Fix ilves angle type(s){} have an equilibrium angle at or above the "
-                          "linearangle threshold of {} degrees and cannot be rigidly constrained; "
-                          "use the linearangle keyword to skip or restrain them",
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix ilves angle type(s){} have an equilibrium angle at or above the "
+                   "linearangle threshold of {} degrees and cannot be rigidly constrained; "
+                   "use the linearangle keyword to skip or restrain them",
                    linear_types, linear_threshold);
       else if (comm->me == 0)
-        error->warning(FLERR, "Fix ilves treating near-linear angle type(s){} with linearangle "
-                              "mode {}", linear_types,
-                       (linear_mode == LINEAR_SKIP) ? "skip" : "restrain");
+        error->warning(FLERR,
+                       "Fix ilves treating near-linear angle type(s){} with linearangle "
+                       "mode {}",
+                       linear_types, (linear_mode == LINEAR_SKIP) ? "skip" : "restrain");
     }
 
     std::vector<double> ad(atom->nangletypes + 1, 0.0);
@@ -435,7 +441,10 @@ void FixIlves::setup(int vflag)
 {
   bigint nb = 0, na = 0;
   for (int k = 0; k < nconstraints; ++k)
-    if (clist_btype[k] > 0) ++nb; else ++na;
+    if (clist_btype[k] > 0)
+      ++nb;
+    else
+      ++na;
   bigint nc[2] = {nb, na}, nctot[2] = {0, 0};
   MPI_Allreduce(nc, nctot, 2, MPI_LMP_BIGINT, MPI_SUM, world);
   if (comm->me == 0)
@@ -468,7 +477,7 @@ void FixIlves::setup(int vflag)
       if (fixes.size() > 0)
         fix_respa = dynamic_cast<FixRespa *>(fixes.front());
       else
-        error->all(FLERR, "Run style respa did not create fix RESPA");
+        error->all(FLERR, Error::NOLASTLINE, "Run style respa did not create fix RESPA");
     }
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     dtf_inner = step_respa[0] * force->ftm2v;
@@ -511,12 +520,17 @@ void FixIlves::min_setup(int vflag)
 {
   bigint nb = 0, na = 0;
   for (int k = 0; k < nconstraints; ++k)
-    if (clist_btype[k] > 0) ++nb; else ++na;
+    if (clist_btype[k] > 0)
+      ++nb;
+    else
+      ++na;
   bigint nc[2] = {nb, na}, nctot[2] = {0, 0};
   MPI_Allreduce(nc, nctot, 2, MPI_LMP_BIGINT, MPI_SUM, world);
   if (comm->me == 0)
-    utils::logmesg(lmp, "Fix ilves: replacing {} bond and {} angle constraint(s) with harmonic "
-                        "restraints for minimization\n", nctot[0], nctot[1]);
+    utils::logmesg(lmp,
+                   "Fix ilves: replacing {} bond and {} angle constraint(s) with harmonic "
+                   "restraints for minimization\n",
+                   nctot[0], nctot[1]);
   min_post_force(vflag);
 }
 
@@ -992,8 +1006,9 @@ void FixIlves::build_constraint_list()
         if (btype == 0) continue;
         int j = atom->map(bond_atom[i][m]);
         if (j < 0)
-          error->one(FLERR, "Fix ilves bond atom missing on this processor; increase the "
-                            "communication cutoff with comm_modify cutoff");
+          error->one(FLERR,
+                     "Fix ilves bond atom missing on this processor; increase the "
+                     "communication cutoff with comm_modify cutoff");
         j = domain->closest_image(i, j);
         // with newton_bond off the bond is stored on both atoms; keep one copy
         if (!newton_bond && (tag[i] > tag[j])) continue;
@@ -1047,8 +1062,7 @@ void FixIlves::build_constraint_list()
 
   const int nall = atom->nlocal + atom->nghost;
   invmass.assign(nall, 0.0);
-  for (int i = 0; i < nlocal; ++i)
-    invmass[i] = rmass ? 1.0 / rmass[i] : 1.0 / mass[type[i]];
+  for (int i = 0; i < nlocal; ++i) invmass[i] = rmass ? 1.0 / rmass[i] : 1.0 / mass[type[i]];
 
   // communicate the inverse mass to the ghosts, so a constraint partner owned by
   // another rank (or a periodic image) has the correct value regardless of
@@ -1175,8 +1189,12 @@ double FixIlves::min_harmonic_bond(int a, int b, double d, double k)
   if (r < 1.0e-10) return 0.0;
   const double dr = r - d;
   const double fac = 2.0 * k * dr / r;    // F_a = fac*(x_b - x_a), F_b = -F_a
-  dx[a][0] += fac * ux; dx[a][1] += fac * uy; dx[a][2] += fac * uz;
-  dx[b][0] -= fac * ux; dx[b][1] -= fac * uy; dx[b][2] -= fac * uz;
+  dx[a][0] += fac * ux;
+  dx[a][1] += fac * uy;
+  dx[a][2] += fac * uz;
+  dx[b][0] -= fac * ux;
+  dx[b][1] -= fac * uy;
+  dx[b][2] -= fac * uz;
   return k * dr * dr;
 }
 
@@ -1390,17 +1408,17 @@ double FixIlves::memory_usage()
   bytes += (double) invmass.size() * sizeof(double);
 
   // local constraint and near-linear-restraint lists, rebuilt every reneighbor
-  bytes += (double) (clist_a.size() + clist_b.size() + clist_btype.size() +
-                     clist_vertex.size() + rlist_a.size() + rlist_c.size()) *
+  bytes += (double) (clist_a.size() + clist_b.size() + clist_btype.size() + clist_vertex.size() +
+                     rlist_a.size() + rlist_c.size()) *
       sizeof(int);
   bytes += (double) (clist_d.size() + rlist_d.size()) * sizeof(double);
 
   // per-type selector and equilibrium-distance lookup tables
-  bytes += (double) (bond_flag.size() + angle_flag.size() + type_flag.size() +
-                     angle_linear.size()) *
+  bytes +=
+      (double) (bond_flag.size() + angle_flag.size() + type_flag.size() + angle_linear.size()) *
       sizeof(int);
-  bytes += (double) (bond_distance.size() + angle_distance.size() + mass_list.size()) *
-      sizeof(double);
+  bytes +=
+      (double) (bond_distance.size() + angle_distance.size() + mass_list.size()) * sizeof(double);
 
   // the ported ILVES solver (topology graphs + factored sparse matrix)
   if (ilves_solver) bytes += ilves_solver->memory_usage();

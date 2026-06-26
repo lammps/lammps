@@ -246,5 +246,21 @@ void Ilves::make_weights()
   }
 }
 
+/* ----------------------------------------------------------------------
+   estimate the solver's memory footprint in bytes
+------------------------------------------------------------------------- */
+
+double Ilves::memory_usage() const
+{
+  double bytes = 0.0;
+  if (mol) bytes += mol->memory_usage();
+  if (schur_solver) bytes += schur_solver->memory_usage();
+  for (const auto &w : part_lhs_weights) bytes += (double) w.size() * sizeof(double);
+  for (const auto &c : current_lagr) bytes += (double) c.size() * sizeof(double);
+  for (int d = 0; d < DIM; ++d)
+    bytes += (double) (x_ab[d].size() + xprime_ab[d].size()) * sizeof(double);
+  return bytes;
+}
+
 }    // namespace ILVES
 }    // namespace LAMMPS_NS

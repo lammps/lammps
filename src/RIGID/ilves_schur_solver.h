@@ -123,6 +123,14 @@ public:
          */
         void LU_backward();
 
+        /**
+         * Estimate the memory used by this partition (fill-in matrix, the
+         * local-to-shared maps, and the factorization work arrays).
+         *
+         * @return The size of the partition storage in bytes.
+         */
+        double memory_usage() const;
+
     private:
         /**
          * Populates the local partition data given the global fill-in matrix,
@@ -215,6 +223,13 @@ public:
      *
      */
     void LU_solve();
+
+    /**
+     * Estimate the memory used by the solver, summed over all partitions.
+     *
+     * @return The size of the solver storage in bytes.
+     */
+    double memory_usage() const;
 
 private:
     /**

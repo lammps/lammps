@@ -307,5 +307,15 @@ void Molecule::renumber_bonds(const std::vector<int> &perm,
     }
 }
 
+double Molecule::memory_usage() const
+{
+    double bytes = atoms.graph.memory_usage() + bonds.graph.memory_usage();
+    bytes += (double) (bonds.atom1.size() + bonds.atom2.size() + bonds.latom1.size() +
+                       bonds.latom2.size()) *
+        sizeof(int);
+    bytes += (double) (bonds.sigma2.size() + bonds.invsigma2.size()) * sizeof(double);
+    return bytes;
+}
+
 }    // namespace ILVES
 }    // namespace LAMMPS_NS

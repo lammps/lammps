@@ -69,5 +69,10 @@ void Graph::renumber_vertices(const std::vector<int> &perm, std::vector<int> &ip
   *this = std::move(perm_graph);
 }
 
+double Graph::memory_usage() const
+{
+  return (double) (xadj.size() + adj.size()) * sizeof(int);
+}
+
 }    // namespace ILVES
 }    // namespace LAMMPS_NS

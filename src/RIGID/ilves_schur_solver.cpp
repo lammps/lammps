@@ -937,5 +937,24 @@ void SchurLinearSolver::FillMatrixGenerator::PartitionData::update_neighbors(con
         update_active_row(lcol, col_old_deg, false);
     }
 }
+
+double SchurLinearSolver::PartitionData::memory_usage() const
+{
+    double bytes = fill_matrix.memory_usage();
+    bytes += (double) (grows.size() + gcols.size() + diag.size()) * sizeof(int);
+    bytes += (double) is_fillin.size() / 8.0;    // std::vector<bool> is bit-packed
+    bytes += (double) (lhs_local_to_shared.size() + rhs_local_to_shared.size()) *
+        sizeof(localToSharedSchurMap);
+    bytes += (double) (lhs.size() + rhs.size() + scratch.size()) * sizeof(double);
+    return bytes;
+}
+
+double SchurLinearSolver::memory_usage() const
+{
+    double bytes = 0.0;
+    for (const auto &pd : part_data) bytes += pd.memory_usage();
+    return bytes;
+}
+
 }    // namespace ILVES
 }    // namespace LAMMPS_NS

@@ -96,6 +96,13 @@ class Graph {
   int num_edges() const;
 
   /**
+   * Estimate the memory used by the graph (CSR index + adjacency arrays).
+   *
+   * @return The size of the graph storage in bytes.
+   */
+  double memory_usage() const;
+
+  /**
    * Renumbers the vertices of a graph using a given permutation of length
    * the number of nodes in the graph.
    * The permutation is given as in MATLAB. Example:

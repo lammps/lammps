@@ -1357,6 +1357,40 @@ double FixIlves::compute_scalar()
 }
 
 /* ----------------------------------------------------------------------
+   estimate the memory used by this fix (per MPI rank).  the term that grows
+   with the size of the connected constraint clusters is the ported solver's
+   factored sparse matrix, reported via ilves_solver->memory_usage().
+------------------------------------------------------------------------- */
+
+double FixIlves::memory_usage()
+{
+  double bytes = 0.0;
+
+  // per-atom buffers grown to nmax: xpred, xpred0, dx (plus fstore with store yes)
+  bytes += 3.0 * (double) maxatom * 3 * sizeof(double);
+  if (store_flag) bytes += (double) maxstore * 3 * sizeof(double);
+  bytes += (double) invmass.size() * sizeof(double);
+
+  // local constraint and near-linear-restraint lists, rebuilt every reneighbor
+  bytes += (double) (clist_a.size() + clist_b.size() + clist_btype.size() +
+                     clist_vertex.size() + rlist_a.size() + rlist_c.size()) *
+      sizeof(int);
+  bytes += (double) (clist_d.size() + rlist_d.size()) * sizeof(double);
+
+  // per-type selector and equilibrium-distance lookup tables
+  bytes += (double) (bond_flag.size() + angle_flag.size() + type_flag.size() +
+                     angle_linear.size()) *
+      sizeof(int);
+  bytes += (double) (bond_distance.size() + angle_distance.size() + mass_list.size()) *
+      sizeof(double);
+
+  // the ported ILVES solver (topology graphs + factored sparse matrix)
+  if (ilves_solver) bytes += ilves_solver->memory_usage();
+
+  return bytes;
+}
+
+/* ----------------------------------------------------------------------
    print per-bond-type constraint statistics: count, average length, and the
    spread (max - min) of the constrained bond lengths across all ranks.
 ------------------------------------------------------------------------- */

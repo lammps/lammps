@@ -101,6 +101,15 @@ public:
      * bond graph is not renumbered otherwise.
      */
     void renumber_bonds(const std::vector<int> &perm, bool renumber_graph);
+
+    /**
+     * Estimate the memory used by the constraint topology (atom and bond
+     * graphs plus the per-bond index and distance arrays).  The borrowed
+     * inverse-mass array is owned by the caller and is not counted.
+     *
+     * @return The size of the topology storage in bytes.
+     */
+    double memory_usage() const;
 };
 
 }    // namespace ILVES

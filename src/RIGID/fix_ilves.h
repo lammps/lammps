@@ -49,6 +49,7 @@ class FixIlves : public Fix {
 
   bigint dof(int) override;
   double compute_scalar() override;
+  double memory_usage() override;
 
  protected:
   // user settings

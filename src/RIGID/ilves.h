@@ -83,6 +83,10 @@ class Ilves {
   int num_constraints() const { return mol->bonds.num; }
   const Molecule *molecule() const { return mol.get(); }
 
+  // estimate the solver's memory footprint (topology + factored sparse matrix
+  // + the per-partition weight/multiplier and bond-vector work arrays) in bytes
+  double memory_usage() const;
+
  protected:
   LAMMPS *lmp;
 

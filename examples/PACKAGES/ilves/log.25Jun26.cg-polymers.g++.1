@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2009-g056b4bb4c5-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2011-g2b172b2b2d-modified)
   using 1 OpenMP thread(s) per MPI task
 # Coarse-grain polymer chains with near-linear backbone angles.
 
@@ -89,13 +89,13 @@ Neighbor list info ...
       stencil: half/bin/3d
       bin: standard
 Fix ilves: replacing 768 bond and 0 angle constraint(s) with harmonic restraints for minimization
-Per MPI rank memory allocation (min/avg/max) = 7.935 | 7.935 | 7.935 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 9.272 | 9.272 | 9.272 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
          0   2.3724673      4.898926       571.36771      2.5379575      573.90567    
        100   2.3724673      4.8159763     -5.6487418      2.5379575     -3.1107844    
-Loop time of 0.769996 on 1 procs for 100 steps with 896 atoms
+Loop time of 0.751365 on 1 procs for 100 steps with 896 atoms
 
-99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = max iterations
@@ -109,13 +109,13 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.73358    | 0.73358    | 0.73358    |   0.0 | 95.27
-Bond    | 0.012429   | 0.012429   | 0.012429   |   0.0 |  1.61
+Pair    | 0.71607    | 0.71607    | 0.71607    |   0.0 | 95.30
+Bond    | 0.012032   | 0.012032   | 0.012032   |   0.0 |  1.60
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0070753  | 0.0070753  | 0.0070753  |   0.0 |  0.92
-Output  | 1.9918e-05 | 1.9918e-05 | 1.9918e-05 |   0.0 |  0.00
-Modify  | 0.012609   | 0.012609   | 0.012609   |   0.0 |  1.64
-Other   |            | 0.004287   |            |       |  0.56
+Comm    | 0.0070234  | 0.0070234  | 0.0070234  |   0.0 |  0.93
+Output  | 2.0329e-05 | 2.0329e-05 | 2.0329e-05 |   0.0 |  0.00
+Modify  | 0.012122   | 0.012122   | 0.012122   |   0.0 |  1.61
+Other   |            | 0.004101   |            |       |  0.55
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -142,7 +142,7 @@ Fix ilves: constraining 768 bond(s) and 0 angle(s)
 ILVES stats (type/ave/delta/count) on step 0 (up to 0 Newton iterations)
 Bond:   1   1         7.72093e-07      448
 Bond:   2   1.2       9.70099e-07      320
-Per MPI rank memory allocation (min/avg/max) = 6.81 | 6.81 | 6.81 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.147 | 8.147 | 8.147 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
          0   2.3578221      5.1532256     -5.6487418      2.5222907     -3.1264511    
        100   1.8444627      5.5790235     -5.4602419      1.9731222     -3.4871197    
@@ -161,21 +161,21 @@ ILVES stats (type/ave/delta/count) on step 1000 (up to 40 Newton iterations)
 Bond:   1   1         1.0675e-06       448
 Bond:   2   1.2       2.30082e-07      320
       1000   1.4617666      3.99628       -5.9092803      1.5637313     -4.345549     
-Loop time of 1.69608 on 1 procs for 1000 steps with 896 atoms
+Loop time of 1.67284 on 1 procs for 1000 steps with 896 atoms
 
-Performance: 254704.228 tau/day, 589.593 timesteps/s, 528.275 katom-step/s
+Performance: 258243.152 tau/day, 597.785 timesteps/s, 535.615 katom-step/s
 99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.69206    | 0.69206    | 0.69206    |   0.0 | 40.80
-Bond    | 0.014359   | 0.014359   | 0.014359   |   0.0 |  0.85
-Neigh   | 0.17182    | 0.17182    | 0.17182    |   0.0 | 10.13
-Comm    | 0.012102   | 0.012102   | 0.012102   |   0.0 |  0.71
-Output  | 0.0001674  | 0.0001674  | 0.0001674  |   0.0 |  0.01
-Modify  | 0.80269    | 0.80269    | 0.80269    |   0.0 | 47.33
-Other   |            | 0.002884   |            |       |  0.17
+Pair    | 0.68029    | 0.68029    | 0.68029    |   0.0 | 40.67
+Bond    | 0.014305   | 0.014305   | 0.014305   |   0.0 |  0.86
+Neigh   | 0.16717    | 0.16717    | 0.16717    |   0.0 |  9.99
+Comm    | 0.011738   | 0.011738   | 0.011738   |   0.0 |  0.70
+Output  | 0.00017708 | 0.00017708 | 0.00017708 |   0.0 |  0.01
+Modify  | 0.79651    | 0.79651    | 0.79651    |   0.0 | 47.61
+Other   |            | 0.002644   |            |       |  0.16
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

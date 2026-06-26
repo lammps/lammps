@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2009-g056b4bb4c5-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2011-g2b172b2b2d-modified)
   using 1 OpenMP thread(s) per MPI task
 # Rhodopsin model
 
@@ -47,7 +47,7 @@ Finding 1-2 1-3 1-4 neighbors ...
     24 = max # of 1-4 neighbors
     26 = max # of special neighbors
   special bonds CPU = 0.003 seconds
-  read_data CPU = 0.217 seconds
+  read_data CPU = 0.215 seconds
 
 fix             1 all ilves 0.0001 100 50 m 1.0 12 15 16 a 232
 fix             2 all npt temp 300.0 300.0 100.0                 z 0.0 0.0 1000.0 mtk no pchain 0 tchain 1
@@ -215,7 +215,7 @@ Bond:   112   0.957197  0.000272687     8466
 Bond:   113   1.48065   0.10507          198
 Bond:   114   1.5786    0.201813         198
 Angle:  232   104.52    0.0237494       4233
-Per MPI rank memory allocation (min/avg/max) = 47.5 | 47.6 | 47.89 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 52.17 | 52.3 | 52.62 Mbytes
 ------------ Step              0 ----- CPU =            0 (sec) -------------
 TotEng   =    -30160.2616 KinEng   =     19178.7632 Temp     =       301.3996 
 PotEng   =    -49339.0249 E_bond   =         0.0062 E_angle  =     10921.3742 
@@ -337,7 +337,7 @@ Bond:   112   0.957196  2.16165e-05     8466
 Bond:   113   1.48      1.44491e-05      198
 Bond:   114   1.59999   1.61451e-05      198
 Angle:  232   104.52    0.00174924      4233
------------- Step             50 ----- CPU =     2.252898 (sec) -------------
+------------ Step             50 ----- CPU =     2.126597 (sec) -------------
 TotEng   =    -29132.6867 KinEng   =     19232.5478 Temp     =       302.2448 
 PotEng   =    -48365.2344 E_bond   =         0.0762 E_angle  =     11106.0669 
 E_dihed  =      5302.3669 E_impro  =       238.4222 E_vdwl   =     -1511.6456 
@@ -458,7 +458,7 @@ Bond:   112   0.957194  2.10497e-05     8466
 Bond:   113   1.47999   2.21101e-05      198
 Bond:   114   1.59999   2.44646e-05      198
 Angle:  232   104.52    0.00206607      4233
------------- Step            100 ----- CPU =     4.629344 (sec) -------------
+------------ Step            100 ----- CPU =     4.362333 (sec) -------------
 TotEng   =    -30495.9093 KinEng   =     18644.6630 Temp     =       293.0061 
 PotEng   =    -49140.5723 E_bond   =         0.0234 E_angle  =     10843.0616 
 E_dihed  =      5211.3436 E_impro  =       226.1543 E_vdwl   =     -1385.7046 
@@ -579,7 +579,7 @@ Bond:   112   0.957201  2.37768e-06     8466
 Bond:   113   1.48      3.36019e-06      198
 Bond:   114   1.6       4.37385e-06      198
 Angle:  232   104.52    0.000258152     4233
------------- Step            150 ----- CPU =     6.951478 (sec) -------------
+------------ Step            150 ----- CPU =     6.558022 (sec) -------------
 TotEng   =    -31111.2679 KinEng   =     18295.4590 Temp     =       287.5182 
 PotEng   =    -49406.7270 E_bond   =         0.0087 E_angle  =     10629.6741 
 E_dihed  =      5249.0850 E_impro  =       220.5259 E_vdwl   =     -1458.4192 
@@ -700,28 +700,28 @@ Bond:   112   0.957199  1.63929e-05     8466
 Bond:   113   1.48      9.11819e-06      198
 Bond:   114   1.6       1.16924e-05      198
 Angle:  232   104.52    0.00142914      4233
------------- Step            200 ----- CPU =     9.362096 (sec) -------------
+------------ Step            200 ----- CPU =     8.841159 (sec) -------------
 TotEng   =    -30467.9722 KinEng   =     18827.0858 Temp     =       295.8729 
 PotEng   =    -49295.0580 E_bond   =         0.0241 E_angle  =     10720.4988 
 E_dihed  =      5197.8908 E_impro  =       233.7281 E_vdwl   =     -1525.9594 
 E_coul   =    206485.0489 E_long   =   -270406.2893 Press    =       154.9609 
 Volume   =    307203.7915
-Loop time of 9.36214 on 4 procs for 200 steps with 32000 atoms
+Loop time of 8.8412 on 4 procs for 200 steps with 32000 atoms
 
-Performance: 3.691 ns/day, 6.501 hours/ns, 21.363 timesteps/s, 683.605 katom-step/s
+Performance: 3.909 ns/day, 6.140 hours/ns, 22.621 timesteps/s, 723.884 katom-step/s
 99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.9996     | 6.1146     | 6.2818     |   4.2 | 65.31
-Bond    | 0.18953    | 0.19774    | 0.21503    |   2.3 |  2.11
-Kspace  | 0.49407    | 0.65955    | 0.75761    |  12.2 |  7.04
-Neigh   | 1.0975     | 1.0978     | 1.0981     |   0.0 | 11.73
-Comm    | 0.073196   | 0.074052   | 0.074639   |   0.2 |  0.79
-Output  | 0.00024627 | 0.00025884 | 0.00027781 |   0.0 |  0.00
-Modify  | 1.1992     | 1.2002     | 1.2018     |   0.1 | 12.82
-Other   |            | 0.01794    |            |       |  0.19
+Pair    | 5.7014     | 5.7874     | 5.9916     |   4.9 | 65.46
+Bond    | 0.18244    | 0.19126    | 0.20529    |   2.1 |  2.16
+Kspace  | 0.40663    | 0.61276    | 0.6873     |  15.2 |  6.93
+Neigh   | 1.0574     | 1.058      | 1.0584     |   0.0 | 11.97
+Comm    | 0.0658     | 0.066231   | 0.066744   |   0.1 |  0.75
+Output  | 0.00021365 | 0.00022128 | 0.00023736 |   0.0 |  0.00
+Modify  | 1.1092     | 1.1102     | 1.111      |   0.1 | 12.56
+Other   |            | 0.01511    |            |       |  0.17
 
 Nlocal:           8000 ave        8106 max        7957 min
 Histogram: 2 1 0 0 0 0 0 0 0 1

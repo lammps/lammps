@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2006-gb1f77a5e76-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2009-g056b4bb4c5-modified)
   using 1 OpenMP thread(s) per MPI task
 # Solvated 5-mer peptide -- ILVES and SHAKE constraint solvers
 # (mirror of examples/peptide/in.peptide using fix ilves and fix shake for waters)
@@ -131,7 +131,7 @@ TotEng   =     -5237.4590 KinEng   =      1134.9176 Temp     =       282.1003
 PotEng   =     -6372.3765 E_bond   =        16.5572 E_angle  =        36.3726 
 E_dihed  =        15.5190 E_impro  =         1.9426 E_vdwl   =       692.8945 
 E_coul   =     26772.2647 E_long   =    -33907.9271 Press    =      -821.0403
------------- Step             50 ----- CPU =    0.1190065 (sec) -------------
+------------ Step             50 ----- CPU =    0.1227057 (sec) -------------
 TotEng   =     -5247.5297 KinEng   =      1132.3951 Temp     =       281.4733 
 PotEng   =     -6379.9247 E_bond   =        12.2120 E_angle  =        31.7353 
 E_dihed  =        18.8136 E_impro  =         2.3609 E_vdwl   =       658.1721 
@@ -146,12 +146,12 @@ Bond:   14   0.96      0                  1
 SHAKE stats (type/ave/delta/count) on step 100
 Bond:   18   0.9572    2.64072e-06     1280
 Angle:  31   104.52    0.000216513      640
------------- Step            100 ----- CPU =    0.2428105 (sec) -------------
+------------ Step            100 ----- CPU =    0.2487079 (sec) -------------
 TotEng   =     -5257.9620 KinEng   =      1078.0580 Temp     =       267.9670 
 PotEng   =     -6336.0200 E_bond   =        14.4828 E_angle  =        43.4393 
 E_dihed  =        15.2572 E_impro  =         2.3160 E_vdwl   =       708.3183 
 E_coul   =     26786.7284 E_long   =    -33906.5619 Press    =      -648.7225
------------- Step            150 ----- CPU =    0.3684747 (sec) -------------
+------------ Step            150 ----- CPU =    0.3761137 (sec) -------------
 TotEng   =     -5287.2317 KinEng   =      1098.5992 Temp     =       273.0728 
 PotEng   =     -6385.8309 E_bond   =        17.4925 E_angle  =        32.8591 
 E_dihed  =        15.1623 E_impro  =         1.6520 E_vdwl   =       736.9630 
@@ -166,12 +166,12 @@ Bond:   14   0.96      0                  1
 SHAKE stats (type/ave/delta/count) on step 200
 Bond:   18   0.9572    7.53188e-07     1280
 Angle:  31   104.52    6.82865e-05      640
------------- Step            200 ----- CPU =    0.4897447 (sec) -------------
+------------ Step            200 ----- CPU =    0.5025554 (sec) -------------
 TotEng   =     -5308.4065 KinEng   =      1100.4746 Temp     =       273.5390 
 PotEng   =     -6408.8811 E_bond   =        18.2697 E_angle  =        33.3012 
 E_dihed  =        16.8150 E_impro  =         2.6049 E_vdwl   =       686.3272 
 E_coul   =     26736.1835 E_long   =    -33902.3826 Press    =     -1470.1162
------------- Step            250 ----- CPU =    0.6168208 (sec) -------------
+------------ Step            250 ----- CPU =    0.6367884 (sec) -------------
 TotEng   =     -5294.1273 KinEng   =      1071.1517 Temp     =       266.2503 
 PotEng   =     -6365.2790 E_bond   =        14.2020 E_angle  =        39.2056 
 E_dihed  =        19.4545 E_impro  =         3.1422 E_vdwl   =       753.9932 
@@ -186,27 +186,27 @@ Bond:   14   0.96      0                  1
 SHAKE stats (type/ave/delta/count) on step 300
 Bond:   18   0.957201  5.4904e-06      1280
 Angle:  31   104.52    0.000581311      640
------------- Step            300 ----- CPU =     0.745132 (sec) -------------
+------------ Step            300 ----- CPU =    0.7665562 (sec) -------------
 TotEng   =     -5251.4197 KinEng   =      1123.1968 Temp     =       279.1869 
 PotEng   =     -6374.6166 E_bond   =        14.2138 E_angle  =        38.3984 
 E_dihed  =        18.1919 E_impro  =         2.3722 E_vdwl   =       716.1933 
 E_coul   =     26745.0989 E_long   =    -33909.0851 Press    =      -458.9649
-Loop time of 0.74529 on 4 procs for 300 steps with 2004 atoms
+Loop time of 0.766613 on 4 procs for 300 steps with 2004 atoms
 
-Performance: 69.557 ns/day, 0.345 hours/ns, 402.528 timesteps/s, 806.665 katom-step/s
-99.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 67.622 ns/day, 0.355 hours/ns, 391.332 timesteps/s, 784.228 katom-step/s
+99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.52491    | 0.53272    | 0.54164    |   1.0 | 71.48
-Bond    | 0.0005654  | 0.0013049  | 0.0021423  |   1.9 |  0.18
-Kspace  | 0.058725   | 0.067147   | 0.075694   |   2.8 |  9.01
-Neigh   | 0.06815    | 0.068173   | 0.068197   |   0.0 |  9.15
-Comm    | 0.015275   | 0.015341   | 0.015407   |   0.0 |  2.06
-Output  | 0.00017109 | 0.00020152 | 0.00029152 |   0.0 |  0.03
-Modify  | 0.059111   | 0.059152   | 0.059194   |   0.0 |  7.94
-Other   |            | 0.001252   |            |       |  0.17
+Pair    | 0.53222    | 0.54046    | 0.54672    |   0.7 | 70.50
+Bond    | 0.00072778 | 0.0016522  | 0.0026425  |   2.2 |  0.22
+Kspace  | 0.065096   | 0.070181   | 0.078956   |   2.1 |  9.15
+Neigh   | 0.072306   | 0.072357   | 0.072393   |   0.0 |  9.44
+Comm    | 0.016591   | 0.01682    | 0.017131   |   0.2 |  2.19
+Output  | 0.00017096 | 0.00018563 | 0.00022774 |   0.0 |  0.02
+Modify  | 0.06342    | 0.063478   | 0.063532   |   0.0 |  8.28
+Other   |            | 0.001481   |            |       |  0.19
 
 Nlocal:            501 ave         511 max         489 min
 Histogram: 1 0 0 0 0 1 1 0 0 1

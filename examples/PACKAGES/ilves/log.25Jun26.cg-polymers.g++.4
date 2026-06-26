@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2006-gb1f77a5e76-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2009-g056b4bb4c5-modified)
   using 1 OpenMP thread(s) per MPI task
 # Coarse-grain polymer chains with near-linear backbone angles.
 
@@ -36,7 +36,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      4 = max # of 1-4 neighbors
      6 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.009 seconds
+  read_data CPU = 0.008 seconds
 
 pair_coeff 1 1 1.0 1.0
 pair_coeff 2 2 1.2 1.5
@@ -93,9 +93,9 @@ Per MPI rank memory allocation (min/avg/max) = 7.831 | 7.832 | 7.833 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
          0   2.3724673      4.898926       571.36771      2.5379575      573.90567    
        100   2.3724673      4.5657865     -5.7411558      2.5379575     -3.2031983    
-Loop time of 0.136239 on 4 procs for 100 steps with 896 atoms
+Loop time of 0.146931 on 4 procs for 100 steps with 896 atoms
 
-99.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = max iterations
@@ -109,13 +109,13 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.091991   | 0.10182    | 0.10801    |   1.9 | 74.74
-Bond    | 0.0026247  | 0.0028046  | 0.0031073  |   0.4 |  2.06
+Pair    | 0.09654    | 0.10541    | 0.11445    |   2.0 | 71.74
+Bond    | 0.0027261  | 0.0029025  | 0.003231   |   0.4 |  1.98
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.01343    | 0.01979    | 0.029695   |   4.3 | 14.53
-Output  | 1.1602e-05 | 1.2645e-05 | 1.556e-05  |   0.0 |  0.01
-Modify  | 0.0093278  | 0.0093714  | 0.0094     |   0.0 |  6.88
-Other   |            | 0.002436   |            |       |  1.79
+Comm    | 0.016792   | 0.026099   | 0.034979   |   4.0 | 17.76
+Output  | 1.2975e-05 | 1.444e-05  | 1.8706e-05 |   0.0 |  0.01
+Modify  | 0.0098465  | 0.0099258  | 0.010023   |   0.1 |  6.76
+Other   |            | 0.002579   |            |       |  1.76
 
 Nlocal:            224 ave         240 max         217 min
 Histogram: 2 1 0 0 0 0 0 0 0 1
@@ -161,21 +161,21 @@ ILVES stats (type/ave/delta/count) on step 1000 (up to 41 Newton iterations)
 Bond:   1   1         1.72394e-06      448
 Bond:   2   1.2       6.96447e-07      320
       1000   1.4110988      4.1796912     -5.8663545      1.5095293     -4.3568252    
-Loop time of 0.996822 on 4 procs for 1000 steps with 896 atoms
+Loop time of 1.00862 on 4 procs for 1000 steps with 896 atoms
 
-Performance: 433377.141 tau/day, 1003.188 timesteps/s, 898.856 katom-step/s
-98.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 428306.251 tau/day, 991.450 timesteps/s, 888.339 katom-step/s
+99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.10147    | 0.11138    | 0.11991    |   2.0 | 11.17
-Bond    | 0.0034118  | 0.003734   | 0.0041324  |   0.4 |  0.37
-Neigh   | 0.045849   | 0.046006   | 0.046168   |   0.1 |  4.62
-Comm    | 0.020036   | 0.028864   | 0.038945   |   4.0 |  2.90
-Output  | 8.9471e-05 | 0.00010073 | 0.00013144 |   0.0 |  0.01
-Modify  | 0.80493    | 0.80506    | 0.80517    |   0.0 | 80.76
-Other   |            | 0.001681   |            |       |  0.17
+Pair    | 0.10462    | 0.11234    | 0.12056    |   1.8 | 11.14
+Bond    | 0.0034583  | 0.0038146  | 0.0042383  |   0.5 |  0.38
+Neigh   | 0.04794    | 0.048139   | 0.048312   |   0.1 |  4.77
+Comm    | 0.026442   | 0.035002   | 0.042775   |   3.3 |  3.47
+Output  | 0.0001042  | 0.00011697 | 0.00015482 |   0.0 |  0.01
+Modify  | 0.80683    | 0.80692    | 0.80708    |   0.0 | 80.00
+Other   |            | 0.002288   |            |       |  0.23
 
 Nlocal:            224 ave         244 max         210 min
 Histogram: 1 1 0 0 0 1 0 0 0 1

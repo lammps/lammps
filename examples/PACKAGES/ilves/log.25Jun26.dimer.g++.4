@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2006-gb1f77a5e76-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2009-g056b4bb4c5-modified)
   using 1 OpenMP thread(s) per MPI task
 # fix ilves example: a fluid of rigid diatomic molecules (LJ units)
 # the bond of every dimer is held rigid by fix ilves
@@ -104,21 +104,21 @@ Bond:   1   1         1.17906e-12      400
 ILVES stats (type/ave/delta/count) on step 2000 (up to 2 Newton iterations)
 Bond:   1   1         1.25677e-13      400
       2000   1.464468      -1.0369547      0.79088441     0.037207589  
-Loop time of 0.0973398 on 4 procs for 2000 steps with 800 atoms
+Loop time of 0.0986235 on 4 procs for 2000 steps with 800 atoms
 
-Performance: 8876121.474 tau/day, 20546.577 timesteps/s, 16.437 Matom-step/s
-98.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 8760585.251 tau/day, 20279.133 timesteps/s, 16.223 Matom-step/s
+98.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0099503  | 0.011841   | 0.012832   |   1.0 | 12.16
-Bond    | 6.8194e-05 | 6.979e-05  | 7.2802e-05 |   0.0 |  0.07
-Neigh   | 0.020488   | 0.020639   | 0.020854   |   0.1 | 21.20
-Comm    | 0.014822   | 0.015715   | 0.01731    |   0.8 | 16.14
-Output  | 6.1777e-05 | 7.413e-05  | 0.00011026 |   0.0 |  0.08
-Modify  | 0.047074   | 0.04718    | 0.047286   |   0.0 | 48.47
-Other   |            | 0.001821   |            |       |  1.87
+Pair    | 0.010033   | 0.011826   | 0.012766   |   1.0 | 11.99
+Bond    | 6.3295e-05 | 6.8711e-05 | 7.4416e-05 |   0.0 |  0.07
+Neigh   | 0.020256   | 0.020364   | 0.020456   |   0.1 | 20.65
+Comm    | 0.015295   | 0.016154   | 0.017713   |   0.7 | 16.38
+Output  | 7.2458e-05 | 8.5092e-05 | 0.00011891 |   0.0 |  0.09
+Modify  | 0.047646   | 0.047846   | 0.047959   |   0.1 | 48.51
+Other   |            | 0.00228    |            |       |  2.31
 
 Nlocal:            200 ave         237 max         174 min
 Histogram: 1 0 1 1 0 0 0 0 0 1

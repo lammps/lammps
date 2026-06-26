@@ -2466,48 +2466,78 @@ void PPPMDipole::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDipole::slabcorr()
 {
-  // compute local contribution to global dipole moment
-
-  double dipole = 0.0;
+  double *q = atom->q;
+  double **x = atom->x;
   double **mu = atom->mu;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) dipole += mu[i][2];
+  // local contribution to the total z dipole moment of the cell:
+  //   charge first moment   D_q  = sum q_i z_i
+  //   intrinsic dipole      D_mu = sum mu_iz
+  // M_z = D_q + D_mu is the combined slab dipole moment that enters the
+  // Yeh-Berkowitz correction E = (2pi/V)[M_z^2 - qsum R2 - qsum^2 Lz^2/12].
+  // (the earlier dipole-only form used a mu^2/12 self term that is
+  // inconsistent with the -4pi/V torque/field; the combined moment with no
+  // 1/12 on M_z^2 is consistent with the field felt by both species.)
 
-  // sum local contributions to get global dipole moment
+  double dipole = 0.0;
+  for (int i = 0; i < nlocal; i++) dipole += q[i]*x[i][2] + mu[i][2];
+
+  // sum local contributions to get global combined dipole moment
 
   double dipole_all;
   MPI_Allreduce(&dipole,&dipole_all,1,MPI_DOUBLE,MPI_SUM,world);
 
-  // need to make non-neutral systems and/or
-  //  per-atom energy translationally invariant
+  // charge second moment R2 = sum q_i z_i^2; only charges contribute (point
+  // dipoles carry no net charge).  needed for per-atom energy and for
+  // non-neutral systems
 
+  double dipole_r2 = 0.0;
   if (eflag_atom || fabs(qsum) > SMALL) {
+    for (int i = 0; i < nlocal; i++)
+      dipole_r2 += q[i]*x[i][2]*x[i][2];
 
-    error->all(FLERR,"Cannot (yet) use kspace slab correction with "
-      "long-range dipoles and non-neutral systems or per-atom energy");
+    // sum local contributions
+
+    double tmp;
+    MPI_Allreduce(&dipole_r2,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
+    dipole_r2 = tmp;
   }
 
   // compute corrections
 
-  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all/12.0)/volume;
+  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
+    qsum*dipole_r2 - qsum*qsum*zprd_slab*zprd_slab/12.0)/volume;
   const double qscale = qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
 
   // per-atom energy
+  //   eatom_i = efact [ m_i M_z - q_i (0.5(R2 + qsum z_i^2) + qsum Lz^2/12) ]
+  // with m_i = q_i z_i + mu_iz; reduces to the base PPPM charge form when
+  // mu = 0 and sums to e_slabcorr
 
   if (eflag_atom) {
-    double efact = qscale * MY_2PI/volume/12.0;
-    for (int i = 0; i < nlocal; i++)
-      eatom[i] += efact * mu[i][2]*dipole_all;
+    double efact = qscale * MY_2PI/volume;
+    for (int i = 0; i < nlocal; i++) {
+      double mi = q[i]*x[i][2] + mu[i][2];
+      eatom[i] += efact * (mi*dipole_all - q[i]*(0.5*(dipole_r2 +
+        qsum*x[i][2]*x[i][2]) + qsum*zprd_slab*zprd_slab/12.0));
+    }
   }
 
-  // add on torque corrections
+  const double ffact = qscale * (-4.0*MY_PI/volume);
+
+  // add on force corrections (act on point charges only)
+
+  double **f = atom->f;
+  for (int i = 0; i < nlocal; i++)
+    f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
+
+  // add on torque corrections (act on point dipoles)
 
   if (atom->torque) {
-    double ffact = qscale * (-4.0*MY_PI/volume);
-    double **mu = atom->mu;
     double **torque = atom->torque;
     for (int i = 0; i < nlocal; i++) {
       torque[i][0] += ffact * dipole_all * mu[i][1];

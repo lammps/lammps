@@ -1,8 +1,18 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1986-gaeaeb9e7aa-modified)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2006-gb1f77a5e76-modified)
   using 1 OpenMP thread(s) per MPI task
+# fix ilves example: a fluid of rigid diatomic molecules (LJ units)
+# the bond of every dimer is held rigid by fix ilves
+
+units           lj
+atom_style      bond
+boundary        p p p
+
+region          box block 0 18 0 18 0 18
+create_box      1 box bond/types 1 extra/bond/per/atom 1 extra/special/per/atom 2
 Created orthogonal box = (0 0 0) to (18 18 18)
   1 by 2 by 2 MPI processor grid
+
+molecule        dimer mol.dimer
 Read molecule template dimer:
 # rigid diatomic (dumbbell) molecule for fix ilves example
   1 molecules
@@ -13,9 +23,17 @@ Read molecule template dimer:
   0 angles with max type 0
   0 dihedrals with max type 0
   0 impropers with max type 0
+create_atoms    0 random 400 54321 box mol dimer 98765 overlap 0.9 maxtry 100
 Created 800 atoms
   using lattice units in orthogonal box = (0 0 0) to (18 18 18)
-  create_atoms CPU = 0.004 seconds
+  create_atoms CPU = 0.005 seconds
+
+mass            1 1.0
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+bond_style      harmonic
+bond_coeff      1 100.0 1.0
+special_bonds   lj 0.0 1.0 1.0
 Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        0        0       
@@ -25,11 +43,29 @@ Finding 1-2 1-3 1-4 neighbors ...
      5 = max # of special neighbors
   special bonds CPU = 0.000 seconds
 
+velocity        all create 1.0 12345 loop geom
+
+fix             1 all nve
+fix             cons all ilves 1.0e-8 25 500 b 1
+
+thermo_style    custom step temp epair etotal press
+thermo          250
+run             2000
+
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
+
 - fix ilves command: doi:10.1021/acs.jctc.5c01376
-The log file lists these citations in BibTeX format.
+
+@Article{LopezVillellas2025,
+ author = {L{\'o}pez-Villellas, Lori{\'e}n and Mikkelsen, Carl Christian Kjelgaard and Galano-Frutos, Juan Jos{\'e} and Marco-Sola, Santiago and Alastruey-Bened{\'e}, Jes{\'u}s and Ib{\'a}{\~n}ez, Pablo and Echenique, Pablo and Moret{\'o}, Miquel and {De Rosa}, Maria Cristina and Garc{\'i}a-Risue{\~n}o, Pablo},
+ title = {ILVES: Accurate and Efficient Bond Length and Angle Constraints in Molecular Dynamics},
+ journal = {J.~Chem.\ Theory Comput.},
+ volume = 21,
+ pages = {8711--8719},
+ year = 2025
+}
 
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
@@ -46,58 +82,54 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-Setting up Verlet run ...
-  Unit style    : lj
-  Current step  : 0
-  Time step     : 0.005
-Fix ilves: constraining 400 bond(s)
-Fix ilves constraint statistics at step 0:
-  bond type 1: count 400  ave 1  spread 5.44e-15
+Fix ilves: constraining 400 bond(s) and 0 angle(s)
+ILVES stats (type/ave/delta/count) on step 0 (up to 0 Newton iterations)
+Bond:   1   1         5.44009e-15      400
 Per MPI rank memory allocation (min/avg/max) = 4.33 | 4.333 | 4.336 Mbytes
    Step          Temp          E_pair         TotEng         Press     
          0   1.005676      -0.44054575     0.81466366     0.23453719   
-       250   1.3009398     -0.81575443     0.80798102     0.058539722  
-Fix ilves constraint statistics at step 500:
-  bond type 1: count 400  ave 1  spread 2.86e-05
-       500   1.3354213     -0.861437       0.80533565     0.052035832  
-       750   1.3785648     -0.91819271     0.80242852     0.044930401  
-Fix ilves constraint statistics at step 1000:
-  bond type 1: count 400  ave 1  spread 3.86e-05
-      1000   1.3704481     -0.91086302     0.79962752     0.043113612  
-      1250   1.4297282     -0.98726895     0.79721049     0.026232662  
-Fix ilves constraint statistics at step 1500:
-  bond type 1: count 400  ave 1  spread 2.8e-05
-      1500   1.413841      -0.96800396     0.79664634     0.016381664  
-      1750   1.4316051     -0.99228907     0.79453309     0.041111052  
-Fix ilves constraint statistics at step 2000:
-  bond type 1: count 400  ave 1  spread 3.21e-05
-      2000   1.4233319     -0.98246842     0.79402768     0.041672808  
-Loop time of 0.122251 on 4 procs for 2000 steps with 800 atoms
+       250   1.3009076     -0.81576796     0.80792735     0.058522397  
+ILVES stats (type/ave/delta/count) on step 500 (up to 2 Newton iterations)
+Bond:   1   1         2.33591e-13      400
+       500   1.3354965     -0.86158969     0.80527691     0.052125008  
+       750   1.365166      -0.90186146     0.8020363      0.062425045  
+ILVES stats (type/ave/delta/count) on step 1000 (up to 2 Newton iterations)
+Bond:   1   1         1.38867e-12      400
+      1000   1.3693455     -0.90993591     0.79917841     0.048025482  
+      1250   1.3634475     -0.90258991     0.79916299     0.046091289  
+ILVES stats (type/ave/delta/count) on step 1500 (up to 2 Newton iterations)
+Bond:   1   1         1.17906e-12      400
+      1500   1.4040887     -0.95542693     0.79705122     0.068543514  
+      1750   1.4164845     -0.97321718     0.79473252     0.053535265  
+ILVES stats (type/ave/delta/count) on step 2000 (up to 2 Newton iterations)
+Bond:   1   1         1.25677e-13      400
+      2000   1.464468      -1.0369547      0.79088441     0.037207589  
+Loop time of 0.0973398 on 4 procs for 2000 steps with 800 atoms
 
-Performance: 7067416.908 tau/day, 16359.761 timesteps/s, 13.088 Matom-step/s
-98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 8876121.474 tau/day, 20546.577 timesteps/s, 16.437 Matom-step/s
+98.6% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.010895   | 0.012272   | 0.01411    |   1.1 | 10.04
-Bond    | 0.002631   | 0.0029656  | 0.0034303  |   0.6 |  2.43
-Neigh   | 0.019029   | 0.019156   | 0.019359   |   0.1 | 15.67
-Comm    | 0.013795   | 0.015749   | 0.016482   |   0.9 | 12.88
-Output  | 3.9766e-05 | 4.4385e-05 | 5.6347e-05 |   0.0 |  0.04
-Modify  | 0.069637   | 0.069902   | 0.070381   |   0.1 | 57.18
-Other   |            | 0.002162   |            |       |  1.77
+Pair    | 0.0099503  | 0.011841   | 0.012832   |   1.0 | 12.16
+Bond    | 6.8194e-05 | 6.979e-05  | 7.2802e-05 |   0.0 |  0.07
+Neigh   | 0.020488   | 0.020639   | 0.020854   |   0.1 | 21.20
+Comm    | 0.014822   | 0.015715   | 0.01731    |   0.8 | 16.14
+Output  | 6.1777e-05 | 7.413e-05  | 0.00011026 |   0.0 |  0.08
+Modify  | 0.047074   | 0.04718    | 0.047286   |   0.0 | 48.47
+Other   |            | 0.001821   |            |       |  1.87
 
-Nlocal:            200 ave         212 max         194 min
-Histogram: 1 1 1 0 0 0 0 0 0 1
-Nghost:            470 ave         482 max         449 min
-Histogram: 1 0 0 0 0 0 0 1 1 1
-Neighs:           1460 ave        1561 max        1319 min
-Histogram: 1 0 0 0 0 1 0 1 0 1
+Nlocal:            200 ave         237 max         174 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+Nghost:          507.5 ave         528 max         469 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Neighs:        1478.75 ave        1850 max         924 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
 
-Total # of neighbors = 5840
-Ave neighs/atom = 7.3
+Total # of neighbors = 5915
+Ave neighs/atom = 7.39375
 Ave special neighs/atom = 1
-Neighbor list builds = 270
+Neighbor list builds = 275
 Dangerous builds = 0
 Total wall time: 0:00:00

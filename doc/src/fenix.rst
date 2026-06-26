@@ -7,6 +7,7 @@ Syntax
 """"""
 
 .. code-block:: LAMMPS
+
    fenix keyword value ...
 
 * keyword = *restart_file*, *restart_label*, *universal*, or *spares*
@@ -16,7 +17,7 @@ Syntax
       *restart_file* arg = file
          file = the file argument to pass to a jump command
       *restart_label* arg = label
-         file = the label argument to pass to a jump command
+         label = the label argument to pass to a jump command
       *spares* arg = N
          N = the number of ranks for Fenix to use as spares
       *universal* arg = none
@@ -36,12 +37,15 @@ Examples
 Description
 """""""""""
 
-This command initializes Fenix for online process recovery. From this point on,
-Fenix claims a number of ranks to be used as spares. The LAMMPS world is rebuilt
-without the spare ranks. Importantly, this means Fenix should be initialized
-before you perform any steps that rely on knowing the number of ranks or
-communicating. In general, the safest approach is to only have variable setup
-commands before calling this command.
+.. versionadded:: TBD
+
+This command initializes `Fenix <https://github.com/sandialabs/fenix>` for
+online process recovery. From this point on, Fenix claims a number of ranks to
+be used as spares. The LAMMPS world is rebuilt without the spare ranks.
+Importantly, this means Fenix should be initialized before you perform any steps
+that rely on knowing the number of ranks or communicating. In general, the
+safest approach is to only have variable setup commands before calling this
+command.
 
 On detecting a process failure, Fenix will automatically regain control. It will
 rebuild the LAMMPS world to the same number of ranks as before (when possible),

@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Matthew Whitlock (SNL)
+------------------------------------------------------------------------- */
+
 #include "FENIX/fenix.h"
 #include "comm.h"
 #include "universe.h"
@@ -34,10 +38,11 @@ Fenix* Fenix::active_controller = nullptr;
 
 Fenix::Fenix(LAMMPS* lmp) : Command(lmp) {
   spare_ranks = 0;
+  universal = false;
   resilient_world = MPI_COMM_NULL;
   input_world = MPI_COMM_NULL;
   restart_file = "SELF";
-};
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -69,6 +74,10 @@ void Fenix::init() {
     universe->nworlds--;
   }
 
+  // Request that spare ranks spend most of their time sleeping, to avoid
+  // resource consumption
+  fenix::set_option(fenix::SPARE_WAIT_MODE, fenix::SLEEP);
+
   fenix::args::FenixInitArgs fenix_args;
   fenix_args.in_comm = input_world;
   fenix_args.out_comm = &resilient_world;
@@ -92,10 +101,18 @@ void Fenix::init() {
       fault_handler();
   });
 
+  if (universal) {
+    // In universal mode, we need to revoke the world comm before recovery to
+    // prevent any ranks in my world from getting stuck waiting for me
+    fenix::callback_register([&](MPI_Comm, int){
+        if (world != MPI_COMM_NULL) fenix::comm_revoke(world);
+    }, fenix::PRE_RECOVERY);
+  }
+
   // Recovered ranks (spares that just replaced a failed rank) manually
   // invoke the handler and enter recovery
   if(fenix::role() == fenix::RECOVERED_RANK){
-    fenix::callback_invoke_all();
+    fenix::callback_invoke_all(fenix::POST_RECOVERY);
     recover();
   }
 
@@ -232,11 +249,11 @@ void Fenix::try_recover(){
     if(scrn.empty()) scrn = uscrn.empty() ? "screen" : uscrn;
 
     int ume = universe->existflag ? universe->me : me;
-    if(ume == 0 && uscrn.empty()) universe->uscreen = stdout;
-    else if(ume == 0 && uscrn == "none") universe->uscreen = nullptr;
-    else if(ume == 0) universe->uscreen = fopen(uscrn.c_str(), "a");
-    if(ume == 0 && ulg == "none") universe->ulogfile = nullptr;
-    else universe->ulogfile = fopen(ulg.c_str(), "a");
+    if(ume == 0) {
+      if(uscrn.empty()) universe->uscreen = stdout;
+      else if(uscrn != "none") universe->uscreen = fopen(uscrn.c_str(), "a");
+      if(ulg != "none") universe->ulogfile = fopen(ulg.c_str(), "a");
+    }
     if(!universe->existflag){
       screen = universe->uscreen;
       logfile = universe->ulogfile;
@@ -263,6 +280,7 @@ void Fenix::try_setup_universe(){
   MPI_Info comm_info;
   MPI_Comm_get_info(universe->uworld, &comm_info);
   MPI_Info_set(comm_info, "mpi_error_uniform", "construct");
+  MPI_Comm_set_info(universe->uworld, comm_info);
   MPI_Info_free(&comm_info);
 
   // Make sure universe->uni2orig remains accurate
@@ -292,12 +310,10 @@ void Fenix::try_setup_universe(){
   // is made in the fault handler.
   assert(iworld == universe->iworld || universe->iworld == universe->nworlds);
   universe->iworld = iworld;
-  int err = MPI_Comm_split(universe->uworld, universe->iworld, 0, &world);
-  if (err != MPI_SUCCESS) {
-    // Needed until "mpi_error_uniform" is supported - after that we can just
-    // return (the split will be retried until success)
-    error->universe_one(FLERR, "Could not safely recreate universe worlds");
-  }
+  MPI_Comm_split(universe->uworld, universe->iworld, 0, &world);
+  // Catch any remote errors or revocations that could have made the above comm
+  // invalid. This is only needed until "mpi_error_uniform" is supported.
+  MPI_Barrier(universe->uworld);
 }
 
 }

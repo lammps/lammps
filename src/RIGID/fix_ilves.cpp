@@ -44,7 +44,7 @@
 #include "fix_respa.h"
 #include "force.h"
 #include "group.h"
-#include "ilves_asym.h"
+#include "ilves.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -1046,8 +1046,8 @@ void FixIlves::build_constraint_list()
   delete ilves_solver;
   ilves_solver = nullptr;
   if (nconstraints > 0)
-    ilves_solver = new ILVES::IlvesAsym(lmp, nconstraints, clist_a.data(), clist_b.data(),
-                                        clist_d.data(), invmass.data());
+    ilves_solver = new ILVES::Ilves(lmp, nconstraints, clist_a.data(), clist_b.data(),
+                                    clist_d.data(), invmass.data());
 }
 
 /* ----------------------------------------------------------------------

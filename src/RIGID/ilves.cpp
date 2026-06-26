@@ -12,9 +12,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   ILVES constraint solver: abstract base class.
-   Adapted from GROMACS 2021 ILVES (LGPL-2.1), src/gromacs/mdlib/ilves.cpp.
-   See ilves_graph.h for full attribution and ilves.h for the adaptation notes.
+   ILVES constraint solver (serial, exact-Newton).
+   Adapted from GROMACS 2021 ILVES (LGPL-2.1), src/gromacs/mdlib/ilves.cpp and
+   ilves_asym.cpp.  See ilves_graph.h for full attribution and ilves.h for the
+   adaptation notes.
 ------------------------------------------------------------------------- */
 
 #include "ilves.h"
@@ -33,22 +34,45 @@ Ilves::Ilves(LAMMPS *const _lmp, const int nbonds, const int *const catom1, cons
 {
   mol = std::unique_ptr<Molecule>(new Molecule(nbonds, catom1, catom2, cdist, invmass));
 
+  // reference bond vectors x_ab and predicted bond vectors xprime_ab; both are
+  // needed to assemble the exact-Newton Jacobian (which uses r != s)
   for (int d = 0; d < DIM; ++d) x_ab[d].resize(mol->bonds.num);
+  for (int d = 0; d < DIM; ++d) xprime_ab[d].resize(mol->bonds.num);
 
   // build the sparse direct solver for the constraint connectivity; it computes
-  // a fill-reducing reordering, returned in schur_solver_perm
-  std::vector<int> schur_solver_perm;
-  schur_solver = std::unique_ptr<SchurLinearSolver>(
-      new SchurLinearSolver(mol->bonds.graph, schur_solver_perm));
+  // a fill-reducing reordering, returned in solver_perm
+  std::vector<int> solver_perm;
+  solver = std::unique_ptr<SparseDirectSolver>(
+      new SparseDirectSolver(mol->bonds.graph, solver_perm));
 
-  // apply the fill-reducing permutation the solver computed; the bond graph is
-  // no longer needed afterwards, so do not renumber it
-  mol->renumber_bonds(schur_solver_perm, false);
+  // apply the fill-reducing permutation the solver computed to the bond data
+  // (the bond graph itself is no longer needed once the solver is built)
+  mol->renumber_bonds(solver_perm);
 
   make_weights();
 
   // current_lagr must be as large as the rhs so the two can be swapped
-  current_lagr.resize(schur_solver->rhs.size());
+  current_lagr.resize(solver->rhs.size());
+}
+
+/* ----------------------------------------------------------------------
+   The fix drives each Newton iteration as prepare() then step(): prepare()
+   assembles g(x) and the reference/predicted bond vectors; step() assembles and
+   factors the (exact-Newton) Jacobian, solves it, and accumulates the position
+   increment.  The Jacobian is re-assembled and re-factored every iteration.
+------------------------------------------------------------------------- */
+
+double Ilves::prepare(double **const x, double **const xprime)
+{
+  return make_rhs(x, xprime, true);
+}
+
+void Ilves::step(double **const dx)
+{
+  make_lhs(xprime_ab, x_ab);
+  solver->LU_factor();
+  solver->LU_solve();
+  accumulate_increment(dx);
 }
 
 /* ----------------------------------------------------------------------
@@ -61,9 +85,8 @@ Ilves::Ilves(LAMMPS *const _lmp, const int nbonds, const int *const catom1, cons
 
 double Ilves::make_rhs(double **const x, double **const xprime, const bool compute_x_ab)
 {
-  const bool fill_xprime_ab = !xprime_ab.back().empty();
   const int n = mol->bonds.num;
-  double *const rhs = schur_solver->rhs.data();
+  double *const rhs = solver->rhs.data();
 
   double rel = 0;
 
@@ -76,8 +99,7 @@ double Ilves::make_rhs(double **const x, double **const xprime, const bool compu
 
     double rcd[DIM];
     for (int d = 0; d < DIM; ++d) rcd[d] = xprime[b][d] - xprime[a][d];
-    if (fill_xprime_ab)
-      for (int d = 0; d < DIM; ++d) xprime_ab[d][k] = rcd[d];
+    for (int d = 0; d < DIM; ++d) xprime_ab[d][k] = rcd[d];
 
     const double scalar = rcd[XX] * rcd[XX] + rcd[YY] * rcd[YY] + rcd[ZZ] * rcd[ZZ];
 
@@ -96,10 +118,10 @@ double Ilves::make_rhs(double **const x, double **const xprime, const bool compu
 
 void Ilves::make_lhs(const BondVecs &xab1, const BondVecs &xab2)
 {
-  const int nentries = (int) schur_solver->lhs.size();
-  double *const lhs = schur_solver->lhs.data();
-  const int *const grows = schur_solver->grows.data();
-  const int *const gcols = schur_solver->gcols.data();
+  const int nentries = (int) solver->lhs.size();
+  double *const lhs = solver->lhs.data();
+  const int *const grows = solver->grows.data();
+  const int *const gcols = solver->gcols.data();
 
   for (int e = 0; e < nentries; ++e) {
     const int grow = grows[e];
@@ -117,10 +139,10 @@ void Ilves::make_lhs(const BondVecs &xab1, const BondVecs &xab2)
 void Ilves::update_current_lagr(const bool first_time)
 {
   if (first_time) {
-    std::swap(current_lagr, schur_solver->rhs);
+    std::swap(current_lagr, solver->rhs);
   } else {
     const int n = mol->bonds.num;
-    auto *rhs_data = schur_solver->rhs.data();
+    auto *rhs_data = solver->rhs.data();
     auto *current_lagr_data = current_lagr.data();
     for (int k = 0; k < n; ++k) current_lagr_data[k] += rhs_data[k];
   }
@@ -163,7 +185,7 @@ double Ilves::recompute(double **const x, double **const xprime, const bool firs
 void Ilves::accumulate_increment(double **const dx) const
 {
   const int n = mol->bonds.num;
-  const auto *rhs = schur_solver->rhs.data();
+  const auto *rhs = solver->rhs.data();
 
   for (int k = 0; k < n; ++k) {
     const int a = mol->bonds.atom1[k];
@@ -187,17 +209,17 @@ void Ilves::accumulate_increment(double **const dx) const
 
 void Ilves::make_weights()
 {
-  const int nentries = schur_solver->fill_matrix.num_edges();
+  const int nentries = solver->fill_matrix.num_edges();
   lhs_weights.resize(nentries);
 
   for (int i = 0; i < nentries; ++i) {
-    const int row = schur_solver->grows[i];
-    const int col = schur_solver->gcols[i];
+    const int row = solver->grows[i];
+    const int col = solver->gcols[i];
 
     const int arow1 = mol->bonds.atom1[row];
     const int arow2 = mol->bonds.atom2[row];
 
-    if (schur_solver->is_fillin[i]) {
+    if (solver->is_fillin[i]) {
       lhs_weights[i] = 0;
     } else if (row != col) {
       const int acol1 = mol->bonds.atom1[col];
@@ -222,7 +244,7 @@ double Ilves::memory_usage() const
 {
   double bytes = 0.0;
   if (mol) bytes += mol->memory_usage();
-  if (schur_solver) bytes += schur_solver->memory_usage();
+  if (solver) bytes += solver->memory_usage();
   bytes += (double) (lhs_weights.size() + current_lagr.size()) * sizeof(double);
   for (int d = 0; d < DIM; ++d)
     bytes += (double) (x_ab[d].size() + xprime_ab[d].size()) * sizeof(double);

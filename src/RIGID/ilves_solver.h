@@ -21,8 +21,8 @@
    retained from upstream.  See ilves_graph.h for full attribution.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_ILVES_SCHUR_SOLVER_H
-#define LMP_ILVES_SCHUR_SOLVER_H
+#ifndef LMP_ILVES_SOLVER_H
+#define LMP_ILVES_SOLVER_H
 
 #include <list>
 #include <map>
@@ -42,7 +42,7 @@
 namespace LAMMPS_NS {
 namespace ILVES {
 
-class SchurLinearSolver {
+class SparseDirectSolver {
 public:
     // reordered adjacency (CSR) including fill-in.  the numeric factor is held
     // in lhs, indexed in lockstep with fill_matrix.adj
@@ -82,7 +82,7 @@ public:
      *  Old position 1 is now position 1
      *  Old position 0 is now position 2
      */
-    SchurLinearSolver(Graph &matrix, std::vector<int> &perm);
+    SparseDirectSolver(Graph &matrix, std::vector<int> &perm);
 
     /**
      * Performs the in-place LU factorization of the matrix.  The lhs must be

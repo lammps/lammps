@@ -40,12 +40,9 @@ namespace ILVES {
 class Molecule {
 public:
     struct Atoms {
-        int num;       // The number of atoms in the molecule. Only atoms with
-                       // constraints.
-        Graph graph;   // the atomic graph of the molecule. Only atoms with
-                       // constraints.
-
-        const double *invmass;   // invmass[i] is 1/mass of the ith atom
+        // invmass[i] is 1/mass of the ith atom (borrowed; owned by the caller).
+        // The atom graph and atom count are construction-only and not retained.
+        const double *invmass;
     } atoms;
 
     struct Bonds {
@@ -56,12 +53,6 @@ public:
         // Bond 0 connects atom1[0] and atom2[0].
         std::vector<int> atom1;
         std::vector<int> atom2;
-
-        // Local atom indices of the two atoms of each bond.
-        // The local atom indices correspond to the numbering of
-        // atoms_data.graph. Example: Bond 0 connects latom1[0] and latom2[0].
-        std::vector<int> latom1;
-        std::vector<int> latom2;
 
         // The bond length squared of each bond.
         std::vector<double> sigma2;
@@ -97,10 +88,8 @@ public:
      *  Old position 0 is now position 2
      *
      * @param perm The permutation in MATLAB format.
-     * @param renumber_graph If true, the bond graph is also renumbered. The
-     * bond graph is not renumbered otherwise.
      */
-    void renumber_bonds(const std::vector<int> &perm, bool renumber_graph);
+    void renumber_bonds(const std::vector<int> &perm);
 
     /**
      * Estimate the memory used by the constraint topology (atom and bond

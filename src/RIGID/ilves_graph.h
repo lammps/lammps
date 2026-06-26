@@ -101,22 +101,6 @@ class Graph {
    * @return The size of the graph storage in bytes.
    */
   double memory_usage() const;
-
-  /**
-   * Renumbers the vertices of a graph using a given permutation of length
-   * the number of nodes in the graph.
-   * The permutation is given as in MATLAB. Example:
-   *  p = [2, 1, 0] Means that
-   *  Old position 2 is now position 0
-   *  Old position 1 is now position 1
-   *  Old position 0 is now position 2
-   *
-   * @param perm The permutation array.
-   * @param iperm The inverse permutation array. This is an optional
-   * parameter, is an empty vector is provided, it will be computed in this
-   * function.
-   */
-  void renumber_vertices(const std::vector<int> &perm, std::vector<int> &iperm);
 };
 
 }    // namespace ILVES

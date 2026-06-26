@@ -38,8 +38,9 @@ Molecule::Molecule(const int nbonds,
 
     atoms.invmass = _invmass;
 
-    // The number of atoms with constraints.
-    atoms.num = 0;
+    // Construction-only scratch, not retained after the constructor.
+    int natoms = 0;
+    Graph atom_graph;
 
     // The number of local (rank) constraints.
     bonds.num = nbonds;
@@ -47,8 +48,8 @@ Molecule::Molecule(const int nbonds,
     bonds.atom1.resize(bonds.num);
     bonds.atom2.resize(bonds.num);
 
-    bonds.latom1.resize(bonds.num);
-    bonds.latom2.resize(bonds.num);
+    std::vector<int> latom1(bonds.num);
+    std::vector<int> latom2(bonds.num);
 
     bonds.sigma2.resize(bonds.num);
     bonds.invsigma2.resize(bonds.num);
@@ -83,8 +84,8 @@ Molecule::Molecule(const int nbonds,
             const int la = a;
             const int lb = b;
 
-            bonds.latom1[bond] = la;
-            bonds.latom2[bond] = lb;
+            latom1[bond] = la;
+            latom2[bond] = lb;
 
             const int min_la_lb = std::min(la, lb);
             const int max_la_lb = std::max(la, lb);
@@ -100,24 +101,24 @@ Molecule::Molecule(const int nbonds,
 
         {
             // Resize atom.graph.xadj.
-            atoms.graph.xadj.resize(max_latom_id - min_latom_id + 2, -2);
+            atom_graph.xadj.resize(max_latom_id - min_latom_id + 2, -2);
 
             // Now xadj[i] > -2 if i is in latom1 or latom2.
             for (int bond = 0; bond < bonds.num; ++bond) {
-                const int la = bonds.latom1[bond];
-                const int lb = bonds.latom2[bond];
+                const int la = latom1[bond];
+                const int lb = latom2[bond];
 
-                atoms.graph.xadj[la - min_latom_id] = -1;
-                atoms.graph.xadj[lb - min_latom_id] = -1;
+                atom_graph.xadj[la - min_latom_id] = -1;
+                atom_graph.xadj[lb - min_latom_id] = -1;
             }
 
             // Set the local id, such that the ids of the local atoms are
             // contiguous.
-            atoms.num = 0;
+            natoms = 0;
             for (int idx = 0; idx < max_latom_id - min_latom_id + 1; ++idx) {
-                if (atoms.graph.xadj[idx] == -1) {
-                    atoms.graph.xadj[idx] = atoms.num;
-                    ++atoms.num;
+                if (atom_graph.xadj[idx] == -1) {
+                    atom_graph.xadj[idx] = natoms;
+                    ++natoms;
                 }
             }
         }
@@ -125,15 +126,15 @@ Molecule::Molecule(const int nbonds,
 
         // Apply the new numbering to the local atom ids.
         for (int bond = 0; bond < bonds.num; ++bond) {
-            bonds.latom1[bond] = atoms.graph.xadj[bonds.latom1[bond] - min_latom_id];
-            bonds.latom2[bond] = atoms.graph.xadj[bonds.latom2[bond] - min_latom_id];
+            latom1[bond] = atom_graph.xadj[latom1[bond] - min_latom_id];
+            latom2[bond] = atom_graph.xadj[latom2[bond] - min_latom_id];
         }
         // Implicit wait.
 
         // Reinitialize atom.graph.xadj. See later why it is initialized with
         // 1s.
-        for (int atom = 0; atom < atoms.num; ++atom) {
-            atoms.graph.xadj[atom + 1] = 1;
+        for (int atom = 0; atom < natoms; ++atom) {
+            atom_graph.xadj[atom + 1] = 1;
         }
         // Implicit wait.
 
@@ -141,50 +142,50 @@ Molecule::Molecule(const int nbonds,
 
         // Compute xadj and adj.
         {
-            atoms.graph.nnodes = atoms.num;
-            atoms.graph.xadj.resize(atoms.num + 1);
+            atom_graph.nnodes = natoms;
+            atom_graph.xadj.resize(natoms + 1);
 
             // In the following loop, xadj[i + 1] will be the number of
             // connections of the ith atom. xadj[0] is not used. Array
             // initialized with 1s since each atom is connected to itself.
             for (int bond = 0; bond < bonds.num; ++bond) {
-                const int la = bonds.latom1[bond];
-                const int lb = bonds.latom2[bond];
+                const int la = latom1[bond];
+                const int lb = latom2[bond];
 
                 // Atom la is connected to lb (+1 number of connections).
-                ++atoms.graph.xadj[la + 1];
+                ++atom_graph.xadj[la + 1];
                 // Same for lb.
-                ++atoms.graph.xadj[lb + 1];
+                ++atom_graph.xadj[lb + 1];
             }
 
             // Process the current xadj to be the final xadj.
-            atoms.graph.xadj[0] = 0;
-            for (int atom = 0; atom < atoms.num; ++atom) {
-                atoms.graph.xadj[atom + 1] = atoms.graph.xadj[atom] +
-                                             atoms.graph.xadj[atom + 1];
+            atom_graph.xadj[0] = 0;
+            for (int atom = 0; atom < natoms; ++atom) {
+                atom_graph.xadj[atom + 1] = atom_graph.xadj[atom] +
+                                             atom_graph.xadj[atom + 1];
             }
 
-            atoms.graph.adj.resize(atoms.graph.xadj[atoms.num]);
+            atom_graph.adj.resize(atom_graph.xadj[natoms]);
 
             // The index of the next element to be inserted in the adj of each
             // atom.
-            std::vector<int> adj_idx(atoms.num, 0);
+            std::vector<int> adj_idx(natoms, 0);
 
-            bonds_of_atom.resize(atoms.graph.xadj[atoms.num]);
+            bonds_of_atom.resize(atom_graph.xadj[natoms]);
 
             // Fill adj.
             for (int bond = 0; bond < bonds.num; ++bond) {
-                const int la = bonds.latom1[bond];
-                const int lb = bonds.latom2[bond];
+                const int la = latom1[bond];
+                const int lb = latom2[bond];
 
                 // Atom la is connected to lb.
-                atoms.graph.adj[atoms.graph.xadj[la] + adj_idx[la]] = lb;
+                atom_graph.adj[atom_graph.xadj[la] + adj_idx[la]] = lb;
                 // Same for lb.
-                atoms.graph.adj[atoms.graph.xadj[lb] + adj_idx[lb]] = la;
+                atom_graph.adj[atom_graph.xadj[lb] + adj_idx[lb]] = la;
 
                 // The bond that connects la and lb is bond.
-                bonds_of_atom[atoms.graph.xadj[la] + adj_idx[la]] = bond;
-                bonds_of_atom[atoms.graph.xadj[lb] + adj_idx[lb]] = bond;
+                bonds_of_atom[atom_graph.xadj[la] + adj_idx[la]] = bond;
+                bonds_of_atom[atom_graph.xadj[lb] + adj_idx[lb]] = bond;
 
                 ++adj_idx[la];
                 ++adj_idx[lb];
@@ -193,15 +194,15 @@ Molecule::Molecule(const int nbonds,
 
 
         // Sort adj.
-        for (int atom = 0; atom < atoms.num; ++atom) {
+        for (int atom = 0; atom < natoms; ++atom) {
             // Atoms are connected to themselves.
-            atoms.graph.adj[atoms.graph.xadj[atom + 1] - 1] = atom;
+            atom_graph.adj[atom_graph.xadj[atom + 1] - 1] = atom;
             // But this connection is not a bond.
-            // bonds_of_atom[atoms.graph.xadj[atom + 1] - 1] = -1;
+            // bonds_of_atom[atom_graph.xadj[atom + 1] - 1] = -1;
 
             // The atom ids in adj are sorted.
-            std::sort(atoms.graph.adj.begin() + atoms.graph.xadj[atom],
-                      atoms.graph.adj.begin() + atoms.graph.xadj[atom + 1]);
+            std::sort(atom_graph.adj.begin() + atom_graph.xadj[atom],
+                      atom_graph.adj.begin() + atom_graph.xadj[atom + 1]);
         }
 
         // Construct the bond graph.
@@ -214,17 +215,17 @@ Molecule::Molecule(const int nbonds,
             bonds.graph.xadj[0] = 0;
 
             for (int bond = 0; bond < bonds.num; ++bond) {
-                const int la = bonds.latom1[bond];
-                const int lb = bonds.latom2[bond];
+                const int la = latom1[bond];
+                const int lb = latom2[bond];
 
                 // The bond is connected to all bonds connected to atom la and
                 // lb plus itself. -2 since both la and lb are connected between
                 // them (this is the bond; counted in nconn with +1) and to
                 // themselves (this is not a bond).
-                const int nbonds_la = atoms.graph.xadj[la + 1] -
-                                      atoms.graph.xadj[la] - 2;
-                const int nbonds_lb = atoms.graph.xadj[lb + 1] -
-                                      atoms.graph.xadj[lb] - 2;
+                const int nbonds_la = atom_graph.xadj[la + 1] -
+                                      atom_graph.xadj[la] - 2;
+                const int nbonds_lb = atom_graph.xadj[lb + 1] -
+                                      atom_graph.xadj[lb] - 2;
                 const int nconn = nbonds_la + nbonds_lb + 1;
 
                 bonds.graph.xadj[bond + 1] = bonds.graph.xadj[bond] + nconn;
@@ -236,8 +237,8 @@ Molecule::Molecule(const int nbonds,
 
         // Fill adj.
         for (int bond = 0; bond < bonds.num; ++bond) {
-            const int la = bonds.latom1[bond];
-            const int lb = bonds.latom2[bond];
+            const int la = latom1[bond];
+            const int lb = latom2[bond];
 
             // The bond is connected to all bonds connected to atom la and lb
             // plus itself.
@@ -247,8 +248,8 @@ Molecule::Molecule(const int nbonds,
             ++adj_idx;
 
             auto bonds_of_atom_to_adj = [&](const int atom) {
-                for (int k = atoms.graph.xadj[atom];
-                     k < atoms.graph.xadj[atom + 1] - 1;
+                for (int k = atom_graph.xadj[atom];
+                     k < atom_graph.xadj[atom + 1] - 1;
                      ++k) {
                     const int neigh = bonds_of_atom[k];
 
@@ -274,16 +275,12 @@ Molecule::Molecule(const int nbonds,
     }
 }
 
-void Molecule::renumber_bonds(const std::vector<int> &perm,
-                              const bool renumber_graph) {
+void Molecule::renumber_bonds(const std::vector<int> &perm) {
     Molecule::Bonds new_bonds;
 
     // Copy old vectors.
     new_bonds.atom1 = bonds.atom1;
     new_bonds.atom2 = bonds.atom2;
-
-    new_bonds.latom1 = bonds.latom1;
-    new_bonds.latom2 = bonds.latom2;
 
     new_bonds.sigma2 = bonds.sigma2;
     new_bonds.invsigma2 = bonds.invsigma2;
@@ -293,26 +290,15 @@ void Molecule::renumber_bonds(const std::vector<int> &perm,
         bonds.atom1[bond] = new_bonds.atom1[perm[bond]];
         bonds.atom2[bond] = new_bonds.atom2[perm[bond]];
 
-        bonds.latom1[bond] = new_bonds.latom1[perm[bond]];
-        bonds.latom2[bond] = new_bonds.latom2[perm[bond]];
-
         bonds.sigma2[bond] = new_bonds.sigma2[perm[bond]];
         bonds.invsigma2[bond] = new_bonds.invsigma2[perm[bond]];
-    }
-
-    // Renumber the vertices of the bond graph.
-    if (renumber_graph) {
-        std::vector<int> iperm;
-        bonds.graph.renumber_vertices(perm, iperm);
     }
 }
 
 double Molecule::memory_usage() const
 {
-    double bytes = atoms.graph.memory_usage() + bonds.graph.memory_usage();
-    bytes += (double) (bonds.atom1.size() + bonds.atom2.size() + bonds.latom1.size() +
-                       bonds.latom2.size()) *
-        sizeof(int);
+    double bytes = bonds.graph.memory_usage();
+    bytes += (double) (bonds.atom1.size() + bonds.atom2.size()) * sizeof(int);
     bytes += (double) (bonds.sigma2.size() + bonds.invsigma2.size()) * sizeof(double);
     return bytes;
 }

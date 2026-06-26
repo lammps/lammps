@@ -20,7 +20,7 @@
    See ilves_graph.h for full attribution.
 ------------------------------------------------------------------------- */
 
-#include "ilves_schur_solver.h"
+#include "ilves_solver.h"
 
 #include <algorithm>
 #include <functional>
@@ -36,7 +36,7 @@
 namespace LAMMPS_NS {
 namespace ILVES {
 
-SchurLinearSolver::SchurLinearSolver(Graph &matrix, std::vector<int> &perm) {
+SparseDirectSolver::SparseDirectSolver(Graph &matrix, std::vector<int> &perm) {
     nrows = matrix.num_nodes();
 
     FillMatrixGenerator fill_matrix_generator(matrix);
@@ -51,7 +51,7 @@ SchurLinearSolver::SchurLinearSolver(Graph &matrix, std::vector<int> &perm) {
     populate(gfill_matrix, gis_fillin);
 }
 
-void SchurLinearSolver::populate(const Graph &gfill_matrix,
+void SparseDirectSolver::populate(const Graph &gfill_matrix,
                                  const std::vector<bool> &gis_fillin) {
     const int total_entries = gfill_matrix.num_edges();
 
@@ -92,7 +92,7 @@ void SchurLinearSolver::populate(const Graph &gfill_matrix,
     }
 }
 
-void SchurLinearSolver::LU_factor() {
+void SparseDirectSolver::LU_factor() {
     // Isolate the adjacency lists
     const auto &adj = fill_matrix.adj;
     // Isolate the list of row indices
@@ -133,7 +133,7 @@ void SchurLinearSolver::LU_factor() {
     }
 }
 
-void SchurLinearSolver::LU_forward() {
+void SparseDirectSolver::LU_forward() {
     const auto &adj = fill_matrix.adj;
     const auto &xadj = fill_matrix.xadj;
 
@@ -145,7 +145,7 @@ void SchurLinearSolver::LU_forward() {
     }
 }
 
-void SchurLinearSolver::LU_backward() {
+void SparseDirectSolver::LU_backward() {
     const auto &adj = fill_matrix.adj;
     const auto &xadj = fill_matrix.xadj;
 
@@ -160,12 +160,12 @@ void SchurLinearSolver::LU_backward() {
     }
 }
 
-void SchurLinearSolver::LU_solve() {
+void SparseDirectSolver::LU_solve() {
     LU_forward();
     LU_backward();
 }
 
-SchurLinearSolver::FillMatrixGenerator::FillMatrixGenerator(const Graph &matrix)
+SparseDirectSolver::FillMatrixGenerator::FillMatrixGenerator(const Graph &matrix)
     : matrix(matrix),
       perm(matrix.num_nodes()),
       iperm(matrix.num_nodes()),
@@ -197,13 +197,13 @@ SchurLinearSolver::FillMatrixGenerator::FillMatrixGenerator(const Graph &matrix)
 }
 
 std::tuple<Graph &, std::vector<bool> &, std::vector<int> &>
-SchurLinearSolver::FillMatrixGenerator::get_fill_matrix() {
+SparseDirectSolver::FillMatrixGenerator::get_fill_matrix() {
     return std::make_tuple(std::ref(fillin_matrix),
                            std::ref(is_fillin),
                            std::ref(perm));
 }
 
-void SchurLinearSolver::FillMatrixGenerator::init_matrices() {
+void SparseDirectSolver::FillMatrixGenerator::init_matrices() {
     const int nnodes = matrix.num_nodes();
     init_matrix.reserve(nnodes);
     final_matrix.reserve(nnodes);
@@ -229,7 +229,7 @@ void SchurLinearSolver::FillMatrixGenerator::init_matrices() {
     }
 }
 
-void SchurLinearSolver::FillMatrixGenerator::init_active_rows() {
+void SparseDirectSolver::FillMatrixGenerator::init_active_rows() {
     const int nnodes = matrix.num_nodes();
     active_rows_ptrs.reserve(nnodes);
 
@@ -250,7 +250,7 @@ void SchurLinearSolver::FillMatrixGenerator::init_active_rows() {
     }
 }
 
-void SchurLinearSolver::FillMatrixGenerator::compute_fillins() {
+void SparseDirectSolver::FillMatrixGenerator::compute_fillins() {
     int pgrow = 0;
 
     while (!active_rows.empty()) {
@@ -276,7 +276,7 @@ void SchurLinearSolver::FillMatrixGenerator::compute_fillins() {
     }
 }
 
-void SchurLinearSolver::FillMatrixGenerator::apply_permutation() {
+void SparseDirectSolver::FillMatrixGenerator::apply_permutation() {
     const int nnodes = matrix.num_nodes();
     // Auxiliary vector for sorting.
     std::vector<MatrixEntry> sortv(nnodes);
@@ -310,7 +310,7 @@ void SchurLinearSolver::FillMatrixGenerator::apply_permutation() {
     }
 }
 
-void SchurLinearSolver::FillMatrixGenerator::copy_aux_to_final() {
+void SparseDirectSolver::FillMatrixGenerator::copy_aux_to_final() {
     const int nnodes = matrix.num_nodes();
     for (int old_row = 0; old_row < nnodes; ++old_row) {
         const int row = iperm[old_row];
@@ -324,7 +324,7 @@ void SchurLinearSolver::FillMatrixGenerator::copy_aux_to_final() {
     }
 }
 
-void SchurLinearSolver::FillMatrixGenerator::update_active_row(const int row, const int old_deg,
+void SparseDirectSolver::FillMatrixGenerator::update_active_row(const int row, const int old_deg,
                                                               const bool disable) {
     const int new_deg = init_matrix[row].size();
 
@@ -363,7 +363,7 @@ void SchurLinearSolver::FillMatrixGenerator::update_active_row(const int row, co
     }
 }
 
-void SchurLinearSolver::FillMatrixGenerator::update_neighbors(const int row, const int col) {
+void SparseDirectSolver::FillMatrixGenerator::update_neighbors(const int row, const int col) {
     const int col_old_deg = init_matrix[col].size();
 
     auto row_it = init_matrix[row].begin();
@@ -425,7 +425,7 @@ void SchurLinearSolver::FillMatrixGenerator::update_neighbors(const int row, con
     update_active_row(col, col_old_deg, false);
 }
 
-double SchurLinearSolver::memory_usage() const
+double SparseDirectSolver::memory_usage() const
 {
     double bytes = fill_matrix.memory_usage();
     bytes += (double) (grows.size() + gcols.size() + diag.size()) * sizeof(int);

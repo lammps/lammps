@@ -12,9 +12,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   ILVES constraint solver: abstract base class.
+   ILVES constraint solver (serial, exact-Newton).
 
-   Adapted from GROMACS 2021 ILVES (LGPL-2.1), src/gromacs/mdlib/ilves.{cpp,h}.
+   Adapted from GROMACS 2021 ILVES (LGPL-2.1), src/gromacs/mdlib/ilves.{cpp,h}
+   and ilves_asym.{cpp,h}.
    The reusable algorithm (right-hand-side / left-hand-side assembly, position
    increment, Lagrange-multiplier accumulation, bond partitioning and matrix
    weights) is preserved; the interface is adapted to LAMMPS (positions as
@@ -38,7 +39,7 @@
 #define LMP_ILVES_H
 
 #include "ilves_molecule.h"
-#include "ilves_schur_solver.h"
+#include "ilves_solver.h"
 
 #include <array>
 #include <memory>
@@ -62,15 +63,16 @@ class Ilves {
   Ilves(LAMMPS *lmp, int nbonds, const int *catom1, const int *catom2, const double *cdist,
         const double *invmass);
 
-  virtual ~Ilves() = default;
+  ~Ilves() = default;
 
-  // assemble g(x) using reference positions x and predicted positions xprime;
-  // returns the local max relative (squared) bond-length violation
-  virtual double prepare(double **x, double **xprime) = 0;
+  // assemble g(x) and the reference/predicted bond vectors; returns the local
+  // max relative (squared) bond-length violation
+  double prepare(double **x, double **xprime);
 
-  // one Newton step: solve the linear system, accumulate position increments
-  // (for both atoms of every constraint, home or ghost) into dx
-  virtual void step(double **dx) = 0;
+  // one Newton step: assemble and factor the Jacobian, solve it, and accumulate
+  // the position increments (for both atoms of every constraint, home or ghost)
+  // into dx
+  void step(double **dx);
 
   // accumulate the multipliers, then reassemble g(x); first_iter selects the
   // initial multiplier handling.  returns the local max relative violation
@@ -80,18 +82,15 @@ class Ilves {
   // sum over owned constraints of -lambda*inv_dtfsq * r (x) r
   void add_global_virial(double *v6, double inv_dtfsq) const;
 
-  int num_constraints() const { return mol->bonds.num; }
-  const Molecule *molecule() const { return mol.get(); }
-
   // estimate the solver's memory footprint (topology + factored sparse matrix
-  // + the per-partition weight/multiplier and bond-vector work arrays) in bytes
+  // + the weight/multiplier and bond-vector work arrays) in bytes
   double memory_usage() const;
 
  protected:
   LAMMPS *lmp;
 
   std::unique_ptr<Molecule> mol;
-  std::unique_ptr<SchurLinearSolver> schur_solver;
+  std::unique_ptr<SparseDirectSolver> solver;
 
   // weights of the entries of the lhs (one per stored matrix entry)
   VecDouble lhs_weights;

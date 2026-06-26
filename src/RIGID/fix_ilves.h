@@ -53,32 +53,32 @@ class FixIlves : public Fix {
 
  protected:
   // user settings
-  double tolerance;       // convergence tolerance on relative bond-length error
-  int max_iter;           // max # of Newton iterations per step
-  int output_every;       // print constraint statistics every this many steps (0 = never)
-  bigint next_output;     // next timestep for statistics output
-  int fixed_iter;         // 1 = run exactly max_iter iterations (no convergence test)
+  double tolerance;        // convergence tolerance on relative bond-length error
+  int max_iter;            // max # of Newton iterations per step
+  int output_every;        // print constraint statistics every this many steps (0 = never)
+  bigint next_output;      // next timestep for statistics output
+  bool fixed_iter_flag;    // true = run exactly max_iter iterations (no convergence test)
 
   // near-linear angle handling.  the A-C "virtual bond" of an angle becomes
   // rank-deficient as the equilibrium angle approaches 180 degrees, so angle
   // types whose theta0 is at or above linear_threshold (in degrees) are treated
   // specially according to linear_mode.
-  int linear_mode;          // LINEAR_ERROR, LINEAR_SKIP, or LINEAR_RESTRAIN
-  double linear_threshold;  // degrees; angle types with theta0 >= this are near-linear
-  double kbond;             // force constant for the restrain substitute (< 0 = auto)
-  double erestraint;        // potential energy of the restrain substitute (this rank)
+  int linear_mode;            // LINEAR_ERROR, LINEAR_SKIP, or LINEAR_RESTRAIN
+  double linear_threshold;    // degrees; angle types with theta0 >= this are near-linear
+  double kbond;               // force constant for the restrain substitute (< 0 = auto)
+  double erestraint;          // potential energy of the restrain substitute (this rank)
 
   // selectors (which bonds/angles to constrain), as in fix shake
-  std::vector<int> bond_flag;     // [nbondtypes+1]  constrain these bond types
-  std::vector<int> angle_flag;    // [nangletypes+1] constrain these angle types (deferred)
-  std::vector<int> type_flag;     // [ntypes+1] constrain bonds touching these atom types
-  std::vector<double> mass_list;  // constrain bonds touching atoms of these masses
+  std::vector<int> bond_flag;       // [nbondtypes+1]  constrain these bond types
+  std::vector<int> angle_flag;      // [nangletypes+1] constrain these angle types (deferred)
+  std::vector<int> type_flag;       // [ntypes+1] constrain bonds touching these atom types
+  std::vector<double> mass_list;    // constrain bonds touching atoms of these masses
 
-  int molecular;                      // copy of atom->molecular
-  std::vector<double> bond_distance;  // [nbondtypes+1] equilibrium bond lengths
-  std::vector<double> angle_distance; // [nangletypes+1] equilibrium A-C distances
-  std::vector<int> angle_linear;      // [nangletypes+1] 1 if type is near-linear (theta0>=threshold)
-  int types_negated;                  // 1 once constrained bond/angle types have been negated
+  int molecular;                         // copy of atom->molecular
+  std::vector<double> bond_distance;     // [nbondtypes+1] equilibrium bond lengths
+  std::vector<double> angle_distance;    // [nangletypes+1] equilibrium A-C distances
+  std::vector<int> angle_linear;    // [nangletypes+1] 1 if type is near-linear (theta0>=threshold)
+  int types_negated;                // 1 once constrained bond/angle types have been negated
 
   int store_flag;     // 1 to expose per-atom constraint forces via array_atom
   double **fstore;    // per-atom constraint forces (when store_flag)
@@ -112,8 +112,8 @@ class FixIlves : public Fix {
   double **xpred;
   double **xpred0;
   double **dx;
-  int maxatom;    // current allocated length of the above per-atom arrays
-  int commstage;  // 0 = forward-comm positions (PBC shift), 1 = velocities (no shift)
+  int maxatom;      // current allocated length of the above per-atom arrays
+  int commstage;    // 0 = forward-comm positions (PBC shift), 1 = velocities (no shift)
 
   // timestep factors, as in fix shake.  for r-RESPA dtfsq/inv_dtfsq are
   // recomputed per level in post_force_respa (= dtf_inner * step_respa[ilevel]).
@@ -123,13 +123,13 @@ class FixIlves : public Fix {
 
   // r-RESPA support, mirroring fix shake (SHAKE-form coupling, so the full-step
   // dtf_inner is used, not the half-step rattle form)
-  int respa;                   // 0 = velocity Verlet, 1 = r-RESPA
-  int nlevels_respa;           // number of r-RESPA levels
-  int *loop_respa;             // sub-cycling factor at each level (Respa-owned)
-  double *step_respa;          // timestep at each level (Respa-owned)
-  class FixRespa *fix_respa;   // holds the per-level forces (f_level)
-  double dtf_inner;            // = step_respa[0] * ftm2v
-  double dtf_innerhalf;        // = 0.5 * step_respa[0] * ftm2v
+  int respa;                    // 0 = velocity Verlet, 1 = r-RESPA
+  int nlevels_respa;            // number of r-RESPA levels
+  int *loop_respa;              // sub-cycling factor at each level (Respa-owned)
+  double *step_respa;           // timestep at each level (Respa-owned)
+  class FixRespa *fix_respa;    // holds the per-level forces (f_level)
+  double dtf_inner;             // = step_respa[0] * ftm2v
+  double dtf_innerhalf;         // = 0.5 * step_respa[0] * ftm2v
 
   // cached local ptrs to atom-class quantities
   double **x, **v, **f;
@@ -138,8 +138,8 @@ class FixIlves : public Fix {
   int nlocal;
 
   void build_constraint_list();
-  int run_newton();          // drive prepared xpred onto the constraint manifold; returns # iters
-  int solve_constraints();   // run_newton, then turn the displacement into forces; returns # iters
+  int run_newton();           // drive prepared xpred onto the constraint manifold; returns # iters
+  int solve_constraints();    // run_newton, then turn the displacement into forces; returns # iters
   void apply_linear_restraint();
   double min_harmonic_bond(int a, int b, double d, double k);
   void project_velocities();

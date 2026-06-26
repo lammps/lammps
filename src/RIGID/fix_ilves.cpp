@@ -1490,24 +1490,74 @@ void FixIlves::stats()
   // largest Newton iteration count used since the last output (ILVES-specific).
 
   if (comm->me == 0) {
-    int maxt = (nb > na) ? nb : na;
-    if (maxt < 1) maxt = 1;
-    const int width = (int) log10((double) maxt) + 2;
+    // when a labelmap is present, report each constrained type by its symbolic
+    // label (matching the label-based input), with a numeric fallback for any
+    // type that has no label; otherwise report numeric types as before.
+    const bool uselabel = (atom->labelmapflag != 0);
+    auto blabel = [&](int t) -> std::string {
+      if (uselabel) {
+        const std::string &s = atom->lmap->find_label(t, Atom::BOND);
+        if (!s.empty()) return s;
+      }
+      return std::to_string(t);
+    };
+    auto alabel = [&](int t) -> std::string {
+      if (uselabel) {
+        const std::string &s = atom->lmap->find_label(t, Atom::ANGLE);
+        if (!s.empty()) return s;
+      }
+      return std::to_string(t);
+    };
+
+    // type-column width: longest label (or type number) actually printed,
+    // shared by the Bond: and Angle: rows so the columns stay aligned
+    int width;
+    if (uselabel) {
+      width = 1;
+      for (int t = 1; t < nb; ++t)
+        if (bcount_all[t]) {
+          const int w = (int) blabel(t).size();
+          if (w > width) width = w;
+        }
+      for (int t = 1; t < na; ++t)
+        if (acount_all[t]) {
+          const int w = (int) alabel(t).size();
+          if (w > width) width = w;
+        }
+    } else {
+      int maxt = (nb > na) ? nb : na;
+      if (maxt < 1) maxt = 1;
+      width = (int) log10((double) maxt) + 2;
+    }
+
     auto mesg = fmt::format("ILVES stats (type/ave/delta/count) on step {} (up to {} Newton "
                             "iterations)\n",
                             update->ntimestep, niter_max);
     for (int t = 1; t < nb; ++t) {
       if (bcount_all[t] == 0) continue;
-      mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n", t, width,
-                          bsum_all[t] / (double) bcount_all[t], bmax_all[t] - bmin_all[t],
-                          bcount_all[t]);
+      if (uselabel) {
+        mesg += fmt::format("Bond:  {:<{}}   {:<9.6} {:<11.6} {:>8d}\n", blabel(t), width,
+                            bsum_all[t] / (double) bcount_all[t], bmax_all[t] - bmin_all[t],
+                            bcount_all[t]);
+      } else {
+        mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n", t, width,
+                            bsum_all[t] / (double) bcount_all[t], bmax_all[t] - bmin_all[t],
+                            bcount_all[t]);
+      }
     }
     for (int t = 1; t < na; ++t) {
       if (acount_all[t] == 0) continue;
-      mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n", t, width,
-                          asum_all[t] / (double) acount_all[t], amax_all[t] - amin_all[t],
-                          acount_all[t]);
+      if (uselabel) {
+        mesg += fmt::format("Angle: {:<{}}   {:<9.6} {:<11.6} {:>8d}\n", alabel(t), width,
+                            asum_all[t] / (double) acount_all[t], amax_all[t] - amin_all[t],
+                            acount_all[t]);
+      } else {
+        mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n", alabel(t), width,
+                            asum_all[t] / (double) acount_all[t], amax_all[t] - amin_all[t],
+                            acount_all[t]);
+      }
     }
+
     utils::logmesg(lmp, mesg);
   }
 

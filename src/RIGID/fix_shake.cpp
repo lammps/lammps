@@ -2996,20 +2996,62 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (comm->me == 0) {
-    const int width = (int) log10((double)(MAX(MAX(1,nb),na))) + 2;
+    // when a labelmap is present, report each type by its symbolic label
+    // (matching label-based input), with a numeric fallback for unlabeled types
+    const bool uselabel = (atom->labelmapflag != 0);
+    auto blabel = [&](int i) -> std::string {
+      if (uselabel) {
+        const std::string &s = atom->lmap->find_label(i, Atom::BOND);
+        if (!s.empty()) return s;
+      }
+      return std::to_string(i);
+    };
+    auto alabel = [&](int i) -> std::string {
+      if (uselabel) {
+        const std::string &s = atom->lmap->find_label(i, Atom::ANGLE);
+        if (!s.empty()) return s;
+      }
+      return std::to_string(i);
+    };
+
+    // type-column width: longest label (or type number) actually printed,
+    // shared by the Bond: and Angle: rows so the columns stay aligned
+    int width;
+    if (uselabel) {
+      width = 1;
+      for (int i = 1; i < nb; i++)
+        if (b_count_all[i]) { const int w = (int) blabel(i).size(); if (w > width) width = w; }
+      for (int i = 1; i < na; i++)
+        if (a_count_all[i]) { const int w = (int) alabel(i).size(); if (w > width) width = w; }
+    } else {
+      width = (int) log10((double)(MAX(MAX(1,nb),na))) + 2;
+    }
+
     auto mesg = fmt::format("{} stats (type/ave/delta/count) on step {}\n",
                             utils::uppercase(style), update->ntimestep);
     for (int i = 1; i < nb; i++) {
       const auto bcnt = b_count_all[i];
-      if (bcnt)
-        mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
-                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+      if (bcnt) {
+        if (uselabel) {
+          mesg += fmt::format("Bond:  {:<{}}   {:<9.6} {:<11.6} {:>8d}\n", blabel(i), width,
+                              b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+        } else {
+          mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n", i, width,
+                              b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+        }
+      }
     }
     for (int i = 1; i < na; i++) {
       const auto acnt = a_count_all[i];
-      if (acnt)
-        mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
-                            a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
+      if (acnt) {
+        if (uselabel) {
+          mesg += fmt::format("Angle: {:<{}}   {:<9.6} {:<11.6} {:>8d}\n",alabel(i),width,
+                              a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
+        } else {
+          mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
+                              a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
+        }
+      }
     }
     utils::logmesg(lmp,mesg);
   }

@@ -105,12 +105,13 @@ static const char cite_fix_ilves[] =
 
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), tolerance(1.0e-4), max_iter(25), output_every(0), next_output(0),
-    fixed_iter(0), linear_mode(LINEAR_ERROR), linear_threshold(175.0), kbond(-1.0), molecular(0),
-    types_negated(0), store_flag(0), fstore(nullptr), maxstore(0), niter_max(0), nconstraints(0),
-    ilves_solver(nullptr), xpred(nullptr), xpred0(nullptr), dx(nullptr), maxatom(0), commstage(0),
-    dtv(0.0), dtfsq(0.0), inv_dtfsq(0.0), respa(0), nlevels_respa(0), loop_respa(nullptr),
-    step_respa(nullptr), fix_respa(nullptr), dtf_inner(0.0), dtf_innerhalf(0.0), x(nullptr),
-    v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), mask(nullptr), nlocal(0)
+    fixed_iter_flag(false), linear_mode(LINEAR_ERROR), linear_threshold(175.0), kbond(-1.0),
+    molecular(0), types_negated(0), store_flag(0), fstore(nullptr), maxstore(0), niter_max(0),
+    nconstraints(0), ilves_solver(nullptr), xpred(nullptr), xpred0(nullptr), dx(nullptr),
+    maxatom(0), commstage(0), dtv(0.0), dtfsq(0.0), inv_dtfsq(0.0), respa(0), nlevels_respa(0),
+    loop_respa(nullptr), step_respa(nullptr), fix_respa(nullptr), dtf_inner(0.0),
+    dtf_innerhalf(0.0), x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr),
+    type(nullptr), mask(nullptr), nlocal(0)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ilves);
 
@@ -226,9 +227,9 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "mode") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves mode", error);
       if (strcmp(arg[iarg + 1], "converge") == 0)
-        fixed_iter = 0;
+        fixed_iter_flag = false;
       else if (strcmp(arg[iarg + 1], "fixed") == 0)
-        fixed_iter = 1;
+        fixed_iter_flag = true;
       else
         error->all(FLERR, iarg + 1, "Unknown fix ilves mode: {}", arg[iarg + 1]);
       iarg += 2;
@@ -635,14 +636,14 @@ int FixIlves::run_newton()
   comm->forward_comm(this);
   double local = ilves_solver ? ilves_solver->prepare(x, xpred) : 0.0;
   double ptau = 0.0;
-  if (!fixed_iter) MPI_Allreduce(&local, &ptau, 1, MPI_DOUBLE, MPI_MAX, world);
+  if (!fixed_iter_flag) MPI_Allreduce(&local, &ptau, 1, MPI_DOUBLE, MPI_MAX, world);
 
   int numit = 0;
   for (int i = 0; i < max_iter; ++i) {
     // in convergence mode (the default) stop once the global maximum relative
     // violation is below the tolerance; in fixed mode always run max_iter steps
     // (which avoids the per-iteration MPI reduction)
-    if (!fixed_iter && (!std::isfinite(ptau) || (ptau <= tolerance))) break;
+    if (!fixed_iter_flag && (!std::isfinite(ptau) || (ptau <= tolerance))) break;
     ++numit;
     if (ilves_solver) ilves_solver->step(dx);
 
@@ -656,7 +657,7 @@ int FixIlves::run_newton()
     comm->forward_comm(this);
 
     local = ilves_solver ? ilves_solver->recompute(x, xpred, i == 0) : 0.0;
-    if (!fixed_iter) MPI_Allreduce(&local, &ptau, 1, MPI_DOUBLE, MPI_MAX, world);
+    if (!fixed_iter_flag) MPI_Allreduce(&local, &ptau, 1, MPI_DOUBLE, MPI_MAX, world);
   }
 
   if (numit > niter_max) niter_max = numit;
@@ -1530,9 +1531,9 @@ void FixIlves::stats()
       width = (int) log10((double) maxt) + 2;
     }
 
-    auto mesg = fmt::format("ILVES stats (type/ave/delta/count) on step {} (up to {} Newton "
+    auto mesg = fmt::format("ILVES stats (type/ave/delta/count) on step {} ({}{} Newton "
                             "iterations)\n",
-                            update->ntimestep, niter_max);
+                            update->ntimestep, (fixed_iter_flag ? "" : "up to "), niter_max);
     for (int t = 1; t < nb; ++t) {
       if (bcount_all[t] == 0) continue;
       if (uselabel) {
@@ -1552,7 +1553,7 @@ void FixIlves::stats()
                             asum_all[t] / (double) acount_all[t], amax_all[t] - amin_all[t],
                             acount_all[t]);
       } else {
-        mesg += fmt::format("Angle: {:>{}}   {:<9.6} {:<11.6} {:>8d}\n", alabel(t), width,
+        mesg += fmt::format("Angle: {:>{}}   {:<9.6} {:<11.6} {:>8d}\n", t, width,
                             asum_all[t] / (double) acount_all[t], amax_all[t] - amin_all[t],
                             acount_all[t]);
       }

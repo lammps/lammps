@@ -15,9 +15,9 @@
    ILVES constraint solver: parallel Schur-complement sparse direct solver.
    Ported near-verbatim from GROMACS 2021 ILVES (LGPL-2.1),
    src/gromacs/mdlib/schur_linear_solver.{cpp,h}.  Only the namespace, the
-   include paths, and the real/AlignedAllocator spellings (supplied by
-   ilves_compat.h) differ from upstream, and the OpenMP directives are removed
-   (this base solver is serial).  See ilves_graph.h for attribution.
+   include paths, and the use of plain double (LAMMPS is double precision on the
+   CPU) differ from upstream, and the OpenMP directives are removed (this base
+   solver is serial).  See ilves_graph.h for attribution.
 ------------------------------------------------------------------------- */
 
 #ifndef LMP_ILVES_SCHUR_SOLVER_H
@@ -28,7 +28,6 @@
 #include <set>
 #include <vector>
 
-#include "ilves_compat.h"
 #include "ilves_graph.h"
 #include "ilves_mempool.h"
 
@@ -55,8 +54,8 @@ public:
         Graph fill_matrix;
 
         // Local rows and colums to global (whole matrix) rows and columns.
-        std::vector<int, AlignedAllocator<int>> grows;
-        std::vector<int, AlignedAllocator<int>> gcols;
+        std::vector<int> grows;
+        std::vector<int> gcols;
 
         // Is entry i a fillin?
         std::vector<bool> is_fillin;
@@ -75,11 +74,11 @@ public:
         std::vector<localToSharedSchurMap> rhs_local_to_shared;
 
         // Left-hand-side and right-hand-side data.
-        std::vector<real, AlignedAllocator<real>> lhs;
-        std::vector<real, AlignedAllocator<real>> rhs;
+        std::vector<double> lhs;
+        std::vector<double> rhs;
 
         // Scratch vector used during the factorization.
-        std::vector<real, AlignedAllocator<real>> scratch;
+        std::vector<double> scratch;
 
         /**
          * Populates the partition data given the global fill-in matrix,

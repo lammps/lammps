@@ -21,7 +21,7 @@
 
 #include "ilves_molecule.h"
 
-#include "ilves_compat.h"
+#include "math_special.h"
 
 #include <algorithm>
 #include <limits>
@@ -33,8 +33,8 @@ namespace ILVES {
 Molecule::Molecule(const int nbonds,
                    const int *const catom1,
                    const int *const catom2,
-                   const real *const cdist,
-                   const real *const _invmass) {
+                   const double *const cdist,
+                   const double *const _invmass) {
 
     atoms.invmass = _invmass;
 
@@ -73,7 +73,7 @@ Molecule::Molecule(const int nbonds,
             bonds.atom1[bond] = a;
             bonds.atom2[bond] = b;
 
-            bonds.sigma2[bond] = square(cdist[bond]);
+            bonds.sigma2[bond] = MathSpecial::square(cdist[bond]);
             bonds.invsigma2[bond] = 1.0 / bonds.sigma2[bond];
 
             // The atom index is also the key used to build the contiguous

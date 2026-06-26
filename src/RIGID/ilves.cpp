@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 namespace ILVES {
 
 Ilves::Ilves(LAMMPS *const _lmp, const int nbonds, const int *const catom1, const int *const catom2,
-             const real *const cdist, const real *const invmass, const int threads,
+             const double *const cdist, const double *const invmass, const int threads,
              const bool upper_tri) :
     lmp(_lmp), nthreads(threads)
 {
@@ -123,12 +123,12 @@ Ilves::Ilves(LAMMPS *const _lmp, const int nbonds, const int *const catom1, cons
    correction is needed here.
 ------------------------------------------------------------------------- */
 
-real Ilves::make_rhs_scalar(double **const x, double **const xprime, const bool compute_x_ab,
-                            real *const rhs, const int gstart, const int gend, const int lstart)
+double Ilves::make_rhs_scalar(double **const x, double **const xprime, const bool compute_x_ab,
+                            double *const rhs, const int gstart, const int gend, const int lstart)
 {
   const bool xprime_ab_empty = xprime_ab.back().empty();
 
-  real rel = 0;
+  double rel = 0;
 
   for (int grow = gstart, lrow = lstart; grow < gend; ++grow, ++lrow) {
     const int a = mol->bonds.atom1[grow];
@@ -137,12 +137,12 @@ real Ilves::make_rhs_scalar(double **const x, double **const xprime, const bool 
     if (compute_x_ab)
       for (int d = 0; d < DIM; ++d) x_ab[d][grow] = x[b][d] - x[a][d];
 
-    real rcd[DIM];
+    double rcd[DIM];
     for (int d = 0; d < DIM; ++d) rcd[d] = xprime[b][d] - xprime[a][d];
     if (!xprime_ab_empty)
       for (int d = 0; d < DIM; ++d) xprime_ab[d][grow] = rcd[d];
 
-    const real scalar = rcd[XX] * rcd[XX] + rcd[YY] * rcd[YY] + rcd[ZZ] * rcd[ZZ];
+    const double scalar = rcd[XX] * rcd[XX] + rcd[YY] * rcd[YY] + rcd[ZZ] * rcd[ZZ];
 
     rhs[lrow] = 0.5 * (scalar - mol->bonds.sigma2[grow]);
 
@@ -152,7 +152,7 @@ real Ilves::make_rhs_scalar(double **const x, double **const xprime, const bool 
   return rel;
 }
 
-real Ilves::make_rhs(const int partition, double **const x, double **const xprime,
+double Ilves::make_rhs(const int partition, double **const x, double **const xprime,
                      const bool compute_x_ab)
 {
   auto &pdata = schur_solver->part_data[partition];
@@ -180,7 +180,7 @@ void Ilves::make_lhs_scalar(const int partition, const BondVecs &xab1, const Bon
     const int grow = pdata.grows[lrow];
     const int gcol = pdata.gcols[lrow];
 
-    const real scalar = xab1[XX][grow] * xab2[XX][gcol] + xab1[YY][grow] * xab2[YY][gcol] +
+    const double scalar = xab1[XX][grow] * xab2[XX][gcol] + xab1[YY][grow] * xab2[YY][gcol] +
         xab1[ZZ][grow] * xab2[ZZ][gcol];
 
     pdata.lhs[lrow] = weights[lrow] * scalar;
@@ -213,7 +213,7 @@ void Ilves::update_current_lagr(const int partition, const bool first_time)
    pre-zeroed; the caller reverse-sums dx to the owning ranks and applies it.
 ------------------------------------------------------------------------- */
 
-void Ilves::add_global_virial(double *const v6, const real inv_dtfsq) const
+void Ilves::add_global_virial(double *const v6, const double inv_dtfsq) const
 {
   // for constraint k the force on atom a is +lambda_k*inv_dtfsq*r_k (r_k = x_b -
   // x_a) and on atom b is the negative of that; the pairwise virial contribution
@@ -221,8 +221,8 @@ void Ilves::add_global_virial(double *const v6, const real inv_dtfsq) const
   for (size_t p = 0; p < schur_solver->part_data.size(); ++p) {
     const auto &pdata = schur_solver->part_data[p];
     for (int grow = pdata.part[0], lrow = 0; grow < pdata.part[1]; ++grow, ++lrow) {
-      const real s = -current_lagr[p][lrow] * inv_dtfsq;
-      const real rx = x_ab[XX][grow], ry = x_ab[YY][grow], rz = x_ab[ZZ][grow];
+      const double s = -current_lagr[p][lrow] * inv_dtfsq;
+      const double rx = x_ab[XX][grow], ry = x_ab[YY][grow], rz = x_ab[ZZ][grow];
       v6[0] += s * rx * rx;
       v6[1] += s * ry * ry;
       v6[2] += s * rz * rz;
@@ -235,7 +235,7 @@ void Ilves::add_global_virial(double *const v6, const real inv_dtfsq) const
 
 /* ---------------------------------------------------------------------- */
 
-real Ilves::recompute(double **const x, double **const xprime, const bool first_iter)
+double Ilves::recompute(double **const x, double **const xprime, const bool first_iter)
 {
   update_current_lagr(0, first_iter);
   return make_rhs(0, x, xprime, false);
@@ -251,8 +251,8 @@ void Ilves::accumulate_increment(const int partition, double **const dx) const
     const int a = mol->bonds.atom1[grow];
     const int b = mol->bonds.atom2[grow];
 
-    const real rhs_a = pdata.rhs[lrow] * mol->atoms.invmass[a];
-    const real rhs_b = pdata.rhs[lrow] * mol->atoms.invmass[b];
+    const double rhs_a = pdata.rhs[lrow] * mol->atoms.invmass[a];
+    const double rhs_b = pdata.rhs[lrow] * mol->atoms.invmass[b];
     for (int d = 0; d < DIM; ++d) {
       dx[a][d] += rhs_a * x_ab[d][grow];
       dx[b][d] -= rhs_b * x_ab[d][grow];

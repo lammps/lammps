@@ -23,7 +23,6 @@
 #ifndef LMP_ILVES_MOLECULE_H
 #define LMP_ILVES_MOLECULE_H
 
-#include "ilves_compat.h"
 #include "ilves_graph.h"
 
 #include <vector>
@@ -46,7 +45,7 @@ public:
         Graph graph;   // the atomic graph of the molecule. Only atoms with
                        // constraints.
 
-        const real *invmass;   // invmass[i] is 1/mass of the ith atom
+        const double *invmass;   // invmass[i] is 1/mass of the ith atom
     } atoms;
 
     struct Bonds {
@@ -55,21 +54,18 @@ public:
 
         // GROMACS atom indices of the two atoms of each bond. Example:
         // Bond 0 connects atom1[0] and atom2[0].
-        std::vector<int, AlignedAllocator<int>> atom1;
-        std::vector<int, AlignedAllocator<int>> atom2;
+        std::vector<int> atom1;
+        std::vector<int> atom2;
 
         // Local atom indices of the two atoms of each bond.
         // The local atom indices correspond to the numbering of
         // atoms_data.graph. Example: Bond 0 connects latom1[0] and latom2[0].
-        std::vector<int, AlignedAllocator<int>> latom1;
-        std::vector<int, AlignedAllocator<int>> latom2;
-
-        // std::vector<real, AlignedAllocator<real>> sigmaA;
-        // std::vector<real, AlignedAllocator<real>> sigmaB;
+        std::vector<int> latom1;
+        std::vector<int> latom2;
 
         // The bond length squared of each bond.
-        std::vector<real, AlignedAllocator<real>> sigma2;
-        std::vector<real, AlignedAllocator<real>> invsigma2;
+        std::vector<double> sigma2;
+        std::vector<double> invsigma2;
     } bonds;
 
     /**
@@ -89,8 +85,8 @@ public:
      * @param invmass A pointer to the array of inverse mass of each atom.
      * The Molecule keeps a pointer to this array, so it must be kept alive.
      */
-    Molecule(int nbonds, const int *catom1, const int *catom2, const real *cdist,
-             const real *invmass);
+    Molecule(int nbonds, const int *catom1, const int *catom2, const double *cdist,
+             const double *invmass);
 
     /**
      * Renumber the data of the Bonds structure given a permutation.

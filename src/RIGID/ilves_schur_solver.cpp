@@ -29,7 +29,6 @@
 #include <utility>
 #include <vector>
 
-#include "ilves_compat.h"
 #include "ilves_graph.h"
 #include "ilves_mempool.h"
 
@@ -103,8 +102,8 @@ void SchurLinearSolver::PartitionData::LU_factor() {
     for (int j = 0; j < local_rows; j++) {
 
         // Isolate the diagonal entry A(j,j)
-        const real pivot = lhs[diag[j]];
-        const real invpivot = 1.0 / pivot;
+        const double pivot = lhs[diag[j]];
+        const double invpivot = 1.0 / pivot;
 
         // Process all *relevant* rows below row j
         for (int r = diag[j] + 1; r < xadj[j + 1]; ++r) {
@@ -171,8 +170,8 @@ void SchurLinearSolver::PartitionData::cholesky_factor() {
     // Loop over the first local_rows rows of the matrix
     for (int row = 0; row < local_rows; ++row) {
         // Take the square root of the diagonal entry A(row,row)
-        const real pivot = std::sqrt(lhs[diag[row]]);
-        const real invpivot = 1.0 / pivot;
+        const double pivot = std::sqrt(lhs[diag[row]]);
+        const double invpivot = 1.0 / pivot;
         lhs[diag[row]] = pivot;
 
         /* In the next loop we scale the upperdiagonal entries of the rowth row
@@ -208,7 +207,7 @@ void SchurLinearSolver::PartitionData::cholesky_factor() {
         // Loop over the nonzero upperdiagonal elements of the colth row.
         for (int s = diag[row] + 1; s < xadj[row + 1]; ++s) {
             // Isolate the nonzero entry
-            const real alpha = lhs[s];
+            const double alpha = lhs[s];
             // Isolate the index of the row which we have to update
             const int col = adj[s];
             // Update the upperdiagonal part of this row
@@ -272,8 +271,8 @@ void SchurLinearSolver::PartitionData::LDLT_factor() {
     const auto &xadj = fill_matrix.xadj;
 
     for (int row = 0; row < local_rows; ++row) {
-        const real pivot = lhs[diag[row]];
-        const real invpivot = 1.0 / pivot;
+        const double pivot = lhs[diag[row]];
+        const double invpivot = 1.0 / pivot;
 
         /* In the next loop we scale the upperdiagonal entries of the rowth row
            with A(row,row)
@@ -295,7 +294,7 @@ void SchurLinearSolver::PartitionData::LDLT_factor() {
         // Loop over the nonzero upperdiagonal elements of the colth row.
         for (int s = diag[row] + 1; s < xadj[row + 1]; ++s) {
             // Isolate the nonzero entry
-            const real alpha = lhs[s];
+            const double alpha = lhs[s];
             // Isolate the index of the row which we have to update
             const int col = adj[s];
             // Update the upperdiagonal part of this row
@@ -337,7 +336,7 @@ void SchurLinearSolver::PartitionData::LDLT_backward() {
     // Loop backwards over the first n rows
     for (int row = local_rows - 1; row != -1; --row) {
         // Isolate the rowth diagonal element
-        const real d = lhs[diag[row]];
+        const double d = lhs[diag[row]];
 
         // We only are interested in the strictly upperdiagonal part of the
         // matrix.

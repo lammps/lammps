@@ -28,10 +28,10 @@ namespace ILVES {
 
 class IlvesAsym : public Ilves {
  public:
-  IlvesAsym(LAMMPS *lmp, int nbonds, const int *catom1, const int *catom2, const real *cdist,
-            const real *invmass, int nthreads);
+  IlvesAsym(LAMMPS *lmp, int nbonds, const int *catom1, const int *catom2, const double *cdist,
+            const double *invmass, int nthreads);
 
-  real prepare(double **x, double **xprime) override;
+  double prepare(double **x, double **xprime) override;
   void step(double **dx) override;
 };
 

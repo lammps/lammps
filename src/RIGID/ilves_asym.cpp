@@ -23,7 +23,7 @@ namespace LAMMPS_NS {
 namespace ILVES {
 
 IlvesAsym::IlvesAsym(LAMMPS *const lmp, const int nbonds, const int *const catom1,
-                     const int *const catom2, const real *const cdist, const real *const invmass,
+                     const int *const catom2, const double *const cdist, const double *const invmass,
                      const int nthreads) :
     Ilves(lmp, nbonds, catom1, catom2, cdist, invmass, nthreads, false)
 {
@@ -31,7 +31,7 @@ IlvesAsym::IlvesAsym(LAMMPS *const lmp, const int nbonds, const int *const catom
   for (int d = 0; d < DIM; ++d) xprime_ab[d].resize(mol->bonds.num);
 }
 
-real IlvesAsym::prepare(double **const x, double **const xprime)
+double IlvesAsym::prepare(double **const x, double **const xprime)
 {
   // Compute g(x); fills the reference bond vectors x_ab and (since xprime_ab is
   // allocated for this variant) the predicted bond vectors xprime_ab.  The

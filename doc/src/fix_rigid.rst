@@ -925,8 +925,7 @@ functionality of the corresponding non-accelerated styles.  The
 *langevin* thermostat is experimental with Kokkos and may be unstable
 when running with MPI domain decomposition (more than one MPI rank);
 results should be validated against the non-Kokkos style.  Reading body
-properties from a file (the *infile* keyword) is likewise experimental,
-and the *gravity* keyword is not supported.
+properties from a file (the *infile* keyword) is likewise experimental.
 
 The Kokkos atom exchange (migration) and atom sorting must run on the
 same side (both on the host or both on the device), because the device

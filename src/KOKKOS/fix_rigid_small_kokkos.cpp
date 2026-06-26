@@ -138,8 +138,6 @@ void FixRigidSmallKokkos<DeviceType>::init()
     if (inpfile)
       error->warning(FLERR,"fix rigid/small/kk: reading body properties from a "
                      "file (infile) is experimental with Kokkos");
-    if (id_gravity)
-      error->warning(FLERR,"fix rigid/small/kk: gravity is not supported with Kokkos");
   }
 }
 
@@ -702,19 +700,21 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
     Kokkos::Profiling::popRegion();
   }
 
-  // add gravity force to COM of each body
-
-  // TODO?
+  // add gravity force to COM of each body (matches FixRigidSmall::post_force).
+  // gvec points into the gravity fix and is refreshed on the host each step, so
+  // read its three components on the host and apply them in a device kernel.
   if (id_gravity) {
-    error->all(FLERR, "gravity not implemented for fix rigid/small/kk");
-    double mass;
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      mass = body[ibody].mass;
-      double *fcm = body[ibody].fcm;
-      fcm[0] += gvec[0]*mass;
-      fcm[1] += gvec[1]*mass;
-      fcm[2] += gvec[2]*mass;
-    }
+    const double gx = gvec[0], gy = gvec[1], gz = gvec[2];
+    Kokkos::parallel_for(
+      "fix rigid/small gravity",
+      Range1D(0, nlocal_body),
+      KOKKOS_LAMBDA(const int ibody) {
+        Body &b = d_body(ibody);
+        b.fcm[0] += gx*b.mass;
+        b.fcm[1] += gy*b.mass;
+        b.fcm[2] += gz*b.mass;
+      }
+    );
   }
 
   Kokkos::Profiling::popRegion();

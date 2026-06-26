@@ -576,11 +576,13 @@ versions of these styles.
 .. versionchanged:: TBD
 
 Triclinic (non-orthogonal) box support was added to the *pppm/disp*
-style.  It requires *ik* differentiation (the default; the
-:doc:`kspace_modify <kspace_modify>` *diff ad* option is not supported
-together with a triclinic box) and is currently limited to fully
-periodic systems (the slab correction is not yet available for a
-triclinic box).
+style (and its */omp* variant).  It requires *ik* differentiation (the
+default; the :doc:`kspace_modify <kspace_modify>` *diff ad* option is not
+supported together with a triclinic box).  The :doc:`kspace_modify
+<kspace_modify>` *slab* correction is supported for a triclinic box only
+in the EW3DC *volfactor* form and only with an *xy* tilt (xz = yz = 0, so
+the slab normal remains the z axis); *slab nozforce* and *slab ew2d* are
+not available for a triclinic box.
 
 Most of the base kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the :doc:`Build

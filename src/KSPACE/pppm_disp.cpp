@@ -256,16 +256,19 @@ void PPPMDisp::init()
   if (triclinic != domain->triclinic)
     error->all(FLERR,"Must redefine kspace_style after changing to triclinic box");
 
-  // triclinic support is currently limited to ik differentiation and to
-  // fully periodic (non-slab) systems.  The slab restriction is lifted in a
-  // later stage; until then a triclinic slab calculation is rejected here.
+  // triclinic support is currently limited to ik differentiation.  The slab
+  // correction is supported only as the EW3DC volume-factor variant and only
+  // for an xy tilt (the slab normal must remain the z axis).
 
   if (domain->triclinic && differentiation_flag == 1)
     error->all(FLERR,"Cannot (yet) use PPPMDisp with triclinic box and "
                "kspace_modify diff ad");
-  if (domain->triclinic && slabflag)
-    error->all(FLERR,"Cannot (yet) use PPPMDisp with triclinic box and "
-               "slab correction");
+  if (domain->triclinic && (slabflag == 2 || slabflag == 3))
+    error->all(FLERR,"Triclinic boxes only support the 'kspace_modify slab "
+               "<volfactor>' correction, not 'slab nozforce' or 'slab ew2d'");
+  if (domain->triclinic && slabflag == 1 && (domain->yz != 0.0 || domain->xz != 0.0))
+    error->all(FLERR,"Triclinic slab (EW3DC) correction requires xz = yz = 0 "
+               "(the slab normal must be the z axis); xy tilt is allowed");
 
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
@@ -1517,15 +1520,16 @@ void PPPMDisp::compute(int eflag, int vflag)
     }
   }
 
+  // convert atoms back from lamda to box coords
+  // must precede slabcorr(), which needs Cartesian z-coordinates
+
+  if (triclinic) domain->lamda2x(atom->nlocal);
+
   // 2d slab correction
 
   if (slabflag) slabcorr(eflag);
   if (termflag[TERM_COUL]) energy += energy_1;
   if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) energy += energy_6;
-
-  // convert atoms back from lamda to box coords
-
-  if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------

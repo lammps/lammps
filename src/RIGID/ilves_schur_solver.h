@@ -118,28 +118,25 @@ private:
     /** Backward substitution (upper-triangular solve), in place on rhs. */
     void LU_backward();
 
-    // Auxiliary class to generate the minimum fill-in matrix.
+    // Auxiliary class that computes a fill-reducing minimal-degree reordering of
+    // a structurally symmetric matrix, together with the resulting fill-in.
     class FillMatrixGenerator {
     public:
         /**
-         * Computes the minimal degree reordering of MATRIX. Also computes the
-         * fillin matrix of the reordered matrix.
+         * Computes the minimal-degree reordering of MATRIX along with the
+         * fill-in matrix of the reordered matrix.
          *
          * @param matrix Adjacency matrix of a structurally symmetric matrix.
-         * @param parts A vector of size N + 1 that contains the partitioning of
-         * the matrix. p[0] is the first row of partition 0. p[1] is the first
-         * row of partition 1, and the last row + 1 of partition 0.
          */
-        FillMatrixGenerator(const Graph &matrix,
-                            const std::vector<int> &parts);
+        FillMatrixGenerator(const Graph &matrix);
 
         /**
-         * Returns the fillin matrix computed in the constructor.
+         * Returns the fill-in matrix computed in the constructor.
          *
          * @return A tuple with three elements:
-         * 1. Reference to the fillin matrix.
-         * 2. Reference to a vector that describes if each edge of the fillin
-         * matrix, is a fillin (true) or not (false).
+         * 1. Reference to the fill-in matrix.
+         * 2. Reference to a vector that flags each edge of the fill-in matrix as
+         * a fill-in (true) or an original nonzero (false).
          * 3. Reference to the permutation applied to the original matrix to
          * reduce the number of fillins. The permutation is given as in MATLAB.
          * Example: p = [2, 1, 0] Means that Old position 2 is now position 0
@@ -149,170 +146,63 @@ private:
         std::tuple<Graph &, std::vector<bool> &, std::vector<int> &> get_fill_matrix();
 
     private:
+        struct MatrixEntry {
+            int id;
+            bool is_fillin;
+        };
+
         const Graph &matrix;
-        const std::vector<int> &parts;
 
         // The fillin matrix.
         Graph fillin_matrix;
         // The new ordering of the rows.
         std::vector<int> perm;
-        // The inverse permutation
+        // The inverse permutation.
         std::vector<int> iperm;
         // True if edge i is a fillin.
         std::vector<bool> is_fillin;
 
-        // One PartitionData instance per partition.
-        class PartitionData {
-        public:
-            FillMatrixGenerator &parent;
-            const int part;   // Partition id.
+        // Memory pools backing the per-row scratch lists and the active-row lists.
+        GrowingMemPool matrix_mem_pool;
+        GrowingMemPool active_rows_mem_pool;
 
-            struct MatrixEntry {
-                int id;
-                bool is_fillin;
-            };
+        // One list per row.  init_matrix holds the working adjacency (and is
+        // used as scratch by the elimination); final_matrix accumulates the
+        // finalized adjacency before it is copied to the global fillin matrix.
+        std::vector<std::list<MatrixEntry, GrowingAllocator<MatrixEntry>>> init_matrix;
+        std::vector<std::list<MatrixEntry, GrowingAllocator<MatrixEntry>>> final_matrix;
 
-            // Memory pools.
-            std::vector<GrowingMemPool> matrix_mem_pools;
-            GrowingMemPool active_rows_mem_pool;
+        // Active rows bucketed by degree (key = degree, value = list of rows),
+        // with an iterator per row into its bucket for fast removal.
+        std::map<int, std::list<int, GrowingAllocator<int>>> active_rows;
+        std::vector<std::list<int, GrowingAllocator<int>>::iterator> active_rows_ptrs;
 
-            // As many lists as local rows.
-            // These lists will hold the initial matrix and will be used as a
-            // scratch for the algorithm.
-            std::vector<std::list<MatrixEntry, GrowingAllocator<MatrixEntry>>> init_matrix;
-            // As many lists as local rows.
-            // These lists will hold the final fillin matrix previous
-            // copying it to the global fillin matrix strcuture.
-            std::vector<std::list<MatrixEntry, GrowingAllocator<MatrixEntry>>> final_matrix;
+        /**
+         * Move row ROW between degree buckets after its degree changed from
+         * OLD_DEG (DISABLE removes it from the active set instead of moving it).
+         */
+        void update_active_row(int row, int old_deg, bool disable);
 
-            // Active rows for each partition.
-            // Key = degree of the rows.
-            // Value = List of rows with Key degree.
-            std::map<int, std::list<int, GrowingAllocator<int>>> active_rows;
-            // Iterator to where the row element is in the active_rows list.
-            // Used for fast removal.
-            std::vector<std::list<int, GrowingAllocator<int>>::iterator> active_rows_ptrs;
+        /**
+         * Merge the neighbors of ROW into the neighbors of COL (recording new
+         * edges as fill-ins) and remove ROW from the neighbors of COL.
+         */
+        void update_neighbors(int row, int col);
 
-            /**
-             * Get the first row of the partition.
-             *
-             * @return int The first row of the partition.
-             */
-            int first_row() const;
+        /** Initialize init_matrix / final_matrix from the input matrix. */
+        void init_matrices();
 
-            /**
-             * Get the last row + 1 of the partition.
-             *
-             * @return The last row + 1 of the partition.
-             */
-            int last_row_plus1() const;
+        /** Initialize the degree-bucketed active-row structure. */
+        void init_active_rows();
 
-            /**
-             * Get the number of rows assigned to the partition.
-             *
-             * @return int The number of rows assigned to the partition.
-             */
-            int num_prows() const;
+        /** Run the minimal-degree elimination, filling perm and the fill-in. */
+        void compute_fillins();
 
-            /**
-             * Get the number of edges assigned to the partition.
-             *
-             * @return int The number of edges assigned to the partition.
-             */
-            int num_pedges() const;
+        /** Renumber the finalized adjacency lists with the permutation. */
+        void apply_permutation();
 
-            /**
-             * Is this partition the shared partition (last partition)?
-             *
-             * @return bool True if this partition is the shared partition.
-             */
-            bool ami_shared_part() const;
-
-            /**
-             * Get the local row id of a global row id. Undefined behavior if
-             * the global row id does not belong to the partition.
-             *
-             * @param grow The global row id.
-             * @return int The local row id.
-             */
-            int grow_to_prow(int grow) const;
-
-            /**
-             * Move the row (local id) to the corresponding key of active_rows,
-             * taking into account that the old degree of the row was old_deg.
-             *
-             * @param lrow Local row id.
-             * @param old_deg Old degree (key) of the row.
-             * @param disable Remove the row from active_rows, do not move from
-             * the old key to the new key.
-             */
-            void update_active_row(int lrow, int old_deg, bool disable);
-
-            /**
-             * Does updating this row (global id) from the current local
-             * partition write into the shared partition?  (In the original
-             * parallel code this was also the condition for taking a lock.)
-             *
-             * @param row The global id of the row.
-             * @return true if the update is redirected to the shared partition.
-             */
-            bool redirect_to_shared(int row) const;
-
-            /**
-             * Merge the neighbors of the column with the neighbors of the row,
-             * removing the row from the neighbors of the column and do not take
-             * into account the column id in the merging.
-             *
-             * @param row The global id of the row. This row should be assigned
-             * to the partition.
-             * @param col The global id of the col.
-             */
-            void update_neighbors(int row, int col);
-
-            /**
-             * Construct a PartitionData object given the parent
-             * FillMatrixGenerator and the partition id.
-             *
-             * @param parent Reference to the parent FillMatrixGenerator.
-             * @param part Partition id.
-             */
-            PartitionData(FillMatrixGenerator &parent, int part);
-
-            /**
-             * Initialize init_matrix and final_matrix and the corresponding
-             * memory pool.
-             *
-             */
-            void init_matrices();
-
-            /**
-             * Initialize active_rows and the corresponding memory pool.
-             *
-             */
-            void init_active_rows();
-
-            /**
-             * Compute the fillin matrix of the partition.
-             *
-             */
-            void compute_fillins();
-
-            /**
-             * Update the column ids of the fillin matrix with the permutation.
-             *
-             */
-            void apply_permutation();
-
-            /**
-             * Copy the fillin matrix of the partition (final_matrix) to the
-             * global fillin matrix (parent.fillin_matrix).
-             *
-             */
-            void copy_aux_to_final();
-        };
-
-        // One PartitionData instance per partition.
-        std::vector<PartitionData> part_data;
+        /** Copy the finalized adjacency lists into fillin_matrix / is_fillin. */
+        void copy_aux_to_final();
     };
 };
 }    // namespace ILVES

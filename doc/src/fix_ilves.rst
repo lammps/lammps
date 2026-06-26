@@ -18,12 +18,13 @@ Syntax
 
   .. parsed-literal::
 
-       *b* values = one or more bond types
-       *a* values = one or more angle types
-       *t* values = one or more atom types
+       *b* values = one or more bond types (may use type labels)
+       *a* values = one or more angle types (may use type labels)
+       *t* values = one or more atom types (may use type labels)
        *m* values = one or more atom masses
 
 * zero or more keyword/value pairs may be appended
+* keyword = *mode* or *linearangle* or *kbond* or *store*
 
   .. parsed-literal::
 
@@ -90,14 +91,22 @@ its atoms are in the fix group AND at least one of the selectors matches:
 * either atom type is in the *t* list, or
 * either atom mass is within 0.1 mass units of any value in the *m* list.
 
-An angle whose type is in the *a* list contributes a "virtual bond" constraint
-on the distance between its two outer atoms (A and C of an A-B-C angle), which
-together with the two constrained legs makes the angle rigid.  The angle is
-constrained when all three of its atoms are in the fix group, its type is
-selected, and **both** flanking bonds (A-B and B-C) are themselves constrained.
-The A-C target distance is computed from the two bond equilibrium lengths and
-the angle equilibrium value via the law of cosines, identical to :doc:`fix shake
-<fix_shake>`.
+The types may be given as type labels *only* if there is no atom, bond,
+or angle type label named *b*, *a*, *t*, or *m* defined in the
+simulation.  If that is the case, type labels cannot be used as
+constraint type index with these two fixes, because the type labels
+would be incorrectly treated as a new type of constraint instead.  Thus,
+LAMMPS will print a warning and type label handling is disabled and
+numeric types must be used.
+
+An angle whose type is in the *a* list contributes a "virtual bond"
+constraint on the distance between its two outer atoms (A and C of an
+A-B-C angle), which together with the two constrained legs makes the
+angle rigid.  The angle is constrained when all three of its atoms are
+in the fix group, its type is selected, and **both** flanking bonds (A-B
+and B-C) are themselves constrained.  The A-C target distance is
+computed from the two bond equilibrium lengths and the angle equilibrium
+value via the law of cosines, identical to :doc:`fix shake <fix_shake>`.
 
 For each bond or angle that is selected, *fix ilves* sets the corresponding
 ``bond_type`` or ``angle_type`` to its negative value so that the configured

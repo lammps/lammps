@@ -927,6 +927,7 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
   if (extended) {
     if (atom->omega_flag)  d_omega  = atomKK->k_omega.template view<DeviceType>();
     if (atom->angmom_flag) d_angmom = atomKK->k_angmom.template view<DeviceType>();
+    if (atom->mu_flag)     d_mu     = atomKK->k_mu.template view<DeviceType>();
     d_eflags = k_eflags.template view<DeviceType>();
   }
 
@@ -1052,6 +1053,18 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
       d_omega(i,0) = b.omega[0];
       d_omega(i,1) = b.omega[1];
       d_omega(i,2) = b.omega[2];
+    }
+    // point dipole: rotate the body-frame dipole orientation into space frame
+    if (ef & RigidConst::DIPOLE) {
+      KK_FLOAT p[3][3];
+      MathExtraKokkos::quat_to_mat(b.quat, p);
+      KK_FLOAT dor[3] = {(KK_FLOAT)d_dorient(i,0), (KK_FLOAT)d_dorient(i,1), (KK_FLOAT)d_dorient(i,2)};
+      KK_FLOAT muvec[3];
+      MathExtraKokkos::matvec(p, dor, muvec);
+      MathExtraKokkos::snormalize3(d_mu(i,3), muvec, muvec);
+      d_mu(i,0) = muvec[0];
+      d_mu(i,1) = muvec[1];
+      d_mu(i,2) = muvec[2];
     }
   }
 }

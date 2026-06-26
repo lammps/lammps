@@ -175,8 +175,10 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   View2D d_orient, d_dorient;
 
   // atom-style views written per-step for extended particles (set_xv/set_v):
-  // omega (sphere/line), angmom (ellipsoid/tri); torque is read for force accum.
+  // omega (sphere/line), angmom (ellipsoid/tri), mu (dipole); torque is read
+  // for the extended force accumulation.
   typename AT::t_kkfloat_1d_3 d_omega, d_angmom;
+  typename AT::t_kkfloat_1d_4 d_mu;
   typename AT::t_kkacc_1d_3 d_torque;
 
   // extended size added per body atom to the device-exchange payload, and the

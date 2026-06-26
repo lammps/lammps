@@ -294,6 +294,26 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
                  "'-pk kokkos comm device sort device' or the defaults");
   }
 
+  // The setup-time atom sort permutes the per-atom arrays (bodyown/bodytag) to
+  // follow the atoms, but the body array is not permuted, so each body's ilocal
+  // (its owner's local atom index) is left pointing at the pre-sort ordering.
+  // d_bodyown stays correct, but the device exchange body-compaction relies on
+  // body.ilocal to find a moved body's owner, so rebuild ilocal from the
+  // authoritative per-atom bodyown here.  pack/unpack/sort_kokkos keep it
+  // consistent thereafter.
+  {
+    auto d_body_l = k_body.view_device();
+    auto d_bodyown_l = this->d_bodyown;
+    int nlocal = atom->nlocal;
+    Kokkos::parallel_for(
+      "fix rigid/small rebuild body ilocal",
+      Range1D(0, nlocal),
+      KOKKOS_LAMBDA(const int i){
+        if (d_bodyown_l(i) >= 0) d_body_l(d_bodyown_l(i)).ilocal = i;
+      }
+    );
+  }
+
   // pre_neighbor isn't called again until necessary during the run,
   // need to set up the body sendlist and send the ghost bodies now
   nghost_body = 0;

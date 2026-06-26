@@ -3036,7 +3036,7 @@ void FixShake::stats()
           mesg += fmt::format("Bond:  {:<{}}   {:<9.6} {:<11.6} {:>8d}\n", blabel(i), width,
                               b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
         } else {
-          mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n", i, width,
+          mesg += fmt::format("Bond:  {:>{}}   {:<9.6} {:<11.6} {:>8d}\n", i, width,
                               b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
         }
       }
@@ -3048,7 +3048,7 @@ void FixShake::stats()
           mesg += fmt::format("Angle: {:<{}}   {:<9.6} {:<11.6} {:>8d}\n",alabel(i),width,
                               a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
         } else {
-          mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
+          mesg += fmt::format("Angle: {:>{}}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
                               a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
         }
       }

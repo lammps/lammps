@@ -1540,7 +1540,7 @@ void FixIlves::stats()
                             bsum_all[t] / (double) bcount_all[t], bmax_all[t] - bmin_all[t],
                             bcount_all[t]);
       } else {
-        mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n", t, width,
+        mesg += fmt::format("Bond:  {:>{}}   {:<9.6} {:<11.6} {:>8d}\n", t, width,
                             bsum_all[t] / (double) bcount_all[t], bmax_all[t] - bmin_all[t],
                             bcount_all[t]);
       }
@@ -1552,7 +1552,7 @@ void FixIlves::stats()
                             asum_all[t] / (double) acount_all[t], amax_all[t] - amin_all[t],
                             acount_all[t]);
       } else {
-        mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n", alabel(t), width,
+        mesg += fmt::format("Angle: {:>{}}   {:<9.6} {:<11.6} {:>8d}\n", alabel(t), width,
                             asum_all[t] / (double) acount_all[t], amax_all[t] - amin_all[t],
                             acount_all[t]);
       }

@@ -60,9 +60,9 @@ PPPMDipole::PPPMDipole(LAMMPS *lmp) : PPPM(lmp),
   v2y_brick_dipole(nullptr), v3y_brick_dipole(nullptr), v4y_brick_dipole(nullptr),
   v5y_brick_dipole(nullptr), v0z_brick_dipole(nullptr), v1z_brick_dipole(nullptr),
   v2z_brick_dipole(nullptr), v3z_brick_dipole(nullptr), v4z_brick_dipole(nullptr),
-  v5z_brick_dipole(nullptr), work3(nullptr), work4(nullptr),
+  v5z_brick_dipole(nullptr), work3(nullptr), work4(nullptr), work5(nullptr),
   densityx_fft_dipole(nullptr), densityy_fft_dipole(nullptr),
-  densityz_fft_dipole(nullptr)
+  densityz_fft_dipole(nullptr), greensfn_qq(nullptr), greensfn_qmu(nullptr)
 {
   dipoleflag = 1;
   group_group_enable = 0;
@@ -93,10 +93,7 @@ void PPPMDipole::init()
   // error check
 
   dipoleflag = atom->mu?1:0;
-  qsum_qsq(0); // q[i] might not be declared ?
-
-  if (dipoleflag && (q2 != 0.0))
-    error->all(FLERR,"Cannot (yet) use charges with Kspace style PPPMDipole");
+  qsum_qsq(0); // computes qsum, qsqsum, q2 for the charge channel
 
   triclinic_check();
 
@@ -399,18 +396,23 @@ void PPPMDipole::compute(int eflag, int vflag)
     error->all(FLERR,"Cannot (yet) compute per-atom virial "
                        "with kspace style pppm/dipole");
 
+  if (eflag_atom && qsqsum != 0.0)
+    error->all(FLERR,"Cannot (yet) compute per-atom energy "
+                       "with kspace style pppm/dipole and charges");
+
   if (evflag_atom && !peratom_allocate_flag) allocate_peratom();
 
   // if atom count has changed, update qsum and qsqsum
 
   if (atom->natoms != natoms_original) {
     musum_musq();
+    qsum_qsq();
     natoms_original = atom->natoms;
   }
 
-  // return if there are no dipoles
+  // return if there are no dipoles and no charges
 
-  if (musqsum == 0.0) return;
+  if (musqsum == 0.0 && qsqsum == 0.0) return;
 
   // convert atoms from box to lamda coords
 
@@ -434,7 +436,7 @@ void PPPMDipole::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc_dipole->reverse_comm(Grid3d::KSPACE,this,REVERSE_MU,3,sizeof(FFT_SCALAR),
+  gc_dipole->reverse_comm(Grid3d::KSPACE,this,REVERSE_MU,4,sizeof(FFT_SCALAR),
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft_dipole();
 
@@ -448,7 +450,7 @@ void PPPMDipole::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  gc_dipole->forward_comm(Grid3d::KSPACE,this,FORWARD_MU,9,sizeof(FFT_SCALAR),
+  gc_dipole->forward_comm(Grid3d::KSPACE,this,FORWARD_MU,12,sizeof(FFT_SCALAR),
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
@@ -477,6 +479,8 @@ void PPPMDipole::compute(int eflag, int vflag)
 
     energy *= 0.5*volume;
     energy -= musqsum*2.0*g3/3.0/MY_PIS;
+    energy -= g_ewald*qsqsum/MY_PIS +
+      MY_PI2*qsum*qsum/(g_ewald*g_ewald*volume);
     energy *= qscale;
   }
 
@@ -536,7 +540,7 @@ void PPPMDipole::allocate()
 
   gc_dipole->setup_comm(ngc_buf1,ngc_buf2);
 
-  npergrid = 9;
+  npergrid = 12;
 
   memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");
   memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
@@ -568,15 +572,30 @@ void PPPMDipole::allocate()
   memory->create3d_offset(densityz_brick_dipole,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm_dipole:densityz_brick_dipole");
 
+  // scalar charge density and charge electric field (inherited base arrays)
+
+  memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm_dipole:density_brick");
+  memory->create3d_offset(vdx_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm_dipole:vdx_brick");
+  memory->create3d_offset(vdy_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm_dipole:vdy_brick");
+  memory->create3d_offset(vdz_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
+                          nxlo_out,nxhi_out,"pppm_dipole:vdz_brick");
+  memory->create(density_fft,nfft_both,"pppm_dipole:density_fft");
+
   memory->create(densityx_fft_dipole,nfft_both,"pppm_dipole:densityy_fft_dipole");
   memory->create(densityy_fft_dipole,nfft_both,"pppm_dipole:densityy_fft_dipole");
   memory->create(densityz_fft_dipole,nfft_both,"pppm_dipole:densityz_fft_dipole");
 
   memory->create(greensfn,nfft_both,"pppm_dipole:greensfn");
+  memory->create(greensfn_qq,nfft_both,"pppm_dipole:greensfn_qq");
+  memory->create(greensfn_qmu,nfft_both,"pppm_dipole:greensfn_qmu");
   memory->create(work1,2*nfft_both,"pppm_dipole:work1");
   memory->create(work2,2*nfft_both,"pppm_dipole:work2");
   memory->create(work3,2*nfft_both,"pppm_dipole:work3");
   memory->create(work4,2*nfft_both,"pppm_dipole:work4");
+  memory->create(work5,2*nfft_both,"pppm_dipole:work5");
   memory->create(vg,nfft_both,6,"pppm_dipole:vg");
 
   memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm_dipole:fkx");
@@ -650,6 +669,11 @@ void PPPMDipole::deallocate()
   memory->destroy3d_offset(densityy_brick_dipole,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(densityz_brick_dipole,nzlo_out,nylo_out,nxlo_out);
 
+  memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(vdx_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
+  memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
+
   memory->destroy3d_offset(ux_brick_dipole,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(uy_brick_dipole,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(uz_brick_dipole,nzlo_out,nylo_out,nxlo_out);
@@ -667,10 +691,13 @@ void PPPMDipole::deallocate()
 
   memory->destroy(density_fft);
   memory->destroy(greensfn);
+  memory->destroy(greensfn_qq);
+  memory->destroy(greensfn_qmu);
   memory->destroy(work1);
   memory->destroy(work2);
   memory->destroy(work3);
   memory->destroy(work4);
+  memory->destroy(work5);
   memory->destroy(vg);
 
   memory->destroy1d_offset(fkx,nxlo_fft);
@@ -894,6 +921,15 @@ double PPPMDipole::compute_df_kspace_dipole()
   bigint natoms = atom->natoms;
   double qopt = compute_qopt_dipole();
   double df_kspace = sqrt(qopt/natoms)*mu2/(3.0*xprd*yprd*zprd_slab);
+
+  // add charge-charge kspace error in quadrature (p = 1 qopt from base PPPM)
+
+  if (q2 != 0.0) {
+    double qopt_q = compute_qopt();
+    double df_charge = sqrt(qopt_q/natoms)*q2/(xprd*yprd*zprd_slab);
+    df_kspace = sqrt(df_kspace*df_kspace + df_charge*df_charge);
+  }
+
   return df_kspace;
 }
 
@@ -989,7 +1025,15 @@ double PPPMDipole::compute_qopt_dipole()
 }
 
 /* ----------------------------------------------------------------------
-   pre-compute modified (Hockney-Eastwood) Coulomb Green's function
+   pre-compute modified (Hockney-Eastwood) Coulomb Green's functions
+   for the three interaction channels, computed in a single aliasing sweep:
+     greensfn_qq   charge-charge    numerator (k.k_n)^1 / |k|^2
+     greensfn_qmu  charge-dipole    numerator (k.k_n)^2 / |k|^4
+     greensfn      dipole-dipole    numerator (k.k_n)^3 / |k|^6
+   each additional dipole in the interaction adds one power of (k.k_n)
+   in the numerator and one of 1/|k|^2 in the denominator; in the
+   continuum limit (W->1, no aliasing, k_n->k) all three reduce to the
+   common Ewald kernel 4*pi*exp(-k^2/4a^2)/k^2
 ------------------------------------------------------------------------- */
 
 void PPPMDipole::compute_gf_dipole()
@@ -1006,7 +1050,7 @@ void PPPMDipole::compute_gf_dipole()
 
   double snx,sny,snz;
   double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
-  double sum1,dot1,dot2;
+  double sum1,sum1_qq,sum1_qmu,dot1,dot2;
   double denominator;
   double sqk;
 
@@ -1041,6 +1085,8 @@ void PPPMDipole::compute_gf_dipole()
         if (sqk != 0.0) {
           denominator = gf_denom(snx,sny,snz);
           sum1 = 0.0;
+          sum1_qq = 0.0;
+          sum1_qmu = 0.0;
 
           for (nx = -nbx; nx <= nbx; nx++) {
             qx = unitkx*(kper+nx_pppm*nx);
@@ -1065,12 +1111,25 @@ void PPPMDipole::compute_gf_dipole()
                 const double u1 = sx*sy*sz;
                 const double w2 = wx*wy*wz;
                 const double phi = u1*MY_4PI/dot2;
-                sum1 += dot1*dot1*dot1*w2*phi/sqk/sqk/sqk;
+                // common per-alias weight w2*phi; the three channels differ
+                // only by the power p of dot1 (numerator) and sqk (denom):
+                //   p=1 charge-charge, p=2 charge-dipole, p=3 dipole-dipole
+                const double base = w2*phi;
+                const double d1 = dot1;
+                sum1_qq  += d1*base/sqk;
+                sum1_qmu += d1*d1*base/sqk/sqk;
+                sum1     += d1*d1*d1*base/sqk/sqk/sqk;
               }
             }
           }
-          greensfn[n++] = sum1/denominator;
-        } else greensfn[n++] = 0.0;
+          greensfn_qq[n]   = sum1_qq/denominator;
+          greensfn_qmu[n]  = sum1_qmu/denominator;
+          greensfn[n++]    = sum1/denominator;
+        } else {
+          greensfn_qq[n]  = 0.0;
+          greensfn_qmu[n] = 0.0;
+          greensfn[n++]   = 0.0;
+        }
       }
     }
   }
@@ -1097,6 +1156,14 @@ double PPPMDipole::newton_raphson_f()
   double Dc = 8.0*rg6 + 20.0*rg4 + 30.0*rg2 + 15.0;
   df_rspace = (mu2/(sqrt(vol*powint(g_ewald,4)*powint(cutoff,9)*natoms)) *
       sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) * exp(-rg2));
+
+  // add charge-charge rspace error in quadrature
+
+  if (q2 != 0.0) {
+    double df_rspace_q = 2.0*q2*exp(-rg2)/sqrt((double)natoms*cutoff*vol);
+    df_rspace = sqrt(df_rspace*df_rspace + df_rspace_q*df_rspace_q);
+  }
+
   df_kspace = compute_df_kspace_dipole();
 
   return df_rspace - df_kspace;
@@ -1184,6 +1251,13 @@ double PPPMDipole::final_accuracy_dipole()
     sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) *
     exp(-rg2));
 
+  // add charge-charge rspace error in quadrature
+
+  if (q2 != 0.0) {
+    double df_rspace_q = 2.0*q2*exp(-rg2)/sqrt((double)natoms*cutoff*vol);
+    df_rspace = sqrt(df_rspace*df_rspace + df_rspace_q*df_rspace_q);
+  }
+
   double estimated_accuracy = sqrt(df_kspace*df_kspace + df_rspace*df_rspace);
 
   return estimated_accuracy;
@@ -1229,8 +1303,9 @@ void PPPMDipole::make_rho_dipole()
   FFT_SCALAR x0,y0,z0;
   FFT_SCALAR x1,y1,z1;
   FFT_SCALAR x2,y2,z2;
+  FFT_SCALAR x3,y3,z3;
 
-  // clear 3d density array
+  // clear 3d density arrays (3 dipole components + scalar charge)
 
   memset(&(densityx_brick_dipole[nzlo_out][nylo_out][nxlo_out]),0,
          ngrid*sizeof(FFT_SCALAR));
@@ -1238,13 +1313,17 @@ void PPPMDipole::make_rho_dipole()
          ngrid*sizeof(FFT_SCALAR));
   memset(&(densityz_brick_dipole[nzlo_out][nylo_out][nxlo_out]),0,
          ngrid*sizeof(FFT_SCALAR));
+  memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,
+         ngrid*sizeof(FFT_SCALAR));
 
-  // loop over my charges, add their contribution to nearby grid points
-  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // loop over my atoms, add their contribution to nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of atom
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
+  // spread both the dipole vector mu[i] and the point charge q[i]
 
   double **mu = atom->mu;
+  double *q = atom->q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -1262,21 +1341,25 @@ void PPPMDipole::make_rho_dipole()
     z0 = delvolinv * mu[i][0];
     z1 = delvolinv * mu[i][1];
     z2 = delvolinv * mu[i][2];
+    z3 = delvolinv * q[i];
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
       y0 = z0*rho1d[2][n];
       y1 = z1*rho1d[2][n];
       y2 = z2*rho1d[2][n];
+      y3 = z3*rho1d[2][n];
       for (m = nlower; m <= nupper; m++) {
         my = m+ny;
         x0 = y0*rho1d[1][m];
         x1 = y1*rho1d[1][m];
         x2 = y2*rho1d[1][m];
+        x3 = y3*rho1d[1][m];
         for (l = nlower; l <= nupper; l++) {
           mx = l+nx;
           densityx_brick_dipole[mz][my][mx] += x0*rho1d[0][l];
           densityy_brick_dipole[mz][my][mx] += x1*rho1d[0][l];
           densityz_brick_dipole[mz][my][mx] += x2*rho1d[0][l];
+          density_brick[mz][my][mx] += x3*rho1d[0][l];
         }
       }
     }
@@ -1302,12 +1385,14 @@ void PPPMDipole::brick2fft_dipole()
         densityx_fft_dipole[n] = densityx_brick_dipole[iz][iy][ix];
         densityy_fft_dipole[n] = densityy_brick_dipole[iz][iy][ix];
         densityz_fft_dipole[n] = densityz_brick_dipole[iz][iy][ix];
+        density_fft[n] = density_brick[iz][iy][ix];
         n++;
       }
 
   remap->perform(densityx_fft_dipole,densityx_fft_dipole,work1);
   remap->perform(densityy_fft_dipole,densityy_fft_dipole,work1);
   remap->perform(densityz_fft_dipole,densityz_fft_dipole,work1);
+  remap->perform(density_fft,density_fft,work1);
 }
 
 /* ----------------------------------------------------------------------
@@ -1318,9 +1403,13 @@ void PPPMDipole::poisson_ik_dipole()
 {
   int i,j,k,n,ii;
   double eng;
-  double wreal,wimg;
+  double Qr,Qi,Dr,Di;
+  double sgqq,sgqm,sgdd;
 
-  // transform dipole density (r -> k)
+  // transform charge density (work5) and dipole density (work1,2,3) r -> k
+  // the three dipole components share work1/work2/work3 as before; the
+  // scalar charge density uses work5.  none are pre-scaled by a Green's
+  // function here because each output channel needs a different one.
 
   n = 0;
   for (i = 0; i < nfft; i++) {
@@ -1330,14 +1419,21 @@ void PPPMDipole::poisson_ik_dipole()
     work2[n+1] = ZEROF;
     work3[n] = densityz_fft_dipole[i];
     work3[n+1] = ZEROF;
+    work5[n] = density_fft[i];
+    work5[n+1] = ZEROF;
     n += 2;
   }
 
   fft1->compute(work1,work1,FFT3d::FORWARD);
   fft1->compute(work2,work2,FFT3d::FORWARD);
   fft1->compute(work3,work3,FFT3d::FORWARD);
+  fft1->compute(work5,work5,FFT3d::FORWARD);
 
   // global energy and virial contribution
+  // Q = charge structure factor (work5), D = k.P dipole structure factor
+  // total energy density = gqq|Q|^2 + gdd|D|^2 + 2 gqm Im(Q* D)
+  // virial: vg (common-kernel) part applies to all three channels;
+  // the channels containing D pick up extra structure-factor strain terms
 
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
   double scaleinv = 1.0/ngridtotal;
@@ -1350,16 +1446,28 @@ void PPPMDipole::poisson_ik_dipole()
       for (k = nzlo_fft; k <= nzhi_fft; k++)
         for (j = nylo_fft; j <= nyhi_fft; j++)
           for (i = nxlo_fft; i <= nxhi_fft; i++) {
-            wreal = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
-            wimg = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
-            eng = s2 * greensfn[ii] * (wreal*wreal + wimg*wimg);
+            Qr = work5[n]; Qi = work5[n+1];
+            Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+            Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+            const double eng_qq = s2*greensfn_qq[ii]*(Qr*Qr + Qi*Qi);
+            const double eng_dd = s2*greensfn[ii]*(Dr*Dr + Di*Di);
+            const double eng_qm = s2*2.0*greensfn_qmu[ii]*(Qr*Di - Qi*Dr);
+            eng = eng_qq + eng_dd + eng_qm;
             for (int jj = 0; jj < 6; jj++) virial[jj] += eng*vg[ii][jj];
-            virial[0] += 2.0*s2*greensfn[ii]*fkx[i]*(work1[n]*wreal + work1[n+1]*wimg);
-            virial[1] += 2.0*s2*greensfn[ii]*fky[j]*(work2[n]*wreal + work2[n+1]*wimg);
-            virial[2] += 2.0*s2*greensfn[ii]*fkz[k]*(work3[n]*wreal + work3[n+1]*wimg);
-            virial[3] += 2.0*s2*greensfn[ii]*fky[j]*(work1[n]*wreal + work1[n+1]*wimg);
-            virial[4] += 2.0*s2*greensfn[ii]*fkz[k]*(work1[n]*wreal + work1[n+1]*wimg);
-            virial[5] += 2.0*s2*greensfn[ii]*fkz[k]*(work2[n]*wreal + work2[n+1]*wimg);
+            // dipole-dipole structure-factor strain terms: 2 s2 gdd k_b Re(P_a* D)
+            virial[0] += 2.0*s2*greensfn[ii]*fkx[i]*(work1[n]*Dr + work1[n+1]*Di);
+            virial[1] += 2.0*s2*greensfn[ii]*fky[j]*(work2[n]*Dr + work2[n+1]*Di);
+            virial[2] += 2.0*s2*greensfn[ii]*fkz[k]*(work3[n]*Dr + work3[n+1]*Di);
+            virial[3] += 2.0*s2*greensfn[ii]*fky[j]*(work1[n]*Dr + work1[n+1]*Di);
+            virial[4] += 2.0*s2*greensfn[ii]*fkz[k]*(work1[n]*Dr + work1[n+1]*Di);
+            virial[5] += 2.0*s2*greensfn[ii]*fkz[k]*(work2[n]*Dr + work2[n+1]*Di);
+            // charge-dipole structure-factor strain terms: 2 s2 gqm k_b Im(Q* P_a)
+            virial[0] += 2.0*s2*greensfn_qmu[ii]*fkx[i]*(Qr*work1[n+1] - Qi*work1[n]);
+            virial[1] += 2.0*s2*greensfn_qmu[ii]*fky[j]*(Qr*work2[n+1] - Qi*work2[n]);
+            virial[2] += 2.0*s2*greensfn_qmu[ii]*fkz[k]*(Qr*work3[n+1] - Qi*work3[n]);
+            virial[3] += 2.0*s2*greensfn_qmu[ii]*fky[j]*(Qr*work1[n+1] - Qi*work1[n]);
+            virial[4] += 2.0*s2*greensfn_qmu[ii]*fkz[k]*(Qr*work1[n+1] - Qi*work1[n]);
+            virial[5] += 2.0*s2*greensfn_qmu[ii]*fkz[k]*(Qr*work2[n+1] - Qi*work2[n]);
             if (eflag_global) energy += eng;
             ii++;
             n += 2;
@@ -1370,46 +1478,125 @@ void PPPMDipole::poisson_ik_dipole()
       for (k = nzlo_fft; k <= nzhi_fft; k++)
         for (j = nylo_fft; j <= nyhi_fft; j++)
           for (i = nxlo_fft; i <= nxhi_fft; i++) {
-            wreal = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
-            wimg = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
-            energy +=
-            s2 * greensfn[ii] * (wreal*wreal + wimg*wimg);
+            Qr = work5[n]; Qi = work5[n+1];
+            Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+            Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+            energy += s2*greensfn_qq[ii]*(Qr*Qr + Qi*Qi)
+                    + s2*greensfn[ii]*(Dr*Dr + Di*Di)
+                    + s2*2.0*greensfn_qmu[ii]*(Qr*Di - Qi*Dr);
             ii++;
             n += 2;
           }
     }
   }
 
-  // scale by 1/total-grid-pts to get rho(k)
-  // multiply by Green's function to get V(k)
-
-  n = 0;
-  for (i = 0; i < nfft; i++) {
-    work1[n]   *= scaleinv * greensfn[i];
-    work1[n+1] *= scaleinv * greensfn[i];
-    work2[n]   *= scaleinv * greensfn[i];
-    work2[n+1] *= scaleinv * greensfn[i];
-    work3[n]   *= scaleinv * greensfn[i];
-    work3[n+1] *= scaleinv * greensfn[i];
-    n += 2;
-  }
-
   // extra FFTs for per-atom energy/virial
 
   if (vflag_atom) poisson_peratom_dipole();
 
-  // compute electric potential
+  // compute electric fields and field gradients on the FFT grid
   // FFT leaves data in 3d brick decomposition
+  // work1,2,3 hold (unscaled) k-space dipole density (P), work5 holds (Q)
+  // D = k.P is recomputed locally for each grid point
+  //
+  // brick conventions (matching the original dipole-only code):
+  //   charge E-field (vd{x,y,z}_brick): u_a = i k_a gqq Q + k_a gqm D
+  //   dipole E-field (u{x,y,z}_brick_dipole): u_a = k_a gdd D + i k_a gqm Q
+  //   dipole field gradient (vd{ab}_brick_dipole):
+  //       i k_a k_b gdd D - k_a k_b gqm Q
 
-  // Ex
+  // charge E-field, x component (vdx_brick)
 
   n = 0;
+  ii = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work4[n] = fkx[i]*(work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
-        work4[n+1] = fkx[i]*(work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        sgqq = scaleinv*greensfn_qq[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = fkx[i]*(-sgqq*Qi + sgqm*Dr);
+        work4[n+1] = fkx[i]*( sgqq*Qr + sgqm*Di);
+        n += 2; ii++;
+      }
+
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
+
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+        vdx_brick[k][j][i] = work4[n];
         n += 2;
+      }
+
+  // charge E-field, y component (vdy_brick)
+
+  n = 0;
+  ii = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++)
+    for (j = nylo_fft; j <= nyhi_fft; j++)
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+        sgqq = scaleinv*greensfn_qq[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = fky[j]*(-sgqq*Qi + sgqm*Dr);
+        work4[n+1] = fky[j]*( sgqq*Qr + sgqm*Di);
+        n += 2; ii++;
+      }
+
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
+
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+        vdy_brick[k][j][i] = work4[n];
+        n += 2;
+      }
+
+  // charge E-field, z component (vdz_brick)
+
+  n = 0;
+  ii = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++)
+    for (j = nylo_fft; j <= nyhi_fft; j++)
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+        sgqq = scaleinv*greensfn_qq[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = fkz[k]*(-sgqq*Qi + sgqm*Dr);
+        work4[n+1] = fkz[k]*( sgqq*Qr + sgqm*Di);
+        n += 2; ii++;
+      }
+
+  fft2->compute(work4,work4,FFT3d::BACKWARD);
+
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+        vdz_brick[k][j][i] = work4[n];
+        n += 2;
+      }
+
+  // dipole E-field, x component (ux_brick_dipole)
+
+  n = 0;
+  ii = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++)
+    for (j = nylo_fft; j <= nyhi_fft; j++)
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+        sgdd = scaleinv*greensfn[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = fkx[i]*(sgdd*Dr - sgqm*Qi);
+        work4[n+1] = fkx[i]*(sgdd*Di + sgqm*Qr);
+        n += 2; ii++;
       }
 
   fft2->compute(work4,work4,FFT3d::BACKWARD);
@@ -1422,15 +1609,20 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
-  // Ey
+  // dipole E-field, y component (uy_brick_dipole)
 
   n = 0;
+  ii = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work4[n] = fky[j]*(work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
-        work4[n+1] = fky[j]*(work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
-        n += 2;
+        sgdd = scaleinv*greensfn[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = fky[j]*(sgdd*Dr - sgqm*Qi);
+        work4[n+1] = fky[j]*(sgdd*Di + sgqm*Qr);
+        n += 2; ii++;
       }
 
   fft2->compute(work4,work4,FFT3d::BACKWARD);
@@ -1443,15 +1635,20 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
-  // Ez
+  // dipole E-field, z component (uz_brick_dipole)
 
   n = 0;
+  ii = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work4[n] = fkz[k]*(work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
-        work4[n+1] = fkz[k]*(work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
-        n += 2;
+        sgdd = scaleinv*greensfn[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = fkz[k]*(sgdd*Dr - sgqm*Qi);
+        work4[n+1] = fkz[k]*(sgdd*Di + sgqm*Qr);
+        n += 2; ii++;
       }
 
   fft2->compute(work4,work4,FFT3d::BACKWARD);
@@ -1464,17 +1661,24 @@ void PPPMDipole::poisson_ik_dipole()
         n += 2;
       }
 
+  // dipole field gradients vd{ab}_brick_dipole:
+  //   real = -k_a k_b (sgdd Di + sgqm Qr)
+  //   imag =  k_a k_b (sgdd Dr - sgqm Qi)
+
   // Vxx
 
   n = 0;
+  ii = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work4[n] = -fkx[i]*fkx[i]*(work1[n+1]*fkx[i] +
-                                   work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
-        work4[n+1] = fkx[i]*fkx[i]*(work1[n]*fkx[i] +
-                                    work2[n]*fky[j] + work3[n]*fkz[k]);
-        n += 2;
+        sgdd = scaleinv*greensfn[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = -fkx[i]*fkx[i]*(sgdd*Di + sgqm*Qr);
+        work4[n+1] =  fkx[i]*fkx[i]*(sgdd*Dr - sgqm*Qi);
+        n += 2; ii++;
       }
 
   fft2->compute(work4,work4,FFT3d::BACKWARD);
@@ -1490,14 +1694,17 @@ void PPPMDipole::poisson_ik_dipole()
   // Vyy
 
   n = 0;
+  ii = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work4[n] = -fky[j]*fky[j]*(work1[n+1]*fkx[i] +
-                                   work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
-        work4[n+1] = fky[j]*fky[j]*(work1[n]*fkx[i] +
-                                    work2[n]*fky[j] + work3[n]*fkz[k]);
-        n += 2;
+        sgdd = scaleinv*greensfn[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = -fky[j]*fky[j]*(sgdd*Di + sgqm*Qr);
+        work4[n+1] =  fky[j]*fky[j]*(sgdd*Dr - sgqm*Qi);
+        n += 2; ii++;
       }
 
   fft2->compute(work4,work4,FFT3d::BACKWARD);
@@ -1513,14 +1720,17 @@ void PPPMDipole::poisson_ik_dipole()
   // Vzz
 
   n = 0;
+  ii = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work4[n] = -fkz[k]*fkz[k]*(work1[n+1]*fkx[i] +
-                                   work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
-        work4[n+1] = fkz[k]*fkz[k]*(work1[n]*fkx[i] +
-                                    work2[n]*fky[j] + work3[n]*fkz[k]);
-        n += 2;
+        sgdd = scaleinv*greensfn[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = -fkz[k]*fkz[k]*(sgdd*Di + sgqm*Qr);
+        work4[n+1] =  fkz[k]*fkz[k]*(sgdd*Dr - sgqm*Qi);
+        n += 2; ii++;
       }
 
   fft2->compute(work4,work4,FFT3d::BACKWARD);
@@ -1536,14 +1746,17 @@ void PPPMDipole::poisson_ik_dipole()
   // Vxy
 
   n = 0;
+  ii = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work4[n] = -fkx[i]*fky[j]*(work1[n+1]*fkx[i] +
-                                   work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
-        work4[n+1] = fkx[i]*fky[j]*(work1[n]*fkx[i] +
-                                    work2[n]*fky[j] + work3[n]*fkz[k]);
-        n += 2;
+        sgdd = scaleinv*greensfn[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = -fkx[i]*fky[j]*(sgdd*Di + sgqm*Qr);
+        work4[n+1] =  fkx[i]*fky[j]*(sgdd*Dr - sgqm*Qi);
+        n += 2; ii++;
       }
 
   fft2->compute(work4,work4,FFT3d::BACKWARD);
@@ -1559,14 +1772,17 @@ void PPPMDipole::poisson_ik_dipole()
   // Vxz
 
   n = 0;
+  ii = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work4[n] = -fkx[i]*fkz[k]*(work1[n+1]*fkx[i] +
-                                   work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
-        work4[n+1] = fkx[i]*fkz[k]*(work1[n]*fkx[i] +
-                                    work2[n]*fky[j] + work3[n]*fkz[k]);
-        n += 2;
+        sgdd = scaleinv*greensfn[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = -fkx[i]*fkz[k]*(sgdd*Di + sgqm*Qr);
+        work4[n+1] =  fkx[i]*fkz[k]*(sgdd*Dr - sgqm*Qi);
+        n += 2; ii++;
       }
 
   fft2->compute(work4,work4,FFT3d::BACKWARD);
@@ -1582,14 +1798,17 @@ void PPPMDipole::poisson_ik_dipole()
   // Vyz
 
   n = 0;
+  ii = 0;
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work4[n] = -fky[j]*fkz[k]*(work1[n+1]*fkx[i] +
-                                   work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
-        work4[n+1] = fky[j]*fkz[k]*(work1[n]*fkx[i] +
-                                    work2[n]*fky[j] + work3[n]*fkz[k]);
-        n += 2;
+        sgdd = scaleinv*greensfn[ii]; sgqm = scaleinv*greensfn_qmu[ii];
+        Qr = work5[n]; Qi = work5[n+1];
+        Dr = (work1[n]*fkx[i] + work2[n]*fky[j] + work3[n]*fkz[k]);
+        Di = (work1[n+1]*fkx[i] + work2[n+1]*fky[j] + work3[n+1]*fkz[k]);
+        work4[n]   = -fky[j]*fkz[k]*(sgdd*Di + sgqm*Qr);
+        work4[n+1] =  fky[j]*fkz[k]*(sgdd*Dr - sgqm*Qi);
+        n += 2; ii++;
       }
 
   fft2->compute(work4,work4,FFT3d::BACKWARD);
@@ -2076,14 +2295,19 @@ void PPPMDipole::fieldforce_ik_dipole()
   FFT_SCALAR dx,dy,dz;
   FFT_SCALAR x0,y0,z0;
   FFT_SCALAR ex,ey,ez;
+  FFT_SCALAR ekx,eky,ekz;
   FFT_SCALAR vxx,vyy,vzz,vxy,vxz,vyz;
 
-  // loop over my charges, interpolate electric field from nearby grid points
-  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // loop over my atoms, interpolate fields from nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of atom
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
+  // ex,ey,ez       = E-field felt by dipoles  (dipole + charge sources)
+  // ekx,eky,ekz    = E-field felt by charges  (charge + dipole sources)
+  // vxx..vyz       = field gradient felt by dipoles (dipole + charge sources)
 
   double **mu = atom->mu;
+  double *q = atom->q;
   double **x = atom->x;
   double **f = atom->f;
   double **t = atom->torque;
@@ -2101,6 +2325,7 @@ void PPPMDipole::fieldforce_ik_dipole()
     compute_rho1d(dx,dy,dz);
 
     ex = ey = ez = ZEROF;
+    ekx = eky = ekz = ZEROF;
     vxx = vyy = vzz = vxy = vxz = vyz = ZEROF;
     for (n = nlower; n <= nupper; n++) {
       mz = n+nz;
@@ -2111,6 +2336,9 @@ void PPPMDipole::fieldforce_ik_dipole()
         for (l = nlower; l <= nupper; l++) {
           mx = l+nx;
           x0 = y0*rho1d[0][l];
+          ekx -= x0*vdx_brick[mz][my][mx];
+          eky -= x0*vdy_brick[mz][my][mx];
+          ekz -= x0*vdz_brick[mz][my][mx];
           ex -= x0*ux_brick_dipole[mz][my][mx];
           ey -= x0*uy_brick_dipole[mz][my][mx];
           ez -= x0*uz_brick_dipole[mz][my][mx];
@@ -2124,16 +2352,23 @@ void PPPMDipole::fieldforce_ik_dipole()
       }
     }
 
-    // convert E-field to torque
+    const double qfactor = qqrd2e * scale;
 
-    const double mufactor = qqrd2e * scale;
-    f[i][0] += mufactor*(vxx*mu[i][0] + vxy*mu[i][1] + vxz*mu[i][2]);
-    f[i][1] += mufactor*(vxy*mu[i][0] + vyy*mu[i][1] + vyz*mu[i][2]);
-    f[i][2] += mufactor*(vxz*mu[i][0] + vyz*mu[i][1] + vzz*mu[i][2]);
+    // force on point charge from the total E-field
 
-    t[i][0] += mufactor*(mu[i][1]*ez - mu[i][2]*ey);
-    t[i][1] += mufactor*(mu[i][2]*ex - mu[i][0]*ez);
-    t[i][2] += mufactor*(mu[i][0]*ey - mu[i][1]*ex);
+    f[i][0] += qfactor*q[i]*ekx;
+    f[i][1] += qfactor*q[i]*eky;
+    f[i][2] += qfactor*q[i]*ekz;
+
+    // force on dipole from field gradient, torque from E-field
+
+    f[i][0] += qfactor*(vxx*mu[i][0] + vxy*mu[i][1] + vxz*mu[i][2]);
+    f[i][1] += qfactor*(vxy*mu[i][0] + vyy*mu[i][1] + vyz*mu[i][2]);
+    f[i][2] += qfactor*(vxz*mu[i][0] + vyz*mu[i][1] + vzz*mu[i][2]);
+
+    t[i][0] += qfactor*(mu[i][1]*ez - mu[i][2]*ey);
+    t[i][1] += qfactor*(mu[i][2]*ex - mu[i][0]*ez);
+    t[i][2] += qfactor*(mu[i][0]*ey - mu[i][1]*ex);
   }
 }
 
@@ -2244,6 +2479,9 @@ void PPPMDipole::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
     FFT_SCALAR *src_vxy = &vdxy_brick_dipole[nzlo_out][nylo_out][nxlo_out];
     FFT_SCALAR *src_vxz = &vdxz_brick_dipole[nzlo_out][nylo_out][nxlo_out];
     FFT_SCALAR *src_vyz = &vdyz_brick_dipole[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *src_ekx = &vdx_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *src_eky = &vdy_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *src_ekz = &vdz_brick[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++) {
       buf[n++] = src_ux[list[i]];
       buf[n++] = src_uy[list[i]];
@@ -2254,6 +2492,9 @@ void PPPMDipole::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
       buf[n++] = src_vxy[list[i]];
       buf[n++] = src_vxz[list[i]];
       buf[n++] = src_vyz[list[i]];
+      buf[n++] = src_ekx[list[i]];
+      buf[n++] = src_eky[list[i]];
+      buf[n++] = src_ekz[list[i]];
     }
   } else if (flag == FORWARD_MU_PERATOM) {
     FFT_SCALAR *v0xsrc = &v0x_brick_dipole[nzlo_out][nylo_out][nxlo_out];
@@ -2317,6 +2558,9 @@ void PPPMDipole::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
     FFT_SCALAR *dest_vxy = &vdxy_brick_dipole[nzlo_out][nylo_out][nxlo_out];
     FFT_SCALAR *dest_vxz = &vdxz_brick_dipole[nzlo_out][nylo_out][nxlo_out];
     FFT_SCALAR *dest_vyz = &vdyz_brick_dipole[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *dest_ekx = &vdx_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *dest_eky = &vdy_brick[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *dest_ekz = &vdz_brick[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++) {
       dest_ux[list[i]] = buf[n++];
       dest_uy[list[i]] = buf[n++];
@@ -2327,6 +2571,9 @@ void PPPMDipole::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
       dest_vxy[list[i]] = buf[n++];
       dest_vxz[list[i]] = buf[n++];
       dest_vyz[list[i]] = buf[n++];
+      dest_ekx[list[i]] = buf[n++];
+      dest_eky[list[i]] = buf[n++];
+      dest_ekz[list[i]] = buf[n++];
     }
   } else if (flag == FORWARD_MU_PERATOM) {
     FFT_SCALAR *v0xsrc = &v0x_brick_dipole[nzlo_out][nylo_out][nxlo_out];
@@ -2383,10 +2630,12 @@ void PPPMDipole::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
     FFT_SCALAR *src_dipole0 = &densityx_brick_dipole[nzlo_out][nylo_out][nxlo_out];
     FFT_SCALAR *src_dipole1 = &densityy_brick_dipole[nzlo_out][nylo_out][nxlo_out];
     FFT_SCALAR *src_dipole2 = &densityz_brick_dipole[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *src_charge = &density_brick[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++) {
       buf[n++] = src_dipole0[list[i]];
       buf[n++] = src_dipole1[list[i]];
       buf[n++] = src_dipole2[list[i]];
+      buf[n++] = src_charge[list[i]];
     }
   }
 }
@@ -2404,10 +2653,12 @@ void PPPMDipole::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
     FFT_SCALAR *dest_dipole0 = &densityx_brick_dipole[nzlo_out][nylo_out][nxlo_out];
     FFT_SCALAR *dest_dipole1 = &densityy_brick_dipole[nzlo_out][nylo_out][nxlo_out];
     FFT_SCALAR *dest_dipole2 = &densityz_brick_dipole[nzlo_out][nylo_out][nxlo_out];
+    FFT_SCALAR *dest_charge = &density_brick[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++) {
       dest_dipole0[list[i]] += buf[n++];
       dest_dipole1[list[i]] += buf[n++];
       dest_dipole2[list[i]] += buf[n++];
+      dest_charge[list[i]] += buf[n++];
     }
   }
 }
@@ -2489,6 +2740,10 @@ int PPPMDipole::timing_1d(int n, double &time1d)
     fft1->timing1d(work1,nfft_both,FFT3d::FORWARD);
     fft1->timing1d(work1,nfft_both,FFT3d::FORWARD);
     fft1->timing1d(work1,nfft_both,FFT3d::FORWARD);
+    fft1->timing1d(work1,nfft_both,FFT3d::FORWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
     fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
     fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
     fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
@@ -2504,7 +2759,7 @@ int PPPMDipole::timing_1d(int n, double &time1d)
   time2 = platform::walltime();
   time1d = time2 - time1;
 
-  return 12;
+  return 16;
 }
 
 /* ----------------------------------------------------------------------
@@ -2524,6 +2779,10 @@ int PPPMDipole::timing_3d(int n, double &time3d)
     fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
     fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
     fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
+    fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
+    fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
     fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
     fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
     fft2->compute(work1,work1,FFT3d::FFT3d::BACKWARD);
@@ -2539,7 +2798,7 @@ int PPPMDipole::timing_3d(int n, double &time3d)
   time2 = platform::walltime();
   time3d = time2 - time1;
 
-  return 12;
+  return 16;
 }
 
 /* ----------------------------------------------------------------------
@@ -2553,10 +2812,11 @@ double PPPMDipole::memory_usage()
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
   bytes += (double)6 * nfft_both * sizeof(double);   // vg
-  bytes += (double)nfft_both * sizeof(double);       // greensfn
-  bytes += (double)nfft_both*5 * sizeof(FFT_SCALAR); // work*2*2
+  bytes += (double)3 * nfft_both * sizeof(double);   // greensfn{,_qq,_qmu}
+  bytes += (double)nfft_both*10 * sizeof(FFT_SCALAR); // work1..work5 (2 each)
   bytes += (double)9 * nbrick * sizeof(FFT_SCALAR);  // ubrick*3 + vdbrick*6
-  bytes += (double)nfft_both*7 * sizeof(FFT_SCALAR); // density_ffx*3 + work*2*2
+  bytes += (double)4 * nbrick * sizeof(FFT_SCALAR);  // density_brick + vd{x,y,z}_brick
+  bytes += (double)nfft_both*4 * sizeof(FFT_SCALAR); // density_fft (dipole*3 + charge)
 
   if (peratom_allocate_flag)
     bytes += (double)21 * nbrick * sizeof(FFT_SCALAR);

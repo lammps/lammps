@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2016-g58571c9b1c-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2025-gb77e3ac82a)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # fix ilves example: a fluid of rigid diatomic molecules (LJ units)
@@ -27,7 +27,7 @@ Read molecule template dimer:
 create_atoms    0 random 400 54321 box mol dimer 98765 overlap 0.9 maxtry 100
 Created 800 atoms
   using lattice units in orthogonal box = (0 0 0) to (18 18 18)
-  create_atoms CPU = 0.006 seconds
+  create_atoms CPU = 0.005 seconds
 
 mass            1 1.0
 pair_style      lj/cut 2.5
@@ -105,21 +105,21 @@ Bond:   1   1         1.12752e-06      400
 ILVES stats (type/ave/delta/count) on step 2000 (up to 1 Newton iterations)
 Bond:   1   1         5.88984e-07      400
       2000   1.3749354     -0.91389289     0.8021984      0.047880192  
-Loop time of 0.0807191 on 4 procs for 2000 steps with 800 atoms
+Loop time of 0.0772083 on 4 procs for 2000 steps with 800 atoms
 
-Performance: 10703788.827 tau/day, 24777.289 timesteps/s, 19.822 Matom-step/s
-97.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 11190504.401 tau/day, 25903.945 timesteps/s, 20.723 Matom-step/s
+98.3% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.010263   | 0.01184    | 0.013058   |   0.9 | 14.67
-Bond    | 6.1228e-05 | 6.5603e-05 | 6.7571e-05 |   0.0 |  0.08
-Neigh   | 0.020066   | 0.020142   | 0.02033    |   0.1 | 24.95
-Comm    | 0.014482   | 0.015683   | 0.017134   |   0.8 | 19.43
-Output  | 0.00010106 | 0.00012141 | 0.00018089 |   0.0 |  0.15
-Modify  | 0.030361   | 0.030596   | 0.030766   |   0.1 | 37.90
-Other   |            | 0.00227    |            |       |  2.81
+Pair    | 0.010144   | 0.011571   | 0.012269   |   0.8 | 14.99
+Bond    | 6.0542e-05 | 6.5022e-05 | 6.7564e-05 |   0.0 |  0.08
+Neigh   | 0.019121   | 0.019184   | 0.019301   |   0.1 | 24.85
+Comm    | 0.013711   | 0.014418   | 0.015669   |   0.6 | 18.67
+Output  | 3.8505e-05 | 4.7729e-05 | 7.2978e-05 |   0.0 |  0.06
+Modify  | 0.029686   | 0.029838   | 0.030015   |   0.1 | 38.65
+Other   |            | 0.002086   |            |       |  2.70
 
 Nlocal:            200 ave         211 max         188 min
 Histogram: 1 0 1 0 0 0 0 0 1 1

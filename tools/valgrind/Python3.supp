@@ -305,3 +305,35 @@
   ...
   fun:_PyEval_EvalFrameDefault
 }
+
+# ---------------------------------------------------------------------------
+# CPython 3.x and NumPy interpreter internals. The python-driven unittests run
+# the system python3 interpreter under valgrind; CPython and NumPy do not free
+# all interpreter/module state at Py_Finalize (type objects, dtype/ufunc
+# registrations, interned data, ...), so these show up as leaks in a separate
+# process from the LAMMPS code and are false positives. Anchored generically on
+# the CPython allocators so they keep matching across CPython/NumPy versions.
+# Verified: `python3 -c "import numpy"` reports ~6.5 KB direct + ~29 KB indirect
+# lost without these, and 0 with them.
+# ---------------------------------------------------------------------------
+{
+   CPython_PyMem_Raw_alloc_leak
+   Memcheck:Leak
+   ...
+   fun:_PyMem_Raw*alloc
+   ...
+}
+{
+   CPython_PyObject_GC_leak
+   Memcheck:Leak
+   ...
+   fun:_PyObject_GC_*
+   ...
+}
+{
+   CPython_PyObject_alloc_leak
+   Memcheck:Leak
+   ...
+   fun:_PyObject_*alloc
+   ...
+}

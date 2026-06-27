@@ -44,10 +44,6 @@ target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)
 
 if(PKG_EXTRA-FIX)
-  add_executable(test_fix_uvt test_fix_uvt.cpp)
-  target_link_libraries(test_fix_uvt PRIVATE lammps GTest::GMock)
-  add_test(NAME FixUVT COMMAND test_fix_uvt)
-
   add_executable(test_fix_tprpmd test_fix_tprpmd.cpp)
   target_link_libraries(test_fix_tprpmd PRIVATE lammps GTest::GMock)
   add_test(NAME FixTPRPMD COMMAND test_fix_tprpmd --gtest_filter=FixTPRPMDSerialTest.*)

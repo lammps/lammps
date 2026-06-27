@@ -1,0 +1,106 @@
+LAMMPS (30 Mar 2026 - Development - c0111598fe-modified)
+  using 1 OpenMP thread(s) per MPI task
+# Rigid bodies of finite dipolar particles (atom_style hybrid sphere dipole) --
+# exercises both the SPHERE (omega) and DIPOLE (mu) extended paths of
+# fix rigid/small/kk.  A dipole pair style makes PotEng depend on the dipole
+# orientations that set_xv rotates with each body on the device.
+#   lmp -in in.rigid.dipoles
+#   lmp -k on -sf kk -in in.rigid.dipoles
+
+units           lj
+atom_style      hybrid sphere dipole
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (src/atom_vec_hybrid.cpp:132)
+atom_modify     map array
+
+lattice         sc 0.05
+Lattice spacing in x,y,z = 2.7144176 2.7144176 2.7144176
+region          box block 0 4 0 4 0 4
+create_box      1 box
+Created orthogonal box = (0 0 0) to (10.85767 10.85767 10.85767)
+  2 by 1 by 2 MPI processor grid
+
+fix             prop all property/atom mol ghost yes
+molecule        mymol mol.dipole3
+Read molecule template mymol:
+# 3 finite dipolar particles in a rigid cluster (hybrid sphere dipole)
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 1
+  0 bonds with max type 0
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+create_atoms    0 region box mol mymol 71328
+Created 192 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10.85767 10.85767 10.85767)
+  create_atoms CPU = 0.001 seconds
+
+pair_style      lj/cut/dipole/cut 2.5
+pair_coeff      1 1 1.0 1.0
+neigh_modify    exclude molecule/intra all
+
+fix             1 all rigid/small molecule
+Fix rigid/small setup ...
+  create bodies CPU = 0.000 seconds
+  64 rigid bodies with 192 atoms
+  1.1 = max distance from body owner to body atom
+
+compute         erot all erotate/sphere
+thermo_style    custom step pe f_1 c_erot
+thermo          200
+timestep        0.002
+run             2000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 8 8 8
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/dipole/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.323 | 9.323 | 9.324 Mbytes
+   Step         PotEng          f_1           c_erot    
+         0  -0.16355579     0              0            
+       200  -0.23580077     0.074891277    0.010236741  
+       400  -0.40567988     0.24260349     0.028455756  
+       600  -0.54990307     0.385428       0.040758249  
+       800  -0.76531964     0.59274329     0.084133804  
+      1000  -0.98518011     0.80322305     0.11201717   
+      1200  -1.0947804      0.90964559     0.13226297   
+      1400  -1.1735401      0.99530285     0.13754141   
+      1600  -1.2504998      1.0698027      0.15429131   
+      1800  -1.2414625      1.0581848      0.14551629   
+      2000  -1.1865333      1.0058359      0.1277159    
+Loop time of 0.157821 on 4 procs for 2000 steps with 192 atoms
+
+Performance: 2189825.138 tau/day, 12672.599 timesteps/s, 2.433 Matom-step/s
+92.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.012504   | 0.013522   | 0.015114   |   0.9 |  8.57
+Neigh   | 0.002547   | 0.002823   | 0.0030654  |   0.4 |  1.79
+Comm    | 0.049609   | 0.052204   | 0.055295   |   0.9 | 33.08
+Output  | 0.0001056  | 0.00019258 | 0.00043215 |   0.0 |  0.12
+Modify  | 0.072853   | 0.079487   | 0.086635   |   2.0 | 50.37
+Other   |            | 0.009592   |            |       |  6.08
+
+Nlocal:             48 ave          56 max          43 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Nghost:            255 ave         261 max         246 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+Neighs:         337.75 ave         355 max         301 min
+Histogram: 1 0 0 0 0 0 0 0 1 2
+
+Total # of neighbors = 1351
+Ave neighs/atom = 7.0364583
+Neighbor list builds = 78
+Dangerous builds = 0
+Total wall time: 0:00:00

@@ -903,11 +903,16 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
 template<class DeviceType>
 bigint FixRigidSmallKokkos<DeviceType>::dof(int tgroup)
 {
-  // uses atom2body/bodyown/bodytag on the host; flush from device first
-  if (!setupflag) {
-    copy_body_host();
-    k_bodyown.sync_host();
-    k_bodytag.sync_host();
+  // FixRigidSmall::dof() returns 0 before setup; otherwise it reads the per-atom
+  // atom2body (and eflags for extended particles) on the host.  On the device
+  // path a reneighbor may have left those host mirrors stale, so sync them when
+  // they will actually be read (setupflag true).  sync_host() is a no-op when
+  // the host copy is already current (e.g. the first dof() right after
+  // FixRigidSmall::setup()), so this is safe and cheap at every call site.  dof()
+  // does not read body[], so no copy_body_host() is needed here.
+  if (setupflag) {
+    k_atom2body.sync_host();
+    if (extended) k_eflags.sync_host();
   }
 
   return FixRigidSmall::dof(tgroup);
@@ -945,6 +950,16 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
 {
   Kokkos::Profiling::pushRegion("rigid/small set_xv");
+
+  // The per-atom centroid virial (cvatom) is filled on the host by the base
+  // Fix::v_tally and has no tied device buffer, so the device set_xv kernel
+  // cannot accumulate it without dereferencing a host pointer on the device.
+  // Refuse rather than crash on GPU / silently corrupt.  The global and the
+  // ordinary per-atom virial (d_vatom) are fully supported.
+  if (cvflag_atom)
+    error->all(FLERR,"fix rigid/small/kk does not support the per-atom centroid "
+               "stress (e.g. compute centroid/stress/atom); use the non-Kokkos style");
+
   this->xprd = domain->xprd;
   this->yprd = domain->yprd;
   this->zprd = domain->zprd;
@@ -1310,13 +1325,30 @@ void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagpre
   // copy current bodies to host because they will later overwrite device
   copy_body_host();
 
+  // Flush the per-atom arrays device->host first.  On the device-exchange path
+  // these DualViews are modify-device (last written by unpack_exchange_kokkos),
+  // so the host mirrors are stale; the base set_molecule only appends the new
+  // atoms' rows, leaving the existing rows untouched.  Without this sync the
+  // modify_host/sync<DeviceType> below would push the stale host array back over
+  // the live device state, corrupting body bookkeeping for every existing atom.
+  k_bodytag.sync_host();
+  k_bodyown.sync_host();
+  k_displace.sync_host();
+  k_xcmimage.sync_host();
+  if (extended) {
+    k_eflags.sync_host();
+    if (orientflag) k_orient.sync_host();
+    if (dorientflag) k_dorient.sync_host();
+  }
+
   // add new bodies on host
   FixRigidSmall::set_molecule(nlocalprev, tagprev, imol, xgeom, vcm, quat);
   // update device body list to same size and copy
   grow_body();
   copy_body_device();
 
-  // base set_molecule wrote new atoms' bodytag/bodyown/displace/xcmimage on host
+  // base set_molecule wrote new atoms' bodytag/bodyown/displace/xcmimage (and,
+  // for extended particles, eflags/orient/dorient) on the host; push back
   k_bodytag.modify_host();
   k_bodyown.modify_host();
   k_displace.modify_host();
@@ -1325,6 +1357,12 @@ void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagpre
   k_bodyown.template sync<DeviceType>();
   k_displace.template sync<DeviceType>();
   k_xcmimage.template sync<DeviceType>();
+  if (extended) {
+    k_eflags.modify_host();
+    k_eflags.template sync<DeviceType>();
+    if (orientflag) { k_orient.modify_host(); k_orient.template sync<DeviceType>(); }
+    if (dorientflag) { k_dorient.modify_host(); k_dorient.template sync<DeviceType>(); }
+  }
   refresh_atom_views();
 }
 
@@ -2187,6 +2225,26 @@ void FixRigidSmallKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, B
   k_vatom.modify_device();
   k_atom2body.modify_device();
 
+  // the extended per-atom arrays are indexed by local atom in set_xv, so they
+  // must follow the same permutation (an extended system that ever reaches the
+  // device sort path -- this is currently gated to the host sort, but keep the
+  // sort self-consistent regardless)
+  if (extended) {
+    k_eflags.template sync<LMPDeviceType>();
+    Sorter.sort(space, k_eflags.template view<LMPDeviceType>());
+    k_eflags.modify_device();
+    if (orientflag) {
+      k_orient.template sync<LMPDeviceType>();
+      Sorter.sort(space, k_orient.template view<LMPDeviceType>());
+      k_orient.modify_device();
+    }
+    if (dorientflag) {
+      k_dorient.template sync<LMPDeviceType>();
+      Sorter.sort(space, k_dorient.template view<LMPDeviceType>());
+      k_dorient.modify_device();
+    }
+  }
+
   // Before setup_bodies_static() has run there are no bodies yet (all atoms
   // carry bodytag=0 / bodyown=-1 placeholders that setup() will overwrite), so
   // there is nothing to re-link.  This guard lets the setup-time atom->sort()
@@ -2488,24 +2546,11 @@ void FixRigidSmallKokkos<DeviceType>::copy_body_device(){
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixRigidSmallKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int i, double vtot[6], double r[3], double f[3], double center[3]) const{
+  // the centroid (r, f, center) arguments are only needed for the per-atom
+  // centroid virial, which is unsupported on the device and rejected up front
+  // in set_xv_kokkos(); here we only tally the global / ordinary per-atom virial
+  (void) r; (void) f; (void) center;
   v_tally(ev, i, vtot);
-
-  if (cvflag_atom) {
-    const double ri0[3] = {
-      r[0]-center[0],
-      r[1]-center[1],
-      r[2]-center[2],
-    };
-    cvatom[i][0] += ri0[0]*f[0];
-    cvatom[i][1] += ri0[1]*f[1];
-    cvatom[i][2] += ri0[2]*f[2];
-    cvatom[i][3] += ri0[0]*f[1];
-    cvatom[i][4] += ri0[0]*f[2];
-    cvatom[i][5] += ri0[1]*f[2];
-    cvatom[i][6] += ri0[1]*f[0];
-    cvatom[i][7] += ri0[2]*f[0];
-    cvatom[i][8] += ri0[2]*f[1];
-  }
 }
 
 template<class DeviceType>

@@ -126,6 +126,14 @@ void FixRigidSmallKokkos<DeviceType>::init()
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot yet use respa with Kokkos");
 
+  // 2d is not supported: the base setup()/final_integrate() call enforce2d()
+  // virtually, which dispatches to the device kk version operating on d_body
+  // before it is populated from the host, leaving the host body's 2d
+  // components un-zeroed for the host set_v.  Error rather than run silently
+  // wrong until the 2d path is validated.
+  if (domain->dimension == 2)
+    error->all(FLERR,"fix rigid/small/kk does not yet support 2d systems");
+
   // seed the device Langevin RNG from the host RNG (which carries the user's
   // langevin seed) so results are reproducible for a given input
   if (langflag && random) {
@@ -218,23 +226,6 @@ void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
   atomKK->sync(Host, datamask_read);
 
   FixRigidSmall::setup(vflag);
-
-  // FixRigidSmall::setup() calls compute_forces_and_torques() while langextra is
-  // freshly allocated but still uninitialised (apply_langevin_thermostat() does
-  // not run until the first post_force), so it folds garbage Langevin
-  // force/torque into every body's fcm/torque.  This is an uninitialised read
-  // (confirmed by valgrind, origin = memory->create(langextra)); whether the
-  // stray values are benign depends on the heap contents, which differ between
-  // the Kokkos and non-Kokkos binaries and across MPI rank counts.  Under MPI
-  // (np>1) the Kokkos build reliably picks up large values that drive the first
-  // richardson quaternion step to NaN and blow the run up.  Zero langextra and
-  // recompute so the bodies start from a clean, thermostat-free force state;
-  // apply_langevin_thermostat_kokkos() fills langextra each step during the run.
-  if (langflag && langextra) {
-    for (int ib = 0; ib < maxlang; ib++)
-      for (int k = 0; k < 6; k++) langextra[ib][k] = 0.0;
-    FixRigidSmall::compute_forces_and_torques();
-  }
 
   atomKK->modified(Host, datamask_modify);
 

@@ -923,11 +923,12 @@ The Kokkos versions of these fixes (the */kk* accelerator variants of
 *rigid/npt/small*, and *rigid/nph/small*) implement a subset of the
 functionality of the corresponding non-accelerated styles.  The
 *langevin* thermostat is supported, including with MPI domain
-decomposition; because the random forces are drawn from a Kokkos
+decomposition.  Because the random forces are drawn from a Kokkos
 device RNG rather than the host RNG, individual trajectories differ
-from the non-Kokkos style but the thermodynamic averages agree.
-Reading body properties from a file (the *infile* keyword) is
-experimental.
+from the non-Kokkos style (they are not bit-for-bit comparable), but
+the bodies are thermostatted to the same target temperature.  The
+*kk* styles run on 3d systems only.  Reading body properties from a
+file (the *infile* keyword) is experimental.
 
 Rigid bodies built from finite-size *sphere*, *ellipsoid*, and point
 *dipole* particles are supported with Kokkos: in each integration step the

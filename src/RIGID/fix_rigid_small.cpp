@@ -650,6 +650,18 @@ void FixRigidSmall::setup(int vflag)
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
   }
 
+  // langextra holds the Langevin force/torque that compute_forces_and_torques()
+  // adds to every body, but apply_langevin_thermostat() does not run until the
+  // first post_force().  memory->create() does not zero, so without this the
+  // setup folds an uninitialised langextra into the body forces -- an
+  // uninitialised read that is benign only by heap luck (fresh mmap'd pages read
+  // as zero) and turns fatal under Kokkos+MPI, where the smaller, reused
+  // allocation carries large garbage that sends the first quaternion step to NaN.
+
+  if (langflag && langextra)
+    for (int ib = 0; ib < maxlang; ib++)
+      for (int k = 0; k < 6; k++) langextra[ib][k] = 0.0;
+
   compute_forces_and_torques();
 
   // enforce 2d body forces and torques

@@ -926,16 +926,11 @@ functionality of the corresponding non-accelerated styles.  The
 decomposition.  Because the random forces are drawn from a Kokkos
 device RNG rather than the host RNG, individual trajectories differ
 from the non-Kokkos style (they are not bit-for-bit comparable), but
-the bodies are thermostatted to the same target temperature.  For
-validation, compiling with the ``-DLMP_KOKKOS_DEBUG_RNG`` preprocessor
-flag replaces the device RNG with a wrapper around the host Marsaglia
-RNG (the same one the non-Kokkos style uses); a Serial, single-thread
-Kokkos run then reproduces the non-Kokkos Langevin trajectory
-bit-for-bit.  This flag is for testing only and is incompatible with
-GPU builds.  Reading body properties from a file (the *infile* keyword)
-and inserting rigid molecules at runtime (:doc:`fix deposit
-<fix_deposit>` / :doc:`fix pour <fix_pour>`) are both supported.  The
-*kk* styles run on 3d systems only.
+the bodies are thermostatted to the same target temperature.  Reading
+body properties from a file (the *infile* keyword) and inserting rigid
+molecules at runtime (:doc:`fix deposit <fix_deposit>` /
+:doc:`fix pour <fix_pour>`) are both supported.  The *kk* styles run on
+3d systems only.
 
 Rigid bodies built from finite-size *sphere*, *ellipsoid*, and point
 *dipole* particles are supported with Kokkos: in each integration step the

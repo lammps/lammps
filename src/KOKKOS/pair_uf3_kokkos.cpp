@@ -80,7 +80,10 @@ void PairUF3Kokkos<DeviceType>::destroy_3d(TYPE data, typename TYPE::value_type*
 {
   if (array == nullptr) return;
   data = TYPE();
-  memory->sfree(array);
+  // the legacy array was built with memory->create(), so it must be released
+  // with memory->destroy() -- sfree() frees only the outermost pointer and
+  // leaks the nested plane pointers and contiguous data block
+  memory->destroy(array);
   array = nullptr;
 }
 
@@ -90,7 +93,10 @@ void PairUF3Kokkos<DeviceType>::destroy_4d(TYPE data, typename TYPE::value_type*
 {
   if (array == nullptr) return;
   data = TYPE();
-  memory->sfree(array);
+  // the legacy array was built with memory->create(), so it must be released
+  // with memory->destroy() -- sfree() frees only the outermost pointer and
+  // leaks the nested plane pointers and contiguous data block
+  memory->destroy(array);
   array = nullptr;
 }
 

@@ -29,8 +29,7 @@ namespace LAMMPS_NS {
 // host (they touch only fixed-size 1d chain state, not per-atom/per-body data),
 // matching the design used by fix_nh_kokkos.
 
-template<class DeviceType>
-class FixRigidNHSmallKokkos : public FixRigidSmallKokkos<DeviceType> {
+template <class DeviceType> class FixRigidNHSmallKokkos : public FixRigidSmallKokkos<DeviceType> {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -176,7 +175,7 @@ class FixRigidNHSmallKokkos : public FixRigidSmallKokkos<DeviceType> {
   inline double maclaurin_series(double);
 };
 
-template<class DeviceType>
+template <class DeviceType>
 inline double FixRigidNHSmallKokkos<DeviceType>::maclaurin_series(double x)
 {
   double x2, x4;

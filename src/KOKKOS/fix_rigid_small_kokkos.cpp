@@ -52,7 +52,11 @@ using namespace RigidConst;
 template<class DeviceType>
 FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixRigidSmall(lmp, narg, arg),
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool(12345 + comm->me, lmp)
+#else
   rand_pool(12345 + comm->me)
+#endif
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -115,6 +119,10 @@ FixRigidSmallKokkos<DeviceType>::~FixRigidSmallKokkos()
     if (orientflag) memoryKK->destroy_kokkos(k_orient, orient);
     if (dorientflag) memoryKK->destroy_kokkos(k_dorient, dorient);
   }
+
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  if (langflag) rand_pool.destroy();
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,18 +142,20 @@ void FixRigidSmallKokkos<DeviceType>::init()
   if (domain->dimension == 2)
     error->all(FLERR,"fix rigid/small/kk does not yet support 2d systems");
 
-  // seed the device Langevin RNG from the host RNG (which carries the user's
-  // langevin seed) so results are reproducible for a given input
+  // set up the Langevin RNG pool
   if (langflag && random) {
+#ifdef LMP_KOKKOS_DEBUG_RNG
+    // validation build: wrap the base-class host RanMars (random_thr[0] = random)
+    // so a Serial single-thread run draws the identical stream, in the identical
+    // per-body order, as the non-Kokkos apply_langevin_thermostat().  Do not draw
+    // from random here -- that would desync the stream from the non-Kokkos style.
+    rand_pool.init(random, 12345 + comm->me);
+#else
+    // production build: seed the on-device XorShift pool from the host RNG (which
+    // carries the user's langevin seed) so results are reproducible per input.
     int s = (int)(random->uniform() * 900000000.0) + 1;
     rand_pool = Kokkos::Random_XorShift64_Pool<DeviceType>(s + comm->me);
-  }
-
-  // warn about functionality that has not been thoroughly validated on device
-  if (comm->me == 0) {
-    if (inpfile)
-      error->warning(FLERR,"fix rigid/small/kk: reading body properties from a "
-                     "file (infile) is experimental with Kokkos");
+#endif
   }
 }
 
@@ -1292,11 +1302,10 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagprev, int imol,
                                  double *xgeom, double *vcm, double *quat)
 {
-  // TODO: Eliminate host work
-
-  if (comm->me == 0)
-    error->warning(FLERR,"fix rigid/small/kk: inserting molecules (set_molecule, "
-                   "e.g. fix deposit/pour) is experimental with Kokkos");
+  // Molecule insertion (fix deposit/pour) is done on the host: copy the current
+  // bodies down, let the base class add the new body, then push the grown body
+  // list and the new atoms' per-atom data back to the device.  Insertion is a
+  // rare, host-side event, so the round-trip is not a per-step cost.
 
   // copy current bodies to host because they will later overwrite device
   copy_body_host();
@@ -2293,7 +2302,6 @@ void *FixRigidSmallKokkos<DeviceType>::extract(const char *str, int &dim)
   }
 
   if (strcmp(str,"onemol") == 0) {
-    error->all(FLERR, "onemol not implemented");
     dim = 0;
     return onemols;
   }

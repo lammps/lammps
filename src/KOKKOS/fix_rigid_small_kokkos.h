@@ -27,6 +27,9 @@ FixStyle(rigid/small/host,FixRigidSmallKokkos<LMPHostType>);
 #include "comm_kokkos.h"
 #include "atom_vec_ellipsoid_kokkos.h"
 #include "Kokkos_Random.hpp"
+#ifdef LMP_KOKKOS_DEBUG_RNG
+#include "rand_pool_wrap_kokkos.h"
+#endif
 #include <map>
 
 struct TagInitialIntegrate{};
@@ -221,9 +224,20 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   typename AT::t_kkfloat_1d d_rmass, d_mass;
   IntView1D d_type;
 
-  // RNG pool for the on-device Langevin thermostat
+  // RNG pool for the Langevin thermostat.  By default this is the on-device
+  // Kokkos XorShift pool (fast, but its stream differs from the host RanMars,
+  // so Kokkos Langevin runs are statistically -- not bit-for-bit -- comparable
+  // to the non-Kokkos style).  Building with -DLMP_KOKKOS_DEBUG_RNG swaps in a
+  // wrapper around the host RanMars (the same instance the base class uses for
+  // thread 0), so a Serial single-thread Kokkos run reproduces the non-Kokkos
+  // Langevin trajectory bit-for-bit -- used for validation only.
+#ifndef LMP_KOKKOS_DEBUG_RNG
   Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
   typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
+#else
+  RandPoolWrap rand_pool;
+  typedef RandWrap rand_type;
+#endif
 };
 
 KOKKOS_INLINE_FUNCTION

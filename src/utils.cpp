@@ -1627,7 +1627,9 @@ std::vector<std::string> utils::split_words(const std::string &text)
         ++len;
       }
       if (c != '\'') ++len;
-      c = *++buf;
+      // for an unterminated quote c is already the terminating NUL, so do not
+      // advance past it (which would read one byte beyond the string buffer)
+      if (c) c = *++buf;
 
       // handle triple double quotation marks
     } else if ((c == '"') && (buf[1] == '"') && (buf[2] == '"') && (buf[3] != '"')) {
@@ -1650,7 +1652,8 @@ std::vector<std::string> utils::split_words(const std::string &text)
         ++len;
       }
       if (c != '"') ++len;
-      c = *++buf;
+      // see comment above: do not advance past the terminating NUL
+      if (c) c = *++buf;
     }
 
     // unquoted

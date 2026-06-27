@@ -135,11 +135,6 @@ void FixRigidSmallKokkos<DeviceType>::init()
 
   // warn about functionality that has not been thoroughly validated on device
   if (comm->me == 0) {
-    if (langflag && comm->nprocs > 1)
-      error->warning(FLERR,"fix rigid/small/kk: the Langevin thermostat is "
-                     "experimental with Kokkos and may be unstable with MPI "
-                     "domain decomposition (np>1); validate against the "
-                     "non-Kokkos style");
     if (inpfile)
       error->warning(FLERR,"fix rigid/small/kk: reading body properties from a "
                      "file (infile) is experimental with Kokkos");
@@ -223,6 +218,23 @@ void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
   atomKK->sync(Host, datamask_read);
 
   FixRigidSmall::setup(vflag);
+
+  // FixRigidSmall::setup() calls compute_forces_and_torques() while langextra is
+  // freshly allocated but still uninitialised (apply_langevin_thermostat() does
+  // not run until the first post_force), so it folds garbage Langevin
+  // force/torque into every body's fcm/torque.  This is an uninitialised read
+  // (confirmed by valgrind, origin = memory->create(langextra)); whether the
+  // stray values are benign depends on the heap contents, which differ between
+  // the Kokkos and non-Kokkos binaries and across MPI rank counts.  Under MPI
+  // (np>1) the Kokkos build reliably picks up large values that drive the first
+  // richardson quaternion step to NaN and blow the run up.  Zero langextra and
+  // recompute so the bodies start from a clean, thermostat-free force state;
+  // apply_langevin_thermostat_kokkos() fills langextra each step during the run.
+  if (langflag && langextra) {
+    for (int ib = 0; ib < maxlang; ib++)
+      for (int k = 0; k < 6; k++) langextra[ib][k] = 0.0;
+    FixRigidSmall::compute_forces_and_torques();
+  }
 
   atomKK->modified(Host, datamask_modify);
 

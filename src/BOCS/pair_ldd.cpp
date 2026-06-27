@@ -147,7 +147,26 @@ PairLdd::~PairLdd()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    deallocate_species();
+    // delete the per-species-pair indicator/potential objects and their grids
+    if (Inds) {
+      for (int i = 0; i < nelements; i++) {
+        for (int j = 0; j < nelements; j++) {
+          delete Inds[i][j];
+          delete Potls[i][j];
+          delete GradPotls[i][j];
+        }
+        delete[] Inds[i];
+        delete[] Potls[i];
+        delete[] GradPotls[i];
+      }
+      delete[] Inds;
+      delete[] Potls;
+      delete[] GradPotls;
+    }
+    memory->destroy(ignore_pair);
+    memory->destroy(ignore_me);
+    memory->destroy(bGradient);
+    memory->destroy(self_interaction);
     allocated = 0;
   }
 
@@ -198,34 +217,6 @@ void PairLdd::allocate()
    allocate the per-species-pair interaction data, sized by nelements
    (called from coeff() once the species count is known from the type map)
 ------------------------------------------------------------------------- */
-
-void PairLdd::deallocate_species()
-{
-  if (Inds) {
-    for (int i = 0; i < nelements; i++) {
-      for (int j = 0; j < nelements; j++) {
-        delete Inds[i][j];
-        delete Potls[i][j];
-        delete GradPotls[i][j];
-      }
-      delete[] Inds[i];
-      delete[] Potls[i];
-      delete[] GradPotls[i];
-    }
-    delete[] Inds;
-    delete[] Potls;
-    delete[] GradPotls;
-    Inds = nullptr;
-    Potls = nullptr;
-    GradPotls = nullptr;
-  }
-  memory->destroy(ignore_pair);
-  memory->destroy(ignore_me);
-  memory->destroy(bGradient);
-  memory->destroy(self_interaction);
-}
-
-/* ---------------------------------------------------------------------- */
 
 void PairLdd::allocate_species()
 {
@@ -870,11 +861,6 @@ void PairLdd::unpack_reverse_comm(int n, int *list, double *buf)
 void PairLdd::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
-
-  // free any species data from a previous pair_coeff (using the still-current
-  // nelements) before re-reading; a repeated pair_coeff would otherwise leak
-  // the old per-species arrays and indicator/potential objects
-  deallocate_species();
 
   // pair_coeff * * <file> <sp1> <sp2> ... : one species name per atom type, in the
   // manybody style.  The set (and number) of species is taken from these names.

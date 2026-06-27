@@ -995,6 +995,22 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
     d_eflags = k_eflags.template view<DeviceType>();
   }
 
+  // The kernel also reads atom-style arrays that datamask_read does not cover:
+  // rmass (constraint-force virial and ellipsoid inertia), the per-atom
+  // ellipsoid index, and mu[3] (the dipole magnitude).  Sync them to the device
+  // or they are read stale -- or never initialised -- on a GPU (host==device
+  // hides this on CPU builds).
+  int extra_read = 0;
+  if (atom->rmass) extra_read |= RMASS_MASK;
+  if (extended) {
+    if (atom->mu_flag) extra_read |= MU_MASK;
+    if (atom->ellipsoid_flag && avecEllipKK) extra_read |= ELLIPSOID_MASK;
+  }
+  if (extra_read) atomKK->sync(execution_space, extra_read);
+  // per-type mass is not a datamask-tracked per-atom array; sync the DualView
+  // directly (no-op once it is device-current, as it is set only at setup)
+  if (!atom->rmass) atomKK->k_mass.template sync<DeviceType>();
+
   EV_FLOAT ev;
   if(vflag_atom){
     Kokkos::deep_copy(d_vatom, 0.0);
@@ -2166,6 +2182,10 @@ void FixRigidSmallKokkos<DeviceType>::image_shift()
   }
   Kokkos::Profiling::pushRegion("rigid/small image shift");
 
+  // the kernel reads atom->image; sync it to the device first (on the host
+  // exchange path image was last updated on the host, so the device view is
+  // stale -- invisible on CPU where host and device share the buffer)
+  atomKK->sync(execution_space, IMAGE_MASK);
   ImageIntView1D d_image = atomKK->k_image.view<DeviceType>();
   int nlocal = atom->nlocal;
   auto d_body = this->d_body;

@@ -259,6 +259,38 @@ static void print_includes(const char *s)
     }
 }
 
+/* Style headers whose class definition is wrapped in a build-configuration
+ * guard (compiler or library feature macro) placed *outside* the
+ * "#ifdef XXX_CLASS" marker block.  The marker parser cannot see such a guard,
+ * so these styles are skipped during normal parsing and their #include and
+ * registration call are emitted by hand, wrapped in the same guard. */
+
+static const struct special_style {
+    const char *header; /* basename matched against the input file list */
+    const char *guard;  /* preprocessor condition for "#if <guard>"     */
+    const char *key;    /* style keyword                                */
+    const char *cls;    /* C++ class name                               */
+} special_styles[] = {
+    {"pair_snap_intel.h",
+     "defined(__AVX512F__) && (defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER))",
+     "snap/intel", "PairSNAPIntel"},
+    {"dump_netcdf.h", "defined(LMP_HAS_NETCDF)", "netcdf", "DumpNetCDF"},
+    {"dump_netcdf_mpiio.h", "defined(LMP_HAS_PNETCDF)", "netcdf/mpiio", "DumpNetCDFMPIIO"}};
+
+static const int num_special_styles = (int) (sizeof(special_styles) / sizeof(special_styles[0]));
+
+/* return the special_styles[] index matching path's basename, or -1 if none */
+
+static int special_index(const char *path)
+{
+    const char *slash = strrchr(path, '/');
+    const char *base = slash ? slash + 1 : path;
+    int i;
+    for (i = 0; i < num_special_styles; ++i)
+        if (strcmp(base, special_styles[i].header) == 0) return i;
+    return -1;
+}
+
 int main(int argc, char **argv)
 {
     int i, sep = -1;
@@ -298,7 +330,14 @@ int main(int argc, char **argv)
         printf("#include \"creator_registry.h\"\n");
         print_includes(includes);
         printf("\n");
-        for (i = sep + 1; i < argc; ++i) printf("#include \"%s\"\n", argv[i]);
+        for (i = sep + 1; i < argc; ++i)
+            if (special_index(argv[i]) < 0) printf("#include \"%s\"\n", argv[i]);
+        for (i = sep + 1; i < argc; ++i) {
+            int s = special_index(argv[i]);
+            if (s >= 0)
+                printf("#if %s\n#include \"%s\"\n#endif\n", special_styles[s].guard,
+                       special_styles[s].header);
+        }
         printf("\n");
         printf("namespace LAMMPS_NS {\n\n");
         if (strcmp(onearg, "1") == 0) {
@@ -310,7 +349,15 @@ int main(int argc, char **argv)
         }
         printf("\n");
         printf("void %s()\n{\n", regfunc);
-        for (i = sep + 1; i < argc; ++i) process_source_file(argv[i], macro, accessor);
+        for (i = sep + 1; i < argc; ++i)
+            if (special_index(argv[i]) < 0) process_source_file(argv[i], macro, accessor);
+        for (i = sep + 1; i < argc; ++i) {
+            int s = special_index(argv[i]);
+            if (s >= 0)
+                printf("#if %s\n  %s().add_builtin(\"%s\", &creator<%s>);\n#endif\n",
+                       special_styles[s].guard, accessor, special_styles[s].key,
+                       special_styles[s].cls);
+        }
         printf("}\n\n");
         printf("}    // namespace LAMMPS_NS\n");
         return 0;

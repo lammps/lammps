@@ -169,11 +169,28 @@ function(CreateStyleSource path property style macro base accessor regfunc one_a
     endforeach()
     list(SORT pairs)
 
+    # Some style headers wrap their class definition in a build-configuration
+    # guard (compiler or library feature macro) placed *outside* the
+    # "#ifdef XXX_CLASS" marker block, so the marker parser below cannot see it.
+    # Skip those headers during normal parsing and emit their #include and
+    # registration call by hand, wrapped in the same guard expression.
+    set(special_hdr   "pair_snap_intel.h" "dump_netcdf.h" "dump_netcdf_mpiio.h")
+    set(special_guard "defined(__AVX512F__) && (defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER))" "defined(LMP_HAS_NETCDF)" "defined(LMP_HAS_PNETCDF)")
+    set(special_key   "snap/intel" "netcdf" "netcdf/mpiio")
+    set(special_cls   "PairSNAPIntel" "DumpNetCDF" "DumpNetCDFMPIIO")
+
     set(include_block "")
     set(entry_block "")
+    set(present_specials "")
     foreach(entry ${pairs})
         string(REGEX REPLACE "^[^|]*\\|" "" fname "${entry}")
         get_filename_component(bname ${fname} NAME)
+        list(FIND special_hdr "${bname}" spidx)
+        if(NOT spidx EQUAL -1)
+            list(APPEND present_specials ${spidx})
+            set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${fname}")
+            continue()
+        endif()
         set(include_block "${include_block}#include \"${bname}\"\n")
         set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${fname}")
 
@@ -232,6 +249,16 @@ function(CreateStyleSource path property style macro base accessor regfunc one_a
                 endif()
             endif()
         endforeach()
+    endforeach()
+
+    # emit guarded #include + registration for the skipped special-case headers
+    foreach(spidx ${present_specials})
+        list(GET special_hdr ${spidx} shdr)
+        list(GET special_guard ${spidx} sguard)
+        list(GET special_key ${spidx} skey)
+        list(GET special_cls ${spidx} scls)
+        set(include_block "${include_block}#if ${sguard}\n#include \"${shdr}\"\n#endif\n")
+        set(entry_block "${entry_block}#if ${sguard}\n  ${accessor}().add_builtin(\"${skey}\", &creator<${scls}>);\n#endif\n")
     endforeach()
 
     set(preamble "#include \"lammps.h\"\n#include \"creator_registry.h\"\n")

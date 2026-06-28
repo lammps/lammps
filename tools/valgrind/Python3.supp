@@ -337,3 +337,69 @@
    fun:_PyObject_*alloc
    ...
 }
+
+# ---------------------------------------------------------------------------
+# CPython/NumPy module-initialisation and bytecode-eval false positives.
+# The python-driven unittests run the system python3 + numpy under valgrind.
+# NumPy's C-extension import (ufunc/dtype registration) and the CPython
+# bytecode interpreter produce many leaks AND uninitialised-value errors that
+# are internal to those libraries (a separate concern from the LAMMPS code).
+# Anchored on the module-init and eval entry points so all of it -- across
+# CPython/NumPy versions -- is treated as the false positive it is.
+# ---------------------------------------------------------------------------
+{
+   CPython_modinit_leak
+   Memcheck:Leak
+   ...
+   fun:_PyImport_RunModInitFunc
+   ...
+}
+{
+   CPython_modinit_cond
+   Memcheck:Cond
+   ...
+   fun:_PyImport_RunModInitFunc
+   ...
+}
+{
+   CPython_modinit_value8
+   Memcheck:Value8
+   ...
+   fun:_PyImport_RunModInitFunc
+   ...
+}
+{
+   CPython_modinit_value4
+   Memcheck:Value4
+   ...
+   fun:_PyImport_RunModInitFunc
+   ...
+}
+{
+   CPython_eval_leak
+   Memcheck:Leak
+   ...
+   fun:_PyEval_EvalFrameDefault
+   ...
+}
+{
+   CPython_eval_cond
+   Memcheck:Cond
+   ...
+   fun:_PyEval_EvalFrameDefault
+   ...
+}
+{
+   CPython_eval_value8
+   Memcheck:Value8
+   ...
+   fun:_PyEval_EvalFrameDefault
+   ...
+}
+{
+   CPython_eval_value4
+   Memcheck:Value4
+   ...
+   fun:_PyEval_EvalFrameDefault
+   ...
+}

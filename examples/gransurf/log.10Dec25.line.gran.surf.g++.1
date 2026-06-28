@@ -1,0 +1,241 @@
+LAMMPS (10 Dec 2025 - Development - patch_10Dec2025-1117-gc6f63e885c-modified)
+# pouring spheres into box made of line segments
+
+units			lj
+atom_style		line
+atom_modify     map array
+boundary        f f p
+dimension		2
+comm_modify     vel yes
+
+region			box block -15 15 -15 15 -0.5 0.5 units box
+create_box		2 box
+Created orthogonal box = (-15 -15 -0.5) to (15 15 0.5)
+  1 by 1 by 1 MPI processor grid
+
+molecule        lines surf.line
+Read molecule template lines:
+LAMMPS molecule file for line box
+  1 molecules
+  0 fragments
+  0 bodies
+  0 atoms with max type 0
+  0 bonds with max type 0
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+  9 lines
+fix             20 all surface/local input mol lines
+Fix surface/local line segment creation:
+  9 lines
+  11 line end points
+  7 end point connections
+  4 free end points
+  5.9 min line length
+  10.44030650891055 max line length
+
+pair_style		hybrid granular surf/granular
+pair_coeff		1 1 granular hooke 4000.0 100.0                          tangential linear_history 1000.0 1.0 0.5 						 damping mass_velocity
+pair_coeff		1 2 surf/granular hooke 4000.0 100.0                          tangential linear_history 1000.0 1.0 0.5 						 damping mass_velocity
+pair_coeff		2 2 none
+
+group           sphere type 1
+0 atoms in group sphere
+group           line type 2
+9 atoms in group line
+
+neighbor		0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+# rotate the box
+
+fix             1 line move rotate 0 0 0 0 0 1 25
+
+fix             2 sphere nve/sphere
+fix				3 sphere gravity 1.0 vector 0 -1 0
+
+region          slab block -3 3 -2 2 -0.5 0.5 units box
+fix             ins sphere pour 100 1 4767548 vol 0.4 10 	        	diam one 1.0 region slab
+
+fix				10 all enforce2d
+
+timestep		0.005
+
+compute         1 sphere temp
+compute_modify  1 dynamic/dof yes
+
+compute         2 sphere temp/sphere
+compute_modify  2 dynamic/dof yes
+
+thermo		100
+thermo_style	custom step atoms temp c_1 c_2 press
+thermo_modify   lost ignore
+compute_modify  thermo_temp dynamic/dof yes
+
+#dump			2 all image 100 tmp.image.*.ppm type type #				zoom 1.6 adiam 1.0 line type 0.5
+#dump_modify	2 pad 5
+
+run				10000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Particle insertion: 12 every 566 steps, 100 by step 4529
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.0201533
+  ghost atom cutoff = 6.0201533
+  binsize = 3.0100766, bins = 10 10 1
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair granular, perpetual, skip from (3)
+      attributes: half, newton on, size, history, off2on
+      pair build: skip/size/off2on
+      stencil: none
+      bin: none
+  (2) pair surf/granular, perpetual, skip from (3)
+      attributes: half, newton on, size, history, onesided, off2on
+      pair build: skip/size/off2on/oneside
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/atomonly/newtoff
+      stencil: full/bin/2d
+      bin: standard
+WARNING: Maximum triangle diameter 10.44030650891055 may be less than ghost cutoff 6.020153254455275 (../fix_surface_local.cpp:464)
+Per MPI rank memory allocation (min/avg/max) = 17.73 | 17.73 | 17.73 Mbytes
+   Step        Atoms         Temp           c_1            c_2           Press     
+         0           9   0              0              0              0            
+WARNING: Fewer insertions than requested (../fix_pour.cpp:691)
+       100          16   19.603933      1.0483784      0.66213376     0.32673222   
+       200          16   19.831299      1.6167923      1.0211319      0.33052165   
+       300          16   20.119751      2.3379224      1.4765825      0.33532918   
+       400          16   20.469289      3.2117688      2.0284855      0.34115482   
+       500          16   20.879914      4.2383315      2.676841       0.34799857   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:691)
+       600          27   12.466075      2.1381889      1.4018731      0.36013104   
+       700          27   12.796631      2.6437451      1.7500888      0.37027538   
+       800          27   12.934477      2.8545692      1.9081619      0.37564939   
+       900          27   13.134463      3.1604293      2.1364205      0.38022223   
+      1000          27   13.072779      3.0660895      2.0951424      0.42478257   
+      1100          27   12.79878       2.6470331      1.8304034      0.46202916   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:691)
+      1200          35   9.984594       2.0682987      1.4265785      0.3779405    
+      1300          35   9.8097585      1.8305224      1.238733       0.39206709   
+      1400          35   9.6761947      1.6488756      1.1169787      0.36827692   
+      1500          35   9.9000838      1.9533648      1.3089465      0.38566572   
+      1600          35   10.036472      2.1388525      1.4417048      0.38322464   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:691)
+      1700          45   8.1131902      1.9774754      1.3307359      0.39790757   
+      1800          45   8.4788493      2.4371612      1.6235481      0.41884028   
+      1900          45   8.4532116      2.404931       1.5944761      0.4189863    
+      2000          45   8.2528672      2.1530694      1.432679       0.41776056   
+      2100          45   8.2465919      2.1451805      1.4281404      0.40711645   
+      2200          45   8.3241375      2.2426664      1.4993831      0.416955     
+      2300          57   6.5805676      1.7179374      1.1469285      0.44786297   
+      2400          57   6.5096766      1.6334716      1.0970888      0.47001787   
+      2500          57   6.4187308      1.5251106      1.0264209      0.40010596   
+      2600          57   6.510236       1.6341381      1.1021834      0.45288161   
+      2700          57   6.4723633      1.5890132      1.0813078      0.43555595   
+      2800          57   6.5670711      1.7018565      1.1615157      0.43278737   
+      2900          69   5.8223461      1.8330645      1.2424672      0.45786868   
+      3000          69   6.0884143      2.1397194      1.4481958      0.48850238   
+      3100          69   6.1183441      2.1742148      1.4649068      0.52159935   
+      3200          69   6.15085        2.2116792      1.4951995      0.58197194   
+      3300          69   6.2077322      2.2772383      1.5393644      0.60870182   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:691)
+      3400          75   5.4443168      1.770934       1.2031602      0.47226749   
+      3500          75   5.4931307      1.8265069      1.2317373      0.52268635   
+      3600          75   5.4367844      1.7623587      1.1982977      0.56407726   
+      3700          75   5.5246396      1.8623785      1.2593947      0.55876555   
+      3800          75   5.4849521      1.8171958      1.2391437      0.51950265   
+      3900          75   5.4346332      1.7599097      1.200144       0.53176137   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:691)
+      4000          85   4.8112559      1.5516902      1.0524406      0.47889587   
+      4100          85   4.7627999      1.4974195      1.0237028      0.48598967   
+      4200          85   4.6806721      1.4054363      0.95681933     0.46910541   
+      4300          85   4.7640052      1.4987695      1.0227612      0.50416485   
+      4400          85   4.8981941      1.649061       1.1191141      0.46860335   
+      4500          85   4.9930492      1.7552988      1.1861787      0.49184639   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:691)
+      4600          92   4.8837661      1.9104145      1.2903041      0.51309989   
+      4700          92   4.9288461      1.9604423      1.3273212      0.57499801   
+      4800          92   5.0182197      2.0596252      1.4034245      0.53516508   
+      4900          92   5.0906647      2.1400215      1.4668126      0.68240924   
+      5000          92   4.9671054      2.0029007      1.3659752      0.67332496   
+      5100         104   4.5474587      1.9214842      1.3076762      0.58100084   
+      5200         104   4.605177       1.9847287      1.3655532      0.67942517   
+      5300         104   4.3558144      1.711491       1.1773261      0.82811489   
+      5400         104   4.3505373      1.7057087      1.1621162      0.56762813   
+      5500         104   4.4336217      1.796748       1.2237395      0.73145901   
+      5600         104   4.3764458      1.7340977      1.1763685      0.62528444   
+WARNING: Fewer insertions than requested (../fix_pour.cpp:691)
+      5700         108   4.3012348      1.7598306      1.187396       0.7707585    
+      5800         108   4.387488       1.854005       1.2439335      0.62244839   
+      5900         108   4.3819193      1.8479249      1.2391796      0.80063797   
+      6000         108   4.5184283      1.9969704      1.3410491      0.75301019   
+      6100         108   4.4365395      1.9075612      1.2856355      0.62330386   
+      6200         108   4.3830169      1.8491233      1.2451833      0.62337637   
+      6300         109   4.3802498      1.8716995      1.2589461      0.62215983   
+      6400         109   4.4132285      1.9076762      1.2920208      0.62878563   
+      6500         109   4.2968585      1.7807271      1.2153797      0.80826163   
+      6600         109   4.1487378      1.6191409      1.0908308      0.56972628   
+      6700         109   4.1228598      1.5909104      1.0729797      0.58925285   
+      6800         109   4.0958978      1.5614973      1.0520921      0.57608678   
+      6900         109   4.0616442      1.5241298      1.023299       0.5842502    
+      7000         109   4.0918174      1.557046       1.0459468      0.55223189   
+      7100         109   4.1668248      1.6388723      1.100562       0.54343884   
+      7200         109   4.2376314      1.7161158      1.1560104      0.56816745   
+      7300         109   4.3221901      1.8083616      1.2185538      0.56005035   
+      7400         109   4.4797193      1.9802117      1.3341024      0.55760748   
+      7500         109   4.6540929      2.1704374      1.4627693      0.57974938   
+      7600         109   4.8449602      2.3786563      1.6073622      0.63255876   
+      7700         109   5.057992       2.6110547      1.7724051      0.66925477   
+      7800         109   5.1704383      2.7337234      1.8603538      0.64912878   
+      7900         109   5.1621507      2.7246823      1.8536119      0.7175009    
+      8000         109   4.9373186      2.4794109      1.6862945      0.62138015   
+      8100         108   4.9242136      2.4400217      1.6567237      0.68897638   
+      8200         108   5.0299804      2.5555017      1.7274714      0.69855342   
+      8300         106   5.1836472      2.6720232      1.802342       0.68808712   
+      8400         105   5.2276558      2.6937629      1.8227565      0.70696674   
+      8500         104   5.1857205      2.6208562      1.7702175      0.76378896   
+      8600         102   4.9297691      2.2841081      1.5451736      0.75395797   
+      8700         101   4.5434992      1.8305626      1.2459861      0.6607202    
+      8800          99   4.3771917      1.5864726      1.0849684      0.56358646   
+      8900          99   4.2585288      1.4558101      0.99722704     0.57193545   
+      9000          99   4.1757126      1.3646192      0.93630362     0.57086737   
+      9100          97   4.27512        1.4096872      0.96375653     0.53408779   
+      9200          97   4.3489954      1.4912049      1.0133761      0.50675466   
+      9300          97   4.452247       1.6051378      1.0851474      0.58065118   
+      9400          97   4.5397698      1.7017146      1.1477579      0.5663652    
+      9500          97   4.637326       1.8093629      1.2213229      0.61459474   
+      9600          97   4.7523889      1.9363289      1.3117477      0.55529545   
+      9700          96   4.8529305      2.0146473      1.3629284      0.55402695   
+      9800          96   4.8194123      1.9776214      1.3492471      0.59332292   
+      9900          96   4.7637192      1.9160999      1.319499       0.5827476    
+     10000          96   4.7586089      1.9104549      1.3047476      0.55977795   
+Loop time of 0.235528 on 1 procs for 10000 steps with 96 atoms
+
+Performance: 18341777.705 tau/day, 42457.819 timesteps/s, 4.076 Matom-step/s
+98.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.16135    | 0.16135    | 0.16135    |   0.0 | 68.51
+Neigh   | 0.039159   | 0.039159   | 0.039159   |   0.0 | 16.63
+Comm    | 0.0013528  | 0.0013528  | 0.0013528  |   0.0 |  0.57
+Output  | 0.0006225  | 0.0006225  | 0.0006225  |   0.0 |  0.26
+Modify  | 0.029754   | 0.029754   | 0.029754   |   0.0 | 12.63
+Other   |            | 0.00329    |            |       |  1.40
+
+Nlocal:             96 ave          96 max          96 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 1477
+Dangerous builds = 0
+Total wall time: 0:00:00

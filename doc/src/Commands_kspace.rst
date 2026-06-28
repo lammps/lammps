@@ -11,7 +11,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    :columns: 5
 
    * :doc:`esp <kspace_style>`
-   * :doc:`ewald (o) <kspace_style>`
+   * :doc:`ewald (go) <kspace_style>`
    * :doc:`ewald/disp <kspace_style>`
    * :doc:`ewald/disp/dipole <kspace_style>`
    * :doc:`ewald/dipole <kspace_style>`

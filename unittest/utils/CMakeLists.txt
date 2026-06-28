@@ -4,6 +4,10 @@ add_executable(test_tokenizer test_tokenizer.cpp)
 target_link_libraries(test_tokenizer PRIVATE lammps GTest::GMockMain)
 add_test(NAME Tokenizer COMMAND test_tokenizer)
 
+add_executable(test_stl_reader test_stl_reader.cpp)
+target_link_libraries(test_stl_reader PRIVATE lammps GTest::GMockMain)
+add_test(NAME STLReader COMMAND test_stl_reader)
+
 add_executable(test_mempool test_mempool.cpp)
 target_link_libraries(test_mempool PRIVATE lammps GTest::GMockMain)
 add_test(NAME MemPool COMMAND test_mempool)

@@ -62,6 +62,14 @@ if(FFT_SINGLE)
   target_compile_definitions(test_pair_style PRIVATE -DFFT_SINGLE)
 endif()
 
+# self-contained tester for the PERI package pair styles (no YAML reference)
+if(PKG_PERI)
+  add_executable(test_pair_peri test_pair_peri.cpp)
+  target_include_directories(test_pair_peri PRIVATE ${LAMMPS_SOURCE_DIR})
+  target_link_libraries(test_pair_peri PRIVATE lammps GTest::GMock)
+  add_test(NAME PairPeri COMMAND test_pair_peri)
+endif()
+
 # prepare environment for testers
 if(WIN32)
   set(FORCE_TEST_ENVIRONMENT PYTHONPATH=${TEST_INPUT_FOLDER})

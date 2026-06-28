@@ -239,6 +239,16 @@ void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
 
   atomKK->modified(Host, datamask_modify);
 
+  // The base class did its work through the legacy (double) host atom arrays, so
+  // the modified() above marks the legacy host of the atom:x/v TransformViews.
+  // In a mixed/single-precision build the legacy and Kokkos host views differ;
+  // reconcile by syncing the just-modified arrays into the fix's execution_space
+  // (Kokkos host or device), which copies legacy->Kokkos and clears the legacy
+  // modify flag.  Without this, ModifyKokkos::setup() then marks the Kokkos host
+  // modified while the legacy host is still flagged, tripping the TransformView
+  // concurrent-modification guard.  No-op in a full-double build (no transform).
+  atomKK->sync(execution_space, datamask_modify);
+
   setup_device_push();
 }
 

@@ -288,6 +288,10 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
   atomKK->sync(Host, datamask_read);
   FixRigidSmall::setup(vflag);
   atomKK->modified(Host, datamask_modify);
+  // reconcile the legacy-host atom:x/v writes into the fix's execution_space so
+  // the later ModifyKokkos host-modify does not trip the TransformView guard in
+  // a mixed/single build (no-op in a full-double build); see the base setup()
+  atomKK->sync(execution_space, datamask_modify);
 
   // --- Nose-Hoover scalar setup (host; reads/writes host body[]) ---
 

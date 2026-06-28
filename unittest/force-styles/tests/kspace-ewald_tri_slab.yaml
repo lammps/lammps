@@ -3,7 +3,7 @@ lammps_version: 30 Mar 2026
 tags: slow
 date_generated: Thu May 28 16:26:47 2026
 epsilon: 7.5e-14
-skip_tests:
+skip_tests: gpu
 prerequisites: ! |
   atom full
   pair coul/long

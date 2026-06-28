@@ -334,7 +334,7 @@ void PairMorseSoft::read_restart(FILE *fp)
 
 void PairMorseSoft::write_restart_settings(FILE *fp)
 {
-  fwrite(&nlambda, sizeof(double), 1, fp);
+  fwrite(&nlambda, sizeof(int), 1, fp);
   fwrite(&shift_range, sizeof(double), 1, fp);
   fwrite(&cut_global, sizeof(double), 1, fp);
   fwrite(&offset_flag, sizeof(int), 1, fp);
@@ -349,7 +349,7 @@ void PairMorseSoft::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR, &nlambda, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &nlambda, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &shift_range, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);

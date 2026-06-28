@@ -80,21 +80,23 @@ namespace MathExtraKokkos {
 
   KOKKOS_INLINE_FUNCTION void mq_to_omega(KK_FLOAT *m, double *q, KK_FLOAT *moments, KK_FLOAT *w);
   KOKKOS_INLINE_FUNCTION void quat_to_mat(const double *quat, KK_FLOAT mat[3][3]);
-  KOKKOS_INLINE_FUNCTION void angmom_to_omega(double *m, double *ex, double *ey, double *ez,
-                                              double *idiag, double *w);
-  KOKKOS_INLINE_FUNCTION void omega_to_angmom(double *w, double *ex, double *ey, double *ez,
-                                              double *idiag, double *m);
-  KOKKOS_INLINE_FUNCTION void q_to_exyz(double *q, double *ex, double *ey, double *ez);
-  KOKKOS_INLINE_FUNCTION void exyz_to_q(double *ex, double *ey, double *ez, double *q);
+  KOKKOS_INLINE_FUNCTION void angmom_to_omega(KK_FLOAT *m, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez,
+                                              KK_FLOAT *idiag, KK_FLOAT *w);
+  KOKKOS_INLINE_FUNCTION void omega_to_angmom(KK_FLOAT *w, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez,
+                                              KK_FLOAT *idiag, KK_FLOAT *m);
+  KOKKOS_INLINE_FUNCTION void q_to_exyz(double *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez);
+  KOKKOS_INLINE_FUNCTION void exyz_to_q(KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez, double *q);
 
-  // quaternion math used by the rigid-body NH (thermostat/barostat) integrator
+  // quaternion math used by the rigid-body NH (thermostat/barostat) integrator.
+  // the orientation/momentum quaternions (a, c here, body conjqm/quat/fquat) stay
+  // double; body-frame 3-vectors (b/vec), inertia and the timestep are KK_FLOAT.
   KOKKOS_INLINE_FUNCTION void quatquat(double *a, double *b, double *c);
-  KOKKOS_INLINE_FUNCTION void quatvec(double *a, double *b, double *c);
-  KOKKOS_INLINE_FUNCTION void invquatvec(double *a, double *b, double *c);
-  KOKKOS_INLINE_FUNCTION void no_squish_rotate(int k, double *p, double *q, double *inertia,
-                                               double dt);
-  KOKKOS_INLINE_FUNCTION void multiply_shape_shape(const double *one, const double *two,
-                                                   double *ans);
+  KOKKOS_INLINE_FUNCTION void quatvec(double *a, KK_FLOAT *b, double *c);
+  KOKKOS_INLINE_FUNCTION void invquatvec(double *a, double *b, KK_FLOAT *c);
+  KOKKOS_INLINE_FUNCTION void no_squish_rotate(int k, double *p, double *q, KK_FLOAT *inertia,
+                                               KK_FLOAT dt);
+  KOKKOS_INLINE_FUNCTION void multiply_shape_shape(const KK_FLOAT *one, const KK_FLOAT *two,
+                                                   KK_FLOAT *ans);
 }
 
 /* ----------------------------------------------------------------------
@@ -634,10 +636,10 @@ void MathExtraKokkos::quat_to_mat(const double *quat, KK_FLOAT mat[3][3])
      otherwise body can spin easily around that axis
 ------------------------------------------------------------------------- */
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::angmom_to_omega(double *m, double *ex, double *ey, double *ez,
-                                      double *idiag, double *w)
+void MathExtraKokkos::angmom_to_omega(KK_FLOAT *m, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez,
+                                      KK_FLOAT *idiag, KK_FLOAT *w)
 {
-  double wbody[3];
+  KK_FLOAT wbody[3];
 
   if (idiag[0] == 0.0) wbody[0] = 0.0;
   else wbody[0] = (m[0]*ex[0] + m[1]*ex[1] + m[2]*ex[2]) / idiag[0];
@@ -657,7 +659,7 @@ void MathExtraKokkos::angmom_to_omega(double *m, double *ex, double *ey, double 
    operation is ex = q' d q = Q d, where d is (1,0,0) = 1st axis in body frame
 ------------------------------------------------------------------------- */
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::q_to_exyz(double *q, double *ex, double *ey, double *ez)
+void MathExtraKokkos::q_to_exyz(double *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez)
 {
   ex[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
   ex[1] = 2.0 * (q[1]*q[2] + q[0]*q[3]);
@@ -681,10 +683,10 @@ void MathExtraKokkos::q_to_exyz(double *q, double *ex, double *ey, double *ez)
    Mspace = P Mbody
 ------------------------------------------------------------------------- */
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::omega_to_angmom(double *w, double *ex, double *ey, double *ez,
-                                      double *idiag, double *m)
+void MathExtraKokkos::omega_to_angmom(KK_FLOAT *w, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez,
+                                      KK_FLOAT *idiag, KK_FLOAT *m)
 {
-  double mbody[3];
+  KK_FLOAT mbody[3];
 
   mbody[0] = (w[0]*ex[0] + w[1]*ex[1] + w[2]*ex[2]) * idiag[0];
   mbody[1] = (w[0]*ey[0] + w[1]*ey[1] + w[2]*ey[2]) * idiag[1];
@@ -700,9 +702,9 @@ void MathExtraKokkos::omega_to_angmom(double *w, double *ex, double *ey, double 
    ex,ey,ez are columns of a rotation matrix
 ------------------------------------------------------------------------- */
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::exyz_to_q(double *ex, double *ey, double *ez, double *q)
+void MathExtraKokkos::exyz_to_q(KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez, double *q)
 {
-  // squares of quaternion components
+  // squares of quaternion components (kept double: they feed the double quat)
 
   double q0sq = 0.25 * (ex[0] + ey[1] + ez[2] + 1.0);
   double q1sq = q0sq - 0.5 * (ey[1] + ez[2]);
@@ -753,7 +755,7 @@ void MathExtraKokkos::quatquat(double *a, double *b, double *c)
    quaternion-vector multiply: c = a*b, where b = (0,b)
 ------------------------------------------------------------------------- */
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::quatvec(double *a, double *b, double *c)
+void MathExtraKokkos::quatvec(double *a, KK_FLOAT *b, double *c)
 {
   c[0] = -a[1] * b[0] - a[2] * b[1] - a[3] * b[2];
   c[1] = a[0] * b[0] + a[2] * b[2] - a[3] * b[1];
@@ -768,7 +770,7 @@ void MathExtraKokkos::quatvec(double *a, double *b, double *c)
    c is a three component vector
 ------------------------------------------------------------------------- */
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::invquatvec(double *a, double *b, double *c)
+void MathExtraKokkos::invquatvec(double *a, double *b, KK_FLOAT *c)
 {
   c[0] = -a[1] * b[0] + a[0] * b[1] + a[3] * b[2] - a[2] * b[3];
   c[1] = -a[2] * b[0] - a[3] * b[1] + a[0] * b[2] + a[1] * b[3];
@@ -780,8 +782,8 @@ void MathExtraKokkos::invquatvec(double *a, double *b, double *c)
    Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::no_squish_rotate(int k, double *p, double *q, double *inertia,
-                                       double dt)
+void MathExtraKokkos::no_squish_rotate(int k, double *p, double *q, KK_FLOAT *inertia,
+                                       KK_FLOAT dt)
 {
   double phi,c_phi,s_phi,kp[4],kq[4];
 
@@ -829,7 +831,7 @@ void MathExtraKokkos::no_squish_rotate(int k, double *p, double *q, double *iner
    multiply 2 shape (Voigt) matrices: ans = one*two
 ------------------------------------------------------------------------- */
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::multiply_shape_shape(const double *one, const double *two, double *ans)
+void MathExtraKokkos::multiply_shape_shape(const KK_FLOAT *one, const KK_FLOAT *two, KK_FLOAT *ans)
 {
   ans[0] = one[0] * two[0];
   ans[1] = one[1] * two[1];

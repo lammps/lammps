@@ -51,6 +51,7 @@
 #include <cerrno>
 #include <cctype>
 #include <filesystem>
+#include <memory>
 
 using namespace LAMMPS_NS;
 
@@ -862,9 +863,11 @@ int Input::execute_command()
     }
   }
   if (CommandCreator command_creator = command_styles().find(mycmd)) {
-    Command *cmd = command_creator(lmp);
+    // use a unique_ptr so the command object is destroyed even if its
+    // command() method throws (e.g. an input error caught by a unit test),
+    // which otherwise leaks the partially-run command
+    std::unique_ptr<Command> cmd(command_creator(lmp));
     cmd->command(narg,arg);
-    delete cmd;
     return 0;
   }
 

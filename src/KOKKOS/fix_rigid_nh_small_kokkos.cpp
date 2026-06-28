@@ -613,9 +613,17 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_initial_integrate_bodies(
       }
 
       // step 1.3 - apply torque (body coords) to quaternion momentum
+      // rotational quantities are computed in KK_FLOAT; the orientation and
+      // momentum quaternions (quat, conjqm, fquat) stay double
 
-      double tbody[3], fquat[4], mbody[3];
-      MathExtraKokkos::transpose_matvec(b.ex_space,b.ey_space,b.ez_space,b.torque,tbody);
+      KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+      KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+      KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+      KK_FLOAT torque[3] = {(KK_FLOAT)b.torque[0],(KK_FLOAT)b.torque[1],(KK_FLOAT)b.torque[2]};
+      KK_FLOAT inertia[3] = {(KK_FLOAT)b.inertia[0],(KK_FLOAT)b.inertia[1],(KK_FLOAT)b.inertia[2]};
+      KK_FLOAT tbody[3], mbody[3], angmom[3], omega[3];
+      double fquat[4];
+      MathExtraKokkos::transpose_matvec(ex,ey,ez,torque,tbody);
       MathExtraKokkos::quatvec(b.quat,tbody,fquat);
 
       b.conjqm[0] += dtf2 * fquat[0];
@@ -632,24 +640,30 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_initial_integrate_bodies(
 
       // step 1.4 to 1.13 - use no_squish rotate to update p and q
 
-      MathExtraKokkos::no_squish_rotate(3,b.conjqm,b.quat,b.inertia,l_dtq);
-      MathExtraKokkos::no_squish_rotate(2,b.conjqm,b.quat,b.inertia,l_dtq);
-      MathExtraKokkos::no_squish_rotate(1,b.conjqm,b.quat,b.inertia,l_dtv);
-      MathExtraKokkos::no_squish_rotate(2,b.conjqm,b.quat,b.inertia,l_dtq);
-      MathExtraKokkos::no_squish_rotate(3,b.conjqm,b.quat,b.inertia,l_dtq);
+      MathExtraKokkos::no_squish_rotate(3,b.conjqm,b.quat,inertia,l_dtq);
+      MathExtraKokkos::no_squish_rotate(2,b.conjqm,b.quat,inertia,l_dtq);
+      MathExtraKokkos::no_squish_rotate(1,b.conjqm,b.quat,inertia,l_dtv);
+      MathExtraKokkos::no_squish_rotate(2,b.conjqm,b.quat,inertia,l_dtq);
+      MathExtraKokkos::no_squish_rotate(3,b.conjqm,b.quat,inertia,l_dtq);
 
       // update exyz_space, transform p back to angmom, update angular velocity
 
-      MathExtraKokkos::q_to_exyz(b.quat,b.ex_space,b.ey_space,b.ez_space);
+      MathExtraKokkos::q_to_exyz(b.quat,ex,ey,ez);
       MathExtraKokkos::invquatvec(b.quat,b.conjqm,mbody);
-      MathExtraKokkos::matvec(b.ex_space,b.ey_space,b.ez_space,mbody,b.angmom);
+      MathExtraKokkos::matvec(ex,ey,ez,mbody,angmom);
 
-      b.angmom[0] *= 0.5;
-      b.angmom[1] *= 0.5;
-      b.angmom[2] *= 0.5;
+      angmom[0] *= 0.5;
+      angmom[1] *= 0.5;
+      angmom[2] *= 0.5;
 
-      MathExtraKokkos::angmom_to_omega(b.angmom,b.ex_space,b.ey_space,b.ez_space,
-                                       b.inertia,b.omega);
+      MathExtraKokkos::angmom_to_omega(angmom,ex,ey,ez,inertia,omega);
+
+      // store the updated rotational state back to the (double) body
+      b.ex_space[0]=ex[0]; b.ex_space[1]=ex[1]; b.ex_space[2]=ex[2];
+      b.ey_space[0]=ey[0]; b.ey_space[1]=ey[1]; b.ey_space[2]=ey[2];
+      b.ez_space[0]=ez[0]; b.ez_space[1]=ez[1]; b.ez_space[2]=ez[2];
+      b.angmom[0]=angmom[0]; b.angmom[1]=angmom[1]; b.angmom[2]=angmom[2];
+      b.omega[0]=omega[0]; b.omega[1]=omega[1]; b.omega[2]=omega[2];
     });
 }
 
@@ -687,9 +701,16 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_final_integrate_bodies(
       b.vcm[2] += dtfm * b.fcm[2];
 
       // update conjqm, transform to angmom, set velocity again
+      // rotational quantities in KK_FLOAT; quat/conjqm/fquat stay double
 
-      double tbody[3], fquat[4], mbody[3];
-      MathExtraKokkos::transpose_matvec(b.ex_space,b.ey_space,b.ez_space,b.torque,tbody);
+      KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+      KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+      KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+      KK_FLOAT torque[3] = {(KK_FLOAT)b.torque[0],(KK_FLOAT)b.torque[1],(KK_FLOAT)b.torque[2]};
+      KK_FLOAT inertia[3] = {(KK_FLOAT)b.inertia[0],(KK_FLOAT)b.inertia[1],(KK_FLOAT)b.inertia[2]};
+      KK_FLOAT tbody[3], mbody[3], angmom[3], omega[3];
+      double fquat[4];
+      MathExtraKokkos::transpose_matvec(ex,ey,ez,torque,tbody);
       MathExtraKokkos::quatvec(b.quat,tbody,fquat);
 
       if (scaleflag) {
@@ -705,14 +726,17 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_final_integrate_bodies(
       }
 
       MathExtraKokkos::invquatvec(b.quat,b.conjqm,mbody);
-      MathExtraKokkos::matvec(b.ex_space,b.ey_space,b.ez_space,mbody,b.angmom);
+      MathExtraKokkos::matvec(ex,ey,ez,mbody,angmom);
 
-      b.angmom[0] *= 0.5;
-      b.angmom[1] *= 0.5;
-      b.angmom[2] *= 0.5;
+      angmom[0] *= 0.5;
+      angmom[1] *= 0.5;
+      angmom[2] *= 0.5;
 
-      MathExtraKokkos::angmom_to_omega(b.angmom,b.ex_space,b.ey_space,b.ez_space,
-                                       b.inertia,b.omega);
+      MathExtraKokkos::angmom_to_omega(angmom,ex,ey,ez,inertia,omega);
+
+      // store the updated rotational state back to the (double) body
+      b.angmom[0]=angmom[0]; b.angmom[1]=angmom[1]; b.angmom[2]=angmom[2];
+      b.omega[0]=omega[0]; b.omega[1]=omega[1]; b.omega[2]=omega[2];
     });
 }
 

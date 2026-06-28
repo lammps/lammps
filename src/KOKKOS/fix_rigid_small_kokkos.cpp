@@ -604,10 +604,20 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagInitialIntegrate, const int 
   // returns new normalized quaternion, also updated omega at 1/2 step
   // update ex,ey,ez to reflect new quaternion
 
-  MathExtraKokkos::angmom_to_omega(b.angmom,b.ex_space,b.ey_space,
-                              b.ez_space,b.inertia,b.omega);
-  MathExtraKokkos::richardson(b.quat,b.angmom,b.omega,b.inertia,dtq);
-  MathExtraKokkos::q_to_exyz(b.quat,b.ex_space,b.ey_space,b.ez_space);
+  // rotational quantities computed in KK_FLOAT; the quaternion stays double
+  KK_FLOAT angmom[3] = {(KK_FLOAT)b.angmom[0],(KK_FLOAT)b.angmom[1],(KK_FLOAT)b.angmom[2]};
+  KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+  KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+  KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+  KK_FLOAT inertia[3] = {(KK_FLOAT)b.inertia[0],(KK_FLOAT)b.inertia[1],(KK_FLOAT)b.inertia[2]};
+  KK_FLOAT omega[3];
+  MathExtraKokkos::angmom_to_omega(angmom,ex,ey,ez,inertia,omega);
+  MathExtraKokkos::richardson(b.quat,angmom,omega,inertia,dtq);
+  MathExtraKokkos::q_to_exyz(b.quat,ex,ey,ez);
+  b.ex_space[0]=ex[0]; b.ex_space[1]=ex[1]; b.ex_space[2]=ex[2];
+  b.ey_space[0]=ey[0]; b.ey_space[1]=ey[1]; b.ey_space[2]=ey[2];
+  b.ez_space[0]=ez[0]; b.ez_space[1]=ez[1]; b.ez_space[2]=ez[2];
+  b.omega[0]=omega[0]; b.omega[1]=omega[1]; b.omega[2]=omega[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -652,16 +662,21 @@ void FixRigidSmallKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
       gamma2 = tsqrt * sqrt(24.0*boltz/tp/dt/mvv2e) / ftm2v;
 
       // convert omega from space frame to body frame, compute body-frame torque
+      // (rotational quantities in KK_FLOAT)
 
-      double wbody[3], tbody[3], lang[3];
-      MathExtraKokkos::transpose_matvec(b.ex_space,b.ey_space,b.ez_space,b.omega,wbody);
+      KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+      KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+      KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+      KK_FLOAT omega[3] = {(KK_FLOAT)b.omega[0],(KK_FLOAT)b.omega[1],(KK_FLOAT)b.omega[2]};
+      KK_FLOAT wbody[3], tbody[3], lang[3];
+      MathExtraKokkos::transpose_matvec(ex,ey,ez,omega,wbody);
       tbody[0] = b.inertia[0]*gamma1*wbody[0] + sqrt(b.inertia[0])*gamma2*(rand_gen.drand()-0.5);
       tbody[1] = b.inertia[1]*gamma1*wbody[1] + sqrt(b.inertia[1])*gamma2*(rand_gen.drand()-0.5);
       tbody[2] = b.inertia[2]*gamma1*wbody[2] + sqrt(b.inertia[2])*gamma2*(rand_gen.drand()-0.5);
 
       // convert langevin torque from body frame back to space frame
 
-      MathExtraKokkos::matvec(b.ex_space,b.ey_space,b.ez_space,tbody,lang);
+      MathExtraKokkos::matvec(ex,ey,ez,tbody,lang);
       l_d_langextra(ibody,3) = lang[0];
       l_d_langextra(ibody,4) = lang[1];
       l_d_langextra(ibody,5) = lang[2];
@@ -878,8 +893,14 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
       b.angmom[1] += dtf * b.torque[1];
       b.angmom[2] += dtf * b.torque[2];
 
-      MathExtraKokkos::angmom_to_omega(&b.angmom[0],&b.ex_space[0],&b.ey_space[0],
-                                &b.ez_space[0],&b.inertia[0],&b.omega[0]);
+      KK_FLOAT angmom[3] = {(KK_FLOAT)b.angmom[0],(KK_FLOAT)b.angmom[1],(KK_FLOAT)b.angmom[2]};
+      KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+      KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+      KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+      KK_FLOAT inertia[3] = {(KK_FLOAT)b.inertia[0],(KK_FLOAT)b.inertia[1],(KK_FLOAT)b.inertia[2]};
+      KK_FLOAT omega[3];
+      MathExtraKokkos::angmom_to_omega(angmom,ex,ey,ez,inertia,omega);
+      b.omega[0]=omega[0]; b.omega[1]=omega[1]; b.omega[2]=omega[2];
     }
   );
 
@@ -1078,8 +1099,12 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
   // x = displacement from center-of-mass, based on body orientation
   // v = vcm + omega around center-of-mass
 
-  double delta[3];
-  MathExtraKokkos::matvec(b.ex_space,b.ey_space,b.ez_space,&d_displace(i,0),delta);
+  KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+  KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+  KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+  KK_FLOAT displace[3] = {(KK_FLOAT)d_displace(i,0),(KK_FLOAT)d_displace(i,1),(KK_FLOAT)d_displace(i,2)};
+  KK_FLOAT delta[3];
+  MathExtraKokkos::matvec(ex,ey,ez,displace,delta);
 
   d_v(i,0) = b.omega[1]*delta[2] - b.omega[2]*delta[1] + b.vcm[0];
   d_v(i,1) = b.omega[2]*delta[0] - b.omega[0]*delta[2] + b.vcm[1];
@@ -1146,14 +1171,15 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
       double orient_i[4] = {d_orient(i,0), d_orient(i,1), d_orient(i,2), d_orient(i,3)};
       MathExtraKokkos::quatquat(b.quat, orient_i, quatatom);
       MathExtraKokkos::qnormalize(quatatom);
-      const double rm = d_rmass(i);
-      double ione[3];
+      const KK_FLOAT rm = d_rmass(i);
+      KK_FLOAT ione[3];
       ione[0] = RigidConst::EINERTIA*rm * (shape[1]*shape[1] + shape[2]*shape[2]);
       ione[1] = RigidConst::EINERTIA*rm * (shape[0]*shape[0] + shape[2]*shape[2]);
       ione[2] = RigidConst::EINERTIA*rm * (shape[0]*shape[0] + shape[1]*shape[1]);
-      double exone[3], eyone[3], ezone[3], am[3];
+      KK_FLOAT exone[3], eyone[3], ezone[3], am[3];
+      KK_FLOAT omegae[3] = {(KK_FLOAT)b.omega[0],(KK_FLOAT)b.omega[1],(KK_FLOAT)b.omega[2]};
       MathExtraKokkos::q_to_exyz(quatatom, exone, eyone, ezone);
-      MathExtraKokkos::omega_to_angmom(b.omega, exone, eyone, ezone, ione, am);
+      MathExtraKokkos::omega_to_angmom(omegae, exone, eyone, ezone, ione, am);
       d_angmom(i,0) = am[0];
       d_angmom(i,1) = am[1];
       d_angmom(i,2) = am[2];
@@ -1177,11 +1203,15 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixRigidSmallKokkos<DeviceType>::operator()(TagUpdateXGC, const int ibody) const {
   Body &b = d_body(ibody);
-  MathExtraKokkos::matvec(b.ex_space,b.ey_space,b.ez_space,
-                    b.xgc_body,b.xgc);
-  b.xgc[0] += b.xcm[0];
-  b.xgc[1] += b.xcm[1];
-  b.xgc[2] += b.xcm[2];
+  KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+  KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+  KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+  KK_FLOAT xgc_body[3] = {(KK_FLOAT)b.xgc_body[0],(KK_FLOAT)b.xgc_body[1],(KK_FLOAT)b.xgc_body[2]};
+  KK_FLOAT xgc[3];
+  MathExtraKokkos::matvec(ex,ey,ez,xgc_body,xgc);
+  b.xgc[0] = xgc[0] + b.xcm[0];
+  b.xgc[1] = xgc[1] + b.xcm[1];
+  b.xgc[2] = xgc[2] + b.xcm[2];
 }
 
 
@@ -2459,15 +2489,16 @@ double FixRigidSmallKokkos<DeviceType>::extract_erotational()
     "fix rigid/small erotational",
     Range1D(0, nlocal_body),
     KOKKOS_LAMBDA(const int i, double &erotate){
-      double wbody[3],rot[3][3];
+      KK_FLOAT wbody[3],rot[3][3];
       double *inertia;
 
       // for Iw^2 rotational term, need wbody = angular velocity in body frame
       // not omega = angular velocity in space frame
 
       inertia = d_body(i).inertia;
+      KK_FLOAT angmom[3] = {(KK_FLOAT)d_body(i).angmom[0],(KK_FLOAT)d_body(i).angmom[1],(KK_FLOAT)d_body(i).angmom[2]};
       MathExtraKokkos::quat_to_mat(d_body(i).quat,rot);
-      MathExtraKokkos::transpose_matvec(rot,d_body(i).angmom,wbody);
+      MathExtraKokkos::transpose_matvec(rot,angmom,wbody);
       if (inertia[0] == 0.0) wbody[0] = 0.0;
       else wbody[0] /= inertia[0];
       if (inertia[1] == 0.0) wbody[1] = 0.0;
@@ -2507,7 +2538,7 @@ double FixRigidSmallKokkos<DeviceType>::compute_scalar()
     "fix rigid/small compute scalar",
     Range1D(0, nlocal_body),
     KOKKOS_LAMBDA(const int i, double &t) {
-      double wbody[3],rot[3][3];
+      KK_FLOAT wbody[3],rot[3][3];
       double *vcm,*inertia;
 
       vcm = d_body(i).vcm;
@@ -2517,8 +2548,9 @@ double FixRigidSmallKokkos<DeviceType>::compute_scalar()
       // not omega = angular velocity in space frame
 
       inertia = d_body(i).inertia;
+      KK_FLOAT angmom[3] = {(KK_FLOAT)d_body(i).angmom[0],(KK_FLOAT)d_body(i).angmom[1],(KK_FLOAT)d_body(i).angmom[2]};
       MathExtraKokkos::quat_to_mat(d_body(i).quat,rot);
-      MathExtraKokkos::transpose_matvec(rot,d_body(i).angmom,wbody);
+      MathExtraKokkos::transpose_matvec(rot,angmom,wbody);
       if (inertia[0] == 0.0) wbody[0] = 0.0;
       else wbody[0] /= inertia[0];
       if (inertia[1] == 0.0) wbody[1] = 0.0;

@@ -67,7 +67,7 @@ class PPPMDipole : public PPPM {
   FFT_SCALAR ***v3y_brick_dipole, ***v4y_brick_dipole, ***v5y_brick_dipole;
   FFT_SCALAR ***v0z_brick_dipole, ***v1z_brick_dipole, ***v2z_brick_dipole;
   FFT_SCALAR ***v3z_brick_dipole, ***v4z_brick_dipole, ***v5z_brick_dipole;
-  FFT_SCALAR *work3, *work4, *work5;
+  FFT_SCALAR *work3, *work4, *work5, *work6;
   FFT_SCALAR *densityx_fft_dipole, *densityy_fft_dipole, *densityz_fft_dipole;
 
   // separate Green's functions for the three interaction channels

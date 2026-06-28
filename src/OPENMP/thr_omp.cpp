@@ -312,6 +312,56 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     }
     break;
 
+  case THR_ANGLE|THR_CHARMM: // special case for angle styles with a 1-3 pairwise term
+
+    if (evflag) {
+      Angle * const angle = lmp->force->angle;
+      Pair * const pair = lmp->force->pair;
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      {
+        if (eflag & ENERGY_GLOBAL) {
+          angle->energy += thr->eng_angle;
+          pair->eng_vdwl += thr->eng_vdwl;
+          pair->eng_coul += thr->eng_coul;
+          thr->eng_angle = 0.0;
+          thr->eng_vdwl = 0.0;
+          thr->eng_coul = 0.0;
+        }
+
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
+          for (int i=0; i < 6; ++i) {
+            angle->virial[i] += thr->virial_angle[i];
+            pair->virial[i] += thr->virial_pair[i];
+            thr->virial_angle[i] = 0.0;
+            thr->virial_pair[i] = 0.0;
+          }
+        }
+      }
+
+      if (eflag & ENERGY_ATOM) {
+        data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
+        data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & VIRIAL_ATOM) {
+        data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      if (vflag & VIRIAL_CENTROID) {
+        data_reduce_thr(&(angle->cvatom[0][0]), nall, nthreads, 9, tid);
+      }
+      // per-atom virial and per-atom centroid virial are the same for two-body
+      // many-body pair styles not yet implemented
+      if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
+        data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      // check cvatom_pair, because can't access centroidstressflag
+      if ((vflag & VIRIAL_CENTROID) && thr->cvatom_pair) {
+        data_reduce_thr(&(pair->cvatom[0][0]), nall, nthreads, 9, tid);
+      }
+    }
+    break;
+
   case THR_DIHEDRAL:
 
     if (evflag) {

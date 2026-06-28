@@ -613,7 +613,6 @@ int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
 {
   int i;
 
-  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int m = 0;

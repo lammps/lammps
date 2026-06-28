@@ -147,8 +147,12 @@ void PPPMKokkos<DeviceType>::init()
   if (triclinic != domain->triclinic)
     error->all(FLERR,"Must redefine kspace_style after changing to triclinic box");
 
-  if (domain->triclinic && slabflag)
-    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and slab correction");
+  if (domain->triclinic && (slabflag == 2 || slabflag == 3))
+    error->all(FLERR,"Triclinic boxes only support the 'kspace_modify slab "
+               "<volfactor>' correction, not 'slab nozforce' or 'slab ew2d'");
+  if (domain->triclinic && slabflag == 1 && (domain->yz != 0.0 || domain->xz != 0.0))
+    error->all(FLERR,"Triclinic slab (EW3DC) correction requires xz = yz = 0 "
+               "(the slab normal must be the z axis); xy tilt is allowed");
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPM with 2d simulation");
 
@@ -466,11 +470,16 @@ void PPPMKokkos<DeviceType>::setup_triclinic()
   volume = xprd * yprd * zprd_slab;
 
   // use lamda (0-1) coordinates
+  // for the EW3DC slab correction the lamda z grid is extended by
+  // slab_volfactor (vacuum insertion), matching Grid3d::set_zfactor() used in
+  // the grid decomposition.  delzinv maps lamda z in [0,1] onto grid indices
+  // [0,nz_pppm/slab_volfactor]; delvolinv uses the full nz_pppm so the grid
+  // cell volume stays volume/(nx*ny*nz).  slab_volfactor == 1.0 for non-slab.
 
   delxinv = nx_pppm;
   delyinv = ny_pppm;
-  delzinv = nz_pppm;
-  delvolinv = delxinv*delyinv*delzinv/volume;
+  delzinv = nz_pppm/slab_volfactor;
+  delvolinv = delxinv*delyinv*nz_pppm/volume;
 
   // ensure all relevant _kk values are up to date
   delxinv_kk = static_cast<KK_FLOAT>(delxinv);
@@ -712,13 +721,14 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
     }
   }
 
+  // convert atoms back from lamda to box coords
+  // must precede slabcorr(), which needs Cartesian z-coordinates
+
+  if (triclinic) domain->lamda2x(atom->nlocal);
+
   // 2d slab correction
 
   if (slabflag == 1) slabcorr();
-
-  // convert atoms back from lamda to box coords
-
-  if (triclinic) domain->lamda2x(atom->nlocal);
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
@@ -1102,6 +1112,11 @@ void PPPMKokkos<DeviceType>::compute_gf_ik_triclinic()
   tmp[1] = (g_ewald/(MY_PI*ny_pppm)) * pow(-log(EPS_HOC),0.25);
   tmp[2] = (g_ewald/(MY_PI*nz_pppm)) * pow(-log(EPS_HOC),0.25);
   lamda2xT(&tmp[0],&tmp[0]);
+  // EW3DC slab correction: the z grid is extended by slab_volfactor, so the
+  // alias-sum bound in z must use the extended length (lamda2xT only supplies
+  // zprd).  z is non-periodic for slab geometries (xz == yz == 0), so the z
+  // bound decouples.  slab_volfactor == 1.0 for non-slab calculations.
+  if (slabflag == 1) tmp[2] *= slab_volfactor;
   nbx = static_cast<int> (tmp[0]);
   nby = static_cast<int> (tmp[1]);
   nbz = static_cast<int> (tmp[2]);

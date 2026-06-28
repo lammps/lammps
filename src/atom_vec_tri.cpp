@@ -31,6 +31,10 @@ using MathConst::MY_PI;
 
 static constexpr double EPSILON = 0.001;
 
+// non-tri particles are point-particles or finite-size spheroids
+
+enum { POINT, SPHERE };
+
 /* ---------------------------------------------------------------------- */
 
 AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
@@ -51,6 +55,8 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = nullptr;
 
+  particle_style = POINT;
+
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in a string does not matter
@@ -61,7 +67,7 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
   fields_comm_vel = {"omega", "angmom"};
   fields_reverse = {"torque"};
   fields_border = {"molecule", "radius", "rmass"};
-  fields_border_vel = {"molecule", "radius", "rmass", "omega"};
+  fields_border_vel = {"molecule", "radius", "rmass", "omega", "angmom"};
   fields_exchange = {"molecule", "radius", "rmass", "omega", "angmom"};
   fields_restart = {"molecule", "radius", "rmass", "omega", "angmom"};
   fields_create = {"molecule", "radius", "rmass", "omega", "angmom", "tri"};
@@ -76,6 +82,15 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
 AtomVecTri::~AtomVecTri()
 {
   memory->sfree(bonus);
+}
+
+/* ----------------------------------------------------------------------
+   called by AtomVecHybrid if another sub-style defines finite-size particlces
+------------------------------------------------------------------------- */
+
+void AtomVecTri::set_sphere()
+{
+  particle_style = SPHERE;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -635,10 +650,18 @@ double AtomVecTri::memory_usage_bonus()
 
 void AtomVecTri::create_atom_post(int ilocal)
 {
-  double radius_one = 0.5;
-  radius[ilocal] = radius_one;
-  rmass[ilocal] = 4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one;
   tri[ilocal] = -1;
+
+  // if POINT particle
+  //   set radius = 0.0
+  //   set rmass = 1.0 (default, can reset via set mass command)
+  // if SPHERE particle
+  //   radius/rmass are set by another hybrid atom_style, e.g. sphere
+
+  if (particle_style == POINT) {
+    radius[ilocal] = 0.0;
+    rmass[ilocal] = 1.0;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -659,12 +682,15 @@ void AtomVecTri::data_atom_post(int ilocal)
 
   if (rmass[ilocal] <= 0.0) error->one(FLERR, "Invalid density in Atoms section of data file");
 
-  if (tri_flag < 0) {
-    double radius_one = 0.5;
-    radius[ilocal] = radius_one;
-    rmass[ilocal] *= 4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one;
-  } else
-    radius[ilocal] = 0.0;
+  // if POINT particle
+  //   set radius = 0.0
+  //   leave rmass as-is, since data file defines it as per-particle mass
+  // if SPHERE particle
+  //   radius/rmass are set by another hybrid atom_style, e.g. sphere
+  // if TRI particle
+  //   radius/rmass will be set by data_atom_bonus()
+
+  if (tri_flag < 0 && particle_style == POINT) radius[ilocal] = 0.0;
 
   omega[ilocal][0] = 0.0;
   omega[ilocal][1] = 0.0;
@@ -688,10 +714,14 @@ void AtomVecTri::pack_data_pre(int ilocal)
   else
     tri[ilocal] = 1;
 
-  if (tri_flag < 0) {
-    double radius_one = radius[ilocal];
-    rmass[ilocal] /= 4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one;
-  } else {
+  // if POINT particle
+  //   leave rmass as-is, since data file defines it as per-particle mass
+  // if SPHERE particle
+  //   rmass is reset to density by another hybrid atom_style, e.g. sphere
+  // if TRI particle
+  //   convert rmass to per-area density
+
+  if (tri_flag >= 0) {
     double c2mc1[3], c3mc1[3], norm[3];
     MathExtra::sub3(bonus[tri_flag].c2, bonus[tri_flag].c1, c2mc1);
     MathExtra::sub3(bonus[tri_flag].c3, bonus[tri_flag].c1, c3mc1);
@@ -708,6 +738,12 @@ void AtomVecTri::pack_data_pre(int ilocal)
 void AtomVecTri::pack_data_post(int ilocal)
 {
   tri[ilocal] = tri_flag;
+
+  // if SPHERE particle, just return
+  //   rmass is reset to pre-pack value by another hybrid atom_style, e.g. sphere
+  // else reset rmass for TRI and POINT particles
+
+  if (tri_flag < 0 && particle_style == SPHERE) return;
   rmass[ilocal] = rmass_one;
 }
 
@@ -729,7 +765,6 @@ int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
   if (triclinic_general) x_bonus = x_hold;
   else x_bonus = x;
 
-  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int m = 0;

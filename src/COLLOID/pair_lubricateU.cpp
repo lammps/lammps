@@ -2052,3 +2052,12 @@ double PairLubricateU::dot_vec_vec(int N, double *x, double *y)
   for (int i = 0; i < N; i++) dotp += x[i]*y[i];
   return dotp;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairLubricateU::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) nmax * 3 * 3 * sizeof(double);    // fl + Tl + xl [nmax][3]
+  return bytes;
+}

@@ -48,7 +48,7 @@ void NBinMulti::bin_atoms_setup(int nall)
         memory->destroy(binhead_multi[n]);
         memory->create(binhead_multi[n], mbins_multi[n], "neigh:mbins_multi");
       }
-    } else if (binatoms_hash_multi.size() != maxcollections) {
+    } else if (binatoms_hash_multi.size() != (size_t)maxcollections) {
       binatoms_hash_multi.resize(maxcollections);
     }
   }
@@ -111,7 +111,7 @@ void NBinMulti::setup_bins(int /*style*/)
       delete [] binhead_multi;
       binhead_multi = new int*[maxcollections]();
     } else {
-      if (binatoms_hash_multi.size() != maxcollections)
+      if (binatoms_hash_multi.size() != (size_t)maxcollections)
         binatoms_hash_multi.resize(maxcollections);
     }
 

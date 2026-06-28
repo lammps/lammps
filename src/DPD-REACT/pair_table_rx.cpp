@@ -49,6 +49,8 @@ PairTableRX::PairTableRX(LAMMPS *lmp) : PairTable(lmp)
   fractionalWeighting = true;
   site1 = nullptr;
   site2 = nullptr;
+  nmax_rx = 0;
+  mixWtSite1old = mixWtSite2old = mixWtSite1 = mixWtSite2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,6 +61,11 @@ PairTableRX::~PairTableRX()
 
   delete [] site1;
   delete [] site2;
+
+  memory->destroy(mixWtSite1old);
+  memory->destroy(mixWtSite2old);
+  memory->destroy(mixWtSite1);
+  memory->destroy(mixWtSite2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -96,18 +103,16 @@ void PairTableRX::compute(int eflag, int vflag)
   double *uCG = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
-  double *mixWtSite1old = nullptr;
-  double *mixWtSite2old = nullptr;
-  double *mixWtSite1 = nullptr;
-  double *mixWtSite2 = nullptr;
+  if (atom->nmax > nmax_rx) {
+    memory->grow(mixWtSite1old, atom->nmax, "PairTableRx::mixWtSite1old");
+    memory->grow(mixWtSite2old, atom->nmax, "PairTableRx::mixWtSite2old");
+    memory->grow(mixWtSite1, atom->nmax, "PairTableRx::mixWtSite1");
+    memory->grow(mixWtSite2, atom->nmax, "PairTableRx::mixWtSite2");
+    nmax_rx = atom->nmax;
+  }
 
   {
     const int ntotal = atom->nlocal + atom->nghost;
-    memory->create(mixWtSite1old, ntotal, "PairTableRx::compute::mixWtSite1old");
-    memory->create(mixWtSite2old, ntotal, "PairTableRx::compute::mixWtSite2old");
-    memory->create(mixWtSite1, ntotal, "PairTableRx::compute::mixWtSite1");
-    memory->create(mixWtSite2, ntotal, "PairTableRx::compute::mixWtSite2");
-
     for (int i = 0; i < ntotal; ++i)
       getMixingWeights(i, mixWtSite1old[i], mixWtSite2old[i], mixWtSite1[i], mixWtSite2[i]);
   }
@@ -238,11 +243,6 @@ void PairTableRX::compute(int eflag, int vflag)
     f[i][2] += fz_i;
   }
   if (vflag_fdotr) virial_fdotr_compute();
-
-  memory->destroy(mixWtSite1old);
-  memory->destroy(mixWtSite2old);
-  memory->destroy(mixWtSite1);
-  memory->destroy(mixWtSite2);
 }
 
 /* ----------------------------------------------------------------------
@@ -576,4 +576,13 @@ void PairTableRX::getMixingWeights(int id, double &mixWtSite1old, double &mixWtS
     mixWtSite2old = nMoleculesOld2;
     mixWtSite2 = nMolecules2;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairTableRX::memory_usage()
+{
+  double bytes = PairTable::memory_usage();
+  if (mixWtSite1old) bytes += (double) nmax_rx * 4 * sizeof(double);    // 4 mixWtSite arrays
+  return bytes;
 }

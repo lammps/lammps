@@ -729,7 +729,7 @@ template<int EFLAG>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelAB<EFLAG>, const int &ii) const {
-  EV_FLOAT ev;  this->template operator()<EFLAG>(TagPairEAMFSKernelAB<EFLAG>(), ii, ev);
+  EV_FLOAT ev;
   this->template operator()<EFLAG>(TagPairEAMFSKernelAB<EFLAG>(), ii, ev);
 }
 

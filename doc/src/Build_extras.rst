@@ -207,17 +207,18 @@ CMake build
    -D GPU_API=value             # value = opencl (default) or cuda or hip
    -D GPU_PREC=value            # precision setting
                                 # value = double or mixed (default) or single
-   -D GPU_ARCH=value            # primary GPU hardware choice for GPU_API=cuda
-                                # value = sm_XX (see below, default is sm_75)
+   -D GPU_ARCH=value            # primary GPU hardware choice for all GPU_API backends
+                                # value = sm_XX for cuda and hip/nvcc (see below),
+                                # gfx<XXX> for hip/amd, or spirv for hip/spirv
+                                # defaults: sm_75 (cuda, hip/nvcc), gfx906 (hip/amd),
+                                # spirv (hip/spirv)
    -D GPU_DEBUG=value           # enable debug code in the GPU package library,
                                 # mostly useful for developers
                                 # value = yes or no (default)
    -D HIP_PATH=value            # value = path to HIP installation. Must be set if
                                 # GPU_API=HIP
-   -D HIP_ARCH=value            # primary GPU hardware choice for GPU_API=hip
-                                # value depends on selected HIP_PLATFORM
-                                # default is 'gfx906' for HIP_PLATFORM=amd and 'sm_75' for
-                                # HIP_PLATFORM=nvcc
+   -D HIP_ARCH=value            # deprecated, use GPU_ARCH instead (still accepted,
+                                # but prints a deprecation warning)
    -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
                                 # value = yes (default) or no
    -D CUDPP_OPT=value           # use GPU binning with CUDA (should be off for modern GPUs)
@@ -254,7 +255,15 @@ LAMMPS must be compiled with ``-DFFT_SINGLE`` to use PPPM with GPU acceleration
 or GPU acceleration should be disabled for PPPM (e.g. suffix off or ``pair/only``
 as described in the LAMMPS documentation).
 
-``GPU_ARCH`` settings for different GPU hardware is as follows:
+.. versionchanged:: TBD
+
+``GPU_ARCH`` is the canonical architecture setting for all ``GPU_API``
+backends.  The backend-specific ``CUDA_ARCH`` (for ``GPU_API=cuda``) and
+``HIP_ARCH`` (for ``GPU_API=hip``) variables are still accepted for backward
+compatibility, but their use is deprecated and prints a warning.
+
+For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``, the
+``GPU_ARCH`` settings for different GPU hardware are as follows:
 
 * ``sm_30`` for Kepler (supported since CUDA 5 and until CUDA 10.x)
 * ``sm_35`` or ``sm_37`` for Kepler (supported since CUDA 5 and until CUDA 11.x)
@@ -331,6 +340,19 @@ HIP_USE_DEVICE_SORT=on`` requires installing the ``hipcub`` library
 
 The GPU library has some multi-thread support using OpenMP.  If LAMMPS
 is built with ``-D BUILD_OMP=on`` this will also be enabled.
+
+.. note::
+
+   Some Clang-based toolchains - in particular ``hipcc`` from ROCm - do not
+   ship the ``omp.h`` header in the compiler's own resource directory.  When
+   building with ``-D BUILD_OMP=on`` and such a compiler, host code that
+   includes ``<omp.h>`` would fail to compile even though the ``-fopenmp``
+   flag is accepted.  CMake detects this case and adds the ``omp.h`` from a
+   matching version of the system Clang installation as a fallback include
+   path (using ``-idirafter`` so it does not shadow other headers).  If no
+   matching ``omp.h`` can be found automatically, you may need to add the
+   directory containing it yourself, for example with
+   ``-D CMAKE_CXX_FLAGS=-idirafter/usr/lib/clang/<version>/include``.
 
 For a debug build, set ``GPU_DEBUG`` to be ``yes``.
 
@@ -1696,8 +1718,7 @@ pre-compiled version already present on your system.
 INTEL package
 -----------------------------------
 
-To build with this package, you must choose which hardware you want to
-build for, either x86 CPUs or Intel KNLs in offload mode.  You should
+This package optimizes styles for x86 CPUs.  You should
 also typically :ref:`install the OPENMP package <openmp>`, as it can be
 used in tandem with the INTEL package to good effect, as explained
 on the :doc:`Speed_intel` page.
@@ -1717,31 +1738,18 @@ code when using features from the INTEL package.
 
       .. code-block:: bash
 
-         -D INTEL_ARCH=value     # value = cpu (default) or knl
          -D INTEL_LRT_MODE=value # value = threads, none, or c++17
 
    .. tab:: Traditional make
 
-      Choose which hardware to compile for in Makefile.machine via the
-      following settings.  See ``src/MAKE/OPTIONS/Makefile.intel_cpu*``
-      and ``Makefile.knl`` files for examples. and
-      ``src/INTEL/README`` for additional information.
-
-      For CPUs:
+      Choose compiler flags in Makefile.machine via the following
+      settings.  See ``src/MAKE/OPTIONS/Makefile.intel_cpu*`` files for
+      examples and ``src/INTEL/README`` for additional information.
 
       .. code-block:: make
 
          OPTFLAGS =  -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -qopt-zmm-usage=high
-         CCFLAGS =   -g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
-         LINKFLAGS = -g -qopenmp $(OPTFLAGS)
-         LIB =       -ltbbmalloc
-
-      For KNLs:
-
-      .. code-block:: make
-
-         OPTFLAGS =  -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
-         CCFLAGS =   -g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+         CCFLAGS =   -g -qopenmp -DLAMMPS_MEMALIGN=64 -fno-alias -ansi-alias -restrict $(OPTFLAGS)
          LINKFLAGS = -g -qopenmp $(OPTFLAGS)
          LIB =       -ltbbmalloc
 

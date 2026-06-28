@@ -30,6 +30,7 @@ PairStyle(ldd,PairLdd);
 
 namespace LAMMPS_NS {
 
+//Forward Declarations
 class LddIndicator;
 class LddPotential;
 
@@ -74,10 +75,10 @@ class PairLdd : public Pair {
   void LDD_calculate_LDs();
   void LDD_calculate_energies();
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
   // all per-species-pair settings below are indexed by species (0..nelements-1);
@@ -87,9 +88,9 @@ class PairLdd : public Pair {
   bool *ignore_me;            // species with no active interaction as a central atom
   bool **bGradient;           // species pairs that also carry a gradient interaction
 
-  LddIndicator ***Inds;       // indicator function w(r) for each ordered species pair
-  LddPotential ***Potls;      // U_rho potential for each ordered species pair
-  LddPotential ***GradPotls;  // U_grad potential for each ordered species pair
+  LddIndicator ***Inds;         // indicator function w(r) for each ordered species pair
+  LddPotential ***Potls;        // U_rho potential for each ordered species pair
+  LddPotential ***GradPotls;    // U_grad potential for each ordered species pair
 
   // per-atom local-density data owned by the pair style (recomputed every step,
   // not stored in data/restart files).  Communicated via the pack/unpack methods

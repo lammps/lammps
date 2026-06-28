@@ -801,3 +801,16 @@ void FixNonaffineDisplacement::grow_arrays(int nmax_new)
     memory->create(singular, nmax, "fix_nonaffine_displacement:singular");
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixNonaffineDisplacement::memory_usage()
+{
+  double bytes = (double) nmax * size_peratom_cols * sizeof(double);    // array_atom
+  if (nad_style == D2MIN) {
+    bytes += (double) nmax * 3 * 3 * 3 * sizeof(double);    // X + Y + F[nmax][3][3]
+    bytes += (double) nmax * sizeof(double);                 // D2min[nmax]
+    bytes += (double) nmax * 2 * sizeof(int);                // norm + singular[nmax]
+  }
+  return bytes;
+}

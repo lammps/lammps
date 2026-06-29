@@ -34,6 +34,11 @@ target_compile_definitions(test_kspace_auto_slab PRIVATE -DTEST_INPUT_FOLDER=${C
 target_link_libraries(test_kspace_auto_slab PRIVATE lammps GTest::GMock)
 add_test(NAME KSpaceAutoSlab COMMAND test_kspace_auto_slab)
 
+add_executable(test_kspace_group_group_slab test_kspace_group_group_slab.cpp)
+target_compile_definitions(test_kspace_group_group_slab PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_kspace_group_group_slab PRIVATE lammps GTest::GMock)
+add_test(NAME KSpaceGroupGroupSlab COMMAND test_kspace_group_group_slab)
+
 add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)

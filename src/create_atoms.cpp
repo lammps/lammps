@@ -37,7 +37,7 @@
 #include "region.h"
 #include "safe_pointers.h"
 #include "special.h"
-#include "text_file_reader.h"
+#include "stl_reader.h"
 #include "variable.h"
 
 #include <cmath>
@@ -1125,114 +1125,35 @@ void CreateAtoms::add_mesh(const char *filename)
     molid = maxmol + 1;
   }
 
-  SafeFilePtr fp = fopen(filename, "rb");
-  if (fp == nullptr)
-    error->one(FLERR, Error::NOLASTLINE, "Cannot open STL mesh file {}: {}", filename,
-               utils::getsyserror());
+  // read all triangles (ASCII or binary STL) with the shared STL reader
+  // every rank parses the file and keeps the atoms that fall in its subdomain
 
-  // first try reading the file in ASCII format
-
-  TextFileReader reader(fp, "STL mesh");
+  std::vector<STLReader::Triangle> triangles;
   try {
-    char *line = reader.next_line();
-    if (!line || !utils::strmatch(line, "^solid"))
-      throw TokenizerException("Invalid STL mesh file format", "");
-
-    line += 6;
-    if (utils::strmatch(line, "^binary"))
-      throw TokenizerException("Invalid STL mesh file format", "");
-
+    std::string title;
+    triangles = STLReader::parse(filename, &title);
     if (comm->me == 0)
-      utils::logmesg(lmp, "Reading STL object {} from text file {}\n", utils::trim(line), filename);
-
-    while ((line = reader.next_line())) {
-
-      // next line is facet line with 5 words
-      auto values = utils::split_words(line);
-      // otherwise stop reading
-      if ((values.size() != 5) || !utils::strmatch(values[0], "^facet")) break;
-
-      // ignore normal
-
-      line = reader.next_line(2);
-      if (!line || !utils::strmatch(line, "^ *outer *loop"))
-        throw TokenizerException("Error reading outer loop", "");
-
-      for (int k = 0; k < 3; ++k) {
-        line = reader.next_line(4);
-        values = utils::split_words(line);
-        if ((values.size() != 4) || !utils::strmatch(values[0], "^vertex"))
-          throw TokenizerException("Error reading vertex", "");
-
-        vert[k][0] = utils::numeric(FLERR, values[1], false, lmp);
-        vert[k][1] = utils::numeric(FLERR, values[2], false, lmp);
-        vert[k][2] = utils::numeric(FLERR, values[3], false, lmp);
-      }
-
-      line = reader.next_line(1);
-      if (!line || !utils::strmatch(line, "^ *endloop"))
-        throw TokenizerException("Error reading endloop", "");
-      line = reader.next_line(1);
-      if (!line || !utils::strmatch(line, "^ *endfacet"))
-        throw TokenizerException("Error reading endfacet", "");
-
-      // now we have the three vertices ... proceed with adding atoms
-      ++ntriangle;
-      if (mesh_style == BISECTION) {
-        // add in center of triangle or bisecting recursively along longest edge
-        // as needed to get the desired atom density/radii
-        atomlocal += add_bisection(vert, molid);
-      } else if (mesh_style == QUASIRANDOM) {
-        // add quasi-random distribution of atoms
-        atomlocal += add_quasirandom(vert, molid);
-      }
-    }
+      utils::logmesg(lmp, "Reading STL object {} with {} triangles from file {}\n",
+                     title.empty() ? "(unnamed)" : title, triangles.size(), filename);
   } catch (std::exception &e) {
+    error->all(FLERR, Error::NOLASTLINE, "{}", e.what());
+  }
 
-    // if ASCII failed for the first line, try reading as binary
-    if (utils::strmatch(e.what(), "^Invalid STL mesh file format")) {
-      char title[80];
-      float triangle[12];
-      uint32_t ntri;
-      uint16_t attr;
-      size_t count;
+  for (const auto &tri : triangles) {
 
-      rewind(fp);
-      count = fread(title, sizeof(char), 80, fp);
-      title[79] = '\0';
-      count = fread(&ntri, sizeof(ntri), 1, fp);
-      if (count <= 0) {
-        error->all(FLERR, Error::NOLASTLINE, "Error reading STL file {}: {}", filename,
-                   utils::getsyserror());
-      } else {
-        if (comm->me == 0)
-          utils::logmesg(lmp, "Reading STL object {} from binary file {}\n", utils::trim(title),
-                         filename);
-      }
+    // the normal is ignored; only the three vertices are used to place atoms
 
-      for (uint32_t i = 0U; i < ntri; ++i) {
-        count = fread(triangle, sizeof(float), 12, fp);
-        if (count != 12)
-          error->all(FLERR, Error::NOLASTLINE, "Error reading STL file {}: {}", filename,
-                     utils::getsyserror());
-        count = fread(&attr, sizeof(attr), 1, fp);
+    for (int j = 0; j < 3; ++j)
+      for (int k = 0; k < 3; ++k) vert[j][k] = tri.vert[j][k];
 
-        for (int j = 0; j < 3; ++j)
-          for (int k = 0; k < 3; ++k) vert[j][k] = (double)triangle[3 * j + 3 + k];
-
-        ++ntriangle;
-        if (mesh_style == BISECTION) {
-          // add in center of triangle or bisecting recursively along longest edge
-          // as needed to get the desired atom density/radii
-          atomlocal += add_bisection(vert, molid);
-        } else if (mesh_style == QUASIRANDOM) {
-          // add quasi-random distribution of atoms
-          atomlocal += add_quasirandom(vert, molid);
-        }
-      }
-    } else {
-      error->all(FLERR, Error::NOLASTLINE, "Error reading triangles from STL mesh file {}: {}",
-                 filename, e.what());
+    ++ntriangle;
+    if (mesh_style == BISECTION) {
+      // add in center of triangle or bisecting recursively along longest edge
+      // as needed to get the desired atom density/radii
+      atomlocal += add_bisection(vert, molid);
+    } else if (mesh_style == QUASIRANDOM) {
+      // add quasi-random distribution of atoms
+      atomlocal += add_quasirandom(vert, molid);
     }
   }
 

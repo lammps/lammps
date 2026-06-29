@@ -20,13 +20,11 @@ KSpaceStyle(pppm/disp,PPPMDisp);
 #ifndef LMP_PPPM_DISP_H
 #define LMP_PPPM_DISP_H
 
+#include "ewald_const.h"
 #include "kspace.h"
 #include "lmpfftsettings.h"
 
 namespace LAMMPS_NS {
-
-static constexpr int EWALD_MAXORDER = 6;
-static constexpr int EWALD_FUNCS = 4;
 
 class PPPMDisp : public KSpace {
  public:
@@ -59,7 +57,7 @@ class PPPMDisp : public KSpace {
 
   int nsplit;
   int nsplit_alloc;
-  int function[EWALD_FUNCS];
+  int termflag[EwaldConst::EWALD_NTERMS];
 
   double delxinv, delyinv, delzinv, delvolinv;
   double delxinv_6, delyinv_6, delzinv_6, delvolinv_6;

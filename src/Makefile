@@ -80,6 +80,7 @@ PACKAGE = \
 	fep \
 	graphics \
 	granular \
+	gransurf \
 	intel \
 	interlayer \
 	latboltz \
@@ -153,6 +154,7 @@ PACKMOST = \
 	fep \
 	graphics \
 	granular \
+	gransurf \
 	interlayer \
 	manybody \
 	mc \

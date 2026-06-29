@@ -166,3 +166,71 @@ void AtomVecApip::force_clear(int n, size_t nbytes)
   }
   memset(&apip_lambda_required[n], 0, nbytes / sizeof(double) * sizeof(int));
 }
+
+/* ----------------------------------------------------------------------
+   assign an index to named atom property and return index
+   return -1 if name is unknown to this atom style
+------------------------------------------------------------------------- */
+
+int AtomVecApip::property_atom(const std::string &name)
+{
+  // gate each attribute on its flag: apip_lambda_input is only allocated for
+  // atom_style apip thermostat, so without this guard a request for it under
+  // atom_style apip conservative would dereference a null per-atom array
+
+  if (name == "apip_lambda" && atom->apip_lambda_flag) return 0;
+  if (name == "apip_lambda_input" && atom->apip_lambda_input_flag) return 1;
+  if (name == "apip_e_fast" && atom->apip_e_fast_flag) return 2;
+  if (name == "apip_e_precise" && atom->apip_e_precise_flag) return 3;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   pack per-atom data into buf for ComputePropertyAtom
+   index maps to data specific to this atom style
+------------------------------------------------------------------------- */
+
+void AtomVecApip::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
+{
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int n = 0;
+
+  if (index == 0) {
+    double *apip_lambda = atom->apip_lambda;
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit)
+        buf[n] = apip_lambda[i];
+      else
+        buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 1) {
+    double *apip_lambda_input = atom->apip_lambda_input;
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit)
+        buf[n] = apip_lambda_input[i];
+      else
+        buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 2) {
+    double *apip_e_fast = atom->apip_e_fast;
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit)
+        buf[n] = apip_e_fast[i];
+      else
+        buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 3) {
+    double *apip_e_precise = atom->apip_e_precise;
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit)
+        buf[n] = apip_e_precise[i];
+      else
+        buf[n] = 0.0;
+      n += nvalues;
+    }
+  }
+}

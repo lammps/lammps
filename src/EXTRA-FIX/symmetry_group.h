@@ -63,13 +63,13 @@ class SymmetryGroup : protected Pointers {
 
   void read(const char *filename);
 
-  int n_ops() const { return ops.size(); }
-  int n_orbits() const { return orbits.size(); }
-  LatticeFamily lattice() const { return lattice_family; }
-  const std::string &name() const { return group_name; }
+  [[nodiscard]] int n_ops() const { return ops.size(); }
+  [[nodiscard]] int n_orbits() const { return orbits.size(); }
+  [[nodiscard]] LatticeFamily lattice() const { return lattice_family; }
+  [[nodiscard]] const std::string &name() const { return group_name; }
 
-  const SymmOp &op(int i) const { return ops[i]; }
-  const Orbit &orbit(int i) const { return orbits[i]; }
+  [[nodiscard]] const SymmOp &op(int i) const { return ops[i]; }
+  [[nodiscard]] const Orbit &orbit(int i) const { return orbits[i]; }
 
  private:
   std::string group_name;

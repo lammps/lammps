@@ -3309,8 +3309,8 @@ void PairAIREBO::read_file_extra(PotentialFileReader &reader)
   std::vector<double> bcvals(3 * nbc);
   reader.next_dvector(bcvals.data(), 3 * nbc);
   for (int n = 0; n < nbc; n++) {
-    int mC = (int) (bcvals[3*n]   + 0.5);
-    int mH = (int) (bcvals[3*n+1] + 0.5);
+    int mC = lround(bcvals[3*n]);
+    int mH = lround(bcvals[3*n+1]);
     if (mC < 0 || mC > 6 || mH < 0 || mH > 6)
       error->one(FLERR, "AIREBO-BC pCC knot index out of range: {} {}", mC, mH);
     PCCf_bc[mC][mH] = bcvals[3*n+2];

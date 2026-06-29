@@ -25,6 +25,7 @@
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
+#include "domain_kokkos.h"
 #include "error.h"
 #include "fix_deform.h"
 #include "force.h"
@@ -1057,21 +1058,20 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   int i;
   double oldlo,oldhi,ctr,expfac;
 
-  // remap dilates atom positions on the host; flush x to host and mark dirty
-  atomKK->sync(Host, X_MASK);
-
-  double **x = atom->x;
-  int *mask = atom->mask;
+  // The box dilation maps atom x -> lamda (old box), rescales the box, then maps
+  // lamda -> x (new box).  Do the per-atom transforms on the device via
+  // DomainKokkos so atom:x is never touched through the legacy host pointer in
+  // the middle of the (device) integrate -- which in a mixed/single build would
+  // leave the atom:x TransformView with both host views dirty and trip the
+  // concurrent-modification guard.  x2lamda/lamda2x handle their own
+  // sync(Device)/modified(Device).
+  auto *domainKK = (DomainKokkos *) domain;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
 
-  if (allremap) domain->x2lamda(nlocal);
-  else {
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
-        domain->x2lamda(x[i],x[i]);
-  }
+  if (allremap) domainKK->x2lamda(nlocal);
+  else domainKK->x2lamda(nlocal, dilate_group_bit);
 
   for (auto &ifix : rfix) ifix->deform(0);
 
@@ -1089,16 +1089,10 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   domain->set_global_box();
   domain->set_local_box();
 
-  if (allremap) domain->lamda2x(nlocal);
-  else {
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
-        domain->lamda2x(x[i],x[i]);
-  }
+  if (allremap) domainKK->lamda2x(nlocal);
+  else domainKK->lamda2x(nlocal, dilate_group_bit);
 
   for (auto &ifix : rfix) ifix->deform(1);
-
-  atomKK->modified(Host, X_MASK);
 }
 
 /* ----------------------------------------------------------------------

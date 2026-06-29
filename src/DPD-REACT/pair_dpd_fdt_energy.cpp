@@ -44,6 +44,7 @@ PairDPDfdtEnergy::PairDPDfdtEnergy(LAMMPS *lmp) : Pair(lmp)
   random = nullptr;
   duCond = nullptr;
   duMech = nullptr;
+  nmax_dpd = 0;
   splitFDT_flag = false;
   a0_is_zero = false;
 
@@ -167,13 +168,12 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
     }
   } else {
 
-    // Allocate memory for duCond and duMech
-    if (allocated) {
-      memory->destroy(duCond);
-      memory->destroy(duMech);
+    // Grow duCond/duMech to atom->nmax if needed; zero the active range
+    if (atom->nmax > nmax_dpd) {
+      memory->grow(duCond, atom->nmax, "pair:duCond");
+      memory->grow(duMech, atom->nmax, "pair:duMech");
+      nmax_dpd = atom->nmax;
     }
-    memory->create(duCond,nlocal+nghost,"pair:duCond");
-    memory->create(duMech,nlocal+nghost,"pair:duMech");
     for (int ii = 0; ii < nlocal+nghost; ii++) {
       duCond[ii] = 0.0;
       duMech[ii] = 0.0;
@@ -307,8 +307,6 @@ void PairDPDfdtEnergy::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
@@ -322,10 +320,6 @@ void PairDPDfdtEnergy::allocate()
   memory->create(sigma,n+1,n+1,"pair:sigma");
   memory->create(kappa,n+1,n+1,"pair:kappa");
   memory->create(alpha,n+1,n+1,"pair:alpha");
-  if (!splitFDT_flag) {
-    memory->create(duCond,nlocal+nghost+1,"pair:duCond");
-    memory->create(duMech,nlocal+nghost+1,"pair:duMech");
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -582,4 +576,13 @@ void PairDPDfdtEnergy::unpack_reverse_comm(int n, int *list, double *buf)
     duCond[j] += buf[m++];
     duMech[j] += buf[m++];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairDPDfdtEnergy::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  if (duCond) bytes += (double) nmax_dpd * 2 * sizeof(double);    // duCond + duMech
+  return bytes;
 }

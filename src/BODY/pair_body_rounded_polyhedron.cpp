@@ -2392,3 +2392,11 @@ void PairBodyRoundedPolyhedron::sanity_check()
 */
 }
 
+/* ---------------------------------------------------------------------- */
+
+double PairBodyRoundedPolyhedron::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) nmax * 6 * sizeof(int);    // dnum+dfirst+ednum+edfirst+facnum+facfirst [nmax]
+  return bytes;
+}

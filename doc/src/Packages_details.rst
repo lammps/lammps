@@ -61,6 +61,7 @@ gives those details.
    * :ref:`GPU <PKG-GPU>`
    * :ref:`GRAPHICS <PKG-GRAPHICS>`
    * :ref:`GRANULAR <PKG-GRANULAR>`
+   * :ref:`GRANSURF <PKG-GRANSURF>`
    * :ref:`H5MD <PKG-H5MD>`
    * :ref:`INTEL <PKG-INTEL>`
    * :ref:`INTERLAYER <PKG-INTERLAYER>`
@@ -291,12 +292,46 @@ N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
 molecular liquids", J. Chem. Phys. 143, 243148 (2015).
 
-**Authors:** Nicholas J. H. Dunn and Michael R. DeLyser (The
-Pennsylvania State University)
+The package also includes a pair_style that flexibly defines interactions
+as a function of the local density and/or gradient of the local density
+around a central particle.  Its per-atom local-density data can be written
+out with :doc:`fix pair <fix_pair>` in a form that is compatible with the
+Bottom-up Open-source Coarse-graining Software (BOCS), an external
+coarse-graining package that can be used to parameterize such potentials
+from atomistic simulation data (see link below).
+
+The package is compatible with molecular topologies, allows the user to
+specify the length-scale and weighting functions for multiple types of
+local densities, and distinguishes asymmetric local density potentials.
+(e.g. distinct potentials can govern 1.) solute density around solvent
+molecules and 2.) solvent density around solute molecules)
+
+The local density potentials implemented define "local density" flexibly
+with different choices of indicator weighting functions and asymmetry in
+interactions as generically described in: Michael R. DeLyser
+and W. G. Noid (2019). "Analysis of local density potentials" The
+Journal of Chemical Physics 151, : 224106 DOI: 10.1063/1.5128665
+
+The square gradient potential implementation is described in:
+Michael R. DeLyser and W. G. Noid (2021) "Coarse-grained models for
+local density gradients" The Journal of Chemical Physics, 156, 034106
+DOI: 10.1063/5.0075291
+
+
+**Authors:**
+- Nicholas J. H. Dunn and Michael R. DeLyser (The Pennsylvania State University) for :doc:`fix bocs <fix_bocs>`
+-  Michael R. DeLyser, Maria Lesniewski and Will Noid (The Pennsylvania State University) for :doc:`pair_style ldd <pair_ldd>`
 
 **Supporting info:**
 
-The BOCS package for LAMMPS is part of the BOCS software package:
+* ``src/BOCS``: filenames -> commands
+* ``src/BOCS/README``
+* ``examples/PACKAGES/bocs``
+*  :doc:`fix bocs <fix_bocs>`
+* :doc:`Howto_ldd <Howto_ldd>`
+* :doc:`pair_style ldd <pair_ldd>`
+
+The BOCS package in LAMMPS is part of the BOCS software package:
 `https://github.com/noid-group/BOCS <https://github.com/noid-group/BOCS>`_
 
 See the following reference for information about the entire package:
@@ -1031,6 +1066,7 @@ package in ``tools/fep``; see its ``README`` file.
 * :doc:`compute fep <compute_fep>`
 * :doc:`pair_style \*/soft <pair_fep_soft>`
 * :doc:`pair_style coul/cut/soft/gapsys <pair_fep_soft>`
+* :doc:`pair_style lj/cut/soft/gapsys <pair_fep_soft>`
 * ``examples/PACKAGES/fep``
 * tools/fep/README
 * tools/fep
@@ -1143,6 +1179,32 @@ potentials.
 
 ----------
 
+.. _PKG-GRANSURF:
+
+GRANSURF package
+----------------
+
+**Contents:**
+
+Granular surfaces consisting of triangles (3d) or line segments (2d).
+These interact with finite-size granular particles as static or moving
+boundary conditions and support the same kind of interaction models as
+granular pair styles do for particle/particle interactions.  The
+collection of triangles or lines can be "global" with each processor
+storing all of them.  Or it can be "local" where the triangles/lines
+are distributed across processors.
+
+**Supporting info:**
+
+* src/GRANSURF: filenames -> commands
+* :doc:`Howto granular surfaces <Howto_granular_surfaces>`
+* :doc:`fix surface/global <fix_surface_global>`
+* :doc:`fix surface/local <fix_surface_local>`
+* :doc:`pair_style surf/granular <pair_surf_granular>`
+* examples/gransurf
+
+----------
+
 .. _PKG-H5MD:
 
 H5MD package
@@ -1185,7 +1247,7 @@ INTEL package
 **Contents:**
 
 Dozens of pair, fix, bond, angle, dihedral, improper, and kspace styles
-which are optimized for Intel CPUs and KNLs (Knights Landing).  All of
+which are optimized for Intel CPUs.  All of
 them have an "intel" in their style name.  The :doc:`INTEL package
 <Speed_intel>` page gives details of what hardware and compilers are
 required on your system, and how to build and use this package.  Its
@@ -1603,8 +1665,8 @@ MC package
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand canonical
-MC (GCMC), semi-grand canonical MC (SGCMC), or similar processes in
-conjunction with molecular dynamics (MD).
+MC (GCMC), semi-grand canonical MC (SGCMC), Gibbs ensemble MC (GEMC)
+or similar processes in conjunction with molecular dynamics (MD).
 
 **Supporting info:**
 
@@ -1616,9 +1678,10 @@ conjunction with molecular dynamics (MD).
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix gemc <fix_gemc>`
 * :doc:`fix hmc <fix_hmc>`
 * :doc:`fix mol/swap <fix_mol_swap>`
-* :doc:`fix neighbo/swap <fix_neighbor_swap>`
+* :doc:`fix neighbor/swap <fix_neighbor_swap>`
 * :doc:`fix sgcmc <fix_sgcmc>`
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`

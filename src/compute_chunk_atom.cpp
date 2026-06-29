@@ -1304,7 +1304,11 @@ void ComputeChunkAtom::idring(int n, char *cbuf, void *ptr)
 /* ----------------------------------------------------------------------
    one-time check for which = MOLECULE to check
      if each chunk contains all atoms in the molecule
-   issue warning if not
+   issue warning only for a molecule that is *split*, i.e. that has some
+     atoms assigned to its chunk and some atoms excluded from all chunks.
+     a molecule that is entirely excluded (e.g. removed by the compute group
+     or region) is not split and must not trigger the warning, even when its
+     molecule ID happens to fall within the range of valid chunk IDs.
    note that this check is without regard to discard rule
    if discard == NODISCARD, there is no easy way to check that all
      atoms in an out-of-bounds molecule were added to a chunk,
@@ -1319,9 +1323,28 @@ void ComputeChunkAtom::check_molecules()
   int flag = 0;
 
   if (!compress) {
+
+    // for each molecule ID that maps to a valid chunk (1 <= mol <= nchunk):
+    //   bit 0 set -> some atom of the molecule is assigned to its chunk
+    //   bit 1 set -> some atom of the molecule is excluded from all chunks
+    // a molecule is split (warn) only when both bits are set.
+    // reduce across procs since a molecule may be distributed over procs.
+
+    std::vector<int> molflag(nchunk, 0);
+    std::vector<int> molflagall(nchunk, 0);
+
     for (int i = 0; i < nlocal; i++) {
-      if (molecule[i] > 0 && molecule[i] <= nchunk && ichunk[i] == 0) flag = 1;
+      if (molecule[i] <= 0 || molecule[i] > nchunk) continue;
+      molflag[molecule[i] - 1] |= (ichunk[i] == 0) ? 2 : 1;
     }
+
+    MPI_Allreduce(molflag.data(), molflagall.data(), nchunk, MPI_INT, MPI_BOR, world);
+    for (int m = 0; m < nchunk; m++)
+      if (molflagall[m] == 3) {
+        flag = 1;
+        break;
+      }
+
   } else {
     int molid;
     for (int i = 0; i < nlocal; i++) {

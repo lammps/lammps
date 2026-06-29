@@ -307,6 +307,9 @@ Bibliography
 **(Dammak)**
    Dammak, Chalopin, Laroche, Hayoun, and Greffet, Phys Rev Lett, 103, 190601 (2009).
 
+**(Dandurand)**
+   Dandurand, Vandierendonck, de Supinski, 39th IEEE IPDPS, June 3-7, (2025).
+
 **(Darden)**
    Darden, York, Pedersen, J Chem Phys, 98, 10089 (1993).
 

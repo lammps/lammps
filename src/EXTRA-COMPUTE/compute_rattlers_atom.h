@@ -36,6 +36,7 @@ class ComputeRattlersAtom : public Compute {
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   int cutstyle, ncontacts_rattler, max_tries, nmax, invoked_peratom;

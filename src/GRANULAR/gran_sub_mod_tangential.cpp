@@ -195,7 +195,13 @@ GranSubModTangentialLinearHistoryClassic::GranSubModTangentialLinearHistoryClass
     GranularModel *gm, LAMMPS *lmp) :
     GranSubModTangentialLinearHistory(gm, lmp)
 {
-  contact_radius_flag = 1;    // Sets gran/hooke/history behavior
+  // gran/hooke/history uses a constant tangential stiffness kt (as in the
+  // original pair gran/hooke/history), so the tangential elastic force must NOT
+  // be scaled by the (overlap-dependent) contact radius.  Scaling it by the
+  // time-varying contact radius makes the tangential spring non-conservative
+  // and injects kinetic energy on grazing oblique impacts.  Only the Hertzian
+  // variant (mindlin_classic, used by gran/hertz/history) sets this flag.
+  contact_radius_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

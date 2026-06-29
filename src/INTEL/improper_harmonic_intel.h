@@ -47,9 +47,6 @@ class ImproperHarmonicIntel : public ImproperHarmonic {
   template <class flt_t, class acc_t>
   void pack_force_const(ForceConst<flt_t> &fc, IntelBuffers<flt_t, acc_t> *buffers);
 
-#ifdef _LMP_INTEL_OFFLOAD
-  int _use_base;
-#endif
 
   template <class flt_t> class ForceConst {
    public:

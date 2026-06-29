@@ -51,10 +51,10 @@ Syntax
           val1,val2,... = custom OpenCL accelerator configuration parameters (see below for details)
         *ocl_args* value = args
           args = List of additional OpenCL compiler arguments delimited by colons
-    *intel* args = NPhi keyword value ...
-      Nphi = # of co-processors per node
+    *intel* args = Narg keyword value ...
+      Narg = accepted for backward compatibility and ignored
       zero or more keyword/value pairs may be appended
-      keywords = *mode* or *omp* or *lrt* or *balance* or *ghost* or *tpc* or *tptask* or *pppm_table* or *no_affinity*
+      keywords = *mode* or *omp* or *lrt* or *pppm_table*
         *mode* value = *single* or *mixed* or *double*
           single = perform force calculations in single precision
           mixed = perform force calculations in mixed precision
@@ -64,19 +64,9 @@ Syntax
         *lrt* value = *yes* or *no*
           *yes* = use additional thread dedicated for some PPPM calculations
           *no* = do not dedicate an extra thread for some PPPM calculations
-        *balance* value = split
-          split = fraction of work to offload to co-processor, -1 for dynamic
-        *ghost* value = *yes* or *no*
-          *yes* = include ghost atoms for offload
-          *no* = do not include ghost atoms for offload
-        *tpc* value = Ntpc
-          Ntpc = max number of co-processor threads per co-processor core (default = 4)
-        *tptask* value = Ntptask
-          Ntptask = max number of co-processor threads per MPI task (default = 240)
         *pppm_table* value = *yes* or *no*
           *yes* = Precompute pppm values in table (doesn't change accuracy)
           *no* = Compute pppm values on the fly
-        *no_affinity* values = none
     *kokkos* args = keyword value ...
       zero or more keyword/value pairs may be appended
       keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/compute/forward* or *comm/reverse* or *comm/pair/reverse* or *comm/fix/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
@@ -133,10 +123,15 @@ Syntax
           Nteamsize = # of threads per block used for the pair compute kernel
         *nbin/atoms/per/bin = Natomsperbin
           Natomsperbin = # of atoms per bin used for neighbor list builds
-        *nbor/block/size = blocksize
-          blocksize = # of GPU threads per block for the flat neighbor build method
-        *bond/block/size = blocksize
-          blocksize = # of GPU threads per block for the bond force computation
+        *nbor/chunk/size = chunksize
+          chunksize = # of iterations each thread will perform for the flat neighbor build method
+        *bond/chunk/size = blocksize
+          chunksize = # of iterations each thread will perform for the bond force computation
+        *auto/tuning = nevery nsamples mode reltol
+          nevery = # timesteps between auto-tuning adjustments (default = 0, no auto-tuning)
+          nsamples = # samples the tuner(s) collects for each parameter combination
+          mode = how to pick a performance value from the samples collected, i.e. maximum, average or median value
+          reltol = relative tolerance for performance degradation that triggers re-tuning of parameter values
     *omp* args = Nthreads keyword value ...
       Nthreads = # of OpenMP threads to associate with each MPI process
       zero or more keyword/value pairs may be appended
@@ -158,7 +153,7 @@ Examples
    package omp 0 neigh no
    package omp 4
    package intel 1
-   package intel 2 omp 4 mode mixed balance 0.5
+   package intel 2 omp 4 mode mixed
 
 Description
 """""""""""
@@ -380,13 +375,13 @@ INTEL package settings
 ^^^^^^^^^^^^^^^^^^^^^^
 
 The *intel* style invokes settings associated with the use of the INTEL
-package.  The keywords *balance*, *ghost*, *tpc*, and *tptask* are
-**only** applicable if LAMMPS was built with Xeon Phi co-processor
-support and are otherwise ignored.
+package.
 
-The *Nphi* argument sets the number of co-processors per node.
-This can be set to any value, including 0, if LAMMPS was not
-built with co-processor support.
+.. deprecated:: TBD
+
+Support for offloading to Intel(R) Xeon Phi(TM) co-processors was
+removed.  The leading numeric argument (formerly the number of
+co-processors per node) is ignored.
 
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
@@ -400,7 +395,7 @@ The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *mode* keyword determines the precision mode to use for
-computing pair style forces, either on the CPU or on the co-processor,
+computing pair style forces on the CPU
 when using a INTEL supported :doc:`pair style <pair_style>`.  It
 can take a value of *single*, *mixed* which is the default, or
 *double*\ .  *Single* means single precision is used for the entire
@@ -428,57 +423,12 @@ is identical to the default *verlet* style aside from supporting the
 LRT feature. This feature requires setting the pre-processor flag
 -DLMP_INTEL_USELRT in the makefile when compiling LAMMPS.
 
-The *balance* keyword sets the fraction of :doc:`pair style <pair_style>` work
-offloaded to the co-processor for split values between 0.0 and 1.0 inclusive.
-While this fraction of work is running on the co-processor, other calculations
-will run on the host, including neighbor and pair calculations that are not
-offloaded, as well as angle, bond, dihedral, kspace, and some MPI
-communications.  If *split* is set to -1, the fraction of work is dynamically
-adjusted automatically throughout the run.  This typically give performance
-within 5 to 10 percent of the optimal fixed fraction.
-
-The *ghost* keyword determines whether or not ghost atoms, i.e. atoms
-at the boundaries of processor subdomains, are offloaded for neighbor
-and force calculations.  When the value = "no", ghost atoms are not
-offloaded.  This option can reduce the amount of data transfer with
-the co-processor and can also overlap MPI communication of forces with
-computation on the co-processor when the :doc:`newton pair <newton>`
-setting is "on".  When the value = "yes", ghost atoms are offloaded.
-In some cases this can provide better performance, especially if the
-*balance* fraction is high.
-
-The *tpc* keyword sets the max # of co-processor threads *Ntpc* that
-will run on each core of the co-processor.  The default value = 4,
-which is the number of hardware threads per core supported by the
-current generation Xeon Phi chips.
-
-The *tptask* keyword sets the max # of co-processor threads (Ntptask*
-assigned to each MPI task.  The default value = 240, which is the
-total # of threads an entire current generation Xeon Phi chip can run
-(240 = 60 cores \* 4 threads/core).  This means each MPI task assigned
-to the Phi will enough threads for the chip to run the max allowed,
-even if only 1 MPI task is assigned.  If 8 MPI tasks are assigned to
-the Phi, each will run with 30 threads.  If you wish to limit the
-number of threads per MPI task, set *tptask* to a smaller value.
-E.g. for *tptask* = 16, if 8 MPI tasks are assigned, each will run
-with 16 threads, for a total of 128.
-
-Note that the default settings for *tpc* and *tptask* are fine for
-most problems, regardless of how many MPI tasks you assign to a Phi.
-
 .. versionadded:: 15Jun2023
 
 The *pppm_table* keyword with the argument yes allows to use a
 pre-computed table to efficiently spread the charge to the PPPM grid.
 This feature is enabled by default but can be turned off using the
 keyword with the argument *no*.
-
-The *no_affinity* keyword will turn off automatic setting of core
-affinity for MPI tasks and OpenMP threads on the host when using
-offload to a co-processor. Affinity settings are used when possible
-to prevent MPI tasks and OpenMP threads from being on separate NUMA
-domains and to prevent offload threads from interfering with other
-processes/threads used for LAMMPS.
 
 KOKKOS package settings
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -590,7 +540,7 @@ the hardware used. The *no* value is useful for verifying that the
 Kokkos-based *host* and *device* values are working correctly. It is the
 default when running on CPUs since it is usually the fastest.
 
-When running on CPUs or Xeon Phi, the *host* and *device* values work
+When running on CPUs, the *host* and *device* values work
 identically. When using GPUs, the *device* value is the default since it
 will typically be optimal if all of your styles used in your input
 script are supported by the KOKKOS package. In this case data can stay
@@ -666,14 +616,132 @@ The *nbin/atoms/per/bin* keyword sets the number of atoms per bin
 used for the neighbor list builds on the GPU, which then determines
 the number of GPU threads per bin.  The default value of this parameter is 16.
 
-The *nbor/block/size* keyword sets the number of GPU threads per block
-used for the neighbor list builds on the GPU using the flat method (i.e.,
-each thread finds the neighbor list of an atom).  If not specified, then
-the GPU threads are assigned to the bins.
-
-The *bond/block/size* keyword sets the number of GPU threads per block
-used for launching the bond force kernel on the GPU.  The default value
+The *nbor/chunk/size* keyword sets the number of iterations that a work item
+is scheduled for the neighbor list builds on the GPU using the flat method (i.e.,
+each thread finds the neighbor list of an atom).  If not specified, the default value
 of this parameter is determined based on the GPU architecture at runtime.
+
+The *bond/chunk/size* keyword sets the number of iterations that a work item
+is scheduled for the bond force kernel on the GPU.  The default value
+of this parameter is determined based on the GPU architecture at runtime.
+
+.. versionadded:: TBD
+
+The *auto/tuning* keyword enables the auto-tuning feature of
+the KOKKOS package when using GPUs.  The following KOKKOS styles
+currently support auto-tuning:
+
+* :doc:`bond/class2/kk <bond_class2>`
+* :doc:`bond/fene/kk <bond_fene>`
+* :doc:`bond/harmonic/kk <bond_harmonic>`
+* :doc:`lj/cut/kk <pair_lj>`
+* :doc:`lj/cut/coul/long/kk <pair_lj_cut_coul>`
+* :doc:`lj/charmm/coul/long/kk <pair_charmm>`
+* :doc:`lj/cut/dipole/cut/kk <pair_dipole>`
+* :doc:`dpd/kk <pair_dpd>`
+* :doc:`sw/kk <pair_sw>`
+* :doc:`tersoff/kk <pair_tersoff>`
+* :doc:`zbl/kk <pair_zbl>`
+
+These styles serve as templates for incorporating auto-tuners into other
+KOKKOS styles in the future. To avoid duplicated codes, one possibility
+is to refactor the tuners so that KOKKOS styles can request and enable
+them through a consistent API.
+
+It is recommended that auto-tuning is enabled only when the simulated
+system is in steady state.  The performance gain due to auto-tuning
+typically varies with the KOKKOS styles and the simulated system.  For
+the benchmark systems *bench/in.lj* and *bench/in.rhodo*, the speedup vs
+without auto-tuning could be 30% and 50%, respectively (figure below).
+
+.. |autotuning| image:: img/autotuning.png
+   :width: 50%
+
+|autotuning|
+
+
+When enabled, the tuner of the KOKKOS styles in use will scan through
+the possible values of kernel launch parameters, such as
+*pair/team/size* *threads/per/atom* for pair styles, *bond/chunk/size*
+for bond styles, and *nbin/atoms/per/bin* for neighbor builds.  When the
+scanning completes, the tuner stores the best overall performance (in
+terms of the number of time steps per second) with the corresponding
+kernel launch parameter combination.
+
+The tuner then uses the optimal parameter combination to launch the
+kernels on the GPU and monitors the simulation performance periodically.
+If the performance repeatedly drops below a certain relative tolerance
+from the last stored optimal value, the tuner may attempt to find the
+new optimal parameter combination by rerunning the scanning process.
+
+There could be multiple tuners active in a run, for instance, when
+*bench/in.rhodo* is run on the GPUs, both :doc:`lj/charmm/coul/long/kk
+<pair_charmm>` and :doc:`bond/harmonic/kk <bond_harmonic>` have their
+tuners activated.  During the run, each tuner writes the current
+parameter combination and measured performance to a file named
+*tuning-[style-name].log*.
+
+The following parameters are needed for the auto-tuning process.
+
+   **nevery:** controls the interval used to estimate the overall
+   performance for a combination of these two parameters.  *nevery*
+   needs to be large enough to have a stable estimate of the
+   performance, to achieve a sufficiently large number of kernel calls,
+   while small enough to reduce the time required for scanning over all
+   the combinations.  *nevery* = 100 is usually a reasonable value.
+
+   **nsamples:** indicates the number of samples the tuners will collect
+   for each parameter combination.  *nsamples* = 5 is usually a
+   reasonable value.
+
+   **mode:** determines how the performance of a collection of samples is
+   *determined: max* means the maximum value, *ave* means the arithmetic
+   *average value, and *median* means the median value.
+
+   **reltol:** sets the relative tolerance for performance degradation
+   compared to the last optimal performance, which may trigger a re-scan
+   of the parameter space.  Setting *reltol* to be equal or greater than
+   1.0 will disable re-scanning.
+
+For example, suppose that *nevery* = 100, *nsamples* = 5, *mode* =
+median and *reltol* = 0.2. For a typical pair style, the tuner scans
+over 90 parameter combinations (*pair/team/size*, *threads/per/atom*):
+15 values of *pair/team/size* starting from 64 to 512 incremental by 32,
+and 6 values of *threads/per/atom*.  For each parameter combination, the
+tuner monitors and saves the performance after 100 steps.  When a scan
+over 90 combinations completes (9000 steps in this example), the best
+performance value is stored as a sample.  After *nsamples* = 5 samples
+are collected, the median value is stored and the optimal parameter
+combination (*pair/team/size*, *threads/per/atom*) will be used for the
+next kernel launches.  The figures above illustrate the simulation
+performance over time with auto-tuning using this setting for
+*bench/in.lj* (left panel) and *bench/in.rhodo* (right panel).  The
+plateau regions correspond to the regime where the kernels are launched
+with the corresponding optimal parameter combinations.
+
+Suppose that the last stored best performance is 1000 time steps per
+second.  After the optimal parameter combination is locked in, the tuner
+keeps monitoring the performance every *nevery* = 100 time steps. If the
+performance drops below (1 - *reltol*) * 1000 = 800 time steps per
+second by *nsamples* = 5 times (not necessarily consecutively) the tuner
+will trigger a re-scanning over the parameter combinations to find a new
+optimal parameter combination.
+
+If *nevery* is 0, auto-tuning is effectively disabled.  The 3 parameters
+*nsamples*, *mode* and *reltol* still need to be specified but have no
+effect to the run.
+
+One can also use the output in the log files *tuning-[style-name].log*
+as hints to select a combination of *pair/team/size and
+*threads/per/atom* to specify at command line arguments without enabling
+auto-tuning.
+
+.. note::
+
+   Do not use *auto/tuning* in tandem with *pair/team/size* and/or
+   *threads/per/atom* in the same command line because the latter
+   override the scanning process of the tuners.
+
 
 OPENMP package settings
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -798,28 +866,25 @@ For the INTEL package, the default parameters and settings are:
 
 .. parsed-literal::
 
-   Nphi = 1, omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4, tptask = 240, pppm_table = yes
+   omp = 0, mode = mixed, lrt = no, pppm_table = yes
 
-The default ghost option is determined by the pair style being used.
-This value is output to the screen in the offload report at the end of each
-run.  Note that all of these settings, except "omp" and "mode", are ignored if
-LAMMPS was not built with Xeon Phi co-processor support.  These settings are
-made automatically if the "-sf intel" :doc:`command-line switch <Run_options>`
-is used.  If it is not used, you must invoke the package intel command in your
-input script or via the "-pk intel" :doc:`command-line switch <Run_options>`.
+These settings are made automatically if the "-sf intel"
+:doc:`command-line switch <Run_options>` is used.  If it is not used, you
+must invoke the package intel command in your input script or via the
+"-pk intel" :doc:`command-line switch <Run_options>`.
 
 For the KOKKOS package when using GPUs, the option defaults are:
 
 .. parsed-literal::
 
-   neigh = full, neigh/qeq = full, newton = off, binsize = 2x LAMMPS default value, comm = device, sort = device, atom/map = device, neigh/transpose = off, gpu/aware = on
+   neigh = full, neigh/qeq = full, newton = off, binsize = 2x LAMMPS default value, comm = device, sort = device, atom/map = device, neigh/transpose = off, gpu/aware = on, auto/tuning = disabled
 
 For GPUs, option neigh/thread = on when there are 16k atoms or less on
 an MPI rank, otherwise it is "off". When LAMMPS can safely detect that
 GPU-aware MPI is not available, the default value of gpu/aware becomes
 "off".
 
-For the KOKKOS package when using CPUs or Xeon Phis, the option defaults are:
+For the KOKKOS package when using CPUs, the option defaults are:
 
 .. parsed-literal::
 

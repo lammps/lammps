@@ -170,18 +170,18 @@ protected:
         typename FFT_AT::t_FFT_SCALAR_1d d_input("fft_input", 2 * nsize);
         typename FFT_AT::t_FFT_SCALAR_1d d_output("fft_output", 2 * nsize);
 
-        // Create host mirror for initialization
-        auto h_input = Kokkos::create_mirror_view(d_input);
-
-        // Generate random complex data on host
+        // Generate random complex data and keep a pristine host-side copy in
+        // input_vec for validation.  The forward FFT may overwrite its input
+        // buffer in place (the FFT3d API permits out == in and only guarantees
+        // the *output* location), and on a CPU backend the host mirror of
+        // d_input aliases the same memory -- so we must NOT use that mirror as
+        // the reference after computing the FFT.
         RandomComplexGenerator gen(42424);
-        std::vector<FFT_SCALAR> temp_data(2 * nsize);
-        gen.generate(temp_data.data(), nfast, nmid, nslow);
-        for (int i = 0; i < 2 * nsize; ++i) {
-            h_input(i) = temp_data[i];
-        }
+        std::vector<FFT_SCALAR> input_vec(2 * nsize);
+        gen.generate(input_vec.data(), nfast, nmid, nslow);
 
-        // Copy input data to device
+        auto h_input = Kokkos::create_mirror_view(d_input);
+        for (int i = 0; i < 2 * nsize; ++i) h_input(i) = input_vec[i];
         Kokkos::deep_copy(d_input, h_input);
 
         // Perform forward FFT
@@ -195,12 +195,8 @@ protected:
         auto h_output = Kokkos::create_mirror_view(d_output);
         Kokkos::deep_copy(h_output, d_output);
 
-        // Convert Kokkos views to raw pointers for validator
-        std::vector<FFT_SCALAR> input_vec(2 * nsize);
         std::vector<FFT_SCALAR> output_vec(2 * nsize);
-
         for (int i = 0; i < 2 * nsize; ++i) {
-            input_vec[i]  = h_input(i);
             output_vec[i] = h_output(i) / static_cast<FFT_SCALAR>(nsize); // Apply normalization
         }
 

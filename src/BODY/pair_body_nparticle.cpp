@@ -481,3 +481,12 @@ void PairBodyNparticle::body2space(int i)
     ndiscrete++;
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairBodyNparticle::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) nmax * 2 * sizeof(int);    // dnum + dfirst [nmax]
+  return bytes;
+}

@@ -29,6 +29,10 @@ using MathConst::MY_PI;
 
 static constexpr double EPSILON = 0.001;
 
+// non-line particles are point-particles or finite-size spheroids
+
+enum { POINT, SPHERE };
+
 /* ---------------------------------------------------------------------- */
 
 AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
@@ -47,6 +51,8 @@ AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = nullptr;
+
+  particle_style = POINT;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -73,6 +79,15 @@ AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
 AtomVecLine::~AtomVecLine()
 {
   memory->sfree(bonus);
+}
+
+/* ----------------------------------------------------------------------
+   called by AtomVecHybrid if another sub-style defines finite-size particlces
+------------------------------------------------------------------------- */
+
+void AtomVecLine::set_sphere()
+{
+  particle_style = SPHERE;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -429,10 +444,18 @@ double AtomVecLine::memory_usage_bonus()
 
 void AtomVecLine::create_atom_post(int ilocal)
 {
-  double radius_one = 0.5;
-  radius[ilocal] = radius_one;
-  rmass[ilocal] = 4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one;
   line[ilocal] = -1;
+
+  // if POINT particle
+  //   set radius = 0.0
+  //   set rmass = 1.0 (default, can reset via set mass command)
+  // if SPHERE particle
+  //   radius/rmass are set by another hybrid atom_style, e.g. sphere
+
+  if (particle_style == POINT) {
+    radius[ilocal] = 0.0;
+    rmass[ilocal] = 1.0;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -453,12 +476,15 @@ void AtomVecLine::data_atom_post(int ilocal)
 
   if (rmass[ilocal] <= 0.0) error->one(FLERR, "Invalid density in Atoms section of data file");
 
-  if (line_flag < 0) {
-    double radius_one = 0.5;
-    radius[ilocal] = radius_one;
-    rmass[ilocal] *= 4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one;
-  } else
-    radius[ilocal] = 0.0;
+  // if POINT particle
+  //   set radius = 0.0
+  //   leave rmass as-is, since data file defines it as per-particle mass
+  // if SPHERE particle
+  //   radius/rmass are set by another hybrid atom_style, e.g. sphere
+  // if LINE particle
+  //   radius/rmass will be set by data_atom_bonus()
+
+  if (line_flag < 0 && particle_style == POINT) radius[ilocal] = 0.0;
 
   omega[ilocal][0] = 0.0;
   omega[ilocal][1] = 0.0;
@@ -479,10 +505,14 @@ void AtomVecLine::pack_data_pre(int ilocal)
   else
     line[ilocal] = 1;
 
-  if (line_flag < 0) {
-    double radius_one = radius[ilocal];
-    rmass[ilocal] /= 4.0 * MY_PI / 3.0 * radius_one * radius_one * radius_one;
-  } else
+  // if POINT particle
+  //   leave rmass as-is, since data file defines it as per-particle mass
+  // if SPHERE particle
+  //   rmass is reset to density by another hybrid atom_style, e.g. sphere
+  // if LINE particle
+  //   convert rmass to per-length density
+
+  if (line_flag >= 0)
     rmass[ilocal] /= bonus[line_flag].length;
 }
 
@@ -493,6 +523,12 @@ void AtomVecLine::pack_data_pre(int ilocal)
 void AtomVecLine::pack_data_post(int ilocal)
 {
   line[ilocal] = line_flag;
+
+  // if SPHERE particle, just return
+  //   rmass is reset to pre-pack value by another hybrid atom_style, e.g. sphere
+  // else reset rmass for LINE and POINT particles
+
+  if (line_flag < 0 && particle_style == SPHERE) return;
   rmass[ilocal] = rmass_one;
 }
 
@@ -514,7 +550,6 @@ int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
   if (triclinic_general) x_bonus = x_hold;
   else x_bonus = x;
 
-  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int m = 0;
@@ -593,7 +628,7 @@ void AtomVecLine::set_length(int i, double value)
     bonus[line[i]].length = value;
 
   // also set radius = half of length
-  // unless value = 0.0, then set diameter = 1.0
+  // unless value = 0.0, then set radius = 0.5 (diameter = 1)
 
   radius[i] = 0.5 * value;
   if (value == 0.0) radius[i] = 0.5;

@@ -145,9 +145,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
 
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
-            bodyID[i] = (tagint)((tagint)value[i] - minval + 1);
-          else bodyID[0] = 0;
+          if (mask[i] & groupbit) bodyID[i] = (tagint)((tagint)value[i] - minval + 1);
+          else bodyID[i] = 0;
         delete[] value;
       } else error->all(FLERR, 4, "Unsupported fix {} custom property {}", style, arg[4]);
   } else error->all(FLERR, 3, "Unknown fix {} body style {}", style, arg[3]);

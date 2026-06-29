@@ -3,8 +3,8 @@ KOKKOS package
 
 Kokkos is a templated C++ library that provides abstractions to allow
 a single implementation of an application kernel (e.g. a pair style)
-to run efficiently on different kinds of hardware, such as GPUs, Intel
-Xeon Phis, or many-core CPUs. Kokkos maps the C++ kernel onto
+to run efficiently on different kinds of hardware, such as GPUs
+or many-core CPUs. Kokkos maps the C++ kernel onto
 different back end languages such as CUDA, OpenMP, or Pthreads.  The
 Kokkos library also provides data abstractions to adjust (at compile
 time) the memory layout of data structures like 2d and 3d arrays to
@@ -34,8 +34,8 @@ see the `Kokkos Wiki <https://kokkos.org/kokkos-core-wiki/>`_.
    incorrect execution or crashes.
 
 Kokkos currently provides full support for 4 modes of execution (per MPI
-task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
-(threading for many-core CPUs and Intel Phi), CUDA (for NVIDIA GPUs) and
+task). These are Serial (MPI-only for CPUs), OpenMP
+(threading for many-core CPUs), CUDA (for NVIDIA GPUs) and
 HIP (for AMD GPUs).  Additional modes (e.g. OpenMP target, Intel data
 center GPUs) are under development.  You choose the mode at build time
 to produce an executable compatible with a specific hardware.
@@ -227,79 +227,6 @@ be sufficient. In general, for best performance with OpenMP 4.0 or later
 set ``OMP_PROC_BIND=spread`` and ``OMP_PLACES=threads``.  For binding
 threads with the KOKKOS pthreads option, compile LAMMPS with the hwloc
 or libnuma support enabled as described in the :ref:`extra build options page <kokkos>`.
-
-Running on Knight's Landing (KNL) Intel Xeon Phi
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Here is a quick overview of how to use the KOKKOS package for the
-Intel Knight's Landing (KNL) Xeon Phi:
-
-KNL Intel Phi chips have 68 physical cores. Typically 1 to 4 cores are
-reserved for the OS, and only 64 or 66 cores are used. Each core has 4
-Hyper-Threads,so there are effectively N = 256 (4\*64) or N = 264 (4\*66)
-cores to run on. The product of MPI tasks \* OpenMP threads/task should
-not exceed this limit, otherwise performance will suffer. Note that
-with the KOKKOS package you do not need to specify how many KNLs there
-are per node; each KNL is simply treated as running some number of MPI
-tasks.
-
-Examples of mpirun commands that follow these rules are shown below.
-
-.. code-block:: bash
-
-   # Running on an Intel KNL node with 68 cores
-   # (272 threads/node via 4x hardware threading):
-
-   # 1 node, 64 MPI tasks/node, 4 threads/task
-   mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj
-
-   # 1 node, 66 MPI tasks/node, 4 threads/task
-   mpirun -np 66 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj
-
-   # 1 node, 32 MPI tasks/node, 8 threads/task
-   mpirun -np 32 lmp_kokkos_phi -k on t 8 -sf kk -in in.lj
-
-   # 8 nodes, 64 MPI tasks/node, 4 threads/task
-   mpirun -np 512 -ppn 64 lmp_kokkos_phi -k on t 4 -sf kk -in in.lj
-
-The ``-np`` setting of the mpirun command sets the number of MPI
-tasks/node. The ``-k on t Nt`` command-line switch sets the number of
-threads/task as ``Nt``. The product of these two values should be N, i.e.
-256 or 264.
-
-.. note::
-
-   The default for the :doc:`package kokkos <package>` command when
-   running on KNL is to use "half" neighbor lists and set the Newton
-   flag to "on" for both pairwise and bonded interactions. This will
-   typically be best for many-body potentials. For simpler pairwise
-   potentials, it may be faster to use a "full" neighbor list with
-   Newton flag to "off".  Use the ``-pk kokkos`` :doc:`command-line switch
-   <Run_options>` to change the default :doc:`package kokkos <package>`
-   options. See its documentation page for details and default
-   settings. Experimenting with its options can provide a speed-up for
-   specific calculations. For example:
-
-.. code-block:: bash
-
-   #  Newton on, half neighbor list, threaded comm
-   mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk -pk kokkos comm host -in in.reax
-
-   # Newton off, full neighbor list, non-threaded comm
-   mpirun -np 64 lmp_kokkos_phi -k on t 4 -sf kk \
-          -pk kokkos newton off neigh full comm no -in in.lj
-
-.. note::
-
-   MPI tasks and threads should be bound to cores as described
-   above for CPUs.
-
-.. note::
-
-   To build with Kokkos support for Intel Xeon Phi co-processors
-   such as Knight's Corner (KNC), your system must be configured to use
-   them in "native" mode, not "offload" mode like the INTEL package
-   supports.
 
 Running on GPUs
 ^^^^^^^^^^^^^^^
@@ -527,9 +454,6 @@ Generally speaking, the following rules of thumb apply:
   package.
 * When running large number of atoms per GPU, KOKKOS is typically faster
   than the GPU package when both are compiled for double precision.
-* When running on Intel Phi hardware, KOKKOS is not as fast as
-  the INTEL package, which is optimized for x86 hardware (not just
-  from Intel) and compilation with the Intel compilers.
 * The KOKKOS package by default assumes that you are using exactly one
   MPI rank per GPU. When trying to use multiple MPI ranks per GPU it is
   mandatory to enable `CUDA Multi-Process Service (MPS)

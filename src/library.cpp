@@ -2585,6 +2585,22 @@ A table with supported keywords is included in the documentation of the
    since per-atom data may be re-distributed, re-allocated, and
    re-ordered at every re-neighboring operation.
 
+.. note::
+
+   When running with the KOKKOS package and per-atom data residing on an
+   accelerator device (e.g. a GPU), the requested data is synchronized from
+   the device to the host before the pointer is returned, so that the host
+   data accessed through it is current even when this function is called
+   between output steps (for example from the LAMMPS GUI or a Python script
+   while a run is in progress).
+
+.. versionchanged:: TBD
+
+When using the KOKKOS package with a device backend, per-atom data is now
+synchronized from the device to the host before the pointer is returned.
+Previously the host copy could be out-of-date for calls not aligned with an
+output or end-of-run step.
+
 \endverbatim
  *
  * \param  handle  pointer to a previously created LAMMPS instance
@@ -3405,7 +3421,7 @@ int lammps_variable_info(void *handle, int idx, char *buffer, int buf_size) {
   }
   Info info(lmp);
 
-  if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
+  if ((idx >= 0) && (idx < lmp->input->variable->get_nvar())) {
     auto varinfo = info.get_variable_info(idx);
     strncpy(buffer, varinfo.c_str(), buf_size);
     return 1;
@@ -7172,7 +7188,7 @@ int lammps_id_count(void *handle, const char *category) {
   } else if (strcmp(category,"region") == 0) {
     return lmp->domain->get_region_list().size();
   } else if (strcmp(category,"variable") == 0) {
-    return lmp->input->variable->nvar;
+    return lmp->input->variable->get_nvar();
   }
   return 0;
 }
@@ -7252,8 +7268,9 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
       return 1;
     }
   } else if (strcmp(category,"variable") == 0) {
-    if ((idx >= 0) && (idx < lmp->input->variable->nvar) && lmp->input->variable->names[idx]) {
-      strncpy(buffer, lmp->input->variable->names[idx], buf_size);
+    if ((idx >= 0) && (idx < lmp->input->variable->get_nvar()) &&
+        lmp->input->variable->get_name(idx)) {
+      strncpy(buffer, lmp->input->variable->get_name(idx), buf_size);
       return 1;
     }
   }

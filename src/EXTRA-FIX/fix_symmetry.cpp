@@ -466,7 +466,7 @@ void FixSymmetry::validate_box()
   const double yz = domain->yz;
   const int tri = domain->triclinic;
 
-  const double box_tol = tol * std::max(xprd, std::max(yprd, zprd));
+  const double box_tol = tol * std::max({xprd, yprd, zprd});
   const LatticeFamily lat = grp->lattice();
 
   auto orthogonal_or_zero_tilt = [&]() {

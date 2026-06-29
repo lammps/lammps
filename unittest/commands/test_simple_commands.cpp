@@ -80,8 +80,9 @@ TEST_F(SimpleCommandsTest, Echo)
     ASSERT_EQ(lmp->input->echo_screen, 0);
     ASSERT_EQ(lmp->input->echo_log, 1);
 
-    TEST_FAILURE(".*ERROR: Illegal echo command.*", command("echo"););
-    TEST_FAILURE(".*ERROR: Unknown echo keyword: xxx.*", command("echo xxx"););
+    TEST_FAILURE(".*ERROR: Echo command expects exactly one argument.*", command("echo"););
+    TEST_FAILURE(".*ERROR: Echo command expects exactly one argument.*", command("echo x x"););
+    TEST_FAILURE(".*ERROR: Unknown echo command keyword: xxx.*", command("echo xxx"););
 }
 
 TEST_F(SimpleCommandsTest, Log)
@@ -327,8 +328,8 @@ TEST_F(SimpleCommandsTest, Suffix)
     ASSERT_EQ(lmp->suffix_enable, 1);
 
     TEST_FAILURE(".*ERROR: Illegal suffix command.*", command("suffix"););
-    TEST_FAILURE(".*ERROR: Illegal suffix command.*", command("suffix hybrid"););
-    TEST_FAILURE(".*ERROR: Illegal suffix command.*", command("suffix hybrid one"););
+    TEST_FAILURE(".*ERROR: Illegal suffix hybrid command.*", command("suffix hybrid"););
+    TEST_FAILURE(".*ERROR: Illegal suffix hybrid command.*", command("suffix hybrid one"););
 }
 
 TEST_F(SimpleCommandsTest, Thermo)
@@ -381,7 +382,9 @@ TEST_F(SimpleCommandsTest, TimeStep)
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->update->dt, -0.1);
 
-    TEST_FAILURE(".*ERROR: Illegal timestep command.*", command("timestep"););
+    TEST_FAILURE(".*ERROR: Timestep command expects exactly one argument.*", command("timestep"););
+    TEST_FAILURE(".*ERROR: Timestep command expects exactly one argument.*",
+                 command("timestep 1.0 2.0"););
     TEST_FAILURE(".*ERROR: Expected floating point.*", command("timestep xxx"););
 }
 
@@ -414,21 +417,23 @@ TEST_F(SimpleCommandsTest, Plugin)
 {
     const char *bindir = getenv("LAMMPS_PLUGIN_DIR");
     if (!bindir) GTEST_SKIP() << "LAMMPS_PLUGIN_DIR not set";
-    std::string loadfmt = "plugin load {}/{}plugin.so";
+    auto loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "hello");
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "hello"));
+    lmp->input->one(loadcmd);
     auto text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*\n.*Loading plugin: Hello world command.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "xxx"));
+    loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "xxx");
+    lmp->input->one(loadcmd);
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Open of file .*xxx.* failed.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "nve2"));
+    loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "nve2");
+    lmp->input->one(loadcmd);
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Loading plugin: NVE2 variant fix style.*"));
@@ -440,7 +445,8 @@ TEST_F(SimpleCommandsTest, Plugin)
     ASSERT_THAT(text, ContainsRegex(".*2: fix style plugin nve2.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "hello"));
+    loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "hello");
+    lmp->input->one(loadcmd);
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Ignoring load of command style hello: "
@@ -471,7 +477,8 @@ TEST_F(SimpleCommandsTest, Plugin)
     ASSERT_THAT(text, ContainsRegex(".*Ignoring unload of fix style nve: not from a plugin.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "hello"));
+    loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "hello");
+    lmp->input->one(loadcmd);
     text = ::testing::internal::GetCapturedStdout();
     ::testing::internal::CaptureStdout();
     lmp->input->one("plugin list");
@@ -488,7 +495,8 @@ TEST_F(SimpleCommandsTest, Plugin)
     ASSERT_THAT(text, ContainsRegex(".*Currently loaded plugins: 0\n$"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "no"));
+    loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "no");
+    lmp->input->one(loadcmd);
     lmp->input->one("plugin list");
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;

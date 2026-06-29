@@ -70,6 +70,7 @@ PairEAMAPIP::PairEAMAPIP(LAMMPS *lmp) : Pair(lmp)
   time_wall_accumulated = 0;
 
   lambda_thermostat = true;
+  lambda_la = true;
 }
 
 /* ----------------------------------------------------------------------
@@ -180,6 +181,8 @@ void PairEAMAPIP::compute(int eflag, int vflag)
     f_dyn_lambda = atom->apip_f_dyn_lambda;
     e_simple = atom->apip_e_fast;
     lambda_const = atom->apip_lambda_const;
+  } else if (lambda_la) {
+    e_simple = atom->apip_e_fast;
   }
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -256,8 +259,9 @@ void PairEAMAPIP::compute(int eflag, int vflag)
       phi = ((coeff[3] * p + coeff[4]) * p + coeff[5]) * p + coeff[6];
       if (rho[i] > rhomax) phi += fp[i] * (rho[i] - rhomax);
       phi *= scale[type[i]][type[i]];
-      ev_tally_full(i, 2.0 * lambda[i] * phi, 0.0, 0.0, 0.0, 0.0, 0.0);
       if (e_simple) { e_simple[i] = phi; }
+      if (eflag_global) eng_vdwl += lambda[i] * phi;
+      if (eflag_atom) eatom[i] += lambda[i] * phi;
     }
   }
 
@@ -406,13 +410,17 @@ void PairEAMAPIP::compute(int eflag, int vflag)
         }
 
         if (eflag || e_simple) {
-          evdwl = scale[itype][jtype] * phi;
+          evdwl = 0.5 * scale[itype][jtype] * phi;
           if (e_simple) {
-            e_simple[i] += 0.5 * evdwl;
-            if (j < nlocal) e_simple[j] += 0.5 * evdwl;
+            e_simple[i] += evdwl;
+            if (j < nlocal) e_simple[j] += evdwl;
           }
-          ev_tally_full(i, lambda[i] * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
-          if (j < nlocal) ev_tally_full(j, lambda[j] * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
+          if (eflag_global) eng_vdwl += lambda[i] * evdwl;
+          if (eflag_atom) eatom[i] += lambda[i] * evdwl;
+          if (j < nlocal) {
+            if (eflag_global) eng_vdwl += lambda[j] * evdwl;
+            if (eflag_atom) eatom[j] += lambda[j] * evdwl;
+          }
         }
         if (vflag) ev_tally(i, j, nlocal, newton_pair, 0.0, 0.0, fpair, delx, dely, delz);
       }
@@ -565,6 +573,15 @@ double PairEAMAPIP::init_one(int i, int j)
 
 void PairEAMAPIP::setup()
 {
+  if (modify->get_fix_by_style("^lambda/la/csp/apip$").size() == 0) {
+    lambda_la = false;
+  } else {
+    lambda_la = true;
+    if (comm->me == 0)
+      utils::logmesg(lmp,
+                     "  eam/apip      : compute potential energies for local-averaging forces\n");
+  }
+
   if (modify->get_fix_by_style("^lambda_thermostat/apip$").size() == 0) {
     lambda_thermostat = false;
   } else {
@@ -572,19 +589,21 @@ void PairEAMAPIP::setup()
     if (!atom->apip_lambda_const_flag)
       error->all(
           FLERR,
-          "Pair style pace/apip requires an atom style with lambda_const for a local thermostat.");
+          "Pair style eam/apip requires an atom style with lambda_const for a local thermostat.");
     if (!atom->apip_e_fast_flag)
       error->all(
           FLERR,
-          "Pair style pace/apip requires an atom style with e_simple for a local thermostat.");
+          "Pair style eam/apip requires an atom style with e_simple for a local thermostat.");
     if (!atom->apip_f_const_lambda_flag)
       error->all(FLERR,
-                 "Pair style pace/apip requires an atom style with f_const_lambda for a local "
+                 "Pair style eam/apip requires an atom style with f_const_lambda for a local "
                  "thermostat.");
     if (!atom->apip_f_dyn_lambda_flag)
       error->all(FLERR,
-                 "Pair style pace/apip requires an atom style with f_const_lambda for a local "
+                 "Pair style eam/apip requires an atom style with f_dyn_lambda for a local "
                  "thermostat.");
+    if (comm->me == 0)
+      utils::logmesg(lmp, "  eam/apip      : compute quantities for fix lambda_thermostat/apip\n");
   }
 }
 

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 
@@ -94,8 +81,8 @@ void test_A(const bool searched_value_exist, std::size_t numTeams,
 
   // Boundaries choosen so that every drawn number is at least once in the given
   // row
-  const ValueType lowerBound = numCols / 4;
-  const ValueType upperBound = 1 + numCols * 3 / 4;
+  const ValueType lowerBound = static_cast<ValueType>(numCols) / 4;
+  const ValueType upperBound = 1 + static_cast<ValueType>(numCols) * 3 / 4;
   const auto bounds          = make_bounds(lowerBound, upperBound);
 
   auto [dataView, dataViewBeforeOp_h] = create_random_view_and_host_clone(

@@ -1,7 +1,11 @@
 .. index:: improper_style inversion/harmonic
+.. index:: improper_style inversion/harmonic/kk
+.. index:: improper_style inversion/harmonic/omp
 
 improper_style inversion/harmonic command
 =========================================
+
+Accelerator Variants: *inversion/harmonic/kk*, *inversion/harmonic/omp*
 
 Syntax
 """"""
@@ -51,6 +55,21 @@ commands:
 If :math:`\omega_0 = 0` the potential term has a single minimum for
 the planar structure.  Otherwise it has two minima at +/- :math:`\omega_0`,
 with a barrier in between.
+
+----------
+
+Symmetry convention
+"""""""""""""""""""
+
+For the *inversion/harmonic* improper style, the first atom in the
+quadruplet is the atom of symmetry; all other atoms are considered
+interchangeable.  This convention is relevant for operations that require
+knowledge of how atoms are ordered, such as automatic assignment of new
+improper types by :doc:`fix bond/react <fix_bond_react>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

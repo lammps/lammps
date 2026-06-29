@@ -164,7 +164,7 @@ New:
 .. seealso::
 
    :cpp:func:`utils::count_words() <LAMMPS_NS::utils::count_words>`,
-   :cpp:func:`utils::trim_comments() <LAMMPS_NS::utils::trim_comments>`
+   :cpp:func:`utils::trim_comment() <LAMMPS_NS::utils::trim_comment>`
 
 
 Use utils::numeric() functions instead of force->numeric()
@@ -335,7 +335,7 @@ Use of "override" instead of "virtual"
 
 .. versionchanged:: 17Feb2022
 
-Since LAMMPS requires C++11, we switched to use the "override" keyword
+Since LAMMPS requires C++17, we switched to use the "override" keyword
 instead of "virtual" to indicate polymorphism in derived classes.  This
 allows the C++ compiler to better detect inconsistencies when an
 override is intended or not.  Please note that "override" has to be
@@ -663,7 +663,8 @@ Use utils::logmesg() instead of error->warning()
 .. versionchanged:: 22Jul2025
 
 The ``Error::message()`` method has been removed since its functionality
-has been superseded by the :cpp:func:`utils::logmesg` function.
+has been superseded by the :cpp:func:`utils::logmesg()
+<LAMMPS_NS::utils::logmesg>` function.
 
 Old:
 

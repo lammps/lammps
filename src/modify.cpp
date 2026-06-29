@@ -15,6 +15,7 @@
 #include "style_compute.h"    // IWYU pragma: keep
 #include "style_fix.h"        // IWYU pragma: keep
 
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"    // IWYU pragma: keep
@@ -24,6 +25,7 @@
 #include "group.h"
 #include "input.h"
 #include "memory.h"
+#include "label_map.h"
 #include "region.h"
 #include "update.h"
 #include "variable.h"
@@ -130,8 +132,9 @@ Modify::~Modify()
   memory->destroy(fmask);
 
   // delete all computes
+  // do it via delete_compute() for clean deletion of computes that have created other computes
 
-  for (int i = 0; i < ncompute; i++) delete compute[i];
+  while (ncompute) delete_compute(0);
   memory->sfree(compute);
 
   delete[] list_initial_integrate;
@@ -320,6 +323,10 @@ void Modify::setup(int vflag)
     for (int i = 0; i < nfix; i++) fix[i]->setup(vflag);
   else if (update->whichflag == 2)
     for (int i = 0; i < nfix; i++) fix[i]->min_setup(vflag);
+
+  // runtime check for type label self-consistency
+
+  if (atom->labelmapflag && atom->lmap->checkflag) atom->lmap->check_labels();
 }
 
 /* ----------------------------------------------------------------------
@@ -934,6 +941,9 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     fix_list = std::vector<Fix *>(fix, fix + nfix);
   }
 
+  if (fix[ifix]->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
+
   // post_constructor() can call virtual methods in parent or child
   //   which would otherwise not yet be visible in child class
   // post_constructor() allows new fix to create other fixes
@@ -1297,6 +1307,9 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
     error->all(FLERR, Error::NOLASTLINE, utils::check_packages_for_style("compute", arg[2], lmp));
 
   compute_list = std::vector<Compute *>(compute, compute + ncompute + 1);
+
+  if (compute[ncompute]->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
 
   // post_constructor() can call virtual methods in parent or child
   //   which would otherwise not yet be visible in child class

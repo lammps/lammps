@@ -46,7 +46,7 @@ namespace LAMMPS_NS {
 
 // enum used for KOKKOS host/device flags
 
-enum ExecutionSpace{ Host, Device };
+enum ExecutionSpace{ Host, HostKK, Device };
 
 // global forward declarations
 
@@ -102,8 +102,8 @@ class Pointers {
   Pointers() = delete;
   Pointers(const Pointers &) = default;
   Pointers(Pointers &&) = delete;
-  Pointers & operator=(const Pointers&) = delete;
-  Pointers & operator=(Pointers&&) = delete;
+  Pointers &operator=(const Pointers &) = delete;
+  Pointers &operator=(Pointers &&) = delete;
 
  protected:
   LAMMPS *lmp;
@@ -133,6 +133,6 @@ class Pointers {
   class Python *&python;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif

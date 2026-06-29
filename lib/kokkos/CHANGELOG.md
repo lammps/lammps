@@ -1,4 +1,271 @@
 # CHANGELOG
+## 5.1.0
+
+[Full Changelog](https://github.com/kokkos/kokkos/compare/5.0.2...5.1.0)
+
+### Features:
+* Export Kokkos type traits as C++20 concepts [\#8494](https://github.com/kokkos/kokkos/pull/8494)
+
+### Backend and Architecture Enhancements:
+
+#### CUDA:
+* Added `Kokkos_ARCH_BLACKWELL103` configure option for NVIDIA B300 GPUs [\#8791](https://github.com/kokkos/kokkos/pull/8791)
+* Fix compiling with Clang+Cuda+OpenMP with Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE=ON [\#8810](https://github.com/kokkos/kokkos/pull/8810)
+* `nvcc_wrapper`: Add support for `-Ofc` and `--fdevice-time-trace` flags [\#8865](https://github.com/kokkos/kokkos/pull/8865)
+
+#### HIP:
+* Search the CMake variable `ROCM_PATH` for dependencies [\#8669](https://github.com/kokkos/kokkos/pull/8669)
+* Added support for brain floating-point (`bhalf_t`) [\#8705](https://github.com/kokkos/kokkos/pull/8705)
+* Implemented true reduced-precision mathematical functions (instead of falling back to `float`) [\#8705](https://github.com/kokkos/kokkos/pull/8705)
+* Add support for AMD MI355 and MI350 (`AMD_GFX950`) [\#8839](https://github.com/kokkos/kokkos/pull/8839)
+* Fix race conditions in HIP `parallel_scan` when running on MI300A  [\#8648](https://github.com/kokkos/kokkos/pull/8648)
+
+### General Enhancements
+* Enable ScatterView to contribute into a View that is an rvalue [\#8594](https://github.com/kokkos/kokkos/pull/8594)
+* Add bitwise operators to simd vectors and simd masks [\#8565](https://github.com/kokkos/kokkos/pull/8565)
+* Use Array::size_type for subscript operators [\#8692](https://github.com/kokkos/kokkos/pull/8692)
+* Add missing numeric trait `denorm_min` for `Kokkos::Experimental::half_t` and `Kokkos::Experimental::bhalf_t` [\#8769](https://github.com/kokkos/kokkos/pull/8769)
+* Use StaticBatchSize in ViewFill [\#8795](https://github.com/kokkos/kokkos/pull/8795)
+* Enforce failure when exceeding team_size_max and scratch_size_max checks [\#7445](https://github.com/kokkos/kokkos/pull/7445)
+* Enable MPI detection with PALS [\#8895](https://github.com/kokkos/kokkos/pull/8895)
+* Add simd memory permute functions [\#8775](https://github.com/kokkos/kokkos/pull/8775)
+* Performance improvements using `MDRangePolicy` with `CUDA`, `HIP` and `SYCL` [\#8638](https://github.com/kokkos/kokkos/pull/8638),  [\#8731](https://github.com/kokkos/kokkos/pull/8731)
+* Add `Kokkos::norm`for `Kokkos::complex`- similar to `std::norm` [\#8627](https://github.com/kokkos/kokkos/pull/8927)
+* Use neon and sve SIMD instructions if `nvcc` supports them [\#8667](https://github.com/kokkos/kokkos/pull/8667)
+* Expand math support: complete the implementation of all remaining math functions and increase half-type support [\#8595](https://github.com/kokkos/kokkos/pull/8789) [\#8858](https://github.com/kokkos/kokkos/pull/8858) [\#8873](https://github.com/kokkos/kokkos/pull/8873) [\#8712](https://github.com/kokkos/kokkos/pull/8712) [\#8827](https://github.com/kokkos/kokkos/pull/8827) [\#8819](https://github.com/kokkos/kokkos/pull/8819) [\#8719](https://github.com/kokkos/kokkos/pull/8719) [\#8863](https://github.com/kokkos/kokkos/pull/8863) [\#8862](https://github.com/kokkos/kokkos/pull/8862) [\#8778](https://github.com/kokkos/kokkos/pull/8778) [\#8891](https://github.com/kokkos/kokkos/pull/8891)
+* Improve performance of `deep_copy` from scalar in view fill using StaticBatchSize [\#8795](https://github.com/kokkos/kokkos/pull/8795) [\#8829](https://github.com/kokkos/kokkos/pull/8829)
+
+### Build System Changes
+* Warn about multiple device architectures enabled by `find_package(HIP)` [\#8938](https://github.com/kokkos/kokkos/pull/8938)
+
+### Incompatibilities (i.e. breaking changes)
+* Execution spaces can only be constructed after `Kokkos::initialize()` has been called and must be destructed before `Kokkos::finalize()` [\#8546](https://github.com/kokkos/kokkos/pull/8546) [\#8677](https://github.com/kokkos/kokkos/pull/8677)
+* ScatterValue isn't move constructible/assignable anymore [\#8761](https://github.com/kokkos/kokkos/pull/8761)
+* Enforce TeamPolicy constructor preconditions (includes vector length must be a power of two) [\#8904](https://github.com/kokkos/kokkos/pull/8904) [\#8907](https://github.com/kokkos/kokkos/pull/8907)
+* OpenMP: Warn on exec space instance created within omp region [\#8919](https://github.com/kokkos/kokkos/pull/8919)
+* Remove the deprecated OpenMPTarget backend [\#8701](https://github.com/kokkos/kokkos/pull/8701) [\#8717](https://github.com/kokkos/kokkos/pull/8717) [\#8749](https://github.com/kokkos/kokkos/pull/8749) [\#8767](https://github.com/kokkos/kokkos/pull/8767)
+
+### Bug Fixes
+* Fix reduction_identity for BAnd [\#8715](https://github.com/kokkos/kokkos/pull/8715)
+* Restrict lock free host atomics to the actual sizes that are lock free [\#8809](https://github.com/kokkos/kokkos/pull/8809)
+* Use intrinsics when calling min and max on simd vectors of integral types [\#8899](https://github.com/kokkos/kokkos/pull/8899)
+* Adds missing `constexpr` specifiers on `conj()`, and for the `real()` and `imag()` non-member functions taking complex numbers [\#8928](https://github.com/kokkos/kokkos/pull/8928)
+* Ensure that execution space instances fence on finalize [\#8626](https://github.com/kokkos/kokkos/pull/8626)
+* Update `team_fan_{in|out}` member functions of `ThreadsExecTeamMember` not to call host-only fuctions on the device [\#8730](https://github.com/kokkos/kokkos/pull/8730)
+* Make overloads of `isnormal` compliant with std [\#8857](https://github.com/kokkos/kokkos/pull/8857)
+* Fix compiler macros identify GCC and LLVM Clang on OSX [\#8592](https://github.com/kokkos/kokkos/pull/8592) [\#8952](https://github.com/kokkos/kokkos/pull/8952)
+
+## 5.0.2
+
+[Full Changelog](https://github.com/kokkos/kokkos/compare/5.0.1...5.0.2)
+
+### Bug Fixes
+
+* Build kokkosalgorithms and kokkossimd as position independent code [\#8815](https://github.com/kokkos/kokkos/pull/8815)
+* `ATOMICS_BYPASS` handling - disable incompatible tests [\#8813](https://github.com/kokkos/kokkos/pull/8813) and default ON in Trilinos configuration [\#8816](https://github.com/kokkos/kokkos/pull/8816)
+* Fix for Cuda 13.1 compilation issues (mdspan fix only) [\#8801](https://github.com/kokkos/kokkos/pull/8801)
+* Fix performance issue in subview [\#8822](https://github.com/kokkos/kokkos/pull/8822)
+* Fix `View::layout()` bug for `LayoutRight` and `DynRankView` [\#8838](https://github.com/kokkos/kokkos/pull/8838)
+
+## 5.0.1
+
+[Full Changelog](https://github.com/kokkos/kokkos/compare/5.0.0...5.0.1)
+
+### Bug Fixes
+* Fix nvcc warnings in mdspan [\#8750](https://github.com/kokkos/kokkos/pull/8750)
+* Disable MallocAsync for ROCm 7+ [\#8746](https://github.com/kokkos/kokkos/pull/8746)
+* Add a missing deprecation for HostMirror in DynamicView [\#8762](https://github.com/kokkos/kokkos/pull/8762)
+* Replace cudaMemAdvise_v2 with cudaMemAdvise when CUDART_VERSION >= 13000 [\#8707](https://github.com/kokkos/kokkos/pull/8707)
+* Use mdspan-based View in Cuda 12.9 [\#8779](https://github.com/kokkos/kokkos/pull/8779)
+
+## 5.0.0
+
+[Full Changelog](https://github.com/kokkos/kokkos/compare/4.7.01...5.0.0)
+
+### Features:
+* Require C++20 [\#8372](https://github.com/kokkos/kokkos/pull/8372)
+  * Implies a new set of minimum compiler versions
+* Reenabled new `mdspan` based `View` implementation (disabled in 4.7.1)
+* Complete C++20 module support [\#8222](https://github.com/kokkos/kokkos/pull/8222), [\#8263](https://github.com/kokkos/kokkos/pull/8263), [\#8218](https://github.com/kokkos/kokkos/pull/8218)
+* Begin removal of features deprecated in the Kokkos 4 release cycle [\#8374](https://github.com/kokkos/kokkos/pull/8374), [\#8390](https://github.com/kokkos/kokkos/pull/8390)
+
+### Backend and Architecture Enhancements:
+
+#### CUDA:
+* Leverage hardware atomics for 128-bit compare-and-swap on Hopper+ [\#8025](https://github.com/kokkos/kokkos/pull/8025)
+* Enable lock-free atomic_fetch_op for 128-bit types on Hopper+ [\#8511](https://github.com/kokkos/kokkos/pull/8511)
+* Use `__grid_constant__` based launch mechanism: this can lead to subtle synchronization behavior change for mid-size functors [\#8529](https://github.com/kokkos/kokkos/pull/8529)
+
+#### HIP:
+* Fix a performance regression introduced in 4.6 when using lightweight kernel in parallel reduce [\#8268](https://github.com/kokkos/kokkos/pull/8268)
+* Add support for the Navi 4 architecture [\#8501](https://github.com/kokkos/kokkos/pull/8501)
+* Leverage HIP atomic builtins for `atomic_fetch_{min,max}` with floating point types [\#8554](https://github.com/kokkos/kokkos/pull/8554)
+* Prefer smaller block sizes for `parallel_for` with small iteration space. [\#8512](https://github.com/kokkos/kokkos/pull/8512)
+
+#### SYCL:
+* Change SYCL::size_type from int to unsigned - the default iteration integer type [\#8542](https://github.com/kokkos/kokkos/pull/8542)
+
+#### OpenMPTarget:
+* Update `parallel_scan()` to support RangePolicy with non-zero begin index [\#8406](https://github.com/kokkos/kokkos/pull/8406)
+
+#### OpenACC:
+* Add partial support for pseudorandom number generator APIs in Kokkos_Random.hpp [\#8052](https://github.com/kokkos/kokkos/pull/8052)
+* Update `parallel_scan()` to support RangePolicy with non-zero begin index [\#8316](https://github.com/kokkos/kokkos/pull/8316)
+* Add support for `partition_space()` API [\#7920](https://github.com/kokkos/kokkos/pull/7920)
+* Add support for custom reduction with range policy for scalar reduction variables [\#8307](https://github.com/kokkos/kokkos/pull/8307)
+
+### General Enhancements
+* Optimize View initialization with adaptive `memset`/`parallel_for` selection in parallel Host backends [\#8178](https://github.com/kokkos/kokkos/pull/8178)
+* `UnorderedMap` allow using `SequentialHostInit` [\#8182](https://github.com/kokkos/kokkos/pull/8182)
+* Add simd type conversions [\#8085](https://github.com/kokkos/kokkos/pull/8085)
+* Make `reduction_identity<[b]half_t>` member functions return `[b]half_t` instead of `float` [\#8329](https://github.com/kokkos/kokkos/pull/8329)
+* Print the commit hash of the embedded dependencies at configure time and when calling `print_configuration` [\#8385](https://github.com/kokkos/kokkos/pull/8385)
+* Desul atomics: Use Clang atomic min/max GCC-style builtins [\#8507](https://github.com/kokkos/kokkos/pull/8507)
+* Enable running tests on systems with only 2GB of device memory [\#8552](https://github.com/kokkos/kokkos/pull/8552)
+* Added `begin()`/`end()` methods to `Kokkos::Array` [\#8577](https://github.com/kokkos/kokkos/pull/8577)
+* Added missing `noexcept` specifier to some methods of `Kokkos::Array` [\#8582](https://github.com/kokkos/kokkos/pull/8582)
+* Updated `ErrorReporter`: adhere to Kokkos naming conventions and change `get_reports` to return values [\#8486](https://github.com/kokkos/kokkos/pull/8486)
+* Added explicit loop unrolling execution policy trait (currently only effective in CUDA) [\#8164](https://github.com/kokkos/kokkos/pull/8164)
+
+### Build System Changes
+* Change `Kokkos_ENABLE_DEPRECATED_CODE_4` default `ON -> OFF` [\#8378](https://github.com/kokkos/kokkos/pull/8378)
+* Added `Kokkos_ENABLE_DEPRECATED_CODE_5` option. Default is `ON`. [\#8340](https://github.com/kokkos/kokkos/pull/8340)
+* Bump CMake minimum required version to 3.22 [\#8377](https://github.com/kokkos/kokkos/pull/8377)
+* Require CMake 3.25.2 for c++20 support in the CUDA language [\#8402](https://github.com/kokkos/kokkos/pull/8402)
+* Make Kokkos support multiple languages [\#8167](https://github.com/kokkos/kokkos/pull/8167)
+* Allow compiling to shared libraries on Windows [\#8324](https://github.com/kokkos/kokkos/pull/8324)
+
+### Incompatibilities (i.e. breaking changes)
+* Change `simd<T>` to use the largest available simd size by default [\#8250](https://github.com/kokkos/kokkos/pull/8250)
+* `MemoryRandomAccess` does not imply `Unmanaged` [\#8368](https://github.com/kokkos/kokkos/pull/8368)
+* Drop makefile support [\#8374](https://github.com/kokkos/kokkos/pull/8374)
+* Remove task DAG capabilities [\#8390](https://github.com/kokkos/kokkos/pull/8390)
+* Remove support for Nvidia Kepler architecture [\#8518](https://github.com/kokkos/kokkos/pull/8518)
+* Bump google benchmark minimum requirement to v1.8.3 [\#8579](https://github.com/kokkos/kokkos/pull/8579)
+* Check that parallel constructs invoked before initialize or after finalize will error out [\#7675](https://github.com/kokkos/kokkos/pull/7675)
+* Submit graphs on the default execution space when no execution space is specified [\#8365](https://github.com/kokkos/kokkos/pull/8365)
+
+### Deprecations
+* Deprecate `KOKKOS_ATTRIBUTE_NODISCARD` macro [\#8388](https://github.com/kokkos/kokkos/pull/8388)
+* Deprecate `{Owning,Observing}RawPtr` aliases [\#8397](https://github.com/kokkos/kokkos/pull/8397)
+* Deprecate support for using nested OpenMP parallel regions without nested OpenMP enabled [\#7417](https://github.com/kokkos/kokkos/pull/7417)
+* Deprecate creating Kokkos::OpenMP instances inside OpenMP parallel regions [\#8488](https://github.com/kokkos/kokkos/pull/8488)
+* Deprecate `Random_XorShift{64,1024}_Pool::init` [\#8082](https://github.com/kokkos/kokkos/pull/8082)
+* Deprecate simd::\[const_\]where_expression [\#7960](https://github.com/kokkos/kokkos/pull/7960)
+* Deprecate View::HostMirror in favor of View::host_mirror_type [\#8232](https://github.com/kokkos/kokkos/pull/8232)
+* Deprecate array_type and scalar_array_type and more enums in ViewTraits [\#7360](https://github.com/kokkos/kokkos/pull/7360)
+* Deprecated old member function names in (experimental) `ErrorReporter` [\#8486](https://github.com/kokkos/kokkos/pull/8486)
+
+### Bug Fixes
+* Track modification for `resize` only if `DualView` is not using a single device [\#8273](https://github.com/kokkos/kokkos/pull/8273)
+* Fix MSVC `floating-point value does not fit in required floating-point type` warning from `reduction_identity` [\#8376](https://github.com/kokkos/kokkos/pull/8376)
+* Properly delete `Timer` copy constructor and copy assignment operators [\#8399](https://github.com/kokkos/kokkos/pull/8399)
+* Fix RISC-V support (compiler check at configuration time and missing semicolons at compile time) [\#8439](https://github.com/kokkos/kokkos/pull/8439)
+* Corrected `bit_width` return type to be `int` instead of `T` to align with the standard library [\#8509](https://github.com/kokkos/kokkos/pull/8509)
+* OpenMP: fix `partition_space` with low thread counts [\#8488](https://github.com/kokkos/kokkos/pull/8488)
+* Fix `parallel_reduce` on HIP and Cuda with `LaunchBounds` values smaller than 32 [\#8452](https://github.com/kokkos/kokkos/pull/8452)
+* Cuda,HIP: Launch work graph on the specified instance [\#8576](https://github.com/kokkos/kokkos/pull/8576)
+* Work around a performance regression related to index computation in the mdspan-based View [\#8476](https://github.com/kokkos/kokkos/pull/8476)
+* Fix a failure at configure time when SVE is enabled and the tests are disabled [\#8661](https://github.com/kokkos/kokkos/pull/8661)
+
+## 4.7.02
+
+[Full Changelog](https://github.com/kokkos/kokkos/compare/4.7.01...4.7.02)
+
+### Bug Fixes
+* Link kokkoscore directly with CMAKE_DL_LIBS [\#8456](https://github.com/kokkos/kokkos/pull/8456)
+* mdspan fixes for cuda >= 12.9 [\#8562](https://github.com/kokkos/kokkos/pull/8562), [\#8615](https://github.com/kokkos/kokkos/pull/8615)
+* Replace cudaMemAdvise_v2 with cudaMemAdvise when CUDART_VERSION >= 13000 [\#8726](https://github.com/kokkos/kokkos/pull/8726)
+
+## 4.7.01
+
+[Full Changelog](https://github.com/kokkos/kokkos/compare/4.7.00...4.7.01)
+
+### CUDA
+* Support CUDA 13 [\#8298](https://github.com/kokkos/kokkos/pull/8298)
+
+### Performance
+* Revert back to old `View` implementation by default to avoid performance regressions [\#8411](https://github.com/kokkos/kokkos/pull/8411)
+  * This was by default off in Trilinos and Spack builds already, as well as for older GCC versions
+* Improve performance of `DynRankView` construction from internal `View` type [\#8303](https://github.com/kokkos/kokkos/pull/8303)
+
+### Bug Fixes
+* Add missing const qualifier to `View::to_mdspan` and `View` to `mdspan` conversion [\#8333](https://github.com/kokkos/kokkos/pull/8333)
+* Fix configure-time check of compilation and linker flags [\#8292](https://github.com/kokkos/kokkos/pull/8292)
+* Add missing `KOKKOS_FUNCTION` annotation on `View(std::nullptr_t, ...)` constructor [\#8436](https://github.com/kokkos/kokkos/pull/8436)
+
+## 4.7.00
+
+[Full Changelog](https://github.com/kokkos/kokkos/compare/4.6.02...4.7.00)
+
+### Features:
+* Introduce mdspan-based View implementation [\#7427](https://github.com/kokkos/kokkos/pull/7427)
+  * This change should be transparent for most users, but it is a complete reimplementation of `View`
+
+### Backend and Architecture Enhancements:
+
+#### CUDA:
+* Add support for AMPERE87 architecture (Jetson Orin Nano) [\#8092](https://github.com/kokkos/kokkos/pull/8092)
+* Support RDC with Clang 17+ and use new offload driver [\#7831](https://github.com/kokkos/kokkos/pull/7831)
+* Directly use fp16 mathematical function when available instead of casting back and forth to fp32 [\#7698](https://github.com/kokkos/kokkos/pull/7698)
+
+#### SYCL:
+* Add support for Intel DG2 GPUs such as the Arc Alchemist GPUs [\#7922](https://github.com/kokkos/kokkos/pull/7922)
+* Allow using non-trivially-copyable comparators with oneDPL [\#7538](https://github.com/kokkos/kokkos/pull/7538)
+* Directly use fp16 mathematical function when available instead of casting back and forth to fp32 [\#7698](https://github.com/kokkos/kokkos/pull/7698)
+
+#### OpenMPTarget:
+* Remove support for non-llvm compilers [\#7973](https://github.com/kokkos/kokkos/pull/7973)
+
+### General Enhancements
+* Add support for Zen 5 AMD microarchitecture [\#7877](https://github.com/kokkos/kokkos/pull/7877)
+* Add support for SiFive Unmatched Rev B (RISC-V)  [\#7921](https://github.com/kokkos/kokkos/pull/7921)
+* Improve performance of `atomic_op_fetch()` [\#8014](https://github.com/kokkos/kokkos/pull/8014)
+* Pass label by reference in all `Kokkos::tools` APIs [\#8065](https://github.com/kokkos/kokkos/pull/8065)
+* Compatibility with C+20 modules: Avoid static variables and functions in header files [\#8071](https://github.com/kokkos/kokkos/pull/8071)
+* Exit early at initialize with `--kokkos-help` [\#8079](https://github.com/kokkos/kokkos/pull/8079)
+* Add Kokkos::SIMD::SVE support for 128-bit and 256-bit SVE [#7807](https://github.com/kokkos/kokkos/pull/7807)
+* Add constructors for Random_XorShift*_Pool with execution space argument [\#8039](https://github.com/kokkos/kokkos/pull/8039)
+* Implement `nextafter` for fp16 [\#8118](https://github.com/kokkos/kokkos/pull/8118)
+* Enable structured binding return for `parition_space(ExecSpace, Args...)` [\#8114](https://github.com/kokkos/kokkos/pull/8114)
+* Add `constexpr` specifier to `operator==` and `operator!=` for `Kokkos::complex` [\#8254](https://github.com/kokkos/kokkos/pull/8254)
+* Remove `nodiscard` attributes from Kokkos simd interface [\#8084](https://github.com/kokkos/kokkos/pull/8084)
+* Add support for graph capture (`Cuda`, `HIP` and `SYCL`) [\#7552](https://github.com/kokkos/kokkos/pull/7552)
+* Enforce unit launch bound for graph `then` node [\#8192](https://github.com/kokkos/kokkos/pull/8192)
+* Add `then_host` to graph [\#8075](https://github.com/kokkos/kokkos/pull/8075)
+* Allow building `Kokkos::Experimental::Graph` object directly [\#8108](https://github.com/kokkos/kokkos/pull/8108)
+
+### Build System Changes
+* Set GCC minimum version for C++20 to 10.4 [\#8130](https://github.com/kokkos/kokkos/pull/8130)
+* Disallow relocatable device code for shared library build [\#8196](https://github.com/kokkos/kokkos/pull/8196)
+* Check if compiler/linker can consume the flags set [\#7891](https://github.com/kokkos/kokkos/pull/7891)
+* Support more nvcc arguments with nvcc_wrapper [\#7930](https://github.com/kokkos/kokkos/pull/7930)
+* Add NVIDIA Blackwell architecture support to the generated makefiles [\#8055](https://github.com/kokkos/kokkos/pull/8055)
+* Add initial C++20 modules configuration support [\#8132](https://github.com/kokkos/kokkos/pull/8132)
+
+### Incompatibilities (i.e. breaking changes)
+* Raise IntelLLVM minimum for SYCL to 2024.2.1 [\#7918](https://github.com/kokkos/kokkos/pull/7918)
+* Disallow `Kokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=OFF` [\#8021](https://github.com/kokkos/kokkos/pull/8021)
+
+### Deprecations
+* Deprecate `KOKKOS_MEMORY_ALIGNMENT[_THRESHOLD]` macros [\#7873](https://github.com/kokkos/kokkos/pull/7873)
+* Deprecate `Kokkos::MemoryManaged` alias [\#8066](https://github.com/kokkos/kokkos/pull/8066)
+* Deprecate `KOKKOS_NONTEMPORAL_PREFETCH_{LOAD,STORE}` macros [\#8146](https://github.com/kokkos/kokkos/pull/8146)
+
+### Bug Fixes
+* HIP and SYCL: fixed a bug where a `MDRangePolicy` of rank 4 or more is incorrectly iterated, leading to some iterations being evaluated more than once for large loops [\#7880](https://github.com/kokkos/kokkos/pull/7880)
+* Get the concurrency from provided execution space instances [\#7870](https://github.com/kokkos/kokkos/pull/7870)
+* Fix simd math functions not compiling when ARCH_NATIVE=ON [\#7912](https://github.com/kokkos/kokkos/pull/7912)
+* Fix memory leak in internals of the Serial default execution space [\#8042](https://github.com/kokkos/kokkos/pull/8042)
+* Fix memory leaks when initializing with `--kokkos-tools-help` [\#8074](https://github.com/kokkos/kokkos/pull/8074)
+* HIP: fix a bug a where `ConstantMemory` launch mechanism sporadically fails due to `hipEventSynchronize` error [\#8094](https://github.com/kokkos/kokkos/pull/8094)
+* Fix fallback simd masked reductions using incorrect identity elements [\#8115](https://github.com/kokkos/kokkos/pull/8115)
+* HPX: Corrected an internal TeamPolicy constraint that could cause issues with higher thread counts [\#8147](https://github.com/kokkos/kokkos/pull/8147)
+* Fix subview view constructor to disallow non-strided view types for strided subviews [\#8210](https://github.com/kokkos/kokkos/pull/8210)
+* Work around a compiler bug with GCC 12.{2,3,4} causing segfaults with the View shared allocation tracker [\#8223](https://github.com/kokkos/kokkos/pull/8223)
+* Fix launch of intermediate size functors in graph on HIP [\#8188](https://github.com/kokkos/kokkos/pull/8188)
+* Add missing fences for async random pool init with unified memory [\#8105](https://github.com/kokkos/kokkos/pull/8105)
+* OpenMPTarget / OpenACC: fix out-of-bounds access in `Random_UniqueIndex` under certain circumstances [\#8077](https://github.com/kokkos/kokkos/pull/8077)
 
 ## 4.6.02
 

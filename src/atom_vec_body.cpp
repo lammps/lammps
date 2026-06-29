@@ -104,7 +104,7 @@ void AtomVecBody::process_args(int narg, char **arg)
 {
   // suppress unused parameter warning dependent on style_body.h
 
-  (void) (arg);
+  (void) arg;
 
   if (narg < 1) error->all(FLERR, "Invalid atom_style body command");
 
@@ -616,7 +616,6 @@ int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
 {
   int i;
 
-  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int m = 0;

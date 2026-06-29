@@ -129,7 +129,7 @@ std::ostream & colvarbias_abmd::write_traj_label(std::ostream &os)
 std::ostream & colvarbias_abmd::write_traj(std::ostream &os)
 {
   os << " "
-      << std::setprecision(cvm::en_prec) << std::setw(cvm::en_width)
+      << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
       << ref_val;
 
   return os;

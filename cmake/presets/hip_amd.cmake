@@ -24,6 +24,8 @@ set(MPI_C_COMPILER "mpicc" CACHE STRING "" FORCE)
 
 # change as needed. This is for Fedora Linux 41 and 42
 set(_libomp_root "/usr/lib/clang/18")
+# This is for Fedora Linux 43
+# set(_libomp_root "/usr/lib/clang/19")
 # we need to explicitly specify the include dir, since hipcc will
 # compile each file twice and doesn't find omp.h the second time
 

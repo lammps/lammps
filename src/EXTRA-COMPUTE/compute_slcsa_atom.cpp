@@ -33,7 +33,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_compute_slcsa_atom_c[] =
-    "compute slcsa/atom command: doi:10.1016/j.commatsci.2023.112534\n\n"
+    "compute slcsa/atom command: https://doi.org/10.1016/j.commatsci.2023.112534\n\n"
     "@Article{Lafourcade2023,\n"
     " author = {P. Lafourcade and J.-B. Maillet and C. Denoual and E. Duval and A. Allera and A. "
     "M. Goryaeva and M.-C. Marinica},\n"
@@ -403,4 +403,11 @@ int ComputeSLCSAAtom::argmax(double arr[], int size)
   }
 
   return maxIndex;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeSLCSAAtom::memory_usage()
+{
+  return (double) nmax * ncols * sizeof(double);    // classification[nmax][ncols]
 }

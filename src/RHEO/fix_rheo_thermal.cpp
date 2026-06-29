@@ -128,7 +128,7 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
           utils::missing_cmd_args(FLERR, "fix rheo/thermal specific/heat constant", error);
 
         double cv_one = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-        if (cv_one < 0.0) error->all(FLERR, "The specific heat must be positive");
+        if (cv_one <= 0.0) error->all(FLERR, "The specific heat must be greater than zero");
         iarg += 2;
 
         for (i = nlo; i <= nhi; i++) {
@@ -249,7 +249,7 @@ int FixRHEOThermal::setmask()
 void FixRHEOThermal::init()
 {
   auto fixes = modify->get_fix_by_style("^rheo$");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/viscosity");
+  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/thermal");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
   cut_kernel = fix_rheo->cut;
 
@@ -359,6 +359,10 @@ void FixRHEOThermal::post_integrate()
   double *heatflow = atom->heatflow;
   int *type = atom->type;
 
+  double imass;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+
   int n_melt = 0;
   int n_freeze = 0;
 
@@ -367,9 +371,12 @@ void FixRHEOThermal::post_integrate()
     if (status[i] & STATUS_NO_INTEGRATION) continue;
 
     itype = type[i];
+    if (rmass) imass = rmass[i];
+    else imass = mass[itype];
+
     cvi = calc_cv(itype);
     energy[i] += dth * heatflow[i];
-    temperature[i] = energy[i] / cvi;
+    temperature[i] = energy[i] / (imass * cvi);
 
     if (Tc_style[itype] != NONE) {
       Ti = temperature[i];
@@ -377,7 +384,7 @@ void FixRHEOThermal::post_integrate()
 
       if (L_style[itype] != NONE) {
         Li = calc_L(itype);
-        if (Ti > Tci) Ti = MAX(Tci, (energy[i] - Li) / cvi);
+        if (Ti > Tci) Ti = MAX(Tci, (energy[i] / imass - Li) / cvi);
         temperature[i] = Ti;
       }
 
@@ -461,18 +468,26 @@ void FixRHEOThermal::post_neighbor()
 
 void FixRHEOThermal::pre_force(int /*vflag*/)
 {
+  int i, itype;
   double cvi, Tci, Ti, Li;
 
   double *energy = atom->esph;
   double *temperature = atom->temperature;
   int *type = atom->type;
+
+  double imass;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+
   int nall = atom->nlocal + atom->nghost;
 
   // Calculate temperature
-  for (int i = 0; i < nall; i++) {
-    int itype = type[i];
+  for (i = 0; i < nall; i++) {
+    itype = type[i];
+    if (rmass) imass = rmass[i];
+    else imass = mass[itype];
     cvi = calc_cv(itype);
-    temperature[i] = energy[i] / cvi;
+    temperature[i] = energy[i] / (imass * cvi);
 
     if (Tc_style[itype] != NONE) {
       Ti = temperature[i];
@@ -480,7 +495,7 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
 
       if (L_style[itype] != NONE) {
         Li = calc_L(itype);
-        if (Ti > Tci) Ti = MAX(Tci, (energy[i] - Li) / cvi);
+        if (Ti > Tci) Ti = MAX(Tci, (energy[i] / imass - Li) / cvi);
         temperature[i] = Ti;
       }
     }
@@ -569,6 +584,7 @@ void FixRHEOThermal::break_bonds()
   }
 
   // Update bond list and break solid-melted bonds
+  int deleted_bonds = 0;
   for (n = 0; n < nbondlist; n++) {
 
     // skip bond if not correct type
@@ -582,6 +598,7 @@ void FixRHEOThermal::break_bonds()
     if (!melti && !meltj) continue;
 
     bondlist[n][2] = 0;
+    deleted_bonds += 1;
 
     // Delete bonds for non-melted local atoms (shifting)
     if (i < nlocal && !melti) {
@@ -628,6 +645,10 @@ void FixRHEOThermal::break_bonds()
       if (((i >= nlocal) && melti) || ((j >= nlocal) && meltj))
         fix_update_special_bonds->add_broken_bond(i, j);
   }
+
+  int deleted_bonds_all;
+  MPI_Allreduce(&deleted_bonds, &deleted_bonds_all, 1, MPI_INT, MPI_SUM, world);
+  atom->nbonds -= deleted_bonds_all;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -648,12 +669,18 @@ void FixRHEOThermal::create_bonds()
   int *num_bond = atom->num_bond;
   double **x = atom->x;
 
+  // acquire updated ghost atom positions & build nlist
+  // necessary b/c are calling this after integrate, but before Verlet comm
+
+  comm->forward_comm();
   neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+
+  int added_bonds = 0;
 
   // loop over neighbors of my atoms
   // might be faster to do a full list and just act on the atom that freezes
@@ -686,6 +713,8 @@ void FixRHEOThermal::create_bonds()
       rsq = delx * delx + dely * dely + delz * delz;
       if (rsq > cutsq_bond) continue;
 
+      added_bonds += 1;
+
       // Add bonds to owned atoms
       // If newton bond off, add to both, otherwise add to whichever has a smaller tag
       if ((i < nlocal) && (!newton_bond || (tag[i] < tag[j]))) {
@@ -707,6 +736,10 @@ void FixRHEOThermal::create_bonds()
       if (fix_update_special_bonds) fix_update_special_bonds->add_created_bond(i, j);
     }
   }
+
+  int added_bonds_all;
+  MPI_Allreduce(&added_bonds, &added_bonds_all, 1, MPI_INT, MPI_SUM, world);
+  atom->nbonds += added_bonds_all;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,0 +1,22 @@
+This package implements the "pair_style mbx" command
+for LAMMPS, which is used to perform molecular dynamics simulations
+using MB-pol and MB-nrg data-driven many-body potential energy functions.
+
+The package uses the "MBX" library, whose source code is available
+at https://github.com/paesanilab/MBX. The files in the MBX package
+folder implement an interface between LAMMPS and MBX, which is written
+and maintained by the Paesani Lab (https://github.com/paesanilab).
+The corresponding author is Francesco Paesani (fpaesani@ucsd.edu).
+
+MBX can be added to LAMMPS by using ` cmake -D PKG_MBX=yes ...` as
+part of the build process. LAMMPS will then automatically download
+and compile the MBX library. Do note that the compilation of MBX can
+take a long time and can be quite memory intensive. If MBX is already
+detected on your system using PKG_CONFIG, then LAMMPS will use that
+version of MBX instead of downloading and compiling it.
+
+Examples for MBX are located in `examples/PACKAGES/mbx`.
+These examples include scripts for running simulations
+with MB-pol and other MB-nrg potentials.
+
+For questions, please use the MBX Google group https://groups.google.com/g/mbx-users

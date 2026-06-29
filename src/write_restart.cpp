@@ -49,7 +49,6 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Command(lmp)
   MPI_Comm_size(world,&nprocs);
   multiproc = 0;
   noinit = 0;
-  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -268,8 +267,7 @@ void WriteRestart::write(const std::string &file)
     if (me == 0 && fp) {
       magic_string();
       if (ferror(fp)) io_error = 1;
-      fclose(fp);
-      fp = nullptr;
+      fp = nullptr;             // implicitly closes file
     }
 
     std::string multiname = file;
@@ -282,6 +280,12 @@ void WriteRestart::write(const std::string &file)
       write_int(PROCSPERFILE,nclusterprocs);
     }
   }
+
+  // check for I/O error status
+
+  int io_all = 0;
+  MPI_Allreduce(&io_error,&io_all,1,MPI_INT,MPI_MAX,world);
+  if (io_all) error->all(FLERR,"I/O error while writing restart");
 
   // pack my atom data into buf
 
@@ -343,7 +347,8 @@ void WriteRestart::write(const std::string &file)
   // ping each proc in my cluster, receive its data, write data to file
   // else wait for ping from fileproc, send my data to fileproc
 
-  int tmp,recv_size;
+  int tmp = 0;
+  int recv_size;
 
   if (filewriter) {
     MPI_Status status;
@@ -360,17 +365,16 @@ void WriteRestart::write(const std::string &file)
     }
     magic_string();
     if (ferror(fp)) io_error = 1;
-    fclose(fp);
-    fp = nullptr;
+    fp = nullptr;               // implicitly closes file
 
   } else {
     MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(buf,send_size,MPI_DOUBLE,fileproc,0,world);
   }
 
-  // check for I/O error status
+  // check again for I/O error status
 
-  int io_all = 0;
+  io_all = 0;
   MPI_Allreduce(&io_error,&io_all,1,MPI_INT,MPI_MAX,world);
   if (io_all) error->all(FLERR,"I/O error while writing restart");
 
@@ -472,6 +476,11 @@ void WriteRestart::header()
   write_int(EXTRA_DIHEDRAL_PER_ATOM,atom->extra_dihedral_per_atom);
   write_int(EXTRA_IMPROPER_PER_ATOM,atom->extra_improper_per_atom);
   write_int(ATOM_MAXSPECIAL,atom->maxspecial);
+
+  // write out AtomVec::maxexchange (extra storage for communicating
+  // per-atom bond, angle, dihedral, and improper data). added 25 Oct 2025
+
+  write_int(ATOM_MAXEXCHANGE,atom->avec->maxexchange);
 
   write_bigint(NELLIPSOIDS,atom->nellipsoids);
   write_bigint(NLINES,atom->nlines);

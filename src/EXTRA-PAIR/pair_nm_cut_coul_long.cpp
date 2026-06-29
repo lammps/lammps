@@ -49,6 +49,8 @@ PairNMCutCoulLong::PairNMCutCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairNMCutCoulLong::~PairNMCutCoulLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

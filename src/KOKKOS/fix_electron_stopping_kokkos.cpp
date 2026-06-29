@@ -43,11 +43,11 @@ FixElectronStoppingKokkos<DeviceType>::FixElectronStoppingKokkos(LAMMPS *lmp, in
 
   const int ncol = atomKK->ntypes + 1;
   typename AT::tdual_double_2d k_elstop_ranges("k_elstop_ranges", ncol, table_entries);
-  typename AT::tdual_double_2d::t_host h_elstop_ranges = k_elstop_ranges.h_view;
+  typename AT::tdual_double_2d::t_host h_elstop_ranges = k_elstop_ranges.view_host();
   for (int r = 0; r < table_entries; r++) {
     for (int c = 0; c < ncol; c++) { h_elstop_ranges(c, r) = elstop_ranges[c][r]; }
   }
-  k_elstop_ranges.template modify<LMPHostType>();
+  k_elstop_ranges.modify_host();
   k_elstop_ranges.template sync<DeviceType>();
   d_elstop_ranges = k_elstop_ranges.template view<DeviceType>();
 }
@@ -129,6 +129,7 @@ template <class DeviceType> void FixElectronStoppingKokkos<DeviceType>::post_for
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void
 FixElectronStoppingKokkos<DeviceType>::operator()(TagFixElectronStopping, const int &i,
                                                   double &seloss,

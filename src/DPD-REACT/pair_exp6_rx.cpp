@@ -14,6 +14,7 @@
 
 #include "pair_exp6_rx.h"
 
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -24,16 +25,17 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
+#include "safe_pointers.h"
+#include "potential_file_reader.h"
+#include "tokenizer.h"
 
 #include <cfloat>
 #include <cmath>
 #include <cstring>
+#include <optional>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
-
-static constexpr int MAXLINE = 1024;
-static constexpr int DELTA = 4;
 
 #ifdef DBL_EPSILON
 static constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
@@ -44,9 +46,7 @@ static constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
 #define oneFluidApproxParameter (-1)
 #define isOneFluidApprox(_site) ( (_site) == oneFluidApproxParameter )
 
-#define exp6PotentialType (1)
-#define isExp6PotentialType(_type) ( (_type) == exp6PotentialType )
-
+namespace {
 // Create a structure to hold the parameter data for all
 // local and neighbor particles. Pack inside this struct
 // to avoid any name clashes.
@@ -66,18 +66,23 @@ struct PairExp6ParamDataType
               epsilonOld2(nullptr), alphaOld2(nullptr), rmOld2(nullptr), mixWtSite2old(nullptr)
    {}
 };
+}
 
 /* ---------------------------------------------------------------------- */
 
-PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp)
+PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp),
+                                      mol2param(nullptr),
+                                      nparams(0),
+                                      params(nullptr),
+                                      nspecies(0),
+                                      fractionalWeighting(true)
 {
   writedata = 1;
-
-  nspecies = 0;
-  nparams = maxparam = 0;
-  params = nullptr;
-  mol2param = nullptr;
-  fractionalWeighting = true;
+  nmax_exp6 = 0;
+  exp6_epsilon1 = exp6_alpha1 = exp6_rm1 = exp6_mixWtSite1 = nullptr;
+  exp6_epsilon2 = exp6_alpha2 = exp6_rm2 = exp6_mixWtSite2 = nullptr;
+  exp6_epsilonOld1 = exp6_alphaOld1 = exp6_rmOld1 = exp6_mixWtSite1old = nullptr;
+  exp6_epsilonOld2 = exp6_alphaOld2 = exp6_rmOld2 = exp6_mixWtSite2old = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,12 +92,9 @@ PairExp6rx::~PairExp6rx()
   if (copymode) return;
 
   if (params != nullptr) {
-    for (int i=0; i < nparams; ++i) {
-      delete[] params[i].name;
-      delete[] params[i].potential;
-    }
     memory->destroy(params);
   }
+
   memory->destroy(mol2param);
 
   if (allocated) {
@@ -105,6 +107,23 @@ PairExp6rx::~PairExp6rx()
     memory->destroy(coeffEps);
     memory->destroy(coeffRm);
   }
+
+  memory->destroy(exp6_epsilon1);
+  memory->destroy(exp6_alpha1);
+  memory->destroy(exp6_rm1);
+  memory->destroy(exp6_mixWtSite1);
+  memory->destroy(exp6_epsilon2);
+  memory->destroy(exp6_alpha2);
+  memory->destroy(exp6_rm2);
+  memory->destroy(exp6_mixWtSite2);
+  memory->destroy(exp6_epsilonOld1);
+  memory->destroy(exp6_alphaOld1);
+  memory->destroy(exp6_rmOld1);
+  memory->destroy(exp6_mixWtSite1old);
+  memory->destroy(exp6_epsilonOld2);
+  memory->destroy(exp6_alphaOld2);
+  memory->destroy(exp6_rmOld2);
+  memory->destroy(exp6_mixWtSite2old);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -156,31 +175,48 @@ void PairExp6rx::compute(int eflag, int vflag)
   const double shift = 1.05;
   double rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
 
-  // Initialize the Exp6 parameter data for both the local
-  // and ghost atoms. Make the parameter data persistent
-  // and exchange like any other atom property later.
+  // Grow per-atom Exp6 parameter arrays if needed; wrap in local struct for access.
+
+  if (atom->nmax > nmax_exp6) {
+     memory->grow(exp6_epsilon1,     atom->nmax, "pair:exp6_epsilon1");
+     memory->grow(exp6_alpha1,       atom->nmax, "pair:exp6_alpha1");
+     memory->grow(exp6_rm1,          atom->nmax, "pair:exp6_rm1");
+     memory->grow(exp6_mixWtSite1,   atom->nmax, "pair:exp6_mixWtSite1");
+     memory->grow(exp6_epsilon2,     atom->nmax, "pair:exp6_epsilon2");
+     memory->grow(exp6_alpha2,       atom->nmax, "pair:exp6_alpha2");
+     memory->grow(exp6_rm2,          atom->nmax, "pair:exp6_rm2");
+     memory->grow(exp6_mixWtSite2,   atom->nmax, "pair:exp6_mixWtSite2");
+     memory->grow(exp6_epsilonOld1,  atom->nmax, "pair:exp6_epsilonOld1");
+     memory->grow(exp6_alphaOld1,    atom->nmax, "pair:exp6_alphaOld1");
+     memory->grow(exp6_rmOld1,       atom->nmax, "pair:exp6_rmOld1");
+     memory->grow(exp6_mixWtSite1old,atom->nmax, "pair:exp6_mixWtSite1old");
+     memory->grow(exp6_epsilonOld2,  atom->nmax, "pair:exp6_epsilonOld2");
+     memory->grow(exp6_alphaOld2,    atom->nmax, "pair:exp6_alphaOld2");
+     memory->grow(exp6_rmOld2,       atom->nmax, "pair:exp6_rmOld2");
+     memory->grow(exp6_mixWtSite2old,atom->nmax, "pair:exp6_mixWtSite2old");
+     nmax_exp6 = atom->nmax;
+  }
 
   PairExp6ParamDataType PairExp6ParamData;
+  PairExp6ParamData.epsilon1      = exp6_epsilon1;
+  PairExp6ParamData.alpha1        = exp6_alpha1;
+  PairExp6ParamData.rm1           = exp6_rm1;
+  PairExp6ParamData.mixWtSite1    = exp6_mixWtSite1;
+  PairExp6ParamData.epsilon2      = exp6_epsilon2;
+  PairExp6ParamData.alpha2        = exp6_alpha2;
+  PairExp6ParamData.rm2           = exp6_rm2;
+  PairExp6ParamData.mixWtSite2    = exp6_mixWtSite2;
+  PairExp6ParamData.epsilonOld1   = exp6_epsilonOld1;
+  PairExp6ParamData.alphaOld1     = exp6_alphaOld1;
+  PairExp6ParamData.rmOld1        = exp6_rmOld1;
+  PairExp6ParamData.mixWtSite1old = exp6_mixWtSite1old;
+  PairExp6ParamData.epsilonOld2   = exp6_epsilonOld2;
+  PairExp6ParamData.alphaOld2     = exp6_alphaOld2;
+  PairExp6ParamData.rmOld2        = exp6_rmOld2;
+  PairExp6ParamData.mixWtSite2old = exp6_mixWtSite2old;
 
   {
      const int np_total = nlocal + atom->nghost;
-
-     memory->create( PairExp6ParamData.epsilon1     , np_total, "PairExp6ParamData.epsilon1");
-     memory->create( PairExp6ParamData.alpha1       , np_total, "PairExp6ParamData.alpha1");
-     memory->create( PairExp6ParamData.rm1          , np_total, "PairExp6ParamData.rm1");
-     memory->create( PairExp6ParamData.mixWtSite1    , np_total, "PairExp6ParamData.mixWtSite1");
-     memory->create( PairExp6ParamData.epsilon2     , np_total, "PairExp6ParamData.epsilon2");
-     memory->create( PairExp6ParamData.alpha2       , np_total, "PairExp6ParamData.alpha2");
-     memory->create( PairExp6ParamData.rm2          , np_total, "PairExp6ParamData.rm2");
-     memory->create( PairExp6ParamData.mixWtSite2    , np_total, "PairExp6ParamData.mixWtSite2");
-     memory->create( PairExp6ParamData.epsilonOld1  , np_total, "PairExp6ParamData.epsilonOld1");
-     memory->create( PairExp6ParamData.alphaOld1    , np_total, "PairExp6ParamData.alphaOld1");
-     memory->create( PairExp6ParamData.rmOld1       , np_total, "PairExp6ParamData.rmOld1");
-     memory->create( PairExp6ParamData.mixWtSite1old , np_total, "PairExp6ParamData.mixWtSite1old");
-     memory->create( PairExp6ParamData.epsilonOld2  , np_total, "PairExp6ParamData.epsilonOld2");
-     memory->create( PairExp6ParamData.alphaOld2    , np_total, "PairExp6ParamData.alphaOld2");
-     memory->create( PairExp6ParamData.rmOld2       , np_total, "PairExp6ParamData.rmOld2");
-     memory->create( PairExp6ParamData.mixWtSite2old , np_total, "PairExp6ParamData.mixWtSite2old");
 
      for (i = 0; i < np_total; ++i)
      {
@@ -500,27 +536,6 @@ void PairExp6rx::compute(int eflag, int vflag)
     }
   }
   if (vflag_fdotr) virial_fdotr_compute();
-
-  // Release the local parameter data.
-  {
-     if (PairExp6ParamData.epsilon1    ) memory->destroy(PairExp6ParamData.epsilon1);
-     if (PairExp6ParamData.alpha1      ) memory->destroy(PairExp6ParamData.alpha1);
-     if (PairExp6ParamData.rm1         ) memory->destroy(PairExp6ParamData.rm1);
-     if (PairExp6ParamData.mixWtSite1   ) memory->destroy(PairExp6ParamData.mixWtSite1);
-     if (PairExp6ParamData.epsilon2    ) memory->destroy(PairExp6ParamData.epsilon2);
-     if (PairExp6ParamData.alpha2      ) memory->destroy(PairExp6ParamData.alpha2);
-     if (PairExp6ParamData.rm2         ) memory->destroy(PairExp6ParamData.rm2);
-     if (PairExp6ParamData.mixWtSite2   ) memory->destroy(PairExp6ParamData.mixWtSite2);
-     if (PairExp6ParamData.epsilonOld1 ) memory->destroy(PairExp6ParamData.epsilonOld1);
-     if (PairExp6ParamData.alphaOld1   ) memory->destroy(PairExp6ParamData.alphaOld1);
-     if (PairExp6ParamData.rmOld1      ) memory->destroy(PairExp6ParamData.rmOld1);
-     if (PairExp6ParamData.mixWtSite1old) memory->destroy(PairExp6ParamData.mixWtSite1old);
-     if (PairExp6ParamData.epsilonOld2 ) memory->destroy(PairExp6ParamData.epsilonOld2);
-     if (PairExp6ParamData.alphaOld2   ) memory->destroy(PairExp6ParamData.alphaOld2);
-     if (PairExp6ParamData.rmOld2      ) memory->destroy(PairExp6ParamData.rmOld2);
-     if (PairExp6ParamData.mixWtSite2old) memory->destroy(PairExp6ParamData.mixWtSite2old);
-  }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -642,13 +657,14 @@ void PairExp6rx::coeff(int narg, char **arg)
           isite2 = isp;
       }
 
-    // Set the interaction potential type to the enumerated type.
     for (int iparam = 0; iparam < nparams; ++iparam) {
-        if (strcmp( params[iparam].potential, "exp6") == 0)
-          params[iparam].potentialType = exp6PotentialType;
-        else
-          error->all(FLERR,"params[].potential type unknown");
+      switch (params[iparam].potentialType) {
+      case PotentialType::exp6:
+        break;
+      default:
+        error->all(FLERR,"params[].potential type unknown");
       }
+    }
   }
   delete[] site1;
   delete[] site2;
@@ -705,206 +721,166 @@ double PairExp6rx::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-void PairExp6rx::read_file(char *file)
-{
-  int params_per_line = 5;
-  auto *words = new char*[params_per_line+1];
-
+void PairExp6rx::initialize_exp6_params_array() {
   memory->sfree(params);
   params = nullptr;
-  nparams = maxparam = 0;
+}
 
-  // open file on proc 0
+void PairExp6rx::grow_exp6_params_array(int old_size, int new_size) {
+  params = (Param *) memory->srealloc(params,
+                                      new_size*sizeof(Param),
+                                      "pair:params");
 
-  FILE *fp;
-  fp = nullptr;
+  memset(params + old_size, 0, (new_size - old_size)*sizeof(Param));
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairExp6rx::read_file(char *file) {
+
+  initialize_exp6_params_array();
+
+  std::optional<PotentialFileReader> reader;
+  std::string line;
+  int line_len;
+  int eof;
+  int maxparam = 0;
+
+  const int DELTA = 4;
+
   if (comm->me == 0) {
-    fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open exp6/rx potential file %s",file);
-      error->one(FLERR,str);
-    }
+    reader.emplace(lmp, file, "exp6/rx");
   }
 
-  // read each set of params from potential file
-  // one set of params can span multiple lines
+  nparams = 0;
 
-  int n,nwords,ispecies;
-  char line[MAXLINE] = {'\0'};
-  char *ptr;
-  int eof = 0;
+  // While it would be ideal to read the parameters file on proc 0 and
+  // broadcast the resulting array of parameters, that would involve
+  // MPI_Type_create_struct(), which, at the time that this comment
+  // has been written, is not supported by the LAMMPS. Having a while
+  // loop on all procs with a reading of a line from the parameters
+  // file on proc 0 and then broadcasting the line to all procs is a
+  // workaround for this problem.
 
   while (true) {
     if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-    // strip comment, skip line if blank
-
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
-
-    // concatenate additional lines until have params_per_line words
-
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+      const int params_per_line = 5;
+      char *ptr = reader.value().next_line(params_per_line);
+      if (ptr) {
+        eof = 0;
+        line = ptr;
+        line_len = line.size();
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
+      else {
+        eof = 1;
+      }
     }
 
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in exp6/rx potential file");
+    MPI_Bcast(&eof, 1, MPI_INT, 0, world);
+    if (eof) break;
 
-    // words = ptrs to all words in line
+    MPI_Bcast(&line_len, 1, MPI_INT, 0, world);
+    line.resize(line_len);
+    MPI_Bcast(line.data(), line_len, MPI_CHAR, 0, world);
 
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
+    try {
+      ValueTokenizer values(line);
 
-    for (ispecies = 0; ispecies < nspecies; ispecies++)
-      if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
-    if (ispecies == nspecies) continue;
+      auto species = values.next_string();
 
-    // load up parameter settings and error check their values
+      int ispecies;
+      for (ispecies = 0; ispecies < nspecies; ispecies++)
+        if (species == atom->dvname[ispecies]) break;
+      if (ispecies == nspecies) continue;
 
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
+      if (nparams == maxparam) {
+        maxparam += DELTA;
+        grow_exp6_params_array(nparams, maxparam);
+      }
 
-      // make certain all addional allocated storage is initialized
-      // to avoid false positives when checking with valgrind
+      params[nparams].ispecies = ispecies;
 
-      memset(params + nparams, 0, DELTA*sizeof(Param));
+      auto potential = values.next_string();
+
+      if (potential == "exp6") {
+        params[nparams].alpha = values.next_double();
+        params[nparams].epsilon = values.next_double();
+        params[nparams].rm = values.next_double();
+        if (params[nparams].epsilon <= 0.0 || params[nparams].rm <= 0.0 ||
+            params[nparams].alpha < 0.0) {
+          error->all(FLERR,
+                     "Illegal exp6/rx parameters in file {}. "
+                     "Rm and Epsilon must be greater than zero. "
+                     "Alpha cannot be negative.", file);
+        }
+        params[nparams].potentialType = PotentialType::exp6;
+
+        if (values.has_next()) {
+          error->all(FLERR,
+                     "Misplaced characters at end of line in "
+                     "file {}. Full line: {}", file, line);
+        }
+
+      } else {
+        error->all(FLERR,
+                   "Illegal exp6/rx parameters in file {}. "
+                   "Interaction potential does not exist.", file);
+      }
+
+      nparams++;
+    } catch (TokenizerException & e) {
+      error->all(FLERR, "{}. File: {} Full line: {}",
+                 e.what(), file, line);
     }
-
-    params[nparams].ispecies = ispecies;
-
-    params[nparams].name = utils::strdup(&atom->dvname[ispecies][0]);
-    params[nparams].potential = utils::strdup(words[1]);
-    if (strcmp(params[nparams].potential,"exp6") == 0) {
-      params[nparams].alpha = utils::numeric(FLERR,words[2],false,lmp);
-      params[nparams].epsilon = utils::numeric(FLERR,words[3],false,lmp);
-      params[nparams].rm = utils::numeric(FLERR,words[4],false,lmp);
-      if (params[nparams].epsilon <= 0.0 || params[nparams].rm <= 0.0 ||
-          params[nparams].alpha < 0.0)
-        error->all(FLERR,"Illegal exp6/rx parameters.  Rm and Epsilon must be greater than zero.  Alpha cannot be negative.");
-    } else {
-      error->all(FLERR,"Illegal exp6/rx parameters.  Interaction potential does not exist.");
-    }
-    nparams++;
   }
-
-  delete [] words;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairExp6rx::read_file2(char *file)
 {
-  int params_per_line = 7;
-  auto *words = new char*[params_per_line+1];
+  const int coeffs_per_line = 6;
 
-  // open file on proc 0
-
-  FILE *fp;
-  fp = nullptr;
   if (comm->me == 0) {
-    fp = fopen(file,"r");
-    if (fp == nullptr)
-      error->one(FLERR,"Cannot open polynomial file {}: {}",
-                                   file,utils::getsyserror());
-  }
+    PotentialFileReader reader(lmp, file, "exp6/rx");
+    char *line;
 
-  // one set of params can span multiple lines
-  int n,nwords;
-  char line[MAXLINE] = {'\0'};
-  char *ptr;
-  int eof = 0;
+    while ((line = reader.next_line(coeffs_per_line+1))) {
+      try {
+        ValueTokenizer values(line);
 
-  while (true) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        auto coeff_type = values.next_string();
 
-    // strip comment, skip line if blank
+        if (coeff_type == "alpha") {
+          for (int ii=0; ii<coeffs_per_line; ii++)
+            coeffAlpha[ii] = values.next_double();
+        }
+        if (coeff_type == "epsilon") {
+          for (int ii=0; ii<coeffs_per_line; ii++)
+            coeffEps[ii] = values.next_double();
+        }
+        if (coeff_type == "rm") {
+          for (int ii=0; ii<coeffs_per_line; ii++)
+            coeffRm[ii] = values.next_double();
+        }
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+        if (values.has_next()) {
+          error->one(FLERR,
+                     "Misplaced characters at end of line in "
+                     "file {}. Full line: {}", file, line);
+        }
 
-    // concatenate additional lines until have params_per_line words
-
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+      } catch (TokenizerException & e) {
+        error->all(FLERR, "{}. File: {} Full line: {}",
+                   e.what(), file, line);
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
-    }
 
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in polynomial file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
-
-    if (strcmp(words[0],"alpha") == 0) {
-      for (int ii=1; ii<params_per_line; ii++)
-        coeffAlpha[ii-1] = std::stod(words[ii]);
-    }
-    if (strcmp(words[0],"epsilon") == 0) {
-      for (int ii=1; ii<params_per_line; ii++)
-        coeffEps[ii-1] = std::stod(words[ii]);
-    }
-    if (strcmp(words[0],"rm") == 0) {
-      for (int ii=1; ii<params_per_line; ii++)
-        coeffRm[ii-1] = std::stod(words[ii]);
     }
   }
 
-  delete [] words;
+  MPI_Bcast(coeffAlpha, coeffs_per_line, MPI_DOUBLE, 0, world);
+  MPI_Bcast(coeffEps, coeffs_per_line, MPI_DOUBLE, 0, world);
+  MPI_Bcast(coeffRm, coeffs_per_line, MPI_DOUBLE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1044,7 +1020,7 @@ void PairExp6rx::getMixingWeights(int id,double &epsilon1,double &alpha1,double 
 
     iparam = mol2param[ispecies];
 
-    if (iparam < 0 || params[iparam].potentialType != exp6PotentialType ) continue;
+    if (iparam < 0 || params[iparam].potentialType != PotentialType::exp6 ) continue;
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == params[iparam].ispecies || isite2 == params[iparam].ispecies) continue;
       nMoleculesOFAold += atom->dvector[ispecies+nspecies][id];
@@ -1060,7 +1036,7 @@ void PairExp6rx::getMixingWeights(int id,double &epsilon1,double &alpha1,double 
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
     iparam = mol2param[ispecies];
-    if (iparam < 0 || params[iparam].potentialType != exp6PotentialType ) continue;
+    if (iparam < 0 || params[iparam].potentialType != PotentialType::exp6 ) continue;
 
     // If Site1 matches a pure species, then grab the parameters
     if (isite1 == params[iparam].ispecies) {
@@ -1107,7 +1083,7 @@ void PairExp6rx::getMixingWeights(int id,double &epsilon1,double &alpha1,double 
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
         jparam = mol2param[jspecies];
-        if (jparam < 0 || params[jparam].potentialType != exp6PotentialType ) continue;
+        if (jparam < 0 || params[jparam].potentialType != PotentialType::exp6 ) continue;
         if (isite1 == params[jparam].ispecies || isite2 == params[jparam].ispecies) continue;
         rmj = params[jparam].rm;
         epsilonj = params[jparam].epsilon;
@@ -1308,4 +1284,13 @@ inline double PairExp6rx::expValue(double value) const
   else returnValue = exp(value);
 
   return returnValue;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairExp6rx::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  if (exp6_epsilon1) bytes += (double) nmax_exp6 * 16 * sizeof(double);    // 16 per-atom param arrays
+  return bytes;
 }

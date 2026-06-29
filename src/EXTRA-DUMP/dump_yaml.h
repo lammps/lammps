@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class DumpYAML : public DumpCustom {
  public:
   DumpYAML(class LAMMPS *, int, char **);
+  void write() override;
 
  protected:
   bool thermo;
 
   void init_style() override;
-  void write() override;
   void write_header(bigint) override;
   void write_data(int, double *) override;
   void write_footer() override;

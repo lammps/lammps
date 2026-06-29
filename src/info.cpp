@@ -43,15 +43,15 @@
 #include "region.h"
 #include "update.h"
 #include "variable.h"
-#ifndef FMT_STATIC_THOUSANDS_SEPARATOR
-#include "fmt/chrono.h"
-#endif
 
 #include <cctype>
 #include <cmath>
 #include <cstring>
 #include <ctime>
 #include <map>
+#if __has_include(<version>)
+#include <version>
+#endif
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -272,16 +272,9 @@ void Info::command(int narg, char **arg)
   if (out == nullptr) return;
 
   fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n",out);
-#if defined(FMT_STATIC_THOUSANDS_SEPARATOR)
-  {
-    time_t tv = time(nullptr);
-    struct tm *now = localtime(&tv);
-    utils::print(out, "Printed on {}", asctime(now));
-  }
-#else
-  std::tm now = fmt::localtime(std::time(nullptr));
-  utils::print(out,"Printed on {}", std::asctime(&now));
-#endif
+  time_t tv = time(nullptr);
+  struct tm *now = localtime(&tv);
+  utils::print(out, "Printed on {}", asctime(now));
 
   if (flags & CONFIG) {
     utils::print(out,"\nLAMMPS version: {} / {}\n", lmp->version, lmp->num_ver);
@@ -391,17 +384,7 @@ void Info::command(int narg, char **arg)
           }
 
           if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
-          utils::print(out,"Communication cutoff for collection {} = {:.8}\n", i, cut);
-        }
-      }
-
-      if (comm->mode == 2) {
-        fputs("Communication mode = multi/old\n",out);
-        double cut;
-        for (int i=1; i <= atom->ntypes && neighbor->cuttype; ++i) {
-          cut = neighbor->cuttype[i];
-          if (comm->cutusermultiold) cut = MAX(cut,comm->cutusermultiold[i]);
-          utils::print(out,"Communication cutoff for type {} = {:.8}\n", i, cut);
+          utils::print(out,"Communication cutoff for collection {} = {:.8}\n", i + 1, cut);
         }
       }
     }
@@ -492,6 +475,7 @@ void Info::command(int narg, char **arg)
     }
     utils::print(out,"\nCurrent timestep number = {}\n", update->ntimestep);
     utils::print(out,"Current timestep size = {}\n", update->dt);
+    utils::print(out,"Current simulation time = {}\n", update->atime);
   }
 
   if (domain->box_exist && (flags & COEFFS)) {
@@ -506,14 +490,15 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & GROUPS) {
-    int ngroup = group->ngroup;
     char **names = group->names;
     int *dynamic = group->dynamic;
     fputs("\nGroup information:\n",out);
-    for (int i=0; i < ngroup; ++i) {
-      if (names[i])
+    for (int i=0; i < Group::MAX_GROUP; ++i) {
+      // skip over deleted groups
+      if (names[i]) {
         utils::print(out,"Group[{:2d}]:     {:16} ({})\n",
-                   i, names[i], dynamic[i] ? "dynamic" : "static");
+                     i, names[i], dynamic[i] ? "dynamic" : "static");
+      }
     }
   }
 
@@ -572,12 +557,10 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & VARIABLES) {
-    int nvar = input->variable->nvar;
+    int nvar = input->variable->get_nvar();
     fputs("\nVariable information:\n",out);
-    for (int i=0; i < nvar; ++i) {
-      auto vinfo = get_variable_info(i);
+    for (int i=0; i < nvar; ++i)
       utils::print(out, get_variable_info(i));
-    }
   }
 
   if (flags & TIME) {
@@ -1122,7 +1105,20 @@ bool Info::has_accelerator_feature(const std::string &package,
 #if defined(LMP_KOKKOS)
   if (package == "KOKKOS") {
     if (category == "precision") {
+#if defined(LMP_KOKKOS_SINGLE_SINGLE)
+      return setting == "single";
+#elif defined(LMP_KOKKOS_DOUBLE_DOUBLE)
       return setting == "double";
+#elif defined(LMP_KOKKOS_SINGLE_DOUBLE)
+      return setting == "mixed";
+#endif
+    }
+    if (category == "layout") {
+#if defined(LMP_KOKKOS_LAYOUT_LEGACY)
+      return setting == "legacy";
+#else
+      return setting == "default";
+#endif
     }
     if (category == "api") {
 #if defined(KOKKOS_ENABLE_OPENMP)
@@ -1175,9 +1171,7 @@ bool Info::has_accelerator_feature(const std::string &package,
       else return false;
     }
     if (category == "api") {
-#if defined(LMP_INTEL_OFFLOAD)
-      if (setting == "phi") return true;
-#elif defined(_OPENMP)
+#if defined(_OPENMP)
       if (setting == "openmp") return true;
 #else
       if (setting == "serial") return true;
@@ -1219,6 +1213,9 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
     if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+    mesg +=  "\nKOKKOS package view layout:";
+    if (has_accelerator_feature("KOKKOS","layout","legacy")) mesg += " legacy";
+    if (has_accelerator_feature("KOKKOS","layout","default"))  mesg += " default";
 #if LMP_KOKKOS
     mesg += fmt::format("\nKokkos library version: {}.{}.{}", KOKKOS_VERSION / 10000,
                        (KOKKOS_VERSION % 10000) / 100, KOKKOS_VERSION % 100);
@@ -1240,7 +1237,6 @@ std::string Info::get_accelerator_info(const std::string &package)
   }
   if ((package.empty() || (package == "INTEL")) && has_package("INTEL")) {
     mesg += "INTEL package API:";
-    if (has_accelerator_feature("INTEL","api","phi"))      mesg += " Phi";
     if (has_accelerator_feature("INTEL","api","openmp"))   mesg += " OpenMP";
     mesg +=  "\nINTEL package precision:";
     if (has_accelerator_feature("INTEL","precision","single")) mesg += " single";
@@ -1286,7 +1282,11 @@ std::string Info::get_fft_info()
 #elif defined(FFT_MKL_GPU)
   fft_info += "FFT library = MKL GPU\n";
 #elif defined(FFT_NVPL)
+#if defined(FFT_FFTW_THREADS)
+  fft_info += "FFT library = NVPL with threads\n";
+#else
   fft_info += "FFT library = NVPL\n";
+#endif
 #elif defined(FFT_FFTW3)
 #if defined(FFT_FFTW_THREADS)
   fft_info += "FFT library = FFTW3 with threads\n";
@@ -1327,6 +1327,7 @@ std::string Info::get_fft_info()
 }
 
 /* ---------------------------------------------------------------------- */
+#if !defined(__cpp_lib_format) || (__cpp_lib_format < 201907L)
 
 static constexpr int fmt_ver_major = FMT_VERSION / 10000;
 static constexpr int fmt_ver_minor = (FMT_VERSION % 10000) / 100;
@@ -1337,15 +1338,21 @@ std::string Info::get_fmt_info()
   return fmt::format("Embedded fmt library version: {}.{}.{}\n",
                      fmt_ver_major, fmt_ver_minor, fmt_ver_patch);
 }
+#else
+std::string Info::get_fmt_info()
+{
+  return "Using fmt library emulation with std::format\n";
+}
+#endif
 
 /* ---------------------------------------------------------------------- */
 
 std::string Info::get_json_info()
 {
   return fmt::format("Embedded JSON class version: {}.{}.{}\n",
-                     NLOHMANN_JSON_VERSION_MAJOR,
-                     NLOHMANN_JSON_VERSION_MINOR,
-                     NLOHMANN_JSON_VERSION_PATCH);
+                     LMP_NLOHMANN_JSON_VERSION_MAJOR,
+                     LMP_NLOHMANN_JSON_VERSION_MINOR,
+                     LMP_NLOHMANN_JSON_VERSION_PATCH);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1397,35 +1404,20 @@ void Info::get_memory_info(double *meminfo)
 
 /* ---------------------------------------------------------------------- */
 
-char **Info::get_variable_names(int &num) {
-  num = input->variable->nvar;
-  return input->variable->names;
+std::vector<std::string> Info::get_variable_names(int &num) {
+  num = input->variable->get_nvar();
+  std::vector<std::string> names;
+  for (int i=0; i < num; ++i) {
+    const auto *n =input->variable->get_name(i);
+    names.emplace_back(n ? n : "(unknown)");
+  }
+  return names;
 }
 
 /* ---------------------------------------------------------------------- */
 
 std::string Info::get_variable_info(int num) {
-  int *style = input->variable->style;
-  char **names = input->variable->names;
-  char ***data = input->variable->data;
-  std::string text;
-  int ndata = 1;
-  text = fmt::format("Variable[{:3d}]: {:16}  style = {:16}  def =", num,
-                     std::string(names[num]) + ',', Variable::varstyles[style[num]] + ',');
-  if (style[num] == Variable::INTERNAL) {
-    text += fmt::format("{:.8}\n",input->variable->dvalue[num]);
-    return text;
-  }
-
-  if ((style[num] != Variable::LOOP) && (style[num] != Variable::ULOOP))
-    ndata = input->variable->num[num];
-  else
-    input->variable->retrieve(names[num]);
-
-  for (int j=0; j < ndata; ++j)
-    if (data[num][j]) text += fmt::format(" {}",data[num][j]);
-  text += "\n";
-  return text;
+  return input->variable->get_info(num);
 }
 
 /* ---------------------------------------------------------------------- */

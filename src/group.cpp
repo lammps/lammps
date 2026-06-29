@@ -34,12 +34,11 @@
 
 #include <cmath>
 #include <cstring>
-#include <map>
+#include <set>
 #include <utility>
 
 using namespace LAMMPS_NS;
 
-static constexpr int MAX_GROUP = 32;
 static constexpr double EPSILON = 1.0e-6;
 
 enum { NONE, TYPE, MOLECULE, ID };
@@ -152,7 +151,7 @@ void Group::assign(int narg, char **arg)
   bool created = false;
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", MAX_GROUP);
+    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", int(MAX_GROUP));
     igroup = find_unused();
     names[igroup] = utils::strdup(arg[0]);
     ngroup++;
@@ -335,11 +334,11 @@ void Group::assign(int narg, char **arg)
             try {
               ValueTokenizer values(arg[iarg], ":");
               start = values.next_tagint();
-              if (utils::strmatch(arg[iarg], "^-?\\d+$")) {
+              if (utils::strmatch(arg[iarg], R"(^-?\d+$)")) {
                 stop = start;
-              } else if (utils::strmatch(arg[iarg], "^-?\\d+:-?\\d+$")) {
+              } else if (utils::strmatch(arg[iarg], R"(^-?\d+:-?\d+$)")) {
                 stop = values.next_tagint();
-              } else if (utils::strmatch(arg[iarg], "^-?\\d+:-?\\d+:\\d+$")) {
+              } else if (utils::strmatch(arg[iarg], R"(^-?\d+:-?\d+:\d+$)")) {
                 stop = values.next_tagint();
                 delta = values.next_tagint();
               } else
@@ -592,7 +591,7 @@ void Group::create(const std::string &name, int *flag)
   int igroup = find(name);
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", MAX_GROUP);
+    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", int(MAX_GROUP));
     igroup = find_unused();
     names[igroup] = utils::strdup(name);
     ngroup++;
@@ -629,7 +628,7 @@ int Group::find_or_create(const char *name)
   int igroup = find(name);
   if (igroup >= 0) return igroup;
 
-  if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", MAX_GROUP);
+  if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", int(MAX_GROUP));
   igroup = find_unused();
   names[igroup] = utils::strdup(name);
   ngroup++;
@@ -658,8 +657,22 @@ int Group::get_bitmask_by_id(const std::string &file, int line, const std::strin
 {
   int igroup = find(name);
   if (igroup < 0)
-    error->all(file, line, "Group ID {} requested by {} does not exist", name, caller);
+    error->all(file, line, Error::NOLASTLINE, "Group ID {} requested by {} does not exist", name,
+               caller);
   return bitmask[igroup];
+}
+
+/* ----------------------------------------------------------------------
+   return group bitmask for given group id. Error out if group is not found.
+------------------------------------------------------------------------- */
+
+int Group::get_inversemask_by_id(const std::string &file, int line, const std::string &name,
+                                 const std::string &caller)
+{
+  int igroup = find(name);
+  if (igroup < 0)
+    error->all(file, line, "Group ID {} requested by {} does not exist", name, caller);
+  return inversemask[igroup];
 }
 
 /* ----------------------------------------------------------------------
@@ -671,7 +684,7 @@ void Group::add_molecules(int /*igroup*/, int bit)
 {
   // hash = unique molecule IDs of atoms already in group
 
-  hash = new std::map<tagint, int>();
+  std::set<tagint> hash;
 
   tagint *molecule = atom->molecule;
   int *mask = atom->mask;
@@ -679,25 +692,22 @@ void Group::add_molecules(int /*igroup*/, int bit)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & bit) {
-      if (molecule[i] == 0) continue;
-      if (hash->find(molecule[i]) == hash->end()) (*hash)[molecule[i]] = 1;
+      if (molecule[i] != 0) hash.insert(molecule[i]);
     }
 
   // list = set of unique molecule IDs for atoms to add
   // pass list to all other procs via comm->ring()
 
-  int n = hash->size();
+  auto n = hash.size();
   tagint *list;
   memory->create(list, n, "group:list");
 
   n = 0;
-  std::map<tagint, int>::iterator pos;
-  for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
+  for (const auto pos : hash) list[n++] = pos;
 
   molbit = bit;
   comm->ring(n, sizeof(tagint), list, 1, molring, nullptr, (void *) this);
 
-  delete hash;
   memory->destroy(list);
 }
 
@@ -712,17 +722,15 @@ void Group::molring(int n, char *cbuf, void *ptr)
 {
   auto *gptr = (Group *) ptr;
   auto *list = (tagint *) cbuf;
-  std::map<tagint, int> *hash = gptr->hash;
   int nlocal = gptr->atom->nlocal;
   tagint *molecule = gptr->atom->molecule;
   int *mask = gptr->atom->mask;
   int molbit = gptr->molbit;
 
-  hash->clear();
-  for (int i = 0; i < n; i++) (*hash)[list[i]] = 1;
+  std::set<tagint> hash(list, list + n);
 
   for (int i = 0; i < nlocal; i++)
-    if (hash->find(molecule[i]) != hash->end()) mask[i] |= molbit;
+    if (hash.find(molecule[i]) != hash.end()) mask[i] |= molbit;
 }
 
 /* ----------------------------------------------------------------------
@@ -1468,14 +1476,14 @@ void Group::angmom(int igroup, double *cm, double *lmom)
   int nlocal = atom->nlocal;
 
   double dx, dy, dz, massone;
-  double unwrap[3];
+  double unwrap[3], vunwrap[3];
 
   double p[3];
   p[0] = p[1] = p[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      domain->unmap(x[i], image[i], unwrap);
+      domain->unmap(x[i], v[i], image[i], mask[i], unwrap, vunwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];
       dz = unwrap[2] - cm[2];
@@ -1483,9 +1491,9 @@ void Group::angmom(int igroup, double *cm, double *lmom)
         massone = rmass[i];
       else
         massone = mass[type[i]];
-      p[0] += massone * (dy * v[i][2] - dz * v[i][1]);
-      p[1] += massone * (dz * v[i][0] - dx * v[i][2]);
-      p[2] += massone * (dx * v[i][1] - dy * v[i][0]);
+      p[0] += massone * (dy * vunwrap[2] - dz * vunwrap[1]);
+      p[1] += massone * (dz * vunwrap[0] - dx * vunwrap[2]);
+      p[2] += massone * (dx * vunwrap[1] - dy * vunwrap[0]);
     }
 
   MPI_Allreduce(p, lmom, 3, MPI_DOUBLE, MPI_SUM, world);
@@ -1512,14 +1520,14 @@ void Group::angmom(int igroup, double *cm, double *lmom, Region *region)
   int nlocal = atom->nlocal;
 
   double dx, dy, dz, massone;
-  double unwrap[3];
+  double unwrap[3], vunwrap[3];
 
   double p[3];
   p[0] = p[1] = p[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0], x[i][1], x[i][2])) {
-      domain->unmap(x[i], image[i], unwrap);
+      domain->unmap(x[i], v[i], image[i], mask[i], unwrap, vunwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];
       dz = unwrap[2] - cm[2];
@@ -1527,9 +1535,9 @@ void Group::angmom(int igroup, double *cm, double *lmom, Region *region)
         massone = rmass[i];
       else
         massone = mass[type[i]];
-      p[0] += massone * (dy * v[i][2] - dz * v[i][1]);
-      p[1] += massone * (dz * v[i][0] - dx * v[i][2]);
-      p[2] += massone * (dx * v[i][1] - dy * v[i][0]);
+      p[0] += massone * (dy * vunwrap[2] - dz * vunwrap[1]);
+      p[1] += massone * (dz * vunwrap[0] - dx * vunwrap[2]);
+      p[2] += massone * (dx * vunwrap[1] - dy * vunwrap[0]);
     }
 
   MPI_Allreduce(p, lmom, 3, MPI_DOUBLE, MPI_SUM, world);

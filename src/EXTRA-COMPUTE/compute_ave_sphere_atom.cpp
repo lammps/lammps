@@ -108,7 +108,7 @@ void ComputeAveSphereAtom::init()
   else
     volume = MY_PI * cutsq;
 
-  if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+  if (neighbor->style == Neighbor::MULTI)
     error->all(FLERR, "Compute ave/sphere/atom requires neighbor style 'bin' or 'nsq'");
 
   // need an occasional full neighbor list

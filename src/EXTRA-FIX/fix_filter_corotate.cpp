@@ -45,7 +45,7 @@ using namespace FixConst;
 static constexpr double MASSDELTA = 0.1;
 
 static const char cite_filter_corotate[] =
-  "Mollified Impulse Method with Corotational Filter: doi:10.1016/j.jcp.2016.12.024\n\n"
+  "Mollified Impulse Method with Corotational Filter: https://doi.org/10.1016/j.jcp.2016.12.024\n\n"
   "@Article{Fath2017,\n"
   " Title ="
   "{A Fast Mollified Impulse Method for Biomolecular Atomistic Simulations},\n"

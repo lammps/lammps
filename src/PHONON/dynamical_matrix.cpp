@@ -241,13 +241,14 @@ void DynamicalMatrix::openfile(const char *filename)
   if (me == 0) {
     if (compressed) {
       fp = platform::compressed_write(std::string(filename)+".gz");
-      if (!fp) error->one(FLERR,"Cannot open compressed file");
+      if (!fp) error->one(FLERR, Error::NOLASTLINE, "Cannot open gzip compressed file");
     } else if (binaryflag) {
       fp = fopen(filename,"wb");
     } else {
       fp = fopen(filename,"w");
     }
-    if (!fp) error->one(FLERR,"Cannot open dynmat file: {}", utils::getsyserror());
+    if (!fp)
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open dynmat file: {}", utils::getsyserror());
   }
 
   file_opened = 1;
@@ -265,8 +266,8 @@ void DynamicalMatrix::calculateMatrix()
   bigint natoms = atom->natoms;
   int *type = atom->type;
   bigint *gm = groupmap;
-  double imass; // dynamical matrix element
   double *m = atom->mass;
+  if (atom->rmass) m = atom->rmass;
   double **f = atom->f;
 
   auto *dynmat = new double*[3];
@@ -283,9 +284,9 @@ void DynamicalMatrix::calculateMatrix()
   if (me == 0 && screen) {
     fputs("Calculating Dynamical Matrix ...\n", screen);
     utils::print(screen,"  Total # of atoms = {}\n"
-                      "  Atoms in group = {}\n"
-                      "  Total dynamical matrix elements = {}\n",
-               natoms, gcount, dynlen*dynlen);
+                 "  Atoms in group = {}\n"
+                 "  Total dynamical matrix elements = {}\n",
+                 natoms, gcount, dynlen*dynlen);
   }
 
   // emit dynlen rows of dimalpha*dynlen*dimbeta elements
@@ -320,10 +321,8 @@ void DynamicalMatrix::calculateMatrix()
         local_jdx = atom->map(j);
         if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
           && (gm[j-1] >= 0 || folded)){
-          if (atom->rmass_flag == 1)
-            imass = sqrt(m[local_idx] * m[local_jdx]);
-          else
-            imass = sqrt(m[type[local_idx]] * m[type[local_jdx]]);
+          const double imass = atom->rmass ? sqrt(m[local_idx] * m[local_jdx]) :
+            sqrt(m[type[local_idx]] * m[type[local_jdx]]);
           if (folded){
             for (int beta=0; beta<3; beta++){
               dynmat[alpha][(j-1)*3+beta] -= -f[local_jdx][beta];
@@ -382,7 +381,7 @@ void DynamicalMatrix::writeMatrix(double **dynmat)
     for (int i=0; i<3; i++)
       fwrite(dynmat[i], sizeof(double), dynlenb, fp);
     if (ferror(fp))
-      error->one(FLERR, "Error writing to binary file");
+      error->one(FLERR, Error::NOLASTLINE, "Error writing to binary file {}", utils::getsyserror());
   } else {
     for (int i = 0; i < 3; i++) {
       for (bigint j = 0; j < dynlenb; j++) {
@@ -391,7 +390,7 @@ void DynamicalMatrix::writeMatrix(double **dynmat)
       }
     }
     if (ferror(fp))
-      error->one(FLERR,"Error writing to file");
+      error->one(FLERR, Error::NOLASTLINE, "Error writing to text file {}", utils::getsyserror());
   }
 }
 

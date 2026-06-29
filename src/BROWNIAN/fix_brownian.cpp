@@ -34,10 +34,9 @@ using namespace FixConst;
 FixBrownian::FixBrownian(LAMMPS *lmp, int narg, char **arg) : FixBrownianBase(lmp, narg, arg)
 {
   if (dipole_flag || gamma_t_eigen_flag || gamma_r_eigen_flag || gamma_r_flag || rot_temp_flag ||
-      planar_rot_flag) {
-    error->all(FLERR, "Illegal fix brownian command.");
-  }
-  if (!gamma_t_flag) { error->all(FLERR, "Illegal fix brownian command."); }
+      planar_rot_flag)
+    error->all(FLERR, "Using keyword(s) not compatible with fix {}", style);
+  if (!gamma_t_flag) error->all(FLERR, "Keyword gamma_t is required for fix {}", style);
 }
 
 /* ---------------------------------------------------------------------- */

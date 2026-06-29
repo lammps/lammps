@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_KOKKOS_GRAPHIMPL_HPP
 #define KOKKOS_IMPL_KOKKOS_GRAPHIMPL_HPP
@@ -31,37 +18,19 @@
 namespace Kokkos {
 namespace Impl {
 
+template <typename T>
+struct is_graph_capture<
+    T, std::enable_if_t<
+           Kokkos::Impl::is_specialization_of_v<T, GraphNodeCaptureImpl>>>
+    : public std::true_type {};
+
+template <typename T>
+struct is_graph_then_host<
+    T, std::enable_if_t<
+           Kokkos::Impl::is_specialization_of_v<T, GraphNodeThenHostImpl>>>
+    : public std::true_type {};
+
 struct GraphAccess {
-  template <class ExecutionSpace>
-  static Kokkos::Experimental::Graph<ExecutionSpace> construct_graph(
-      ExecutionSpace ex) {
-    //----------------------------------------//
-    return Kokkos::Experimental::Graph<ExecutionSpace>{
-        std::make_shared<GraphImpl<ExecutionSpace>>(std::move(ex))};
-    //----------------------------------------//
-  }
-
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
-    defined(KOKKOS_ENABLE_SYCL)
-  template <class Exec, typename T>
-  static auto construct_graph_from_native(Exec&& ex, T&& native_graph) {
-    return Kokkos::Experimental::Graph<Kokkos::Impl::remove_cvref_t<Exec>>{
-        std::make_shared<GraphImpl<Kokkos::Impl::remove_cvref_t<Exec>>>(
-            std::forward<Exec>(ex), std::forward<T>(native_graph))};
-  }
-#endif
-
-  template <class ExecutionSpace>
-  static auto create_root_ref(
-      Kokkos::Experimental::Graph<ExecutionSpace>& arg_graph) {
-    auto const& graph_impl_ptr = arg_graph.m_impl_ptr;
-
-    auto root_ptr = graph_impl_ptr->create_root_node_ptr();
-
-    return Kokkos::Experimental::GraphNodeRef<ExecutionSpace>{
-        graph_impl_ptr, std::move(root_ptr)};
-  }
-
   template <class NodeType, class... Args>
   static auto make_node_shared_ptr(Args&&... args) {
     static_assert(
@@ -90,7 +59,7 @@ struct GraphAccess {
   template <class NodeRef>
   static auto get_node_ptr(NodeRef&& node_ref) {
     static_assert(
-        is_specialization_of<remove_cvref_t<NodeRef>,
+        is_specialization_of<std::remove_cvref_t<NodeRef>,
                              Kokkos::Experimental::GraphNodeRef>::value,
         "Kokkos Internal Implementation error (bad argument to "
         "`GraphAccess::get_node_ptr()`)");
@@ -100,7 +69,7 @@ struct GraphAccess {
   template <class NodeRef>
   static auto get_graph_weak_ptr(NodeRef&& node_ref) {
     static_assert(
-        is_specialization_of<remove_cvref_t<NodeRef>,
+        is_specialization_of<std::remove_cvref_t<NodeRef>,
                              Kokkos::Experimental::GraphNodeRef>::value,
         "Kokkos Internal Implementation error (bad argument to "
         "`GraphAccess::get_graph_weak_ptr()`)");

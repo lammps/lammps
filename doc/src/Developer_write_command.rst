@@ -38,7 +38,7 @@ Interfacing the *libcurl* library
 """""""""""""""""""""""""""""""""
 
 Rather than implementing the various protocols for downloading files, we
-rely on an external library: `libcurl library <https:://curl.se/libcurl/>`_.
+rely on an external library: `libcurl library <https://curl.se/libcurl/>`_.
 This requires that the library and its headers are installed.  For the
 traditional GNU make build system, this simply requires edits to the machine
 makefile to add compilation flags like for other libraries.  For the CMake

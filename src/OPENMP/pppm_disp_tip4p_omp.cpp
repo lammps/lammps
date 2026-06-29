@@ -35,6 +35,7 @@
 #endif
 
 using namespace LAMMPS_NS;
+using namespace EwaldConst;
 using namespace MathConst;
 
 static constexpr FFT_SCALAR ZEROF = 0.0;
@@ -64,11 +65,11 @@ PPPMDispTIP4POMP::~PPPMDispTIP4POMP()
 #else
     const int tid = 0;
 #endif
-    if (function[0]) {
+    if (termflag[TERM_COUL]) {
       ThrData * thr = fix->get_thr(tid);
       thr->init_pppm(-order,memory);
     }
-    if (function[1] + function[2]) {
+    if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH]) {
       ThrData * thr = fix->get_thr(tid);
       thr->init_pppm_disp(-order_6,memory);
     }
@@ -93,11 +94,11 @@ void PPPMDispTIP4POMP::allocate()
     const int tid = 0;
 #endif
 
-    if (function[0]) {
+    if (termflag[TERM_COUL]) {
       ThrData *thr = fix->get_thr(tid);
       thr->init_pppm(order,memory);
     }
-    if (function[1] + function[2]) {
+    if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH]) {
       ThrData * thr = fix->get_thr(tid);
       thr->init_pppm_disp(order_6,memory);
     }
@@ -232,7 +233,7 @@ void PPPMDispTIP4POMP::compute_gf_6()
     double rtpi = sqrt(MY_PI);
     int nnfrom, nnto, tid;
 
-    numerator = -MY_PI*rtpi*g_ewald_6*g_ewald_6*g_ewald_6/(3.0);
+    numerator = -MY_PI*rtpi*g_ewald_6*g_ewald_6*g_ewald_6/3.0;
 
     const int nnx = nxhi_fft_6-nxlo_fft_6+1;
     const int nny = nyhi_fft_6-nylo_fft_6+1;
@@ -354,7 +355,8 @@ void PPPMDispTIP4POMP::particle_map_c(double dxinv, double dyinv,
   const int nzhi_out = nzhi_o;
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
+    error->one(FLERR, Error::NOLASTLINE,
+               "Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
 
   int flag = 0;
 #if defined(_OPENMP)

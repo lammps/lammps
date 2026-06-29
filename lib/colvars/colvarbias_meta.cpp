@@ -7,9 +7,9 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
-#include <algorithm>
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
@@ -30,7 +30,6 @@ colvarbias_meta::colvarbias_meta(char const *key)
   new_hill_freq = 1000;
 
   use_grids = true;
-  grids_freq = 0;
   rebin_grids = false;
 
   dump_fes = true;
@@ -69,9 +68,12 @@ int colvarbias_meta::init(std::string const &conf)
   get_keyval(conf, "newHillFrequency", new_hill_freq, new_hill_freq);
   if (new_hill_freq > 0) {
     enable(f_cvb_history_dependent);
-    if (grids_freq == 0) {
-      grids_freq = new_hill_freq;
-    }
+  }
+  if (new_hill_freq % time_step_factor != 0) {
+    error_code |= cvm::error("newHillFrequency (currently " + cvm::to_str(new_hill_freq) +
+                                 ") must be a multiple of timeStepFactor (" +
+                                 cvm::to_str(time_step_factor) + ").\n",
+                             COLVARS_INPUT_ERROR);
   }
 
   get_keyval(conf, "gaussianSigmas", colvar_sigmas, colvar_sigmas);
@@ -115,6 +117,11 @@ int colvarbias_meta::init(std::string const &conf)
 
   if (use_grids) {
 
+    if (grids_freq == 0) {
+      // Set default grid frequency
+      grids_freq = new_hill_freq;
+    }
+
     for (i = 0; i < num_variables(); i++) {
       if (2.0*colvar_sigmas[i] < variables(i)->width) {
         cvm::log("Warning: gaussianSigmas is too narrow for the grid "
@@ -123,6 +130,13 @@ int colvarbias_meta::init(std::string const &conf)
     }
 
     get_keyval(conf, "gridsUpdateFrequency", grids_freq, grids_freq);
+    if (grids_freq % time_step_factor != 0) {
+      error_code |= cvm::error("gridsUpdateFrequency (currently " + cvm::to_str(grids_freq) +
+                                   ") must be a multiple of timeStepFactor (" +
+                                   cvm::to_str(time_step_factor) + ").\n",
+                               COLVARS_INPUT_ERROR);
+    }
+
     get_keyval(conf, "rebinGrids", rebin_grids, rebin_grids);
 
     expand_grids = false;
@@ -168,6 +182,7 @@ int colvarbias_meta::init(std::string const &conf)
 
 int colvarbias_meta::init_replicas_params(std::string const &conf)
 {
+  int error_code = COLVARS_OK;
   colvarproxy *proxy = cvm::main()->proxy;
 
   // in all cases, the first replica is this bias itself
@@ -196,39 +211,46 @@ int colvarbias_meta::init_replicas_params(std::string const &conf)
         cvm::log("Setting replicaID from communication layer: replicaID = "+
                  replica_id+".\n");
       } else {
-        return cvm::error("Error: using more than one replica, but replicaID "
-                          "could not be obtained.\n", COLVARS_INPUT_ERROR);
+        error_code |= cvm::error("Error: using more than one replica, but replicaID "
+                                 "could not be obtained.\n",
+                                 COLVARS_INPUT_ERROR);
       }
     }
 
-    get_keyval(conf, "replicasRegistry", replicas_registry_file,
-               replicas_registry_file);
+    get_keyval(conf, "replicasRegistry", replicas_registry_file, replicas_registry_file);
     if (!replicas_registry_file.size()) {
-      return cvm::error("Error: the name of the \"replicasRegistry\" file "
-                        "must be provided.\n", COLVARS_INPUT_ERROR);
+      error_code |=
+          cvm::error("Error: the name of the \"replicasRegistry\" file must be provided.\n",
+                     COLVARS_INPUT_ERROR);
     }
 
-    get_keyval(conf, "replicaUpdateFrequency",
-               replica_update_freq, replica_update_freq);
+    get_keyval(conf, "replicaUpdateFrequency", replica_update_freq, replica_update_freq);
     if (replica_update_freq == 0) {
-      return cvm::error("Error: replicaUpdateFrequency must be positive.\n",
-                        COLVARS_INPUT_ERROR);
+      error_code |=
+          cvm::error("Error: replicaUpdateFrequency must be positive.\n", COLVARS_INPUT_ERROR);
+    }
+    if (replica_update_freq % time_step_factor != 0) {
+      error_code |= cvm::error(
+          "replicaUpdateFrequency (currently " + cvm::to_str(replica_update_freq) +
+              ") must be a multiple of timeStepFactor (" + cvm::to_str(time_step_factor) + ").\n",
+          COLVARS_INPUT_ERROR);
     }
 
     if (expand_grids) {
-      return cvm::error("Error: expandBoundaries is not supported when "
-                        "using more than one replicas; please allocate "
-                        "wide enough boundaries for each colvar"
-                        "ahead of time.\n", COLVARS_INPUT_ERROR);
+      error_code |=
+          cvm::error("Error: expandBoundaries is not supported when using more than one replicas; "
+                     "please allocate wide enough boundaries for each colvar ahead of time.\n",
+                     COLVARS_INPUT_ERROR);
     }
 
     if (keep_hills) {
-      return cvm::error("Error: multipleReplicas and keepHills are not "
-                        "supported together.\n", COLVARS_INPUT_ERROR);
+      error_code |=
+          cvm::error("Error: multipleReplicas and keepHills are not supported together.\n",
+                     COLVARS_INPUT_ERROR);
     }
   }
 
-  return COLVARS_OK;
+  return error_code;
 }
 
 
@@ -564,7 +586,27 @@ int colvarbias_meta::update_bias()
       cvm::real hills_energy_sum_here = 0.0;
       if (use_grids) {
         std::vector<int> curr_bin = hills_energy->get_colvars_index();
-        hills_energy_sum_here = hills_energy->value(curr_bin);
+        const bool index_ok = hills_energy->index_ok(curr_bin);
+        if (index_ok) {
+          // TODO: Should I sum the energies from other replicas?
+          hills_energy_sum_here = hills_energy->value(curr_bin);
+        } else {
+          if (!keep_hills) {
+            // TODO: Should I sum the off-grid hills from other replicas?
+            calc_hills(hills_off_grid.begin(),
+                       hills_off_grid.end(),
+                       hills_energy_sum_here,
+                       &colvar_values);
+          } else {
+            // TODO: Is it better to compute the energy from all historic hills
+            //       when keepHills is on?
+            calc_hills(hills.begin(),
+                       hills.end(),
+                       hills_energy_sum_here,
+                       &colvar_values);
+          }
+          // cvm::log("WARNING: computing bias factor for off-grid hills. Hills energy: " + cvm::to_str(hills_energy_sum_here) + "\n");
+        }
       } else {
         calc_hills(new_hills_begin, hills.end(), hills_energy_sum_here, NULL);
       }
@@ -983,6 +1025,7 @@ size_t colvarbias_meta::replica_share_freq() const
 int colvarbias_meta::update_replicas_registry()
 {
   int error_code = COLVARS_OK;
+  auto *proxy = cvm::main()->proxy;
 
   if (cvm::debug())
     cvm::log("Metadynamics bias \""+this->name+"\""+
@@ -990,18 +1033,15 @@ int colvarbias_meta::update_replicas_registry()
              cvm::to_str(replicas.size())+" elements.\n");
 
   {
-    // copy the whole file into a string for convenience
+    // Load the whole file into a string
     std::string line("");
-    std::ifstream reg_file(replicas_registry_file.c_str());
-    if (reg_file.is_open()) {
+    std::istream &reg_file = proxy->input_stream(replicas_registry_file, "replica registry file");
+    if (reg_file) {
       replicas_registry.clear();
       while (colvarparse::getline_nocomments(reg_file, line))
-        replicas_registry.append(line+"\n");
-    } else {
-      error_code |= cvm::error("Error: failed to open file \""+
-                               replicas_registry_file+"\" for reading.\n",
-                               COLVARS_FILE_ERROR);
+        replicas_registry.append(line + "\n");
     }
+    proxy->close_input_stream(replicas_registry_file);
   }
 
   // now parse it
@@ -1083,7 +1123,8 @@ int colvarbias_meta::update_replicas_registry()
                ": reading the list file for replica \""+
                (replicas[ir])->replica_id+"\".\n");
 
-    std::ifstream list_is((replicas[ir])->replica_list_file.c_str());
+    std::istream &list_is =
+        proxy->input_stream((replicas[ir])->replica_list_file, "replica list file", false);
     std::string key;
     std::string new_state_file, new_hills_file;
     if (!(list_is >> key) ||
@@ -1108,6 +1149,7 @@ int colvarbias_meta::update_replicas_registry()
         (replicas[ir])->replica_hills_file = new_hills_file;
       }
     }
+    proxy->close_input_stream((replicas[ir])->replica_list_file);
   }
 
   if (cvm::debug())
@@ -1120,6 +1162,8 @@ int colvarbias_meta::update_replicas_registry()
 
 int colvarbias_meta::read_replica_files()
 {
+  auto *proxy = cvm::main()->proxy;
+
   // Note: we start from the 2nd replica.
   for (size_t ir = 1; ir < replicas.size(); ir++) {
 
@@ -1131,7 +1175,8 @@ int colvarbias_meta::read_replica_files()
                  ": reading the state of replica \""+
                  (replicas[ir])->replica_id+"\" from file \""+
                  (replicas[ir])->replica_state_file+"\".\n");
-        std::ifstream is((replicas[ir])->replica_state_file.c_str());
+        std::istream &is =
+            proxy->input_stream((replicas[ir])->replica_state_file, "replica state file", false);
         if ((replicas[ir])->read_state(is)) {
           // state file has been read successfully
           (replicas[ir])->replica_state_file_in_sync = true;
@@ -1144,7 +1189,7 @@ int colvarbias_meta::read_replica_files()
           (replicas[ir])->replica_state_file_in_sync = false;
           (replicas[ir])->update_status++;
         }
-        is.close();
+        proxy->close_input_stream((replicas[ir])->replica_state_file);
       } else {
         cvm::log("Metadynamics bias \""+this->name+"\""+
                  ": the state file of replica \""+
@@ -1171,15 +1216,16 @@ int colvarbias_meta::read_replica_files()
 
       // read hills from the other replicas' files
 
-      std::ifstream is((replicas[ir])->replica_hills_file.c_str());
-      if (is.is_open()) {
+      std::istream &is =
+          proxy->input_stream((replicas[ir])->replica_hills_file, "replica hills file", false);
+      if (is) {
 
         // try to resume the previous position (if not the beginning)
         if ((replicas[ir])->replica_hills_file_pos > 0) {
           is.seekg((replicas[ir])->replica_hills_file_pos, std::ios::beg);
         }
 
-        if (!is.is_open()){
+        if (!is){
           // if fail (the file may have been overwritten), reset this
           // position
           is.clear();
@@ -1229,7 +1275,7 @@ int colvarbias_meta::read_replica_files()
                  cvm::to_str(replica_update_freq)+" steps.\n");
         (replicas[ir])->update_status++;
       }
-      is.close();
+      proxy->close_input_stream((replicas[ir])->replica_hills_file);
     }
 
     size_t const n_flush = (replica_update_freq/new_hill_freq + 1);
@@ -1723,8 +1769,10 @@ int colvarbias_meta::setup_output()
 
     // first check that it isn't already there
     bool registered_replica = false;
-    std::ifstream reg_is(replicas_registry_file.c_str());
-    if (reg_is.is_open()) {  // the file may not be there yet
+    // Open without failing on error: the file may not be there yet
+    std::istream &reg_is =
+        cvm::main()->proxy->input_stream(replicas_registry_file, "replicas registry file", false);
+    if (reg_is) {
       std::string existing_replica("");
       std::string existing_replica_file("");
       while ((reg_is >> existing_replica) && existing_replica.size() &&
@@ -1732,13 +1780,12 @@ int colvarbias_meta::setup_output()
         if (existing_replica == replica_id) {
           // this replica was already registered
           replica_list_file = existing_replica_file;
-          reg_is.close();
           registered_replica = true;
           break;
         }
       }
-      reg_is.close();
     }
+    cvm::main()->proxy->close_input_stream(replicas_registry_file);
 
     // if this replica was not included yet, we should generate a
     // new record for it: but first, we write this replica's files,
@@ -1769,11 +1816,11 @@ int colvarbias_meta::setup_output()
     // finally, add a new record for this replica to the registry
     if (! registered_replica) {
       std::ofstream reg_os(replicas_registry_file.c_str(), std::ios::app);
-      if (!reg_os) {
-        return cvm::get_error();
+      if (reg_os) {
+        reg_os << replica_id << " " << replica_list_file << "\n";
+      } else {
+        error_code |= COLVARS_FILE_ERROR;
       }
-      reg_os << replica_id << " " << replica_list_file << "\n";
-      cvm::proxy->close_output_stream(replicas_registry_file);
     }
   }
 

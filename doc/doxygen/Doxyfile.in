@@ -2,13 +2,12 @@
 
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "LAMMPS Programmer's Guide"
-PROJECT_NUMBER         = "19 November 2024"
+PROJECT_NUMBER         = "30 March 2026"
 PROJECT_BRIEF          = "Documentation of the LAMMPS library interface and Python wrapper"
 PROJECT_LOGO           = lammps-logo.png
 CREATE_SUBDIRS         = NO
 ALLOW_UNICODE_NAMES    = NO
 OUTPUT_LANGUAGE        = English
-OUTPUT_TEXT_DIRECTION  = LTR
 
 BRIEF_MEMBER_DESC      = YES
 REPEAT_BRIEF           = YES
@@ -420,6 +419,8 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/lmptype.h                 \
                          @LAMMPS_SOURCE_DIR@/atom.cpp                  \
                          @LAMMPS_SOURCE_DIR@/atom.h                    \
+                         @LAMMPS_SOURCE_DIR@/citeme.cpp                \
+                         @LAMMPS_SOURCE_DIR@/citeme.h                  \
                          @LAMMPS_SOURCE_DIR@/input.cpp                 \
                          @LAMMPS_SOURCE_DIR@/input.h                   \
                          @LAMMPS_SOURCE_DIR@/tokenizer.cpp             \
@@ -430,6 +431,8 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/text_file_reader.h        \
                          @LAMMPS_SOURCE_DIR@/potential_file_reader.cpp \
                          @LAMMPS_SOURCE_DIR@/potential_file_reader.h   \
+                         @LAMMPS_SOURCE_DIR@/label_map.cpp             \
+                         @LAMMPS_SOURCE_DIR@/label_map.h               \
                          @LAMMPS_SOURCE_DIR@/my_page.cpp               \
                          @LAMMPS_SOURCE_DIR@/my_page.h                 \
                          @LAMMPS_SOURCE_DIR@/my_pool_chunk.cpp         \
@@ -439,6 +442,7 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/platform.cpp              \
                          @LAMMPS_SOURCE_DIR@/math_special.h            \
                          @LAMMPS_SOURCE_DIR@/math_special.cpp          \
+                         @LAMMPS_SOURCE_DIR@/safe_pointers.h           \
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

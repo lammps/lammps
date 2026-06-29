@@ -41,7 +41,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 static const char cite_fix_wall_flow_c[] =
-    "fix wall/flow command: doi:10.1177/10943420231213013\n\n"
+    "fix wall/flow command: https://doi.org/10.1177/10943420231213013\n\n"
     "@Article{Pavlov-etal-IJHPCA-2024,\n"
     " author = {Daniil Pavlov and Vladislav Galigerov and Daniil Kolotinskii and Vsevolod "
     "Nikolskiy and Vladimir Stegailov},\n"
@@ -320,4 +320,11 @@ int FixWallFlow::unpack_exchange(int i, double *buf)
 {
   current_segment[i] = static_cast<int>(buf[0]);
   return 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixWallFlow::memory_usage()
+{
+  return (double) atom->nmax * sizeof(int);    // current_segment[nmax]
 }

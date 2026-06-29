@@ -43,45 +43,53 @@ class FixWallRegionKokkos : public FixWallRegion {
   void post_force(int) override;
 
   template<class T>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void wall_particle(T, const int, value_type) const;
 
  private:
 
-  typename AT::t_x_array d_x;
-  typename AT::t_f_array d_f;
-  typename AT::t_float_1d d_radius;
+  typename AT::t_kkfloat_1d_3_lr d_x;
+  typename AT::t_kkacc_1d_3 d_f;
+  typename AT::t_kkfloat_1d d_radius;
   typename AT::t_int_1d d_mask;
 
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  double lj93(double, double&) const;
+  KK_FLOAT lj93(KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  double lj126(double, double&) const;
+  KK_FLOAT lj126(KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  double lj1043(double, double&) const;
+  KK_FLOAT lj1043(KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  double morse(double, double&) const;
+  KK_FLOAT morse(KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  double colloid(double, double, double&) const;
+  KK_FLOAT colloid(KK_FLOAT, KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  double harmonic(double, double&) const;
+  KK_FLOAT harmonic(KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void v_tally(value_type, int, double*) const;
-
+  void v_tally(value_type, int, KK_FLOAT*) const;
 };
 
 template <class DeviceType, class T>
 struct FixWallRegionKokkosFunctor {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef double value_type[];
   const int value_count;
   FixWallRegionKokkos<DeviceType> c;
@@ -90,11 +98,13 @@ struct FixWallRegionKokkosFunctor {
   FixWallRegionKokkosFunctor(FixWallRegionKokkos<DeviceType>* c_ptr, T *regionKK):
     value_count(10), c(*c_ptr), regionKK(regionKK) {}
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void init(value_type result) const {
     for (int i=0 ; i<10 ; i++ ) result[i] = 0.0;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i, value_type result) const {
     c.wall_particle(regionKK,i,result);

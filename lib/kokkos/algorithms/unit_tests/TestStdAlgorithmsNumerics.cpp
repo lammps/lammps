@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 
@@ -129,8 +116,6 @@ struct std_algorithms_numerics_test : public ::testing::Test {
     Kokkos::parallel_for("_std_algo_copy6", 20, F6);
   }
 };
-
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
 
 // -------------------------------------------------------------------
 // test default case of transform_reduce
@@ -595,8 +580,6 @@ TEST_F(std_algorithms_numerics_test,
   run_and_check_reduce_overloadC<exespace>(m_strided_view_cs, gold, init,
                                            joiner_type());
 }
-
-#endif  // not defined KOKKOS_ENABLE_OPENMPTARGET
 
 }  // namespace stdalgos
 }  // namespace Test

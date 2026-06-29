@@ -154,6 +154,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(get_os_info);
 
   ADDSYM(config_has_mpi_support);
+  ADDSYM(config_has_omp_support);
   ADDSYM(config_has_gzip_support);
   ADDSYM(config_has_png_support);
   ADDSYM(config_has_jpeg_support);

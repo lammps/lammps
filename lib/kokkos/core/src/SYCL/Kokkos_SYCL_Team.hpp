@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SYCL_TEAM_HPP
 #define KOKKOS_SYCL_TEAM_HPP
@@ -30,7 +17,7 @@
 namespace Kokkos {
 namespace Impl {
 
-/**\brief  Team member_type passed to TeamPolicy or TeamTask closures.
+/**\brief  Team member_type passed to the TeamPolicy closure.
  */
 class SYCLTeamMember {
  public:
@@ -296,7 +283,7 @@ class SYCLTeamMember {
       intermediate += base_data[n_active_subgroups - 1];
     }
     // Make sure that the reduction array hasn't been modified in the meantime.
-    m_item.barrier(sycl::access::fence_space::local_space);
+    sycl::group_barrier(m_item.get_group());
 
     return intermediate;
   }
@@ -370,7 +357,7 @@ class SYCLTeamMember {
   KOKKOS_INLINE_FUNCTION
   SYCLTeamMember(sycl::local_ptr<void> shared, const std::size_t shared_begin,
                  const std::size_t shared_size,
-                 sycl_device_ptr<void> scratch_level_1_ptr,
+                 sycl::global_ptr<void> scratch_level_1_ptr,
                  const std::size_t scratch_level_1_size,
                  const sycl::nd_item<2> item, const int arg_league_rank,
                  const int arg_league_size)
@@ -408,13 +395,14 @@ struct TeamThreadRangeBoundariesStruct<iType, SYCLTeamMember> {
   const iType end;
 
   KOKKOS_INLINE_FUNCTION
-  TeamThreadRangeBoundariesStruct(const SYCLTeamMember& thread_, iType count)
-      : member(thread_), start(0), end(count) {}
+  TeamThreadRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
+                                  iType arg_count)
+      : member(arg_thread), start(0), end(arg_count) {}
 
   KOKKOS_INLINE_FUNCTION
-  TeamThreadRangeBoundariesStruct(const SYCLTeamMember& thread_, iType begin_,
-                                  iType end_)
-      : member(thread_), start(begin_), end(end_) {}
+  TeamThreadRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
+                                  iType arg_begin, iType arg_end)
+      : member(arg_thread), start(arg_begin), end(arg_end) {}
 };
 
 template <typename iType>
@@ -425,14 +413,14 @@ struct TeamVectorRangeBoundariesStruct<iType, SYCLTeamMember> {
   const iType end;
 
   KOKKOS_INLINE_FUNCTION
-  TeamVectorRangeBoundariesStruct(const SYCLTeamMember& thread_,
-                                  const iType& count)
-      : member(thread_), start(0), end(count) {}
+  TeamVectorRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
+                                  const iType& arg_count)
+      : member(arg_thread), start(0), end(arg_count) {}
 
   KOKKOS_INLINE_FUNCTION
-  TeamVectorRangeBoundariesStruct(const SYCLTeamMember& thread_,
-                                  const iType& begin_, const iType& end_)
-      : member(thread_), start(begin_), end(end_) {}
+  TeamVectorRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
+                                  const iType& arg_begin, const iType& arg_end)
+      : member(arg_thread), start(arg_begin), end(arg_end) {}
 };
 
 template <typename iType>
@@ -443,14 +431,14 @@ struct ThreadVectorRangeBoundariesStruct<iType, SYCLTeamMember> {
   const index_type end;
 
   KOKKOS_INLINE_FUNCTION
-  ThreadVectorRangeBoundariesStruct(const SYCLTeamMember& thread,
-                                    index_type count)
-      : member(thread), start(static_cast<index_type>(0)), end(count) {}
+  ThreadVectorRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
+                                    index_type arg_count)
+      : member(arg_thread), start(static_cast<index_type>(0)), end(arg_count) {}
 
   KOKKOS_INLINE_FUNCTION
-  ThreadVectorRangeBoundariesStruct(const SYCLTeamMember& thread,
+  ThreadVectorRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
                                     index_type arg_begin, index_type arg_end)
-      : member(thread), start(arg_begin), end(arg_end) {}
+      : member(arg_thread), start(arg_begin), end(arg_end) {}
 };
 
 }  // namespace Impl
@@ -623,7 +611,7 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
  *  less than N) and a scan operation is performed. The last call to closure has
  *  final == true.
  */
-// This is the same code as in CUDA and largely the same as in OpenMPTarget
+// This is the same code as in CUDA.
 template <typename iType, typename FunctorType, typename ValueType>
 KOKKOS_INLINE_FUNCTION void parallel_scan(
     const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::SYCLTeamMember>&

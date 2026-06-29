@@ -971,7 +971,7 @@ void PairHybrid::copy_svector(int itype, int jtype)
   // there is only one style in pair style hybrid for a pair of atom types
   Pair *this_style = styles[map[itype][jtype][0]];
 
-  for (int l = 0; this_style->single_extra; ++l) {
+  for (int l = 0; l < this_style->single_extra; ++l) {
     svector[l] = this_style->svector[l];
   }
 }
@@ -1177,42 +1177,6 @@ int PairHybrid::check_ijtype(int itype, int jtype, char *substyle)
   for (int m = 0; m < nmap[itype][jtype]; m++)
     if (strcmp(keywords[map[itype][jtype][m]],substyle) == 0) return 1;
   return 0;
-}
-
-/* ----------------------------------------------------------------------
-   check if substyles calculate self-interaction range of particle
-------------------------------------------------------------------------- */
-
-double PairHybrid::atom2cut(int i)
-{
-  double temp, cut;
-
-  cut = 0.0;
-  for (int m = 0; m < nstyles; m++) {
-    if (styles[m]->finitecutflag) {
-      temp = styles[m]->atom2cut(i);
-      if (temp > cut) cut = temp;
-    }
-  }
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
-   check if substyles calculate maximum interaction range for two finite particles
-------------------------------------------------------------------------- */
-
-double PairHybrid::radii2cut(double r1, double r2)
-{
-  double temp, cut;
-
- cut = 0.0;
-  for (int m = 0; m < nstyles; m++) {
-    if (styles[m]->finitecutflag) {
-      temp = styles[m]->radii2cut(r1,r2);
-      if (temp > cut) cut = temp;
-    }
-  }
-  return cut;
 }
 
 /* ----------------------------------------------------------------------

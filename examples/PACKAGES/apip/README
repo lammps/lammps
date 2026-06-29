@@ -9,3 +9,12 @@ Examples of how to use an adaptive-precision potential are provided in examples/
 
 in.vacancy contains a small example that can be used to visualize the transition region and get a visual impression of the selected parameters.
 in.surface.balance in a more realistic example, in which a surface is simulated and the benefit of fix apip_atom_weight and fix balance for adaptive-precision interatomic potentials is demonstrated.
+
+One can obtain a conservative adaptive-precision interatomic potential via local averaging of a differentiable descriptor as shown in
+
+David Immel, Ralf Drautz, Godehard Sutmann; Conservative adaptive-precision interatomic potentials;  arXiv:2512.07693
+
+and demonstrated with in.surface.la.cons , where the descriptor is calculated using the differentiable centro-symmetry parameter.
+When the original CSP is used, the potential is not conservative any more when CSP-pairs change between timesteps as demonstrated with in.surface.la.nocons .
+A load-balancing example for conservative adaptive-precision potentials is provided with in.surface.la.cons.balance .
+Note that the switching parameter and the differentiation of the switching parameter are performed by a fix and, thus, cannot be included in the load balancing.

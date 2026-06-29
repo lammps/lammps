@@ -1,10 +1,11 @@
 .. index:: angle_style fourier/simple
+.. index:: angle_style fourier/simple/kk
 .. index:: angle_style fourier/simple/omp
 
 angle_style fourier/simple command
 ==================================
 
-Accelerator Variants: *fourier/simple/omp*
+Accelerator Variants: *fourier/simple/kk*, *fourier/simple/omp*
 
 Syntax
 """"""

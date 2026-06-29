@@ -50,7 +50,7 @@ static double get_kinetic_energy(
     MPI_Comm world,
     int groupbit,
     int nlocal,
-    typename ArrayTypes<DeviceType>::t_v_array_randomread v,
+    typename ArrayTypes<DeviceType>::t_kkfloat_1d_3_randomread v,
     typename ArrayTypes<DeviceType>::t_int_1d_randomread mask)
 {
   using AT = ArrayTypes<DeviceType>;
@@ -58,7 +58,7 @@ static double get_kinetic_energy(
   double ke=0.0;
   if (atomKK->rmass) {
     atomKK->sync(execution_space, RMASS_MASK);
-    typename AT::t_float_1d_randomread rmass = atomKK->k_rmass.view<DeviceType>();
+    typename AT::t_kkfloat_1d_randomread rmass = atomKK->k_rmass.view<DeviceType>();
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
      LAMMPS_LAMBDA(int i, double& update) {
       if (mask(i) & groupbit)
@@ -69,7 +69,7 @@ static double get_kinetic_energy(
     // D.I. : why is there no MASS_MASK ?
     atomKK->sync(execution_space, TYPE_MASK);
     typename AT::t_int_1d_randomread type = atomKK->k_type.view<DeviceType>();
-    typename AT::t_float_1d_randomread mass = atomKK->k_mass.view<DeviceType>();
+    typename AT::t_kkfloat_1d_randomread mass = atomKK->k_mass.view<DeviceType>();
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
      LAMMPS_LAMBDA(int i, double& update) {
       if (mask(i) & groupbit)
@@ -87,7 +87,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 {
   atomKK->sync(execution_space, V_MASK | MASK_MASK);
 
-  typename AT::t_v_array v = atomKK->k_v.view<DeviceType>();
+  typename AT::t_kkfloat_1d_3 v = atomKK->k_v.view<DeviceType>();
   typename AT::t_int_1d_randomread mask = atomKK->k_mask.view<DeviceType>();
 
   const int nlocal = atom->nlocal;
@@ -141,7 +141,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     // must use unwrapped coords to compute r_i correctly
 
     atomKK->sync(execution_space, X_MASK | IMAGE_MASK);
-    typename AT::t_x_array_randomread x = atomKK->k_x.view<DeviceType>();
+    typename AT::t_kkfloat_1d_3_lr_randomread x = atomKK->k_x.view<DeviceType>();
     typename AT::t_imageint_1d_randomread image = atomKK->k_image.view<DeviceType>();
     int nlocal = atom->nlocal;
 

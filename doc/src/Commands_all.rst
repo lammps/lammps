@@ -1,18 +1,4 @@
-.. only:: html
-
-   .. table_from_list::
-      :columns: 5
-
-      * :doc:`General commands <Commands_all>`
-      * :doc:`Fix styles <Commands_fix>`
-      * :doc:`Compute styles <Commands_compute>`
-      * :doc:`Pair styles <Commands_pair>`
-      * :ref:`Bond styles <bond>`
-      * :ref:`Angle styles <angle>`
-      * :ref:`Dihedral styles <dihedral>`
-      * :ref:`Improper styles <improper>`
-      * :doc:`KSpace styles <Commands_kspace>`
-      * :doc:`Dump styles <Commands_dump>`
+.. include:: Commands_html.rst
 
 .. raw:: latex
 
@@ -119,11 +105,12 @@ An alphabetic list of general LAMMPS commands.
    * :doc:`write_coeff <write_coeff>`
    * :doc:`write_data <write_data>`
    * :doc:`write_dump <write_dump>`
+   * :doc:`write_molecule <write_molecule>`
    * :doc:`write_restart <write_restart>`
 
 Additional general LAMMPS commands provided by packages.  A few
 commands have accelerated versions.  This is indicated by an
-additional letter in parenthesis: k = KOKKOS.
+additional letter in parentheses: k = KOKKOS.
 
 .. table_from_list::
    :columns: 6

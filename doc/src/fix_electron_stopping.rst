@@ -140,12 +140,11 @@ kinetic energy higher than the largest energy given in *file*, LAMMPS
 will exit with an error message.
 
 The stopping power depends on the energy of the ion and the target
-material. The electronic stopping table can be obtained from
-scientific publications, experimental databases or by using
-:ref:`SRIM <SRIM>` software. Other programs such as :ref:`CasP <CasP>` or
-:ref:`PASS <PASS>` can calculate the energy deposited as a function
-of the impact parameter of the ion; these results can be used
-to derive the stopping power.
+material. The electronic stopping table can be obtained from scientific
+publications, experimental databases or by using :ref:`SRIM <SRIM>`
+software. Other programs such as :ref:`CasP <CasP>` can calculate the
+energy deposited as a function of the impact parameter of the ion; these
+results can be used to derive the stopping power.
 
 ----------
 
@@ -219,11 +218,7 @@ The default is no limitation by region, and minneigh = 1.
 
 .. _CasP:
 
-**(CasP)** CasP webpage: http://www.casp-program.org/
-
-.. _PASS:
-
-**(PASS)** PASS webpage: https://www.sdu.dk/en/DPASS
+**(CasP)** CasP webpage: https://lief.if.ufrgs.br/pub/CasP/
 
 .. _Stewart2018:
 

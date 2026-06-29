@@ -417,6 +417,12 @@ bool GranularModel::check_contact()
     radsum = radi;
     if (radj == 0) Reff = radi;
     else Reff = radi * radj / (radi + radj);
+  } else if (contact_type == SURFACE) {
+    // Used by GRANSURF package
+    sub3(xi, xj, dx);
+    rsq = lensq3(dx);
+    radsum = radi;
+    Reff = radi;
   } else {
     sub3(xi, xj, dx);
     rsq = lensq3(dx);
@@ -425,6 +431,7 @@ bool GranularModel::check_contact()
   }
 
   touch = normal_model->touch();
+
   return touch;
 }
 
@@ -435,6 +442,7 @@ void GranularModel::calculate_forces()
   // Standard geometric quantities
 
   if (contact_type != WALLREGION) r = sqrt(rsq);
+
   rinv = 1.0 / r;
   delta = radsum - r;
   dR = delta * Reff;
@@ -442,7 +450,7 @@ void GranularModel::calculate_forces()
   // relative translational velocity
   sub3(vi, vj, vr);
 
-  if (synchronized_verlet == 1 && contact_type != WALL){
+  if (synchronized_verlet == 1 && contact_type != WALL && contact_type != SURFACE) {
     //Calculating half step normal for synchronized verlet
     double temp1[3], nhalf[3];
     scale3(rinv, dx, nx_unrotated);
@@ -475,8 +483,8 @@ void GranularModel::calculate_forces()
   if (contact_radius_flag)
     contact_radius = normal_model->calculate_contact_radius();
   Fnormal = normal_model->calculate_forces();
-
   Fdamp = damping_model->calculate_forces();
+
   Fntot = Fnormal + Fdamp;
   if (limit_damping && Fntot < 0.0) Fntot = 0.0;
 
@@ -484,7 +492,6 @@ void GranularModel::calculate_forces()
   tangential_model->calculate_forces();
 
   // sum normal + tangential contributions
-
   scale3(Fntot, nx, forces);
   add3(forces, fs, forces);
 
@@ -530,7 +537,7 @@ void GranularModel::calculate_forces()
     // omega_T (eq 29 of Marshall)
     magtwist = dot3(relrot, nx);
 
-    twisting_model->calculate_forces();
+    magtortwist = twisting_model->calculate_forces();
 
     double tortwist[3];
     scale3(magtortwist, nx, tortwist);

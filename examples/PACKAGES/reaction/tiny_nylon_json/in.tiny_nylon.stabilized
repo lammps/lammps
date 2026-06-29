@@ -52,6 +52,7 @@ fix 1 statted_grp_REACT nvt temp 300 300 100
 fix 4 bond_react_MASTER_group temp/rescale 1 300 300 10 1
 
 thermo_style custom step temp press density f_myrxns[*]
+thermo_modify colname auto
 
 # restart 100 restart1 restart2
 

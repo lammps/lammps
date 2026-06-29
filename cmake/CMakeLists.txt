@@ -2,7 +2,7 @@
 ########################################
 # CMake build system
 # This file is part of LAMMPS
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 ########################################
 # initialize version variables with project command
 if(POLICY CMP0048)
@@ -137,28 +137,29 @@ endif()
 # silence nvcc warnings when using nvcc_wrapper
 get_filename_component(LAMMPS_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}" NAME CACHE)
 if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND (LAMMPS_CXX_COMPILER_NAME STREQUAL "nvcc_wrapper"))
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128,--diag_suppress=186,-Wno-deprecated-gpu-targets")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128,--diag_suppress=186")
 endif()
 
-# we *require* C++11 without extensions but prefer C++17.
-# Kokkos requires at least C++17 (currently)
+# we *require* C++17 without extensions
+# Kokkos also requires at least C++20 (currently)
 if(NOT CMAKE_CXX_STANDARD)
-  if(cxx_std_17 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+# uncomment in case we plan to switch to C++20 as minimum standard
+#  if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+#    set(CMAKE_CXX_STANDARD 20)
+#  else()
     set(CMAKE_CXX_STANDARD 17)
-  else()
-    set(CMAKE_CXX_STANDARD 11)
-  endif()
+#  endif()
 endif()
-if(CMAKE_CXX_STANDARD LESS 11)
-  message(FATAL_ERROR "C++ standard must be set to at least 11")
+if(CMAKE_CXX_STANDARD LESS 17)
+  message(FATAL_ERROR "C++ standard must be set to at least 17")
 endif()
-if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 17))
-  set(CMAKE_CXX_STANDARD 17)
+if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 20))
+  set(CMAKE_CXX_STANDARD 20)
 endif()
-# turn off C++17 check in lmptype.h
-if(LAMMPS_CXX11)
-  add_compile_definitions(LAMMPS_CXX11)
-endif()
+# turn off C++20 check in lmptype.h
+#if(LAMMPS_CXX17)
+#  add_compile_definitions(LAMMPS_CXX17)
+#endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
 # ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
@@ -178,15 +179,9 @@ endif()
 # warn about potentially problematic GCC compiler versions
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   if (CMAKE_CXX_STANDARD GREATER_EQUAL 17)
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-      message(WARNING "Using ${CMAKE_CXX_COMPILER_ID} compiler version ${CMAKE_CXX_COMPILER_VERSION} "
-        "with C++17 is not recommended. Please use ${CMAKE_CXX_COMPILER_ID} compiler version 9.x or later")
-    endif()
-  endif()
-  if (CMAKE_CXX_STANDARD GREATER_EQUAL 11)
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
-      message(WARNING "Using ${CMAKE_CXX_COMPILER_ID} compiler version ${CMAKE_CXX_COMPILER_VERSION} "
-        "with C++11 is not recommended. Please use ${CMAKE_CXX_COMPILER_ID} compiler version 5.x or later")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.3)
+      message(WARNING "Using the GNU compilers version ${CMAKE_CXX_COMPILER_VERSION} with C++17 "
+              "or later is not recommended. Please use GNU compilers version 9.3 or later")
     endif()
   endif()
 endif()
@@ -198,7 +193,10 @@ endif()
 
 # do not include the (obsolete) MPI C++ bindings which makes for leaner object files
 # and avoids namespace conflicts. Put this early to increase its visbility.
-set(MPI_CXX_SKIP_MPICXX TRUE CACHE BOOL "Skip MPI C++ Bindings" FORCE)
+# do not apply when compiling SCAFACOS since it uses the obsolete bindings
+if (NOT PKG_SCAFACOS)
+  set(MPI_CXX_SKIP_MPICXX TRUE CACHE BOOL "Skip MPI C++ Bindings" FORCE)
+endif()
 
 ########################################################################
 # User input options                                                   #
@@ -242,6 +240,13 @@ file(GLOB MAIN_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM ALL_SOURCES ${MAIN_SOURCES})
 add_library(lammps ${ALL_SOURCES})
 
+# add extra libraries for std::filesystem with older compilers
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.1)
+  target_link_libraries(lammps PRIVATE stdc++fs)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+  target_link_libraries(lammps PRIVATE c++fs)
+endif()
+
 # tell CMake to export all symbols to a .dll on Windows with MinGW cross-compilers
 if(BUILD_SHARED_LIBS AND (CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
   set_target_properties(lammps PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
@@ -263,8 +268,6 @@ set(STANDARD_PACKAGES
   AMOEBA
   APIP
   ASPHERE
-  ATC
-  AWPMD
   BOCS
   BODY
   BPM
@@ -292,7 +295,9 @@ set(STANDARD_PACKAGES
   EXTRA-MOLECULE
   EXTRA-PAIR
   FEP
+  GRAPHICS
   GRANULAR
+  GRANSURF
   H5MD
   INTERLAYER
   KIM
@@ -302,6 +307,7 @@ set(STANDARD_PACKAGES
   MACHDYN
   MANIFOLD
   MANYBODY
+  MBX
   MC
   MDI
   MEAM
@@ -313,6 +319,7 @@ set(STANDARD_PACKAGES
   ML-PACE
   ML-POD
   ML-QUIP
+  ML-RUNNER
   ML-RANN
   ML-SNAP
   ML-UF3
@@ -325,7 +332,6 @@ set(STANDARD_PACKAGES
   PHONON
   PLUGIN
   PLUMED
-  POEMS
   PTM
   PYTHON
   QEQ
@@ -438,7 +444,6 @@ endif()
 # "hard" dependencies between packages resulting
 # in an error instead of skipping over files
 pkg_depends(ML-IAP ML-SNAP)
-pkg_depends(ATC MANYBODY)
 pkg_depends(LATBOLTZ MPI)
 pkg_depends(SCAFACOS MPI)
 pkg_depends(AMOEBA KSPACE)
@@ -449,6 +454,7 @@ pkg_depends(CG-DNA ASPHERE)
 pkg_depends(ELECTRODE KSPACE)
 pkg_depends(EXTRA-MOLECULE MOLECULE)
 pkg_depends(MESONT MOLECULE)
+pkg_depends(ML-RUNNER KSPACE)
 pkg_depends(RHEO BPM)
 pkg_depends(APIP ML-PACE)
 
@@ -488,6 +494,36 @@ if(BUILD_OMP)
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
 
+  # Some Clang-based toolchains - most notably hipcc from ROCm - do not ship
+  # omp.h in the compiler's own resource directory, so host code that includes
+  # <omp.h> fails to compile even though -fopenmp is accepted (e.g. when
+  # building the GPU package with GPU_API=hip and a hipcc host compiler).  If
+  # the resource directory has no omp.h, look for a matching-version Clang
+  # omp.h and add it as a fallback include path (with -idirafter, so it is
+  # searched last and does not shadow any other headers).
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-resource-dir
+                    OUTPUT_VARIABLE _omp_resource_dir
+                    OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET
+                    RESULT_VARIABLE _omp_resource_rc)
+    if((_omp_resource_rc EQUAL 0) AND (NOT EXISTS "${_omp_resource_dir}/include/omp.h"))
+      string(REGEX REPLACE "\\..*" "" _omp_clang_major "${CMAKE_CXX_COMPILER_VERSION}")
+      find_path(LAMMPS_OMP_H_DIR NAMES omp.h
+        PATHS /usr/lib/clang/${_omp_clang_major}/include
+              /usr/lib64/clang/${_omp_clang_major}/include
+              /usr/local/lib/clang/${_omp_clang_major}/include)
+      if(LAMMPS_OMP_H_DIR)
+        message(STATUS "Compiler resource directory has no omp.h: "
+                "adding ${LAMMPS_OMP_H_DIR} as a fallback include path")
+        target_compile_options(lammps PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-idirafter${LAMMPS_OMP_H_DIR}>)
+        target_compile_options(lmp PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-idirafter${LAMMPS_OMP_H_DIR}>)
+      else()
+        message(WARNING "Compiler resource directory has no omp.h and no matching "
+                "Clang omp.h was found; OpenMP host compilation may fail")
+      endif()
+    endif()
+  endif()
+
   # this hack is required to correctly link with OpenMP support when using CrayClang version 15.0.2
   # CrayClang is only directly recognized by version 3.28 and later
   if(CMAKE_VERSION VERSION_LESS 3.28)
@@ -516,12 +552,14 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_STANDARD GREATER_EQUA
           PROPERTIES COMPILE_OPTIONS "-std=c++14")
 endif()
 
-if(PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHEO OR BUILD_TOOLS)
-  if (NOT USE_INTERNAL_LINALG)
+option(USE_INTERNAL_LINALG "Prefer internal library with BLAS/LAPACK subset over system BLAS/LAPACK" OFF)
+if(PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHEO OR BUILD_TOOLS OR PKG_ML-RUNNER)
+  if(NOT USE_INTERNAL_LINALG)
     find_package(LAPACK)
     find_package(BLAS)
   endif()
-  if(NOT LAPACK_FOUND OR NOT BLAS_FOUND OR USE_INTERNAL_LINALG)
+  if((NOT LAPACK_FOUND) OR (NOT BLAS_FOUND) OR USE_INTERNAL_LINALG)
+    set(USE_INTERNAL_LINALG ON)
     file(GLOB LINALG_SOURCES CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.cpp)
     add_library(linalg STATIC ${LINALG_SOURCES})
     set_target_properties(linalg PROPERTIES OUTPUT_NAME lammps_linalg${LAMMPS_MACHINE})
@@ -533,29 +571,6 @@ if(PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHE
   endif()
 endif()
 
-# tweak jpeg library names to avoid linker errors with MinGW cross-compilation
-set(JPEG_NAMES libjpeg libjpeg-62)
-find_package(JPEG QUIET)
-option(WITH_JPEG "Enable JPEG support" ${JPEG_FOUND})
-if(WITH_JPEG)
-  find_package(JPEG REQUIRED)
-  target_compile_definitions(lammps PRIVATE -DLAMMPS_JPEG)
-  target_link_libraries(lammps PRIVATE JPEG::JPEG)
-endif()
-
-find_package(PNG QUIET)
-find_package(ZLIB QUIET)
-if(PNG_FOUND AND ZLIB_FOUND)
-  option(WITH_PNG "Enable PNG support" ON)
-else()
-  option(WITH_PNG "Enable PNG support" OFF)
-endif()
-if(WITH_PNG)
-  find_package(PNG REQUIRED)
-  find_package(ZLIB REQUIRED)
-  target_link_libraries(lammps PRIVATE PNG::PNG ZLIB::ZLIB)
-  target_compile_definitions(lammps PRIVATE -DLAMMPS_PNG)
-endif()
 
 find_program(GZIP_EXECUTABLE gzip)
 find_package_handle_standard_args(GZIP REQUIRED_VARS GZIP_EXECUTABLE)
@@ -568,16 +583,6 @@ if(WITH_GZIP)
   endif()
 endif()
 
-find_program(FFMPEG_EXECUTABLE ffmpeg)
-find_package_handle_standard_args(FFMPEG REQUIRED_VARS FFMPEG_EXECUTABLE)
-option(WITH_FFMPEG "Enable FFMPEG support" ${FFMPEG_FOUND})
-if(WITH_FFMPEG)
-  if(FFMPEG_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING))
-    target_compile_definitions(lammps PRIVATE -DLAMMPS_FFMPEG)
-  else()
-    message(FATAL_ERROR "ffmpeg executable not found")
-  endif()
-endif()
 
 if(BUILD_SHARED_LIBS)
   set(CONFIGURE_REQUEST_PIC "--with-pic")
@@ -589,8 +594,8 @@ else()
   set(CUDA_REQUEST_PIC)
 endif()
 
-foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND)
+foreach(PKG_WITH_INCL GRAPHICS KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
+        PLUMED QMMM ML-QUIP ML-RUNNER SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND MBX)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -677,7 +682,7 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(PKG_LIB POEMS ATC AWPMD H5MD)
+foreach(PKG_LIB H5MD)
   if(PKG_${PKG_LIB})
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
     file(GLOB_RECURSE ${PKG_LIB}_SOURCES CONFIGURE_DEPENDS
@@ -685,9 +690,7 @@ foreach(PKG_LIB POEMS ATC AWPMD H5MD)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     set_target_properties(${PKG_LIB} PROPERTIES OUTPUT_NAME lammps_${PKG_LIB}${LAMMPS_MACHINE})
     target_link_libraries(lammps PRIVATE ${PKG_LIB})
-    if(PKG_LIB STREQUAL "awpmd")
-      target_include_directories(awpmd PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/awpmd/systems/interact ${LAMMPS_LIB_SOURCE_DIR}/awpmd/ivutils/include)
-    elseif(PKG_LIB STREQUAL "h5md")
+    if(PKG_LIB STREQUAL "h5md")
       target_include_directories(h5md PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/h5md/include ${HDF5_INCLUDE_DIRS})
     else()
       target_include_directories(${PKG_LIB} PUBLIC ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB})
@@ -697,23 +700,6 @@ endforeach()
 
 if(PKG_ELECTRODE OR PKG_ML-POD)
   target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
-endif()
-
-if(PKG_AWPMD)
-  target_link_libraries(awpmd PRIVATE ${LAPACK_LIBRARIES})
-endif()
-
-if(PKG_ATC)
-  if(LAMMPS_SIZES STREQUAL "BIGBIG")
-    message(FATAL_ERROR "The ATC Package is not compatible with -DLAMMPS_BIGBIG")
-  endif()
-  if(BUILD_MPI)
-    target_link_libraries(atc PRIVATE ${LAPACK_LIBRARIES} MPI::MPI_CXX)
-  else()
-    target_link_libraries(atc PRIVATE ${LAPACK_LIBRARIES} mpi_stubs)
-  endif()
-  target_include_directories(atc PRIVATE ${LAMMPS_SOURCE_DIR})
-  target_compile_definitions(atc PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 endif()
 
 if(PKG_H5MD)
@@ -798,16 +784,17 @@ if(_index GREATER -1)
   target_link_libraries(lammps PRIVATE ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
 endif()
 set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h command.h compute.h dihedral.h domain.h
-  error.h exceptions.h fix.h force.h group.h improper.h input.h info.h kspace.h lammps.h lattice.h
-  library.h lmppython.h lmptype.h memory.h modify.h neighbor.h neigh_list.h output.h pair.h
-  platform.h pointers.h region.h timer.h universe.h update.h utils.h variable.h)
+  error.h exceptions.h fix.h force.h group.h improper.h input.h info.h json.h json_fwd.h kspace.h
+  lammps.h lattice.h library.h lmppython.h lmptype.h memory.h modify.h neighbor.h neigh_list.h
+  output.h pair.h platform.h pointers.h region.h timer.h universe.h update.h utils.h variable.h)
 set(LAMMPS_FMT_HEADERS core.h format.h)
+set(LAMMPS_JSON_HEADERS json_fwd.hpp json.hpp)
 
 set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_MACHINE})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
 set_target_properties(lammps PROPERTIES PREFIX "lib")
-target_include_directories(lammps PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/lammps>)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/fmt)
+target_include_directories(lammps PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/fmt ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/nlohmann)
 foreach(_HEADER ${LAMMPS_CXX_HEADERS})
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/${_HEADER} COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_SOURCE_DIR}/${_HEADER} ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/${_HEADER} DEPENDS ${LAMMPS_SOURCE_DIR}/${_HEADER})
   add_custom_target(${_HEADER} DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/${_HEADER})
@@ -822,6 +809,14 @@ foreach(_HEADER ${LAMMPS_FMT_HEADERS})
   add_dependencies(lammps fmt_${_HEADER})
   if(BUILD_SHARED_LIBS)
     install(FILES ${LAMMPS_SOURCE_DIR}/fmt/${_HEADER} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps/fmt)
+  endif()
+endforeach()
+foreach(_HEADER ${LAMMPS_JSON_HEADERS})
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/nlohmann/${_HEADER} COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_SOURCE_DIR}/nlohmann/${_HEADER} ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/nlohmann/${_HEADER} DEPENDS ${LAMMPS_SOURCE_DIR}/nlohmann/${_HEADER})
+  add_custom_target(json_${_HEADER} DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/includes/lammps/nlohmann/${_HEADER})
+  add_dependencies(lammps json_${_HEADER})
+  if(BUILD_SHARED_LIBS)
+    install(FILES ${LAMMPS_SOURCE_DIR}/nlohmann/${_HEADER} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps/nlohmann)
   endif()
 endforeach()
 target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/includes>)
@@ -846,7 +841,7 @@ if(BUILD_SHARED_LIBS)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   install(EXPORT LAMMPS_Targets FILE LAMMPS_Targets.cmake NAMESPACE LAMMPS:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
   include(CMakePackageConfigHelpers)
-  configure_file(LAMMPSConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfig.cmake @ONLY)
+  configure_file(LAMMPSConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfig.cmake" @ONLY)
   write_basic_package_version_file("LAMMPSConfigVersion.cmake" VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfigVersion.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
 endif()
@@ -904,6 +899,14 @@ else()
     install-python
     ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
 endif()
+
+###############################################################################
+# Create tarball for download with html and PDF version of manual included
+###############################################################################
+add_custom_target(tarball
+  COMMAND ${LAMMPS_DIR}/cmake/packaging/build_tarball.sh ${LAMMPS_DIR}/doc
+)
+
 
 include(Testing)
 include(CodeCoverage)

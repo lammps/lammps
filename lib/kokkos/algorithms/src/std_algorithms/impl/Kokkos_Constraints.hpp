@@ -1,24 +1,20 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_STD_ALGORITHMS_CONSTRAINTS_HPP_
 #define KOKKOS_STD_ALGORITHMS_CONSTRAINTS_HPP_
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
+#include <Kokkos_Core.hpp>
+#endif
+#include <Kokkos_Assert.hpp>
+
 #include <Kokkos_DetectionIdiom.hpp>
-#include <Kokkos_View.hpp>
+
+#include <iterator>
 
 namespace Kokkos {
 namespace Experimental {
@@ -192,28 +188,6 @@ static_assert_iterators_have_matching_difference_type(IteratorType1 it1,
                                                       IteratorType3 it3) {
   static_assert_iterators_have_matching_difference_type(it1, it2);
   static_assert_iterators_have_matching_difference_type(it2, it3);
-}
-
-//
-// not_openmptarget
-//
-template <class ExeSpace>
-struct not_openmptarget {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
-  static constexpr bool value = true;
-#else
-  static constexpr bool value =
-      !std::is_same<std::decay_t<ExeSpace>,
-                    ::Kokkos::Experimental::OpenMPTarget>::value;
-#endif
-};
-
-template <class ExecutionSpaceOrTeamHandleType>
-KOKKOS_INLINE_FUNCTION constexpr void static_assert_is_not_openmptarget(
-    const ExecutionSpaceOrTeamHandleType& /*ex_or_th*/) {
-  static_assert(not_openmptarget<ExecutionSpaceOrTeamHandleType>::value,
-                "Currently, Kokkos standard algorithms do not support custom "
-                "comparators in OpenMPTarget");
 }
 
 //

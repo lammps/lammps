@@ -631,3 +631,10 @@ void FixPrecessionSpin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixPrecessionSpin::memory_usage()
+{
+  return (double) nlocal_max * sizeof(double);    // emag[nlocal_max]
+}

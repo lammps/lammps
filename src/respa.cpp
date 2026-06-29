@@ -49,16 +49,18 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
     hybrid_compute(nullptr), newton(nullptr), fix_respa(nullptr)
 {
   nhybrid_styles = 0;
-  if (narg < 1) error->all(FLERR, "Illegal run_style respa command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "run_style respa", error);
 
   nlevels = utils::inumeric(FLERR, arg[0], false, lmp);
-  if (nlevels < 1) error->all(FLERR, "Respa levels must be >= 1");
+  if (nlevels < 1) error->all(FLERR, 1, "Number of rRESPA levels must be >= 1");
 
-  if (narg < nlevels) error->all(FLERR, "Illegal run_style respa command");
+  if (narg < nlevels) error->all(FLERR, 1, "Not enough rRESPA loop factors provided");
   loop = new int[nlevels];
   for (int iarg = 1; iarg < nlevels; iarg++) {
     loop[iarg - 1] = utils::inumeric(FLERR, arg[iarg], false, lmp);
-    if (loop[iarg - 1] <= 0) error->all(FLERR, "Illegal run_style respa command");
+    if (loop[iarg - 1] <= 0)
+      error->all(FLERR, iarg + 1, "Invalid rRESPA loop factor {} for level {}", loop[iarg - 1],
+                 iarg);
   }
   loop[nlevels - 1] = 1;
 
@@ -78,53 +80,54 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
   int iarg = nlevels;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "bond") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "run_style respa bond", error);
       level_bond = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "angle") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "run_style respa angle", error);
       level_angle = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "dihedral") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "run_style respa dihedral", error);
       level_dihedral = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "improper") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "run_style respa improper", error);
       level_improper = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "pair") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "run_style respa pair", error);
       level_pair = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "inner") == 0) {
-      if (iarg + 4 > narg) error->all(FLERR, "Illegal run_style respa command");
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "run_style respa inner", error);
       level_inner = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       cutoff[0] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       cutoff[1] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg], "middle") == 0) {
-      if (iarg + 4 > narg) error->all(FLERR, "Illegal run_style respa command");
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "run_style respa middle", error);
       level_middle = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       cutoff[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       cutoff[3] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg], "outer") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "run_style respa outer", error);
       level_outer = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "kspace") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "run_style respa kspace", error);
       level_kspace = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "hybrid") == 0) {
       // the hybrid keyword requires a hybrid pair style
       if (!utils::strmatch(force->pair_style, "^hybrid"))
-        error->all(FLERR, "Illegal run_style respa command");
+        error->all(FLERR, iarg + 1, "Cannot use hybrid keyword without hybrid pair style");
       auto *hybrid = dynamic_cast<PairHybrid *>(force->pair);
       nhybrid_styles = hybrid->nstyles;
       // each hybrid sub-style needs to be assigned to a respa level
-      if (iarg + nhybrid_styles > narg) error->all(FLERR, "Illegal run_style respa command");
+      if (iarg + nhybrid_styles > narg)
+        utils::missing_cmd_args(FLERR, "run_style respa hybrid", error);
       delete[] hybrid_level;
       delete[] hybrid_compute;
       hybrid_level = new int[nhybrid_styles];
@@ -135,7 +138,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
       }
       ++iarg;
     } else
-      error->all(FLERR, "Illegal run_style respa command");
+      error->all(FLERR, iarg + 1, "Unknown run_style respa keyword {}", arg[iarg]);
   }
 
   // cannot specify both pair and inner/middle/outer
@@ -157,9 +160,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
 
   if ((nhybrid_styles > 0) &&
       (level_pair >= 0 || level_inner >= 0 || level_middle >= 0 || level_outer >= 0))
-    error->all(FLERR,
-               "Cannot set respa hybrid and "
-               "any of pair/inner/middle/outer");
+    error->all(FLERR, "Cannot set respa hybrid and any of pair/inner/middle/outer");
 
   // set defaults if user did not specify level
   // bond to innermost level
@@ -304,7 +305,7 @@ void Respa::init()
 
   if (level_inner >= 0)
     if (force->pair && force->pair->respa_enable == 0)
-      error->all(FLERR, "Pair style does not support rRESPA inner/middle/outer");
+      error->all(FLERR, Error::NOLASTLINE, "Pair style does not support rRESPA inner/middle/outer");
 
   // virial_style = VIRIAL_PAIR (explicit)
   //   since never computed implicitly with virial_fdotr_compute() like Verlet

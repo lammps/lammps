@@ -95,40 +95,7 @@ BondRHEOShell::~BondRHEOShell()
 }
 
 /* ----------------------------------------------------------------------
-  Store data for a single bond - if bond added after LAMMPS init (e.g. pour)
-------------------------------------------------------------------------- */
-
-double BondRHEOShell::store_bond(int n, int i, int j)
-{
-  double **bondstore = fix_bond_history->bondstore;
-  tagint *tag = atom->tag;
-
-  bondstore[n][0] = 0.0;
-  bondstore[n][1] = 0.0;
-
-  if (i < atom->nlocal) {
-    for (int m = 0; m < atom->num_bond[i]; m++) {
-      if (atom->bond_atom[i][m] == tag[j]) {
-        fix_bond_history->update_atom_value(i, m, 0, 0.0);
-        fix_bond_history->update_atom_value(i, m, 1, 0.0);
-      }
-    }
-  }
-
-  if (j < atom->nlocal) {
-    for (int m = 0; m < atom->num_bond[j]; m++) {
-      if (atom->bond_atom[j][m] == tag[i]) {
-        fix_bond_history->update_atom_value(j, m, 0, 0.0);
-        fix_bond_history->update_atom_value(j, m, 1, 0.0);
-      }
-    }
-  }
-
-  return 0.0;
-}
-
-/* ----------------------------------------------------------------------
-  Store data for all bonds called once
+  Store data for all bonds, called once
 ------------------------------------------------------------------------- */
 
 void BondRHEOShell::store_data()
@@ -160,12 +127,7 @@ void BondRHEOShell::store_data()
 
 void BondRHEOShell::compute(int eflag, int vflag)
 {
-  if (!fix_bond_history->stored_flag) {
-    fix_bond_history->stored_flag = true;
-    store_data();
-  }
-
-  if (hybrid_flag) fix_bond_history->compress_history();
+  pre_compute();
 
   int i1, i2, itmp, n, type;
   double delx, dely, delz, delvx, delvy, delvz;
@@ -204,8 +166,6 @@ void BondRHEOShell::compute(int eflag, int vflag)
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
     type = bondlist[n][2];
-    r0 = bondstore[n][0];
-    t = bondstore[n][1];
 
     // Ensure pair is always ordered to ensure numerical operations
     // are identical to minimize the possibility that a bond straddling
@@ -216,8 +176,16 @@ void BondRHEOShell::compute(int eflag, int vflag)
       i2 = itmp;
     }
 
-    // If bond hasn't been set - zero data
-    if (t < EPSILON || std::isnan(t)) t = store_bond(n, i1, i2);
+    // If bond hasn't been set (should be initialized to zero)
+    //   t will grow, so won't stay at zero
+    t = bondstore[n][1];
+    if (t < EPSILON || std::isnan(t)) {
+      t = bondstore[n][1] = 0.0;
+      bondstore[n][0] = 0.0;
+      process_new(n, i1, i2);
+    }
+
+    r0 = bondstore[n][0];
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
@@ -294,7 +262,7 @@ void BondRHEOShell::compute(int eflag, int vflag)
     if (nbond[i] != 0) status[i] |= STATUS_NO_SHIFT;
   }
 
-  if (hybrid_flag) fix_bond_history->uncompress_history();
+  post_compute();
 }
 
 /* ---------------------------------------------------------------------- */

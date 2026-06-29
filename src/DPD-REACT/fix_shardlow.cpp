@@ -63,7 +63,7 @@ using namespace random_external_state;
 static constexpr double EPSILON_SQUARED = 1.0e-20;
 
 static const char cite_fix_shardlow[] =
-  "fix shardlow command: doi:10.1016/j.cpc.2014.03.029, doi:10.1063/1.3660209\n\n"
+  "fix shardlow command: https://doi.org/10.1016/j.cpc.2014.03.029, https://doi.org/10.1063/1.3660209\n\n"
   "@Article{Larentzos14,\n"
   " author = {J. P. Larentzos and J. K. Brennan and J. D. Moore and M. Lisal and W. D. Mattson},\n"
   " title = {Parallel Implementation of Isothermal and Isoenergetic Dissipative Particle Dynamics Using {S}hardlow-Like Splitting Algorithms},\n"
@@ -218,7 +218,7 @@ while (ct-- > 0) {
   sigma_i = pairDPD->sigma[itype];
   theta_ij_inv = 1.0/pairDPD->temperature; // independent of i,j
 
-  const double mass_i = (rmass) ? rmass[i] : mass[itype];
+  const double mass_i = rmass ? rmass[i] : mass[itype];
   const double massinv_i = 1.0 / mass_i;
 
 #ifdef DEBUG_SSA_PAIR_CT
@@ -265,7 +265,7 @@ while (ct-- > 0) {
 
       double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * es_normal(RNGstate);
 
-      double mass_j = (rmass) ? rmass[j] : mass[jtype];
+      double mass_j = rmass ? rmass[j] : mass[jtype];
       double massinv_j = 1.0 / mass_j;
 
       double gammaFactor = halfgamma_ij*wdt*ftm2v;
@@ -386,7 +386,7 @@ while (ct-- > 0) {
   kappa_i = pairDPDE->kappa[itype];
   alpha_i = pairDPDE->alpha[itype];
   theta_i_inv = 1.0/dpdTheta[i];
-  const double mass_i = (rmass) ? rmass[i] : mass[itype];
+  const double mass_i = rmass ? rmass[i] : mass[itype];
   const double massinv_i = 1.0 / mass_i;
   const double mass_i_div_neg4_ftm2v = mass_i*(-0.25)/ftm2v;
 
@@ -438,7 +438,7 @@ while (ct-- > 0) {
 
       double sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * es_normal(RNGstate);
 
-      double mass_j = (rmass) ? rmass[j] : mass[jtype];
+      double mass_j = rmass ? rmass[j] : mass[jtype];
       double mass_ij_div_neg4_ftm2v = mass_j*mass_i_div_neg4_ftm2v;
       double massinv_j = 1.0 / mass_j;
 

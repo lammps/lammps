@@ -62,6 +62,7 @@ class PairDispersionD3 : public Pair {
 
   int communicationStage;    // communication stage
 
+  double memory_usage() override;
   void allocate();
   virtual void set_funcpar(std::string &);
 

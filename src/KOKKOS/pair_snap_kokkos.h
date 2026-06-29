@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Christian Trott (SNL), Stan Moore (SNL),
+                         Evan Weinberg (NVIDIA)
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(snap/kk,PairSNAPKokkosDevice<LMPDeviceType>);
@@ -34,7 +39,7 @@ PairStyle(snap/kk/host,PairSNAPKokkosDevice<LMPHostType>);
 
 namespace LAMMPS_NS {
 // pre-declare so sna_kokkos.h can refer to it
-template<class DeviceType, typename real_type_, int vector_length_> class PairSNAPKokkos;
+template<class DeviceType, typename real_type_, typename accum_type_, int vector_length_> class PairSNAPKokkos;
 };
 
 #include "sna_kokkos.h"
@@ -69,7 +74,7 @@ struct TagPairSNAPComputeUiCPU{};
 struct TagPairSNAPComputeDuidrjCPU{};
 struct TagPairSNAPComputeDeidrjCPU{};
 
-template<class DeviceType, typename real_type_, int vector_length_>
+template<class DeviceType, typename real_type_, typename accum_type_, int vector_length_>
 class PairSNAPKokkos : public PairSNAP {
  public:
   enum {EnabledNeighFlags=FULL|HALF|HALFTHREAD};
@@ -78,10 +83,11 @@ class PairSNAPKokkos : public PairSNAP {
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
 
-  static constexpr int host_flag = (ExecutionSpaceFromDevice<DeviceType>::space == LAMMPS_NS::Host);
+  static constexpr int host_flag = (ExecutionSpaceFromDevice<DeviceType>::space == LAMMPS_NS::HostKK);
   static constexpr bool legacy_on_gpu = false; // run the CPU path on the GPU
   static constexpr int vector_length = vector_length_;
   using real_type = real_type_;
+  using accum_type = accum_type_;
   using complex = SNAComplex<real_type>;
 
   // Static team/tile sizes for device offload
@@ -121,7 +127,7 @@ class PairSNAPKokkos : public PairSNAP {
   static constexpr int team_size_compute_fused_deidrj_all = 1;
 
   static constexpr int padding_factor = host_flag ? 1 : 2; // extra padding factor
-  static constexpr int ui_batch = 1;
+  static constexpr int ui_batch = host_flag ? 1 : 2;
   static constexpr int yi_batch = host_flag ? 1 : 2;
   static constexpr bool use_deidrj_all = false; // whether or not to use the directionally fused deidrj
 #else
@@ -280,162 +286,207 @@ class PairSNAPKokkos : public PairSNAP {
 
   // CPU and GPU backend
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const int& ii) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
   // GPU backend only
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeNeigh>::member_type& team) const;
 
   // GPU backend only
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeCayleyKlein, const int iatom_mod, const int jnbor, const int iatom_div) const;
 
   // CPU and GPU
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPPreUi, const int& iatom_mod, const int& j, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPPreUi, const int& iatom, const int& j) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPPreUi, const int& iatom) const;
 
+// NOLINTNEXTLINE
   template<bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeUiSmall<chemsnap>,
     const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiSmall<chemsnap>>::member_type& team) const;
 
+// NOLINTNEXTLINE
   template<bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeUiLarge<chemsnap>,
     const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiLarge<chemsnap>>::member_type& team) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPTransformUi, const int& iatom_mod, const int& idxu, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPTransformUi, const int& iatom, const int& idxu) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPTransformUi, const int& iatom) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeZi<chemsnap>, const int& iatom_mod, const int& idxz, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeZi<chemsnap>, const int& iatom, const int& idxz) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeZi<chemsnap>, const int& iatom) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBi<chemsnap>, const int& iatom_mod, const int& idxb, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBi<chemsnap>, const int& iatom, const int& idxb) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBi<chemsnap>, const int& iatom) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBetaLinear, const int& iatom_mod, const int& idxb, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBetaLinear, const int& iatom, const int& idxb) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBetaLinear, const int& iatom) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBetaQuadratic, const int& iatom_mod, const int& idxb, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBetaQuadratic, const int& iatom, const int& idxb) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBetaQuadratic, const int& iatom) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeYi<chemsnap>, const int& iatom_mod, const int& idxz, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeYi<chemsnap>, const int& iatom, const int& idxz) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeYi<chemsnap>, const int& iatom) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeYiWithZlist<chemsnap>, const int& iatom_mod, const int& idxz, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeYiWithZlist<chemsnap>, const int& iatom, const int& idxz) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeYiWithZlist<chemsnap>, const int& iatom) const;
 
+// NOLINTNEXTLINE
   template<int dir> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeFusedDeidrjSmall<dir>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrjSmall<dir> >::member_type& team) const;
 
+// NOLINTNEXTLINE
   template<int dir> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeFusedDeidrjLarge<dir>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrjLarge<dir> >::member_type& team) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeFusedDeidrjAllSmall, const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrjAllSmall>::member_type& team) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeFusedDeidrjAllLarge, const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrjAllLarge>::member_type& team) const;
 
   // CPU backend only
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeNeighCPU,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeNeighCPU>::member_type& team) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeUiCPU, const int& iatom_mod, const int& idxu, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeUiCPU, const int& iatom, const int& jnbor) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeUiCPU, const int& iatom) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeDuidrjCPU, const int& iatom_mod, const int& jnbor, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeDuidrjCPU, const int& iatom, const int& jnbor) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeDuidrjCPU, const int& iatom) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeDeidrjCPU, const int& iatom_mod, const int& jnbor, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeDeidrjCPU, const int& iatom, const int& jnbor) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeDeidrjCPU, const int& iatom) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz,
-      const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const accum_type &fx, const accum_type &fy, const accum_type &fz,
+      const real_type &delx, const real_type &dely, const real_type &delz) const;
 
  protected:
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
-  SNAKokkos<DeviceType, real_type, vector_length> snaKK;
+  SNAKokkos<DeviceType, real_type, accum_type, vector_length> snaKK;
 
   int inum, max_neighs, batched_max_neighs, chunk_size, chunk_offset;
   int neighflag;
@@ -446,21 +497,21 @@ class PairSNAPKokkos : public PairSNAP {
 
   Kokkos::View<real_type*, DeviceType> d_radelem;              // element radii
   Kokkos::View<real_type*, DeviceType> d_wjelem;               // elements weights
-  typename SNAKokkos<DeviceType, real_type, vector_length>::t_sna_2d_lr d_coeffelem; // element bispectrum coefficients
+  typename SNAKokkos<DeviceType, real_type, accum_type, vector_length>::t_sna_2d_lr d_coeffelem; // element bispectrum coefficients
   Kokkos::View<real_type*, DeviceType> d_sinnerelem;           // element inner cutoff midpoint
   Kokkos::View<real_type*, DeviceType> d_dinnerelem;           // element inner cutoff half-width
   Kokkos::View<T_INT*, DeviceType> d_map;                    // mapping from atom types to elements
   Kokkos::View<T_INT*, DeviceType> d_ninside;                // ninside for all atoms in list
-  typename SNAKokkos<DeviceType, real_type, vector_length>::t_sna_2d d_beta;                // betas for all atoms in list
+  typename SNAKokkos<DeviceType, real_type, accum_type, vector_length>::t_sna_2d d_beta;                // betas for all atoms in list
 
-  typedef Kokkos::DualView<F_FLOAT**, DeviceType> tdual_fparams;
+  typedef Kokkos::DualView<double**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq;
-  typedef Kokkos::View<const F_FLOAT**, DeviceType,
+  typedef Kokkos::View<const double**, DeviceType,
       Kokkos::MemoryTraits<Kokkos::RandomAccess> > t_fparams_rnd;
   t_fparams_rnd rnd_cutsq;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
 
   int need_dup;
@@ -473,11 +524,11 @@ class PairSNAPKokkos : public PairSNAP {
   template<typename DataType, typename Layout>
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
-  DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
-  DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
+  DupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> dup_f;
+  DupScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout> dup_vatom;
 
-  NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
-  NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
+  NonDupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> ndup_f;
+  NonDupScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout> ndup_vatom;
 
   friend void pair_virial_fdotr_compute<PairSNAPKokkos>(PairSNAPKokkos*);
 
@@ -487,7 +538,7 @@ class PairSNAPKokkos : public PairSNAP {
   int scratch_size_helper(int values_per_team);
 
   // Make SNAKokkos a friend
-  friend class SNAKokkos<DeviceType, real_type, vector_length>;
+  friend class SNAKokkos<DeviceType, real_type, accum_type, vector_length>;
 };
 
 
@@ -496,10 +547,10 @@ class PairSNAPKokkos : public PairSNAP {
 // of extra template parameters
 
 template <class DeviceType>
-class PairSNAPKokkosDevice : public PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_DEVICE_VECLEN> {
+class PairSNAPKokkosDevice : public PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_DEVICE_VECLEN> {
 
  private:
-  using Base = PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_DEVICE_VECLEN>;
+  using Base = PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_DEVICE_VECLEN>;
 
  public:
 
@@ -515,10 +566,10 @@ class PairSNAPKokkosDevice : public PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL,
 
 #ifdef LMP_KOKKOS_GPU
 template <class DeviceType>
-class PairSNAPKokkosHost : public PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_HOST_VECLEN> {
+class PairSNAPKokkosHost : public PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_HOST_VECLEN> {
 
  private:
-  using Base = PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_HOST_VECLEN>;
+  using Base = PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_HOST_VECLEN>;
 
  public:
 

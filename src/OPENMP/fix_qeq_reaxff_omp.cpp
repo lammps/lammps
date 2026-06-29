@@ -224,7 +224,8 @@ void FixQEqReaxFFOMP::compute_H()
   } // omp
 
   if (m_fill >= H.m)
-    error->all(FLERR,"Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
+    error->all(FLERR,  Error::NOLASTLINE,
+               "Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
                m_fill, H.m);
 }
 
@@ -981,4 +982,15 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x, double *b)
       }
     }
   } // omp parallel
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixQEqReaxFFOMP::memory_usage()
+{
+  double bytes = FixQEqReaxFF::memory_usage();
+  int size = nmax;
+  if (dual_enabled) size *= 2;
+  bytes += (double) comm->nthreads * size * sizeof(double);    // b_temp[nthreads][nmax]
+  return bytes;
 }

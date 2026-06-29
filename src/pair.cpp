@@ -30,6 +30,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "neighbor.h"
+#include "safe_pointers.h"
 #include "suffix.h"
 #include "update.h"
 
@@ -43,9 +44,11 @@ using MathConst::MY_ISPI4;
 using MathConst::THIRD;
 using MathSpecial::powint;
 
+namespace {
 enum { NONE, RLINEAR, RSQ, BMP };
-static const std::string mixing_rule_names[Pair::SIXTHPOWER + 1] = {"geometric", "arithmetic",
-                                                                    "sixthpower"};
+// NOLINTNEXTLINE
+const std::vector<std::string> mixing_rule_names{"geometric", "arithmetic", "sixthpower"};
+}    // namespace
 
 // allocate space for static class instance variable and initialize it
 
@@ -86,7 +89,7 @@ Pair::Pair(LAMMPS *lmp) :
   nextra = 0;
   single_extra = 0;
 
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
+  ewaldflag = pppmflag = espflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
   centroidstressflag = CENTROID_SAME;
 
@@ -380,6 +383,11 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
                "Pair style {} requires a KSpace style", force->pair_style);
   double g_ewald = force->kspace->g_ewald;
 
+  double *force_poly_coeff = force->kspace->force_poly_coeff;
+  int num_of_force_poly = force->kspace->num_of_force_poly;
+  double *energy_poly_coeff = force->kspace->energy_poly_coeff;
+  int num_of_energy_poly = force->kspace->num_of_energy_poly;
+
   double cut_coulsq = cut_coul * cut_coul;
 
   tabinnersq = tabinner*tabinner;
@@ -431,17 +439,37 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
       egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
       fgamma = 1.0 + ((double)rsq_lookup.f/cut_coulsq)*
         force->kspace->dgamma(r/cut_coul);
-    } else {
+    } else if (espflag) {
+      // This block is currently empty and does not perform any operations.
+    }
+    else {
       grij = g_ewald * r;
       expm2 = exp(-grij*grij);
       derfc = erfc(grij);
     }
+
     if (cut_respa == nullptr) {
       rtable[i] = (double)rsq_lookup.f;
       ctable[i] = qqrd2e/r;
       if (msmflag) {
         ftable[i] = qqrd2e/r * fgamma;
         etable[i] = qqrd2e/r * egamma;
+      } else if (espflag) {
+        double r_coul = 2.0 * r/cut_coul - 1.0;
+        double force_poly_appx = force_poly_coeff[0];
+        double force_poly_r = 1.0;
+        for(int ii=1; ii<num_of_force_poly; ii++){
+            force_poly_r *= r_coul;
+            force_poly_appx += force_poly_coeff[ii] * force_poly_r;
+        }
+        ftable[i] = qqrd2e * force_poly_appx / r;
+        double energy_poly_appx = energy_poly_coeff[0];
+        double energy_poly_r = 1.0;
+        for(int ii=1; ii<num_of_energy_poly; ii++){
+            energy_poly_r *= r_coul;
+            energy_poly_appx += energy_poly_coeff[ii] * energy_poly_r;
+        }
+        etable[i] = qqrd2e * energy_poly_appx / r;
       } else {
         ftable[i] = qqrd2e/r * (derfc + MY_ISPI4*grij*expm2);
         etable[i] = qqrd2e/r * derfc;
@@ -538,7 +566,23 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
       if (msmflag) {
         f_tmp = qqrd2e/r * fgamma;
         e_tmp = qqrd2e/r * egamma;
-      } else {
+      } else if (espflag) {
+        double r_coul = 2.0 * r/cut_coul - 1.0;
+        double force_poly_appx = force_poly_coeff[0];
+        double force_poly_r = 1.0;
+        for(int ii=1; ii<num_of_force_poly; ii++){
+            force_poly_r *= r_coul;
+            force_poly_appx += force_poly_coeff[ii] * force_poly_r;
+        }
+        f_tmp = qqrd2e * force_poly_appx / r;
+        double energy_poly_appx = energy_poly_coeff[0];
+        double energy_poly_r = 1.0;
+        for(int ii=1; ii<num_of_energy_poly; ii++){
+            energy_poly_r *= r_coul;
+            energy_poly_appx += energy_poly_coeff[ii] * energy_poly_r;
+        }
+        e_tmp = qqrd2e * energy_poly_appx / r;
+        } else {
         f_tmp = qqrd2e/r * (derfc + MY_ISPI4*grij*expm2);
         e_tmp = qqrd2e/r * derfc;
       }
@@ -889,16 +933,17 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
    set the following flags, values are otherwise set to 0:
-     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
-     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag is set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag is set
      eflag_either != 0 if eflag_global or eflag_atom is set
-     vflag_global != 0 if VIRIAL_PAIR bit of vflag set, OR
+     eflag_only   != 0 if ENERGY_GLOBAL and ENERGY_ONLY bits of eflag are set
+     vflag_global != 0 if VIRIAL_PAIR bit of vflag is set, OR
                        if VIRIAL_FDOTR bit of vflag is set but no_virial_fdotr = 1
-     vflag_fdotr  != 0 if VIRIAL_FDOTR bit of vflag set and no_virial_fdotr = 0
-     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set, OR
-                       if VIRIAL_CENTROID bit of vflag set
+     vflag_fdotr  != 0 if VIRIAL_FDOTR bit of vflag is set and no_virial_fdotr = 0
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag is set, OR
+                       if VIRIAL_CENTROID bit of vflag is set
                        and centroidstressflag != CENTROID_AVAIL
-     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag set
+     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag is set
                        and centroidstressflag = CENTROID_AVAIL
      vflag_either != 0 if any of vflag_global, vflag_atom, cvflag_atom is set
      evflag       != 0 if eflag_either or vflag_either is set
@@ -912,9 +957,10 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
 {
   int i,n;
 
-  eflag_either = eflag;
+  eflag_either = eflag & (ENERGY_GLOBAL | ENERGY_ATOM);
   eflag_global = eflag & ENERGY_GLOBAL;
   eflag_atom = eflag & ENERGY_ATOM;
+  eflag_only = eflag_global ? (eflag & ENERGY_ONLY) : 0;
 
   vflag_global = vflag & VIRIAL_PAIR;
   if (vflag & VIRIAL_FDOTR && no_virial_fdotr_compute == 1) vflag_global = 1;
@@ -1014,6 +1060,7 @@ void Pair::ev_unset()
   eflag_either = 0;
   eflag_global = 0;
   eflag_atom = 0;
+  eflag_only = 0;
 
   vflag_either = 0;
   vflag_global = 0;
@@ -1837,7 +1884,7 @@ void Pair::write_file(int narg, char **arg)
   // add line with DATE: and UNITS: tag when creating new file
   // print header in format used by pair_style table
 
-  FILE *fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     std::string table_file = arg[6];
 
@@ -1890,7 +1937,7 @@ void Pair::write_file(int narg, char **arg)
 
   Pair *epair = force->pair_match("^eam",0);
   if (epair) epair->swap_eam(eamfp, &eamfp_hold);
-  if ((comm->me == 0) && (epair))
+  if ((comm->me == 0) && epair)
     error->warning(FLERR,"EAM pair style. Table will not include embedding term");
 
   // if atom style defines charge, swap in dummy q vec
@@ -1952,8 +1999,6 @@ void Pair::write_file(int narg, char **arg)
   double *tmp;
   if (epair) epair->swap_eam(eamfp_hold, &tmp);
   if (atom->q) atom->q = q_hold;
-
-  if (comm->me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -2003,9 +2048,9 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
 
   union_int_float_t rsq_lookup;
   rsq_lookup.f = outer*outer;
-  maskhi = rsq_lookup.i & ~(nmask);
+  maskhi = rsq_lookup.i & ~nmask;
   rsq_lookup.f = inner*inner;
-  masklo = rsq_lookup.i & ~(nmask);
+  masklo = rsq_lookup.i & ~nmask;
 }
 
 /* ---------------------------------------------------------------------- */

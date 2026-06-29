@@ -1,23 +1,15 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 #ifndef TESTRESIZE_HPP_
 #define TESTRESIZE_HPP_
 
 #include <gtest/gtest.h>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace TestViewResize {
 
@@ -123,13 +115,13 @@ void impl_testResize() {
   {
     using view_type = Kokkos::View<int*, DeviceType>;
     view_type view_1d("view_1d", sizes[0]);
-    typename view_type::HostMirror h_view_1d_old =
+    typename view_type::host_mirror_type h_view_1d_old =
         Kokkos::create_mirror(view_1d);
     Kokkos::deep_copy(view_1d, 111);
     Kokkos::deep_copy(h_view_1d_old, view_1d);
     resize_dispatch(Tag{}, view_1d, 2 * sizes[0]);
     EXPECT_EQ(view_1d.extent(0), 2 * sizes[0]);
-    typename view_type::HostMirror h_view_1d =
+    typename view_type::host_mirror_type h_view_1d =
         Kokkos::create_mirror_view(view_1d);
     Kokkos::deep_copy(h_view_1d, view_1d);
     bool test = true;
@@ -144,13 +136,13 @@ void impl_testResize() {
   {
     using view_type = Kokkos::View<int**, DeviceType>;
     view_type view_2d("view_2d", sizes[0], sizes[1]);
-    typename view_type::HostMirror h_view_2d_old =
+    typename view_type::host_mirror_type h_view_2d_old =
         Kokkos::create_mirror(view_2d);
     Kokkos::deep_copy(view_2d, 222);
     Kokkos::deep_copy(h_view_2d_old, view_2d);
     resize_dispatch(Tag{}, view_2d, 2 * sizes[0], sizes[1]);
     EXPECT_EQ(view_2d.extent(0), 2 * sizes[0]);
-    typename view_type::HostMirror h_view_2d =
+    typename view_type::host_mirror_type h_view_2d =
         Kokkos::create_mirror_view(view_2d);
     Kokkos::deep_copy(h_view_2d, view_2d);
     bool test = true;
@@ -167,13 +159,13 @@ void impl_testResize() {
   {
     using view_type = Kokkos::View<int***, DeviceType>;
     view_type view_3d("view_3d", sizes[0], sizes[1], sizes[2]);
-    typename view_type::HostMirror h_view_3d_old =
+    typename view_type::host_mirror_type h_view_3d_old =
         Kokkos::create_mirror(view_3d);
     Kokkos::deep_copy(view_3d, 333);
     Kokkos::deep_copy(h_view_3d_old, view_3d);
     resize_dispatch(Tag{}, view_3d, 2 * sizes[0], sizes[1], sizes[2]);
     EXPECT_EQ(view_3d.extent(0), 2 * sizes[0]);
-    typename view_type::HostMirror h_view_3d =
+    typename view_type::host_mirror_type h_view_3d =
         Kokkos::create_mirror_view(view_3d);
     Kokkos::deep_copy(h_view_3d, view_3d);
     bool test = true;
@@ -192,13 +184,13 @@ void impl_testResize() {
   {
     using view_type = Kokkos::View<int****, DeviceType>;
     view_type view_4d("view_4d", sizes[0], sizes[1], sizes[2], sizes[3]);
-    typename view_type::HostMirror h_view_4d_old =
+    typename view_type::host_mirror_type h_view_4d_old =
         Kokkos::create_mirror(view_4d);
     Kokkos::deep_copy(view_4d, 444);
     Kokkos::deep_copy(h_view_4d_old, view_4d);
     resize_dispatch(Tag{}, view_4d, 2 * sizes[0], sizes[1], sizes[2], sizes[3]);
     EXPECT_EQ(view_4d.extent(0), 2 * sizes[0]);
-    typename view_type::HostMirror h_view_4d =
+    typename view_type::host_mirror_type h_view_4d =
         Kokkos::create_mirror_view(view_4d);
     Kokkos::deep_copy(h_view_4d, view_4d);
     bool test = true;
@@ -220,14 +212,14 @@ void impl_testResize() {
     using view_type = Kokkos::View<int*****, DeviceType>;
     view_type view_5d("view_5d", sizes[0], sizes[1], sizes[2], sizes[3],
                       sizes[4]);
-    typename view_type::HostMirror h_view_5d_old =
+    typename view_type::host_mirror_type h_view_5d_old =
         Kokkos::create_mirror(view_5d);
     Kokkos::deep_copy(view_5d, 555);
     Kokkos::deep_copy(h_view_5d_old, view_5d);
     resize_dispatch(Tag{}, view_5d, 2 * sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4]);
     EXPECT_EQ(view_5d.extent(0), 2 * sizes[0]);
-    typename view_type::HostMirror h_view_5d =
+    typename view_type::host_mirror_type h_view_5d =
         Kokkos::create_mirror_view(view_5d);
     Kokkos::deep_copy(h_view_5d, view_5d);
     bool test = true;
@@ -252,14 +244,14 @@ void impl_testResize() {
     using view_type = Kokkos::View<int******, DeviceType>;
     view_type view_6d("view_6d", sizes[0], sizes[1], sizes[2], sizes[3],
                       sizes[4], sizes[5]);
-    typename view_type::HostMirror h_view_6d_old =
+    typename view_type::host_mirror_type h_view_6d_old =
         Kokkos::create_mirror(view_6d);
     Kokkos::deep_copy(view_6d, 666);
     Kokkos::deep_copy(h_view_6d_old, view_6d);
     resize_dispatch(Tag{}, view_6d, 2 * sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4], sizes[5]);
     EXPECT_EQ(view_6d.extent(0), 2 * sizes[0]);
-    typename view_type::HostMirror h_view_6d =
+    typename view_type::host_mirror_type h_view_6d =
         Kokkos::create_mirror_view(view_6d);
     Kokkos::deep_copy(h_view_6d, view_6d);
     bool test = true;
@@ -286,14 +278,14 @@ void impl_testResize() {
     using view_type = Kokkos::View<int*******, DeviceType>;
     view_type view_7d("view_7d", sizes[0], sizes[1], sizes[2], sizes[3],
                       sizes[4], sizes[5], sizes[6]);
-    typename view_type::HostMirror h_view_7d_old =
+    typename view_type::host_mirror_type h_view_7d_old =
         Kokkos::create_mirror(view_7d);
     Kokkos::deep_copy(view_7d, 777);
     Kokkos::deep_copy(h_view_7d_old, view_7d);
     resize_dispatch(Tag{}, view_7d, 2 * sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4], sizes[5], sizes[6]);
     EXPECT_EQ(view_7d.extent(0), 2 * sizes[0]);
-    typename view_type::HostMirror h_view_7d =
+    typename view_type::host_mirror_type h_view_7d =
         Kokkos::create_mirror_view(view_7d);
     Kokkos::deep_copy(h_view_7d, view_7d);
     bool test = true;
@@ -322,14 +314,14 @@ void impl_testResize() {
     using view_type = Kokkos::View<int********, DeviceType>;
     view_type view_8d("view_8d", sizes[0], sizes[1], sizes[2], sizes[3],
                       sizes[4], sizes[5], sizes[6], sizes[7]);
-    typename view_type::HostMirror h_view_8d_old =
+    typename view_type::host_mirror_type h_view_8d_old =
         Kokkos::create_mirror(view_8d);
     Kokkos::deep_copy(view_8d, 888);
     Kokkos::deep_copy(h_view_8d_old, view_8d);
     resize_dispatch(Tag{}, view_8d, 2 * sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4], sizes[5], sizes[6], sizes[7]);
     EXPECT_EQ(view_8d.extent(0), 2 * sizes[0]);
-    typename view_type::HostMirror h_view_8d =
+    typename view_type::host_mirror_type h_view_8d =
         Kokkos::create_mirror_view(view_8d);
     Kokkos::deep_copy(h_view_8d, view_8d);
     bool test = true;

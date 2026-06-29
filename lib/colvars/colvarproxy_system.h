@@ -70,6 +70,15 @@ public:
   /// Set the current integration timestep of the simulation (fs units)
   virtual int set_integration_timestep(cvm::real dt);
 
+  /// Time step of the simulation (fs units)
+  inline int time_step_factor() const
+  {
+    return time_step_factor_;
+  }
+
+  /// Set the current integration timestep of the simulation (fs units)
+  virtual int set_time_step_factor(int fact);
+
   /// \brief Pseudo-random number with Gaussian distribution
   virtual cvm::real rand_gaussian(void);
 
@@ -111,7 +120,7 @@ public:
   virtual int send_alch_lambda();
 
   /// Request energy computation every freq steps (necessary for NAMD3, not all back-ends)
-  virtual int request_alch_energy_freq(int const freq) {
+  virtual int request_alch_energy_freq(int const /* freq */) {
     return COLVARS_OK;
   }
 
@@ -154,6 +163,9 @@ protected:
 
   /// Current integration timestep (engine units); default to 1.0 if undefined
   double timestep_;
+
+  /// Current timestep multiplier, if Colvars is only called once every n MD timesteps
+  int time_step_factor_ = 1;
 
   /// \brief Value of 1 Angstrom in the internal (front-end) Colvars unit for atomic coordinates
   /// * defaults to 0 in the base class; derived proxy classes must set it

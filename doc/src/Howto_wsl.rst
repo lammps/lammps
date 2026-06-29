@@ -358,4 +358,4 @@ these skills will make you much more productive in this environment.
 
 .. seealso::
 
-   * `Windows Subsystem for Linux Documentation <https://docs.microsoft.com/en-us/windows/wsl/>`_
+   * `Windows Subsystem for Linux Documentation <https://learn.microsoft.com/en-us/windows/wsl/>`_

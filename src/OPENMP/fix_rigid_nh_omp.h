@@ -24,10 +24,10 @@ class FixRigidNHOMP : public FixRigidNH {
 
   void initial_integrate(int) override;
   void final_integrate() override;
-  void remap() override;
 
  protected:
   void compute_forces_and_torques() override;
+  void remap() override;
 
  private:    // copied from FixRigidOMP
   template <int, int, int> void set_xv_thr();

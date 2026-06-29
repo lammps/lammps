@@ -80,7 +80,7 @@ public:
                 const bool eflag, const bool vflag, const bool eatom,
                 const bool vatom, int &host_start, int **ilist, int **numj,
                 const double cpu_time, bool &success, double *charge,
-                double *boxlo, double *prd);
+                double *boxlo, double *prd, int *periodicity);
 
 
   // --------------------------- TYPE DATA --------------------------

@@ -112,6 +112,9 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
     argoffs +=6;
   } else error->all(FLERR,"Illegal fix smd command");
 
+  if (comm->me == 0)
+    error->warning(FLERR, "Fix smd is unmaintained. Consider using fix colvars or fix plumed.");
+
   force_flag = 0;
   ftotal[0] = ftotal[1] = ftotal[2] = 0.0;
 }

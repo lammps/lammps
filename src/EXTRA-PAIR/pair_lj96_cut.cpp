@@ -49,6 +49,8 @@ PairLJ96Cut::PairLJ96Cut(LAMMPS *lmp) : Pair(lmp)
 
 PairLJ96Cut::~PairLJ96Cut()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

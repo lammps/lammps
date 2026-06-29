@@ -135,6 +135,7 @@ class TorchWrapper(torch.nn.Module):
         device = self.device
         if (use_gpu_data and (device is None) and (str(beta.device).find('CUDA') == 1)):
             device = 'cuda' #Override device as it wasn't defined in the model
+            self.model = self.model.to(device)
         with torch.autograd.enable_grad():
 
             if (use_gpu_data):

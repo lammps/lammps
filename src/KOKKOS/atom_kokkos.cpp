@@ -27,6 +27,8 @@
 #include "fix.h"
 #include "fix_property_atom_kokkos.h"
 
+#include <map>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -47,6 +49,7 @@ AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
   h_tag_max = Kokkos::subview(h_tag_min_max,1);
 
   nprop_atom = 0;
+  hybrid_flag = 0;
   fix_prop_atom = nullptr;
 }
 
@@ -72,6 +75,7 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_omega, omega);
   memoryKK->destroy_kokkos(k_angmom, angmom);
   memoryKK->destroy_kokkos(k_torque, torque);
+  memoryKK->destroy_kokkos(k_ellipsoid, ellipsoid);
 
   memoryKK->destroy_kokkos(k_nspecial, nspecial);
   memoryKK->destroy_kokkos(k_special, special);
@@ -125,7 +129,7 @@ void AtomKokkos::init()
 {
   Atom::init();
 
-  sort_classic = lmp->kokkos->sort_classic;
+  sort_legacy = lmp->kokkos->sort_legacy;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -152,9 +156,73 @@ void AtomKokkos::update_property_atom()
 
 /* ---------------------------------------------------------------------- */
 
-void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
+/* ----------------------------------------------------------------------
+   return a pointer to a per-atom property by name (used by the library
+   interface).  Override the base-class version so that data which lives on
+   the device is first synced back to the host.  Without this, library or
+   Python calls to extract_atom() that are not aligned with an output step
+   (e.g. issued from the LAMMPS GUI or a "python" command during a run) may
+   hand out stale host data when running with KOKKOS on a GPU.  See issue #3945.
+------------------------------------------------------------------------- */
+
+void *AtomKokkos::extract(const char *name)
 {
-  if (space == Device && lmp->kokkos->auto_sync) {
+  // map the public extract name to the KOKKOS data mask of the dual view that
+  // holds it.  Names whose data is not device-resident are simply absent here
+  // (their host copy is always current) and fall through to Atom::extract().
+
+  static const std::map<std::string, uint64_t> extract_mask = {
+      {"id", TAG_MASK}, {"type", TYPE_MASK}, {"mask", MASK_MASK}, {"image", IMAGE_MASK},
+      {"x", X_MASK}, {"v", V_MASK}, {"f", F_MASK}, {"q", Q_MASK}, {"mu", MU_MASK},
+      {"omega", OMEGA_MASK}, {"angmom", ANGMOM_MASK}, {"torque", TORQUE_MASK},
+      {"radius", RADIUS_MASK}, {"rmass", RMASS_MASK}, {"ellipsoid", ELLIPSOID_MASK},
+      {"molecule", MOLECULE_MASK}, {"nspecial", SPECIAL_MASK}, {"special", SPECIAL_MASK},
+      {"num_bond", BOND_MASK}, {"bond_type", BOND_MASK}, {"bond_atom", BOND_MASK},
+      {"num_angle", ANGLE_MASK}, {"angle_type", ANGLE_MASK},
+      {"angle_atom1", ANGLE_MASK}, {"angle_atom2", ANGLE_MASK}, {"angle_atom3", ANGLE_MASK},
+      {"num_dihedral", DIHEDRAL_MASK}, {"dihedral_type", DIHEDRAL_MASK},
+      {"dihedral_atom1", DIHEDRAL_MASK}, {"dihedral_atom2", DIHEDRAL_MASK},
+      {"dihedral_atom3", DIHEDRAL_MASK}, {"dihedral_atom4", DIHEDRAL_MASK},
+      {"num_improper", IMPROPER_MASK}, {"improper_type", IMPROPER_MASK},
+      {"improper_atom1", IMPROPER_MASK}, {"improper_atom2", IMPROPER_MASK},
+      {"improper_atom3", IMPROPER_MASK}, {"improper_atom4", IMPROPER_MASK},
+      {"sp", SP_MASK}, {"dpdTheta", DPDTHETA_MASK}};
+
+  const auto it = extract_mask.find(name);
+  if (it != extract_mask.end()) {
+    sync(Host, it->second);
+  } else if (utils::strmatch(name, "^[id]2?_")) {
+    // custom per-atom data (fix property/atom). each prefix maps to its own
+    // data mask:
+    //   i_  -> ivector (IVECTOR_MASK)    d_  -> dvector (DVECTOR_MASK)
+    //   i2_ -> iarray  (IARRAY_MASK)     d2_ -> darray  (DARRAY_MASK)
+    // only dvector is currently device-resident, so the other three syncs are
+    // no-ops until that data is ported to the device; using all four masks here
+    // means extract() needs no change once it is.
+    const bool dbl = (name[0] == 'd');
+    const bool arr = (name[1] == '2');
+    uint64_t cmask;
+    if (!dbl && !arr) cmask = IVECTOR_MASK;
+    else if (dbl && !arr) cmask = DVECTOR_MASK;
+    else if (!dbl && arr) cmask = IARRAY_MASK;
+    else cmask = DARRAY_MASK;
+    sync(Host, cmask);
+  }
+
+  return Atom::extract(name);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
+{
+  if ((space == Device || space == HostKK) && lmp->kokkos->auto_sync) {
+
+    // sync HostKK -> Host if needed
+
+    avecKK->sync(Host, mask);
+    for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(Host, mask);
+
     avecKK->modified(Host, mask);
     for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(Host, mask);
   }
@@ -165,12 +233,12 @@ void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
+void AtomKokkos::modified(const ExecutionSpace space, uint64_t mask)
 {
   avecKK->modified(space, mask);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(space, mask);
 
-  if (space == Device && lmp->kokkos->auto_sync) {
+  if ((space == Device || space == HostKK) && lmp->kokkos->auto_sync) {
     avecKK->sync(Host, mask);
     for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(Host, mask);
   }
@@ -178,21 +246,20 @@ void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)
+void AtomKokkos::sync_pinned(const ExecutionSpace space, uint64_t mask, int async_flag)
 {
-  avecKK->sync_overlapping_device(space, mask);
-  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync_overlapping_device(space, mask);
+  avecKK->sync_pinned(space, mask, async_flag);
+  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync_pinned(space, mask, async_flag);
 }
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::allocate_type_arrays()
 {
   if (avec->mass_type == AtomVec::PER_TYPE) {
-    k_mass = DAT::tdual_float_1d("Mass", ntypes + 1);
-    mass = k_mass.h_view.data();
+    memoryKK->create_kokkos(k_mass,mass,ntypes + 1,"atom::mass");
     mass_setflag = new int[ntypes + 1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
-    k_mass.modify<LMPHostType>();
+    k_mass.modify_host();
   }
 }
 
@@ -202,29 +269,50 @@ void AtomKokkos::sort()
 {
   // check if all fixes with atom-based arrays support sort on device
 
-  if (!sort_classic) {
+  if (!sort_legacy) {
     int flag = 1;
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
       auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
       if (!fix_iextra->sort_device) {
         flag = 0;
         if (comm->me == 0)
-          error->warning(FLERR,"Fix {} not compatible with Kokkos sorting on device", fix_iextra->style);
+          error->warning(FLERR,"Fix {} not (yet) compatible with Kokkos sorting on device", fix_iextra->style);
         break;
       }
     }
     if (!flag) {
       if (comm->me == 0) {
-        error->warning(FLERR,"Fix with atom-based arrays not compatible with Kokkos sorting on device, "
-                           "switching to classic host sorting");
+        error->warning(FLERR,"Fix with atom-based arrays not (yet) compatible with Kokkos sorting on device, "
+                           "switching to legacy host sorting");
       }
-      sort_classic = true;
+      sort_legacy = true;
+    }
+
+    int bonus_flag = (ellipsoid_flag || line_flag || tri_flag || body_flag);
+
+    if (bonus_flag) {
+      if (comm->me == 0) {
+        error->warning(FLERR,"Atom bonus data not (yet) compatible with Kokkos sorting on device, "
+                           "switching to legacy host sorting");
+      }
+      sort_legacy = true;
+    }
+
+    if (hybrid_flag) {
+      if (comm->me == 0) {
+        error->warning(FLERR,"Atom_style hybrid not (yet) compatible with Kokkos sorting on device, "
+                           "switching to legacy host sorting");
+      }
+      sort_legacy = true;
     }
   }
 
-  if (sort_classic) {
+  if (sort_legacy) {
     sync(Host, ALL_MASK);
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    lmp->kokkos->auto_sync = 1;
     Atom::sort();
+    lmp->kokkos->auto_sync = prev_auto_sync;
     modified(Host, ALL_MASK);
   } else sort_device();
 }
@@ -246,7 +334,7 @@ void AtomKokkos::sort_device()
 
   if (domain->triclinic) domain->lamda2x(nlocal);
 
-  auto d_x = k_x.d_view;
+  auto d_x = k_x.view_device();
   sync(Device, X_MASK);
 
   // sort
@@ -256,7 +344,7 @@ void AtomKokkos::sort_device()
   max_bins[1] = nbiny;
   max_bins[2] = nbinz;
 
-  using KeyViewType = DAT::t_x_array;
+  using KeyViewType = DAT::t_kkfloat_1d_3_lr;
   using BinOp = BinOp3DLAMMPS<KeyViewType>;
   BinOp binner(max_bins, bboxlo, bboxhi);
   Kokkos::BinSort<KeyViewType, BinOp> Sorter(d_x, 0, nlocal, binner, false);
@@ -407,12 +495,12 @@ AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sfla
 {
   // check if avec already exists, if so this is a hybrid substyle
 
-  int hybrid_substyle_flag = (avec != nullptr);
+  hybrid_flag = (avec != nullptr);
 
   AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
   if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a Kokkos-enabled atom_style");
 
-  if (!hybrid_substyle_flag)
+  if (!hybrid_flag)
     avecKK = dynamic_cast<AtomVecKokkos*>(avec);
 
   return avec;

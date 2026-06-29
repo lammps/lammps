@@ -23,6 +23,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_wall.h"
 #include "force.h"
 #include "lattice.h"
 #include "random_mars.h"
@@ -79,12 +80,12 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal fix wall/reflect/stochastic command");
 
       int newwall;
-      if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
-      else if (strcmp(arg[iarg],"xhi") == 0) newwall = XHI;
-      else if (strcmp(arg[iarg],"ylo") == 0) newwall = YLO;
-      else if (strcmp(arg[iarg],"yhi") == 0) newwall = YHI;
-      else if (strcmp(arg[iarg],"zlo") == 0) newwall = ZLO;
-      else if (strcmp(arg[iarg],"zhi") == 0) newwall = ZHI;
+      if (strcmp(arg[iarg],"xlo") == 0) newwall = FixWall::XLO;
+      else if (strcmp(arg[iarg],"xhi") == 0) newwall = FixWall::XHI;
+      else if (strcmp(arg[iarg],"ylo") == 0) newwall = FixWall::YLO;
+      else if (strcmp(arg[iarg],"yhi") == 0) newwall = FixWall::YHI;
+      else if (strcmp(arg[iarg],"zlo") == 0) newwall = FixWall::ZLO;
+      else if (strcmp(arg[iarg],"zhi") == 0) newwall = FixWall::ZHI;
 
       for (int m = 0; (m < nwall) && (m < 6); m++)
         if (newwall == wallwhich[m])
@@ -139,19 +140,19 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
   if (nwall == 0) error->all(FLERR,"Illegal fix wall command");
 
   for (int m = 0; m < nwall; m++) {
-    if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
+    if ((wallwhich[m] == FixWall::XLO || wallwhich[m] == FixWall::XHI) && domain->xperiodic)
       error->all(FLERR,"Cannot use fix wall/reflect/stochastic "
                  "in periodic dimension");
-    if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
+    if ((wallwhich[m] == FixWall::YLO || wallwhich[m] == FixWall::YHI) && domain->yperiodic)
       error->all(FLERR,"Cannot use fix wall/reflect/stochastic "
                  "in periodic dimension");
-    if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
+    if ((wallwhich[m] == FixWall::ZLO || wallwhich[m] == FixWall::ZHI) && domain->zperiodic)
       error->all(FLERR,"Cannot use fix wall/reflect/stochastic "
                  "in periodic dimension");
   }
 
   for (int m = 0; m < nwall; m++)
-    if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
+    if ((wallwhich[m] == FixWall::ZLO || wallwhich[m] == FixWall::ZHI) && domain->dimension == 2)
       error->all(FLERR,
                  "Cannot use fix wall/reflect/stochastic zlo/zhi "
                  "for a 2d simulation");
@@ -171,8 +172,8 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
 
     for (int m = 0; m < nwall; m++) {
       if (wallstyle[m] != CONSTANT) continue;
-      if (wallwhich[m] < YLO) coord0[m] *= xscale;
-      else if (wallwhich[m] < ZLO) coord0[m] *= yscale;
+      if (wallwhich[m] < FixWall::YLO) coord0[m] *= xscale;
+      else if (wallwhich[m] < FixWall::ZLO) coord0[m] *= yscale;
       else coord0[m] *= zscale;
     }
   }

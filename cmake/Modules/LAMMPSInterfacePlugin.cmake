@@ -34,26 +34,26 @@ if(MSVC)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
+# We *require* C++17 without extensions
+# Kokkos also requires at least C++17 (currently)
 if(NOT CMAKE_CXX_STANDARD)
-  if(cxx_std_17 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+# uncomment in case we plan to switch to C++20 as minimum standard
+#  if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+#    set(CMAKE_CXX_STANDARD 20)
+#  else()
     set(CMAKE_CXX_STANDARD 17)
-  else()
-    set(CMAKE_CXX_STANDARD 11)
-  endif()
-endif()
-if(CMAKE_CXX_STANDARD LESS 11)
-  message(FATAL_ERROR "C++ standard must be set to at least 11")
+#  endif()
 endif()
 if(CMAKE_CXX_STANDARD LESS 17)
-  message(WARNING "Selecting C++17 standard is preferred over C++${CMAKE_CXX_STANDARD}")
+  message(FATAL_ERROR "C++ standard must be set to at least 17")
 endif()
 if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 17))
   set(CMAKE_CXX_STANDARD 17)
 endif()
-# turn off C++17 check in lmptype.h
-if(LAMMPS_CXX11)
-  add_compile_definitions(LAMMPS_CXX11)
-endif()
+# turn off C++20 check in lmptype.h
+#if(LAMMPS_CXX17)
+#  add_compile_definitions(LAMMPS_CXX17)
+#endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Need -restrict with Intel compilers
@@ -64,6 +64,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 # skip over obsolete MPI-2 C++ bindings
 set(MPI_CXX_SKIP_MPICXX TRUE)
+
+# compile external libraries for linking to shared objects
+set(CONFIGURE_REQUEST_PIC "--with-pic")
+set(CMAKE_REQUEST_PIC "-DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}")
 
 #######
 # helper functions from LAMMPSUtils.cmake
@@ -145,15 +149,15 @@ if(BUILD_MPI)
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
     message(STATUS "Downloading and configuring MS-MPI 10.1 for Windows cross-compilation")
     set(MPICH2_WIN64_DEVEL_URL "${LAMMPS_THIRDPARTY_URL}/msmpi-win64-devel.tar.gz" CACHE STRING "URL for MS-MPI (win64) tarball")
-    set(MPICH2_WIN64_DEVEL_MD5 "86314daf1bffb809f1fcbefb8a547490" CACHE STRING "MD5 checksum of MS-MPI (win64) tarball")
+    set(MPICH2_WIN64_DEVEL_SHA256 "939f5bad74311a84839196ca9140549189ef00785b0ef8e94ad6a180014ccb7f" CACHE STRING "SHA256 checksum of MS-MPI (win64) tarball")
     mark_as_advanced(MPICH2_WIN64_DEVEL_URL)
-    mark_as_advanced(MPICH2_WIN64_DEVEL_MD5)
+    mark_as_advanced(MPICH2_WIN64_DEVEL_SHA256)
 
     include(ExternalProject)
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
       ExternalProject_Add(mpi4win_build
         URL     ${MPICH2_WIN64_DEVEL_URL}
-        URL_MD5 ${MPICH2_WIN64_DEVEL_MD5}
+        URL_HASH SHA256=${MPICH2_WIN64_DEVEL_SHA256}
         CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
         BUILD_BYPRODUCTS <SOURCE_DIR>/lib/libmsmpi.a)
     else()

@@ -62,7 +62,6 @@ namespace ReaxFF {
       int type_i, type_j, type_k, type_l;
       int start_j, end_j;
       int start_pj, end_pj, start_pk, end_pk;
-      int num_frb_intrs = 0;
 
       double Delta_j, Delta_k;
       double r_ij, r_jk, r_kl, r_li;
@@ -200,12 +199,7 @@ namespace ReaxFF {
 
                     if (i != l && fbh->cnt &&
                         bo_kl->BO > control->thb_cut/*0*/ &&
-                        bo_ij->BO * bo_jk->BO * bo_kl->BO > control->thb_cut/*0*/) {
-                      ++num_frb_intrs;
-                      //fprintf(stderr,
-                      //      "%5d: %6d %6d %6d %6d\n", num_frb_intrs,
-                      //      system->my_atoms[i].orig_id,system->my_atoms[j].orig_id,
-                      //      system->my_atoms[k].orig_id,system->my_atoms[l].orig_id);
+                        bo_ij->BO * bo_jk->BO * bo_kl->BO > control->thb_cut) {
 
                       r_kl = pbond_kl->d;
                       BOA_kl = bo_kl->BO - control->thb_cut;
@@ -213,7 +207,6 @@ namespace ReaxFF {
                       theta_jkl = p_jkl->theta;
                       sin_jkl = sin(theta_jkl);
                       cos_jkl = cos(theta_jkl);
-                      //tan_jkl_i = 1. / tan(theta_jkl);
                       if (sin_jkl >= 0 && sin_jkl <= MIN_SINE)
                         tan_jkl_i = cos_jkl / MIN_SINE;
                       else if (sin_jkl <= 0 && sin_jkl >= -MIN_SINE)

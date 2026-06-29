@@ -4,6 +4,9 @@
 pair_style lambda/input/apip command
 ====================================
 
+pair_style lambda/input/csp/apip command
+========================================
+
 Syntax
 """"""
 

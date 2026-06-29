@@ -22,6 +22,7 @@
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
+#include "info.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "neigh_list.h"
@@ -61,7 +62,7 @@ int **bornclcs_gpu_compute_n(const int ago, const int inum_full, const int nall,
                              int **nspecial, tagint **special, const bool eflag, const bool vflag,
                              const bool eatom, const bool vatom, int &host_start, int **ilist,
                              int **jnum, const double cpu_time, bool &success, double *host_q,
-                             double *boxlo, double *prd);
+                             double *boxlo, double *prd, int* periodicity);
 void bornclcs_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                           int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
                           const bool vflag, const bool eatom, const bool vatom, int &host_start,
@@ -74,6 +75,9 @@ double bornclcs_gpu_bytes();
 PairBornCoulLongCSGPU::PairBornCoulLongCSGPU(LAMMPS *lmp) :
     PairBornCoulLongCS(lmp), gpu_mode(GPU_FORCE)
 {
+  if (Info::has_accelerator_feature("GPU","precision","single"))
+    error->all(FLERR,"Pair style born/coul/long/cs/gpu does not support single precision GPU mode");
+
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
@@ -117,7 +121,7 @@ void PairBornCoulLongCSGPU::compute(int eflag, int vflag)
     firstneigh = bornclcs_gpu_compute_n(
         neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag, atom->nspecial,
         atom->special, eflag, vflag, eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-        cpu_time, success, atom->q, domain->boxlo, domain->prd);
+        cpu_time, success, atom->q, domain->boxlo, domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;

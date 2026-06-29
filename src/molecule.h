@@ -17,6 +17,7 @@
 #include "pointers.h"
 
 #include "json_fwd.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -32,12 +33,14 @@ class Molecule : protected Pointers {
 
   // number of atoms,bonds,etc in molecule
   // nibody,ndbody = # of integer/double fields in body
+  // number of lines or triangles
 
   int natoms;
   int nbonds, nangles, ndihedrals, nimpropers;
   int ntypes, nmolecules, nfragments;
   int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
   int nibody, ndbody;
+  int nlines,ntris;
 
   // max bond,angle,etc per atom
 
@@ -48,13 +51,19 @@ class Molecule : protected Pointers {
 
   int xflag, typeflag, moleculeflag, fragmentflag, qflag, radiusflag, muflag, rmassflag;
   int bondflag, angleflag, dihedralflag, improperflag;
+  int auto_angleflag, auto_dihedralflag, auto_improperflag;
   int nspecialflag, specialflag;
   int shakeflag, shakeflagflag, shakeatomflag, shaketypeflag;
   int bodyflag, ibodyflag, dbodyflag;
+  int lineflag, triflag;
 
   // 1 if attribute defined or computed, 0 if not
 
   int centerflag, massflag, comflag, inertiaflag;
+
+  // 1 if attribute defined in input, 0 if computed
+
+  int massflag_user, comflag_user, inertiaflag_user, specialflag_user;
 
   // 1 if molecule fields require atom IDs
 
@@ -64,11 +73,18 @@ class Molecule : protected Pointers {
 
   double **x;          // displacement of each atom from origin
   int *type;           // type of each atom
-  tagint *molecule;    // molecule of each atom
+  tagint *molecule;    // molecule-ID of each atom
   double *q;           // charge on each atom
   double *radius;      // radius of each atom
   double *rmass;       // mass of each atom
   double **mu;         // dipole vector of each atom
+
+  int *molline;        // molecule-ID of each line
+  int *typeline;       // type of each line
+  double **lines;      // line end points
+  int *moltri;         // molecule-ID of each triangles
+  int *typetri;        // type of each triangle
+  double **tris;       // triangle corner points
 
   int *num_bond;    // bonds, angles, dihedrals, impropers for each atom
   int **bond_type;
@@ -129,6 +145,7 @@ class Molecule : protected Pointers {
 
   void command(int, char **, int &);
   void from_json(const std::string &id, const json &);
+  [[nodiscard]] json to_json() const;
 
   void compute_center();
   void compute_mass();
@@ -137,11 +154,15 @@ class Molecule : protected Pointers {
   int findfragment(const char *);
   void check_attributes();
 
+  double memory_usage();
+  void print(FILE *fp=stdout);
+
  private:
-  FILE *fp;
+  SafeFilePtr fp;
   int *count;
   int toffset, boffset, aoffset, doffset, ioffset;
   int json_format;
+  int check_which_labels[4];
   double sizescale;
 
   void read(int);
@@ -153,6 +174,8 @@ class Molecule : protected Pointers {
   void diameters(char *);
   void dipoles(char *);
   void masses(char *);
+  void line_segments(char *);
+  void triangles(char *);
   void bonds(int, char *);
   void angles(int, char *);
   void dihedrals(int, char *);
@@ -160,6 +183,9 @@ class Molecule : protected Pointers {
   void nspecial_read(int, char *);
   void special_read(char *);
   void special_generate();
+  void generate_angles();
+  void generate_dihedrals();
+  void generate_impropers();
   void shakeflag_read(char *);
   void shakeatom_read(char *);
   void shaketype_read(char *);
@@ -173,8 +199,8 @@ class Molecule : protected Pointers {
   std::string parse_keyword(int, char *);
   void skip_lines(int, char *, const std::string &);
 
+  void check_labels();
   void stats();
-  // void print();
 };
 
 }    // namespace LAMMPS_NS

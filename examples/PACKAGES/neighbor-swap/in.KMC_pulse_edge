@@ -38,7 +38,7 @@ thermo_style    custom step temp press pxx pyy pzz lx ly lz vol pe
 
 velocity    all create 2400 908124 loop geom
 fix         temp all npt temp 1000 1000 1000 aniso 0 0 1
-fix         mc all neighbor/swap 50 12 1340723 1000 3 voroN diff 2
+fix         mc all neighbor/swap 50 12 1340723 1000 3.0 voroN diff 2
 thermo_style    custom step temp press pxx pyy pzz lx ly lz vol pe f_mc[*]
 #dump           dump2 all custom 5000 dump.edge-3_Ni-Cr.* id type x y z c_eng c_csym
 

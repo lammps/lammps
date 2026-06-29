@@ -40,6 +40,8 @@ PairLennardMDF::PairLennardMDF(LAMMPS *lmp) : Pair(lmp) {}
 
 PairLennardMDF::~PairLennardMDF()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

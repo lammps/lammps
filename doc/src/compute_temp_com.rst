@@ -1,7 +1,10 @@
 .. index:: compute temp/com
+.. index:: compute temp/com/kk
 
 compute temp/com command
 ========================
+
+Accelerator Variants: *temp/com/kk*
 
 Syntax
 """"""
@@ -82,6 +85,12 @@ See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Output info
 """""""""""
 
@@ -100,7 +109,7 @@ values is in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

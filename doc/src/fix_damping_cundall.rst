@@ -70,11 +70,12 @@ using an :doc:`atom-style variable <variable>`.
 
 .. Note::
 
-  The damping force/torque is computed based on the force/torque at the moment
-  this fix is invoked. Any force/torque added after this fix, e.g., by
-  :doc:`fix addforce <fix_addforce>` or :doc:`fix addtorque <fix_addtorque>`
-  will not be damped. When performing simulations with gravity, invoking
-  :doc:`fix gravity <fix_gravity>` after this fix will maintain the specified
+  The damping force/torque is computed based on the force/torque at the
+  moment this fix is invoked. Any force/torque added after this fix,
+  e.g., by :doc:`fix addforce <fix_addforce>` or :doc:`fix
+  addtorque/group <fix_addtorque_group>` will not be damped. When
+  performing simulations with gravity, invoking :doc:`fix gravity
+  <fix_gravity>` after this fix will maintain the specified
   gravitational acceleration.
 
 .. Note::

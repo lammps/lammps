@@ -48,7 +48,7 @@ class Improper : protected Pointers {
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
-  unsigned int datamask_read, datamask_modify;
+  uint64_t datamask_read, datamask_modify;
   int copymode, kokkosable;
 
   Improper(class LAMMPS *);
@@ -77,7 +77,7 @@ class Improper : protected Pointers {
   int suffix_flag;    // suffix compatibility flag
 
   int evflag;
-  int eflag_either, eflag_global, eflag_atom;
+  int eflag_either, eflag_global, eflag_atom, eflag_only;
   int vflag_either, vflag_global, vflag_atom, cvflag_atom;
   int maxeatom, maxvatom, maxcvatom;
 
@@ -86,8 +86,8 @@ class Improper : protected Pointers {
     if (eflag || vflag)
       ev_setup(eflag, vflag, alloc);
     else
-      evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom =
-          cvflag_atom = 0;
+      evflag = eflag_either = eflag_global = eflag_atom = eflag_only = vflag_either = vflag_global =
+          vflag_atom = cvflag_atom = 0;
   }
   void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, int, int, double, double *, double *, double *, double, double,

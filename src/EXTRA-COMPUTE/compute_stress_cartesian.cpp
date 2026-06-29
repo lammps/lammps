@@ -39,7 +39,7 @@ static constexpr double SMALL = 1.0e-10;
 ------------------------------------------------------------------------------------*/
 
 static const char cite_compute_stress_cartesian[] =
-    "compute stress/cartesian: doi:10.3390/nano11010165\n\n"
+    "compute stress/cartesian: https://doi.org/10.3390/nano11010165\n\n"
     "@article{galteland2021nanothermodynamic,\n"
     "title={Nanothermodynamic Description and Molecular Simulation of a\n"
     "   Single-Phase Fluid in a Slit Pore},\n"

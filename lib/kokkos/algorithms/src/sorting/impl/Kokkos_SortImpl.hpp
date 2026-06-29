@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SORT_FREE_FUNCS_IMPL_HPP_
 #define KOKKOS_SORT_FREE_FUNCS_IMPL_HPP_
@@ -21,7 +8,15 @@
 #include "../Kokkos_BinSortPublicAPI.hpp"
 #include <std_algorithms/Kokkos_BeginEnd.hpp>
 #include <std_algorithms/Kokkos_Copy.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+#include <Kokkos_Assert.hpp>
+
+#include <cmath>
 
 #if defined(KOKKOS_ENABLE_CUDA)
 
@@ -36,43 +31,22 @@
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma GCC diagnostic ignored "-Wsuggest-override"
 
-#if defined(KOKKOS_COMPILER_CLANG)
-// Some versions of Clang fail to compile Thrust, failing with errors like
-// this:
-//    <snip>/thrust/system/cuda/detail/core/agent_launcher.h:557:11:
-//    error: use of undeclared identifier 'va_printf'
-// The exact combination of versions for Clang and Thrust (or CUDA) for this
-// failure was not investigated, however even very recent version combination
-// (Clang 10.0.0 and Cuda 10.0) demonstrated failure.
-//
-// Defining _CubLog here locally allows us to avoid that code path, however
-// disabling some debugging diagnostics
-#pragma push_macro("_CubLog")
-#ifdef _CubLog
-#undef _CubLog
-#endif
-// NOLINTNEXTLINE(bugprone-reserved-identifier)
-#define _CubLog
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
-#pragma pop_macro("_CubLog")
-#else
-#include <thrust/device_ptr.h>
-#include <thrust/sort.h>
-#endif
 
 #pragma GCC diagnostic pop
 
-#endif
+#elif defined(KOKKOS_ENABLE_ROCTHRUST)
 
-#if defined(KOKKOS_ENABLE_ROCTHRUST)
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
+
 #endif
 
 #if defined(KOKKOS_ENABLE_ONEDPL)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wsign-compare"
 #pragma GCC diagnostic ignored "-Wunused-local-typedef"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -85,6 +59,21 @@
       ONEDPL_VERSION_PATCH
 #define KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(MAJOR, MINOR, PATCH) \
   (KOKKOS_IMPL_ONEDPL_VERSION >= ((MAJOR)*10000 + (MINOR)*100 + (PATCH)))
+
+namespace Kokkos::Impl {
+template <typename Comparator, typename ValueType>
+struct ComparatorWrapper {
+  Comparator comparator;
+  KOKKOS_FUNCTION bool operator()(const ValueType& i,
+                                  const ValueType& j) const {
+    return comparator(i, j);
+  }
+};
+}  // namespace Kokkos::Impl
+
+template <typename Comparator, typename ValueType>
+struct sycl::is_device_copyable<
+    Kokkos::Impl::ComparatorWrapper<Comparator, ValueType>> : std::true_type {};
 #endif
 
 namespace Kokkos {
@@ -234,7 +223,7 @@ void sort_onedpl(const Kokkos::SYCL& space,
                 "SYCL execution space is not able to access the memory space "
                 "of the View argument!");
 
-#if KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(2022, 7, 1)
+#if KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(2022, 8, 0)
   static_assert(ViewType::rank == 1,
                 "Kokkos::sort currently only supports rank-1 Views.");
 #else
@@ -260,17 +249,28 @@ void sort_onedpl(const Kokkos::SYCL& space,
   auto queue  = space.sycl_queue();
   auto policy = oneapi::dpl::execution::make_device_policy(queue);
 
-#if KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(2022, 7, 1)
-  oneapi::dpl::sort(policy, ::Kokkos::Experimental::begin(view),
-                    ::Kokkos::Experimental::end(view),
-                    std::forward<MaybeComparator>(maybeComparator)...);
+#if KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(2022, 8, 0)
+  auto view_begin = ::Kokkos::Experimental::begin(view);
+  auto view_end   = ::Kokkos::Experimental::end(view);
 #else
   // Can't use Experimental::begin/end here since the oneDPL then assumes that
   // the data is on the host.
-  const int n = view.extent(0);
-  oneapi::dpl::sort(policy, view.data(), view.data() + n,
-                    std::forward<MaybeComparator>(maybeComparator)...);
+  const int n     = view.extent(0);
+  auto view_begin = view.data();
+  auto view_end   = view.data() + n;
 #endif
+
+  if constexpr (sizeof...(MaybeComparator) == 0)
+    oneapi::dpl::sort(policy, view_begin, view_end);
+  else {
+    using value_type =
+        typename Kokkos::View<DataType, Properties...>::value_type;
+    auto comparator =
+        std::get<0>(std::tuple<MaybeComparator...>(maybeComparator...));
+    oneapi::dpl::sort(
+        policy, view_begin, view_end,
+        ComparatorWrapper<decltype(comparator), value_type>{comparator});
+  }
 }
 #endif
 
@@ -347,7 +347,7 @@ void sort_device_view_without_comparator(
       "sort_device_view_without_comparator: supports rank-1 Views "
       "with LayoutLeft, LayoutRight or LayoutStride");
 
-#if KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(2022, 7, 1)
+#if KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(2022, 8, 0)
   sort_onedpl(exec, view);
 #else
   if (view.stride(0) == 1) {
@@ -406,7 +406,7 @@ void sort_device_view_with_comparator(
       "sort_device_view_with_comparator: supports rank-1 Views "
       "with LayoutLeft, LayoutRight or LayoutStride");
 
-#if KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(2022, 7, 1)
+#if KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(2022, 8, 0)
   sort_onedpl(exec, view, comparator);
 #else
   if (view.stride(0) == 1) {

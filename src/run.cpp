@@ -39,7 +39,8 @@ void Run::command(int narg, char **arg)
   if (narg < 1) utils::missing_cmd_args(FLERR, "run", error);
 
   if (domain->box_exist == 0)
-    error->all(FLERR, -1, "Run command before simulation box is defined" + utils::errorurl(33));
+    error->all(FLERR, Error::COMMAND, "Run command before simulation box is defined"
+               + utils::errorurl(33));
 
   // ignore run command, if walltime limit was already reached
 

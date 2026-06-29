@@ -49,37 +49,45 @@ class DomainKokkos : public Domain {
 
   int closest_image(const int, int) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_remap_all, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_image_flip, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_lamda2x, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_lamda2x_group, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_x2lamda, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_x2lamda_group, const int&) const;
 
+// NOLINTNEXTLINE
   static KOKKOS_INLINE_FUNCTION
   Few<double,3> unmap(Few<double,3> prd, Few<double,6> h, int triclinic,
       Few<double,3> x, imageint image);
 
  private:
   int groupbit;
-  double lo[3],hi[3],period[3];
+  KK_FLOAT lo[3],hi[3],period[3];
   int n_flip, m_flip, p_flip;
-  ArrayTypes<LMPDeviceType>::t_x_array x;
+  ArrayTypes<LMPDeviceType>::t_kkfloat_1d_3_lr x;
   ArrayTypes<LMPDeviceType>::t_imageint_1d image;
   ArrayTypes<LMPDeviceType>::t_int_1d mask;
 };
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 Few<double,3> DomainKokkos::unmap(Few<double,3> prd, Few<double,6> h,
     int triclinic, Few<double,3> x, imageint image)

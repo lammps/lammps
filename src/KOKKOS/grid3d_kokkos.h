@@ -39,15 +39,15 @@ class Grid3dKokkos : public Grid3d {
                     FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
 
  private:
-  DAT::tdual_int_2d k_swap_packlist;
-  DAT::tdual_int_2d k_swap_unpacklist;
+  DAT::tdual_int_2d_lr k_swap_packlist;
+  DAT::tdual_int_2d_lr k_swap_unpacklist;
 
-  DAT::tdual_int_2d k_send_packlist;
+  DAT::tdual_int_2d_lr k_send_packlist;
 
-  DAT::tdual_int_2d k_recv_unpacklist;
+  DAT::tdual_int_2d_lr k_recv_unpacklist;
 
-  DAT::tdual_int_2d k_copy_packlist;
-  DAT::tdual_int_2d k_copy_unpacklist;
+  DAT::tdual_int_2d_lr k_copy_packlist;
+  DAT::tdual_int_2d_lr k_copy_unpacklist;
 
   // -------------------------------------------
   // internal methods
@@ -67,7 +67,7 @@ class Grid3dKokkos : public Grid3d {
 
   void grow_swap() override;
 
-  int indices(DAT::tdual_int_2d &, int, int, int, int, int, int, int);
+  int indices(DAT::tdual_int_2d_lr &, int, int, int, int, int, int, int);
 };
 
 }    // namespace LAMMPS_NS

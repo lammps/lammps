@@ -126,8 +126,6 @@ TEST_F(LAMMPS_plain, TestStyles)
     EXPECT_STREQ(found, "PERI");
     found = lmp->match_style("atom", "spin");
     EXPECT_STREQ(found, "SPIN");
-    found = lmp->match_style("atom", "wavepacket");
-    EXPECT_STREQ(found, "AWPMD");
     found = lmp->match_style("atom", "dpd");
     EXPECT_STREQ(found, "DPD-REACT");
     found = lmp->match_style("atom", "edpd");

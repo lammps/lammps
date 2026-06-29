@@ -16,6 +16,15 @@ various symbolic constants to be used
 in certain calls to select data formats
 """
 
+# all exported symbols
+__all__ = ['LAMMPS_AUTODETECT', 'LAMMPS_NONE', 'LAMMPS_INT', 'LAMMPS_INT_2D', 'LAMMPS_DOUBLE',
+           'LAMMPS_DOUBLE_2D', 'LAMMPS_INT64', 'LAMMPS_INT64_2D', 'LAMMPS_STRING',
+           'LMP_STYLE_GLOBAL', 'LMP_STYLE_ATOM', 'LMP_STYLE_LOCAL', 'LMP_TYPE_SCALAR',
+           'LMP_TYPE_VECTOR', 'LMP_TYPE_ARRAY', 'LMP_SIZE_VECTOR', 'LMP_SIZE_ROWS',
+           'LMP_SIZE_COLS', 'LMP_ERROR_WARNING', 'LMP_ERROR_ONE', 'LMP_ERROR_ALL',
+           'LMP_ERROR_WORLD', 'LMP_ERROR_UNIVERSE', 'LMP_VAR_EQUAL', 'LMP_VAR_ATOM',
+           'LMP_VAR_VECTOR', 'LMP_VAR_STRING', 'LMP_BUFSIZE', 'get_ctypes_int', 'LMP_MAX_GROUP']
+
 # these must be kept in sync with the enums in src/library.h, src/lmptype.h,
 # tools/swig/lammps.i, examples/COUPLE/plugin/liblammpsplugin.h,
 # and the constants in fortran/lammps.f90
@@ -54,6 +63,7 @@ LMP_VAR_STRING     = 3
 
 # default buffer size for string buffers
 LMP_BUFSIZE        = 1024
+LMP_MAX_GROUP      = 32
 # -------------------------------------------------------------------------
 
 def get_ctypes_int(size):

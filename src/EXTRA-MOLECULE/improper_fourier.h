@@ -42,7 +42,7 @@ class ImproperFourier : public Improper {
               const int &evflag, const int &eflag, const double &vb1x, const double &vb1y,
               const double &vb1z, const double &vb2x, const double &vb2y, const double &vb2z,
               const double &vb3x, const double &vb3y, const double &vb3z);
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

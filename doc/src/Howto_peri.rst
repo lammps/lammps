@@ -186,7 +186,7 @@ Linear Peridynamic Solid (LPS) Model
 We summarize the linear peridynamic solid (LPS) material model. For more
 on this model, the reader is referred to :ref:`(Silling 2007)
 <Silling2007_2>`.  This model is a nonlocal analogue to a classical
-linear elastic isotropic material. The elastic properties of a a
+linear elastic isotropic material. The elastic properties of a
 classical linear elastic isotropic material are determined by (for
 example) the bulk and shear moduli. For the LPS model, the elastic
 properties are analogously determined by the bulk and shear moduli,
@@ -558,7 +558,7 @@ both the position and velocity of the particle are stored
 explicitly. The velocity-Verlet scheme is generally expressed in three
 steps. In :ref:`Algorithm 1 <algvelverlet>`, :math:`\rho_i` denotes the
 mass density of a particle and :math:`\widetilde{\textbf{f}}_i^n`
-denotes the the net force density on particle :math:`i` at timestep
+denotes the net force density on particle :math:`i` at timestep
 :math:`n`. The LAMMPS command :doc:`fix nve <fix_nve>` performs a
 velocity-Verlet integration.
 
@@ -581,11 +581,22 @@ as broken in a simulation by removing them from the bond family
 
 A naive implementation would have us first loop over all bonds and
 compute :math:`s_{min}` in :ref:`(9) <peris0>`, then loop over all bonds
-again and break bonds with a stretch :math:`s > s0` as in
+again and break bonds with a stretch :math:`s > s_0` as in
 :ref:`(8) <perimu>`, and finally loop over all particles and compute forces
 for the next step of :ref:`Algorithm 1 <algvelverlet>`. For reasons of
-computational efficiency, we will utilize the values of :math:`s_0` from
-the *previous* timestep when deciding to break a bond.
+computational efficiency, we instead store the per-particle minimum stretch
+:math:`s_{min}` from the *previous* timestep and, when deciding whether to
+break a bond, form its critical stretch :math:`s_0 = s_{00} - \alpha\,
+s_{min}` from that bond's own :math:`s_{00}` and :math:`\alpha`.  This keeps
+the criterion correct when :math:`s_{00}` and :math:`\alpha` differ between
+atom-type pairs (for example, a deliberately weakened interface).
+
+.. versionchanged:: TBD
+
+Earlier versions stored a single per-particle critical stretch :math:`s_0`
+(the maximum of :math:`s_{00} - \alpha s` over a particle's bonds), which
+reproduces :ref:`(9) <peris0>` only when :math:`s_{00}` and :math:`\alpha`
+are identical for all atom-type pairs.
 
 .. note::
 
@@ -818,7 +829,7 @@ the LAMMPS :doc:`boundary <boundary>` command has been set. If a
 particle drifts outside the simulation box during the course of a
 simulation, it is called *lost*.
 
-As an option of the :doc:`themo_modify <thermo_modify>` command of
+As an option of the :doc:`thermo_modify <thermo_modify>` command of
 LAMMPS, the lost keyword determines whether LAMMPS checks for lost atoms
 each time it computes thermodynamics and what it does if atoms are
 lost. If the value is *ignore*, LAMMPS does not check for lost atoms. If

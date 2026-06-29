@@ -1,23 +1,15 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_STD_ALGORITHMS_REMOVE_IMPL_HPP
 #define KOKKOS_STD_ALGORITHMS_REMOVE_IMPL_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include "Kokkos_Constraints.hpp"
 #include "Kokkos_HelperPredicates.hpp"
 #include <std_algorithms/Kokkos_Distance.hpp>
@@ -126,7 +118,7 @@ IteratorType remove_if_exespace_impl(const std::string& label,
         func1_type(first, begin(tmp_view), pred), scan_count);
 
     // scan_count should be equal to keep_count
-    assert(scan_count == keep_count);
+    KOKKOS_ASSERT(scan_count == keep_count);
     (void)scan_count;  // to avoid unused complaints
 
     // stage 2, we do parfor to move from tmp to original range

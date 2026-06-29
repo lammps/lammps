@@ -69,7 +69,7 @@
 using namespace LAMMPS_NS;
 
 static constexpr const char *const cite_openkim =
-    "OpenKIM Project: doi:10.1007/s11837-011-0102-6\n\n"
+    "OpenKIM Project: https://doi.org/10.1007/s11837-011-0102-6\n\n"
     "@Article{tadmor:elliott:2011,\n"
     " author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller "
     "and C. A. Becker},\n"
@@ -84,7 +84,7 @@ static constexpr const char *const cite_openkim =
     "}\n\n";
 
 static constexpr const char *const cite_openkim_query =
-    "OpenKIM query: doi:10.1063/5.0014267\n\n"
+    "OpenKIM query: https://doi.org/10.1063/5.0014267\n\n"
     "@Article{karls:bierbaum:2020,\n"
     " author = {D. S. Karls and M. Bierbaum and A. A. Alemi and R. S. Elliott "
     "and J. P. Sethna and E. B. Tadmor},\n"

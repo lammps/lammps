@@ -1,21 +1,10 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_EXPERIMENTAL_IMPL_VIEW_CTOR_PROP_HPP
 #define KOKKOS_EXPERIMENTAL_IMPL_VIEW_CTOR_PROP_HPP
+
+#include "impl/Kokkos_Traits.hpp"
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -26,6 +15,16 @@ namespace Impl {
 struct SequentialHostInit_t {};
 struct WithoutInitializing_t {};
 struct AllowPadding_t {};
+
+// FIXME: AccessorArg_t needs to be templated
+// This really needs to be templated on the argument type
+// But that adds some more complication, preventing simply
+// copying the code from the above properties.
+// For Sacado we only need a size_t for fad_size
+// We can template this later in a separate change.
+struct AccessorArg_t {
+  size_t value{};
+};
 
 template <typename>
 struct is_view_ctor_property : public std::false_type {};
@@ -38,6 +37,9 @@ struct is_view_ctor_property<WithoutInitializing_t> : public std::true_type {};
 
 template <>
 struct is_view_ctor_property<AllowPadding_t> : public std::true_type {};
+
+template <>
+struct is_view_ctor_property<AccessorArg_t> : public std::true_type {};
 
 //----------------------------------------------------------------------------
 /**\brief Whether a type can be used for a view label */
@@ -53,6 +55,12 @@ struct is_view_label<char[N]> : public std::true_type {};
 
 template <unsigned N>
 struct is_view_label<const char[N]> : public std::true_type {};
+
+template <typename T>
+constexpr bool is_view_label_v = is_view_label<T>::value;
+
+template <typename T>
+concept ViewLabel = is_view_label_v<T>;
 
 //----------------------------------------------------------------------------
 
@@ -72,16 +80,14 @@ struct ViewCtorProp<void> {};
  */
 template <typename Specialize, typename T>
 struct ViewCtorProp<void, CommonViewAllocProp<Specialize, T>> {
-  ViewCtorProp()                                = default;
-  ViewCtorProp(const ViewCtorProp &)            = default;
-  ViewCtorProp &operator=(const ViewCtorProp &) = default;
+  ViewCtorProp() = default;
 
   using type = CommonViewAllocProp<Specialize, T>;
 
   KOKKOS_FUNCTION
   ViewCtorProp(const type &arg) : value(arg) {}
   KOKKOS_FUNCTION
-  ViewCtorProp(type &&arg) : value(arg) {}
+  ViewCtorProp(type &&arg) : value(std::move(arg)) {}
 
   type value;
 };
@@ -92,9 +98,7 @@ struct ViewCtorProp<std::enable_if_t<std::is_same_v<P, AllowPadding_t> ||
                                      std::is_same_v<P, WithoutInitializing_t> ||
                                      std::is_same_v<P, SequentialHostInit_t>>,
                     P> {
-  ViewCtorProp()                                = default;
-  ViewCtorProp(const ViewCtorProp &)            = default;
-  ViewCtorProp &operator=(const ViewCtorProp &) = default;
+  ViewCtorProp() = default;
 
   using type = P;
 
@@ -106,9 +110,7 @@ struct ViewCtorProp<std::enable_if_t<std::is_same_v<P, AllowPadding_t> ||
 /* Map input label type to std::string */
 template <typename Label>
 struct ViewCtorProp<std::enable_if_t<is_view_label<Label>::value>, Label> {
-  ViewCtorProp()                                = default;
-  ViewCtorProp(const ViewCtorProp &)            = default;
-  ViewCtorProp &operator=(const ViewCtorProp &) = default;
+  ViewCtorProp() = default;
 
   using type = std::string;
 
@@ -122,9 +124,7 @@ template <typename Space>
 struct ViewCtorProp<std::enable_if_t<Kokkos::is_memory_space<Space>::value ||
                                      Kokkos::is_execution_space<Space>::value>,
                     Space> {
-  ViewCtorProp()                                = default;
-  ViewCtorProp(const ViewCtorProp &)            = default;
-  ViewCtorProp &operator=(const ViewCtorProp &) = default;
+  ViewCtorProp() = default;
 
   using type = Space;
 
@@ -133,11 +133,21 @@ struct ViewCtorProp<std::enable_if_t<Kokkos::is_memory_space<Space>::value ||
   type value;
 };
 
+template <>
+struct ViewCtorProp<void, AccessorArg_t> {
+  ViewCtorProp() = default;
+
+  using type = AccessorArg_t;
+
+  KOKKOS_FUNCTION
+  ViewCtorProp(const type arg) : value(arg) {}
+
+  type value;
+};
+
 template <typename T>
 struct ViewCtorProp<void, T *> {
-  ViewCtorProp()                                = default;
-  ViewCtorProp(const ViewCtorProp &)            = default;
-  ViewCtorProp &operator=(const ViewCtorProp &) = default;
+  ViewCtorProp() = default;
 
   using type = T *;
 
@@ -158,6 +168,7 @@ struct ViewCtorProp<T *> : public ViewCtorProp<void, T *> {
   static constexpr bool allow_padding        = false;
   static constexpr bool initialize           = true;
   static constexpr bool sequential_host_init = false;
+  static constexpr bool has_accessor_arg     = false;
 
   using memory_space    = void;
   using execution_space = void;
@@ -206,6 +217,8 @@ struct ViewCtorProp : public ViewCtorProp<void, P>... {
       !Kokkos::Impl::has_type<WithoutInitializing_t, P...>::value;
   static constexpr bool sequential_host_init =
       Kokkos::Impl::has_type<SequentialHostInit_t, P...>::value;
+  static constexpr bool has_accessor_arg =
+      Kokkos::Impl::has_type<AccessorArg_t, P...>::value;
   static_assert(initialize || !sequential_host_init,
                 "Incompatible WithoutInitializing and SequentialHostInit view "
                 "alloc properties");
@@ -227,10 +240,16 @@ struct ViewCtorProp : public ViewCtorProp<void, P>... {
   ViewCtorProp(Args &&...args)
       : ViewCtorProp<void, P>(std::forward<Args>(args))... {}
 
+  // If we use `ViewCtorProp<void, Args>...` here MSVC gets confused
+  // error C3528: 'args': the number of elements in this pack expansion
+  // does not match the number of elements in 'P'
+  // Using the alias view_ctor_prop_base here as below fixes the issue.
+  // Encountered with MSVC 17 and CUDA 12.6
   template <typename... Args>
   KOKKOS_FUNCTION ViewCtorProp(pointer_type arg0, Args const &...args)
-      : ViewCtorProp<void, pointer_type>(arg0),
-        ViewCtorProp<void, typename ViewCtorProp<void, Args>::type>(args)... {}
+      : view_ctor_prop_base<pointer_type>(arg0),
+        view_ctor_prop_base<typename view_ctor_prop_base<Args>::type>(args)... {
+  }
 
   /* Copy from a matching property subset */
   KOKKOS_FUNCTION ViewCtorProp(pointer_type arg0)
@@ -267,6 +286,8 @@ auto with_properties_if_unset(const ViewCtorProp<P...> &view_ctor_prop,
                  !ViewCtorProp<P...>::has_memory_space) ||
                 (is_view_label<Property>::value &&
                  !ViewCtorProp<P...>::has_label) ||
+                (std::is_same_v<Property, AccessorArg_t> &&
+                 !ViewCtorProp<P...>::has_accessor_arg) ||
                 (std::is_same_v<Property, WithoutInitializing_t> &&
                  ViewCtorProp<P...>::initialize) ||
                 (std::is_same_v<Property, SequentialHostInit_t> &&
@@ -278,20 +299,6 @@ auto with_properties_if_unset(const ViewCtorProp<P...> &view_ctor_prop,
     return with_properties_if_unset(new_view_ctor_prop, properties...);
   } else
     return with_properties_if_unset(view_ctor_prop, properties...);
-
-// A workaround placed to prevent spurious "missing return statement at the
-// end of non-void function" warnings from CUDA builds (issue #5470). Because
-// KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK removes [[noreturn]] attribute from
-// cuda_abort(), an unreachable while(true); is placed as a fallback method
-#if (defined(KOKKOS_COMPILER_NVCC) && (KOKKOS_COMPILER_NVCC < 1150))
-  Kokkos::abort(
-      "Prevents an incorrect warning: missing return statement at end of "
-      "non-void function");
-#ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
-  while (true)
-    ;
-#endif
-#endif
 }
 #else
 
@@ -316,6 +323,8 @@ struct WithPropertiesIfUnset<ViewCtorProp<P...>, Property, Properties...> {
                    !ViewCtorProp<P...>::has_memory_space) ||
                   (is_view_label<Property>::value &&
                    !ViewCtorProp<P...>::has_label) ||
+                  (std::is_same_v<Property, AccessorArg_t> &&
+                   !ViewCtorProp<P...>::has_accessor_arg) ||
                   (std::is_same_v<Property, WithoutInitializing_t> &&
                    ViewCtorProp<P...>::initialize) ||
                   (std::is_same_v<Property, SequentialHostInit_t> &&
@@ -346,6 +355,7 @@ struct ExecutionSpaceTag {};
 struct MemorySpaceTag {};
 struct LabelTag {};
 struct PointerTag {};
+struct AccessorArgTag {};
 
 template <typename Tag, typename... P>
 KOKKOS_FUNCTION const auto &get_property(
@@ -371,32 +381,16 @@ KOKKOS_FUNCTION const auto &get_property(
     using pointer_type = typename ViewCtorProp<P...>::pointer_type;
     return static_cast<const ViewCtorProp<void, pointer_type> &>(view_ctor_prop)
         .value;
+  } else if constexpr (std::is_same_v<Tag, AccessorArgTag>) {
+    static_assert(ViewCtorProp<P...>::has_accessor_arg);
+    return static_cast<const ViewCtorProp<void, AccessorArg_t> &>(
+               view_ctor_prop)
+        .value;
   } else {
     static_assert(std::is_same_v<Tag, void>, "Invalid property tag!");
     return view_ctor_prop;
   }
-
-// A workaround placed to prevent spurious "missing return statement at the
-// end of non-void function" warnings from CUDA builds (issue #5470). Because
-// KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK removes [[noreturn]] attribute from
-// cuda_abort(), an unreachable while(true); is placed as a fallback method
-#if (defined(KOKKOS_COMPILER_NVCC) && (KOKKOS_COMPILER_NVCC < 1150))
-  Kokkos::abort(
-      "Prevents an incorrect warning: missing return statement at end of "
-      "non-void function");
-#ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
-  while (true)
-    ;
-#endif
-#endif
 }
-#if defined(KOKKOS_COMPILER_NVCC) && (KOKKOS_COMPILER_NVCC < 1150)
-// pragma pop is getting a warning from the underlying GCC
-// for unknown pragma if -pedantic is used
-#ifdef __CUDA_ARCH__
-#pragma pop
-#endif
-#endif
 #ifdef KOKKOS_IMPL_INTEL_BOGUS_MISSING_RETURN_STATEMENT_AT_END_OF_NON_VOID_FUNCTION
 #pragma warning(pop)
 #undef KOKKOS_IMPL_INTEL_BOGUS_MISSING_RETURN_STATEMENT_AT_END_OF_NON_VOID_FUNCTION
@@ -461,8 +455,8 @@ inline constexpr Kokkos::Impl::AllowPadding_t AllowPadding{};
  */
 template <class... Args>
 auto view_alloc(Args &&...args) {
-  using return_type = Impl::ViewCtorProp<typename Impl::ViewCtorProp<
-      void, Kokkos::Impl::remove_cvref_t<Args>>::type...>;
+  using return_type = Impl::ViewCtorProp<
+      typename Impl::ViewCtorProp<void, std::remove_cvref_t<Args>>::type...>;
 
   static_assert(!return_type::has_pointer,
                 "Cannot give pointer-to-memory for view allocation");

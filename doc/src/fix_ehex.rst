@@ -104,21 +104,21 @@ found in reference "(Wirnsberger)"#_Wirnsberger.
 .. note::
 
    This fix only integrates the thermostatting force and must be
-   combined with another integrator, such as :doc:`fix nve <fix_nve>`, to
-   solve the full equations of motion.
+   combined with another integrator, such as :doc:`fix nve <fix_nve>`,
+   to solve the full equations of motion.
 
 This fix is different from a thermostat such as :doc:`fix nvt <fix_nh>`
 or :doc:`fix temp/rescale <fix_temp_rescale>` in that energy is
-added/subtracted continually.  Thus if there is not another mechanism
-in place to counterbalance this effect, the entire system will heat or
-cool continuously.
+added/subtracted continually.  Thus if there is no other mechanism in
+place to counterbalance this effect, the entire system will heat or cool
+continuously.
 
 .. note::
 
-   If heat is subtracted from the system too aggressively so that
-   the group's kinetic energy would go to zero, then LAMMPS will halt
-   with an error message. Increasing the value of *nevery* means that
-   heat is added/subtracted less frequently but in larger portions.  The
+   If heat is subtracted from the system too aggressively so that the
+   group's kinetic energy would go to zero, then LAMMPS will halt with
+   an error message.  Increasing the value of *nevery* means that heat
+   is added/subtracted less frequently but in larger portions.  The
    resulting temperature profile will therefore be the same.
 
 This fix will default to :doc:`fix_heat <fix_heat>` (HEX algorithm) if
@@ -128,60 +128,66 @@ the keyword *hex* is specified.
 
 **Compatibility with SHAKE and RATTLE (rigid molecules)**\ :
 
-This fix is compatible with :doc:`fix shake <fix_shake>` and :doc:`fix rattle <fix_shake>`. If either of these constraining algorithms is
+This fix is compatible with :doc:`fix shake <fix_shake>` and :doc:`fix
+rattle <fix_shake>`.  If either of these constraining algorithms is
 specified in the input script and the keyword *constrain* is set, the
 bond distances will be corrected a second time at the end of the
 integration step.  It is recommended to specify the keyword *com* in
 addition to the keyword *constrain*\ . With this option all sites of a
 constrained cluster are rescaled, if its center of mass is located
 inside the region. Rescaling all sites of a cluster by the same factor
-does not introduce any velocity components along fixed bonds. No
+does not introduce any velocity components along fixed bonds.  No
 rescaling takes place if the center of mass lies outside the region.
 
 .. note::
 
    You can only use the keyword *com* along with *constrain*\ .
 
-To achieve the highest accuracy it is recommended to use :doc:`fix rattle <fix_shake>` with the keywords *constrain* and *com* as
-shown in the second example. Only if RATTLE is employed, the velocity
-constraints will be satisfied.
+To achieve the highest accuracy it is recommended to use :doc:`fix
+rattle <fix_shake>` with the keywords *constrain* and *com* as shown in
+the second example. Only if RATTLE is employed, the velocity constraints
+will be satisfied.
 
 .. note::
 
-   Even if RATTLE is used and the keywords *com* and *constrain*
-   are both set, the coordinate constraints will not necessarily be
+   Even if RATTLE is used and the keywords *com* and *constrain* are
+   both set, the coordinate constraints will not necessarily be
    satisfied up to the target precision. The velocity constraints are
    satisfied as long as all sites of a cluster are rescaled (keyword
-   *com*\ ) and the cluster does not span adjacent reservoirs. The current
-   implementation of the eHEX algorithm introduces a small error in the
-   bond distances, which goes to zero with order three in the
+   *com*\ ) and the cluster does not span adjacent reservoirs. The
+   current implementation of the eHEX algorithm introduces a small error
+   in the bond distances, which goes to zero with order three in the
    timestep. For example, in a simulation of SPC/E water with a timestep
    of 2 fs the maximum relative error in the bond distances was found to
-   be on the order of :math:`10^{-7}` for relatively large
-   temperature gradients.  A higher precision can be achieved by
-   decreasing the timestep.
+   be on the order of :math:`10^{-7}` for relatively large temperature
+   gradients.  A higher precision can be achieved by decreasing the
+   timestep.
 
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to this fix.
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
-This fix is part of the RIGID package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This fix is part of the RIGID package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix heat <fix_heat>`, :doc:`fix thermal/conductivity <fix_thermal_conductivity>`, :doc:`compute temp <compute_temp>`, :doc:`compute temp/region <compute_temp_region>`
+:doc:`fix heat <fix_heat>`, :doc:`fix thermal/conductivity <fix_thermal_conductivity>`,
+:doc:`compute temp <compute_temp>`, :doc:`compute temp/region <compute_temp_region>`
 
 Default
 """""""

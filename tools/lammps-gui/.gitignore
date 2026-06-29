@@ -71,3 +71,4 @@ Thumbs.db
 *.dll
 *.exe
 
+/help_index*

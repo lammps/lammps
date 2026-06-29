@@ -48,7 +48,7 @@ class PairCoulDiel : public Pair {
   double **sigmae, **rme, **offset;
   double a_eps, b_eps, eps_s;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

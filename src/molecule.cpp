@@ -16,10 +16,12 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
+#include "body.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "improper.h"
 #include "json.h"
 #include "label_map.h"
 #include "math_eigen.h"
@@ -47,7 +49,10 @@ static constexpr double SINERTIA = 0.4;    // moment of inertia prefactor for sp
 
 Molecule::Molecule(LAMMPS *lmp) :
     Pointers(lmp), id(nullptr), x(nullptr), type(nullptr), molecule(nullptr), q(nullptr),
-    radius(nullptr), rmass(nullptr), mu(nullptr), num_bond(nullptr), bond_type(nullptr),
+    radius(nullptr), rmass(nullptr), mu(nullptr),
+    lines(nullptr), tris(nullptr),
+    molline(nullptr), typeline(nullptr), moltri(nullptr), typetri(nullptr),
+    num_bond(nullptr), bond_type(nullptr),
     bond_atom(nullptr), num_angle(nullptr), angle_type(nullptr), angle_atom1(nullptr),
     angle_atom2(nullptr), angle_atom3(nullptr), num_dihedral(nullptr), dihedral_type(nullptr),
     dihedral_atom1(nullptr), dihedral_atom2(nullptr), dihedral_atom3(nullptr),
@@ -55,14 +60,14 @@ Molecule::Molecule(LAMMPS *lmp) :
     improper_atom2(nullptr), improper_atom3(nullptr), improper_atom4(nullptr), nspecial(nullptr),
     special(nullptr), shake_flag(nullptr), shake_atom(nullptr), shake_type(nullptr),
     avec_body(nullptr), ibodyparams(nullptr), dbodyparams(nullptr), fragmentmask(nullptr),
-    dx(nullptr), dxcom(nullptr), dxbody(nullptr), quat_external(nullptr), fp(nullptr),
-    count(nullptr)
+    dx(nullptr), dxcom(nullptr), dxbody(nullptr), quat_external(nullptr), count(nullptr)
 {
   // parse args until reach unknown arg (next file)
 
   toffset = 0;
   boffset = aoffset = doffset = ioffset = 0;
   sizescale = 1.0;
+  for (int i = 0; i < 4; i++) check_which_labels[i] = 0;
   json_format = 0;
 
   // initialize all fields to empty
@@ -133,6 +138,59 @@ void Molecule::command(int narg, char **arg, int &index)
       sizescale = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       if (sizescale <= 0.0) error->all(FLERR, iarg + 1, "Illegal scale factor {}", sizescale);
       iarg += 2;
+    } else if (strcmp(arg[iarg], "check_labels") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "check_labels", error);
+
+      int i = 0;
+      char option;
+
+      while ((option = arg[iarg + 1][i++]) != '\0') {
+        switch (option) {
+          case 'b':
+            check_which_labels[0] = 1;
+            break;
+          case 'a':
+            check_which_labels[1] = 1;
+            break;
+          case 'd':
+            check_which_labels[2] = 1;
+            break;
+          case 'i':
+            check_which_labels[3] = 1;
+            break;
+          default:
+            error->all(FLERR, iarg + 1, "Illegal check_labels option {}", option);
+            break;
+        }
+      }
+
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "auto") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "molecule auto", error);
+
+      int i = 0;
+      char option;
+
+      while ((option = arg[iarg + 1][i++]) != '\0') {
+        switch (option) {
+          case 'a':
+            auto_angleflag = 1;
+            break;
+          case 'd':
+            auto_dihedralflag = 1;
+            break;
+          case 'i':
+            if (std::string(force->improper_style) == "hybrid")
+              error->all(FLERR, fileiarg, "Cannot infer improper type with improper_style hybrid");
+            auto_improperflag = 1;
+            break;
+          default:
+            error->all(FLERR, iarg + 1, "Illegal auto option {}", option);
+            break;
+        }
+      }
+
+      iarg += 2;
     } else
       break;
   }
@@ -157,7 +215,7 @@ void Molecule::command(int narg, char **arg, int &index)
   // JSON files must have the extension .json
 
   std::string filename = arg[fileiarg];
-  if (utils::strmatch(filename, "\\.json$")) {
+  if (utils::strmatch(filename, R"(\.json$)")) {
 
     json moldata;
     std::vector<std::uint8_t> jsondata;
@@ -166,16 +224,15 @@ void Molecule::command(int narg, char **arg, int &index)
     if (comm->me == 0) {
       fp = fopen(filename.c_str(), "r");
       if (fp == nullptr)
-        error->one(FLERR, fileiarg, "Cannot open molecule file {}: {}", filename, utils::getsyserror());
+        error->one(FLERR, fileiarg, "Cannot open molecule file {}: {}", filename,
+                   utils::getsyserror());
       try {
         // try to parse as a JSON file. parser throws an exception on errors
         // if successful, temporarily serialize to bytearray for communication
         moldata = json::parse(fp);
         jsondata = json::to_ubjson(moldata);
         jsondata_size = jsondata.size();
-        fclose(fp);
       } catch (std::exception &e) {
-        fclose(fp);
         error->one(FLERR, fileiarg, "Error parsing JSON file {}: {}", filename, e.what());
       }
     }
@@ -204,7 +261,8 @@ void Molecule::command(int narg, char **arg, int &index)
     if (comm->me == 0) {
       fp = fopen(filename.c_str(), "r");
       if (fp == nullptr)
-        error->one(FLERR, fileiarg, "Cannot open molecule file {}: {}", filename, utils::getsyserror());
+        error->one(FLERR, fileiarg, "Cannot open molecule file {}: {}", filename,
+                   utils::getsyserror());
     }
 
     // scan file for sizes of all fields and allocate storage for them
@@ -216,8 +274,8 @@ void Molecule::command(int narg, char **arg, int &index)
 
     if (comm->me == 0) rewind(fp);
     Molecule::read(1);
-    if (comm->me == 0) fclose(fp);
   }
+  if (comm->me == 0) Molecule::check_labels();
   Molecule::stats();
 }
 
@@ -349,7 +407,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
 
   if (moldata.contains("special")) {
     if (moldata["special"].contains("counts")) {
-      nspecialflag = 1;
+      nspecialflag = specialflag_user = 1;
       maxspecial = 0;
       const auto &specialcounts = moldata["special"]["counts"];
       if (!specialcounts.contains("format"))
@@ -519,19 +577,19 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   // extract global properties, if present
 
   if (moldata.contains("masstotal")) {
-    massflag = 1;
+    massflag = massflag_user = 1;
     masstotal = double(moldata["masstotal"]) * sizescale * sizescale * sizescale;
   }
 
   if (moldata.contains("com") && (moldata["com"].size() == 3)) {
-    comflag = 1;
+    comflag = comflag_user = 1;
     com[0] = double(moldata["com"][0]) * sizescale;
     com[1] = double(moldata["com"][1]) * sizescale;
     com[2] = double(moldata["com"][2]) * sizescale;
   }
 
   if (moldata.contains("inertia") && (moldata["inertia"].size() == 6)) {
-    inertiaflag = 1;
+    inertiaflag = inertiaflag_user = 1;
     const double scale5 = powint(sizescale, 5);
     itensor[0] = double(moldata["inertia"][0]) * scale5;
     itensor[1] = double(moldata["inertia"][1]) * scale5;
@@ -668,7 +726,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
           error->all(FLERR, Error::NOLASTLINE,
                      "Molecule template {}: invalid atom type in \"types\" JSON section", id,
                      typestr);
-        type[iatom] = atom->lmap->find(typestr, Atom::ATOM);
+        type[iatom] = atom->lmap->find_type(typestr, Atom::ATOM);
         if (type[iatom] == -1)
           error->all(FLERR, Error::NOLASTLINE,
                      "Molecule template {}: Unknown atom type {} in \"types\" JSON section", id,
@@ -1053,7 +1111,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
               error->all(FLERR, Error::NOLASTLINE,
                          "Molecule template {}: invalid bond type in \"bonds\" JSON section", id,
                          typestr);
-            itype = atom->lmap->find(typestr, Atom::BOND);
+            itype = atom->lmap->find_type(typestr, Atom::BOND);
             if (itype == -1)
               error->all(FLERR, Error::NOLASTLINE,
                          "Molecule template {}: Unknown bond type {} in \"bonds\" JSON section", id,
@@ -1145,7 +1203,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
               error->all(FLERR, Error::NOLASTLINE,
                          "Molecule template {}: invalid angle type in \"angles\" JSON section", id,
                          typestr);
-            itype = atom->lmap->find(typestr, Atom::ANGLE);
+            itype = atom->lmap->find_type(typestr, Atom::ANGLE);
             if (itype == -1)
               error->all(FLERR, Error::NOLASTLINE,
                          "Molecule template {}: Unknown angle type {} in \"angles\" JSON section",
@@ -1167,9 +1225,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                        "Molecule template {}: invalid angle type in angle {}: {}", id, i + 1,
                        to_string(item));
           if (flag == 0) {
-            count[atom1 - 1]++;
+            count[atom2 - 1]++;
             if (newton_bond == 0) {
-              count[atom2 - 1]++;
+              count[atom1 - 1]++;
               count[atom3 - 1]++;
             }
           } else {
@@ -1248,7 +1306,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                        i + 1, to_string(item));
 
           if (item[0].is_number_integer()) {    // numeric type
-            itype = int(item[0]) + aoffset;
+            itype = int(item[0]) + doffset;
           } else {
             const auto &typestr = std::string(item[0]);
             if (!atom->labelmapflag)
@@ -1256,7 +1314,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                   FLERR, Error::NOLASTLINE,
                   "Molecule template {}: invalid dihedral type in \"dihedrals\" JSON section", id,
                   typestr);
-            itype = atom->lmap->find(typestr, Atom::DIHEDRAL);
+            itype = atom->lmap->find_type(typestr, Atom::DIHEDRAL);
             if (itype == -1)
               error->all(
                   FLERR, Error::NOLASTLINE,
@@ -1281,9 +1339,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                        "Molecule template {}: invalid dihedral type in dihedral {}: {}", id, i + 1,
                        to_string(item));
           if (flag == 0) {
-            count[atom1 - 1]++;
+            count[atom2 - 1]++;
             if (newton_bond == 0) {
-              count[atom2 - 1]++;
+              count[atom1 - 1]++;
               count[atom3 - 1]++;
               count[atom4 - 1]++;
             }
@@ -1381,7 +1439,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                   FLERR, Error::NOLASTLINE,
                   "Molecule template {}: invalid improper type in \"impropers\" JSON section", id,
                   typestr);
-            itype = atom->lmap->find(typestr, Atom::IMPROPER);
+            itype = atom->lmap->find_type(typestr, Atom::IMPROPER);
             if (itype == -1)
               error->all(
                   FLERR, Error::NOLASTLINE,
@@ -1406,9 +1464,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                        "Molecule template {}: invalid improper type in improper {}: {}", id, i + 1,
                        to_string(item));
           if (flag == 0) {
-            count[atom1 - 1]++;
+            count[atom2 - 1]++;
             if (newton_bond == 0) {
-              count[atom2 - 1]++;
+              count[atom1 - 1]++;
               count[atom3 - 1]++;
               count[atom4 - 1]++;
             }
@@ -1802,7 +1860,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                "Molecule template {}: \"shake\" info is incomplete in JSON data");
   if (bodyflag && !rmassflag)
     error->all(FLERR, Error::NOLASTLINE,
-               "Molecule template {}: \"body\" JSON section requires \"masses\" section", id);
+               R"(Molecule template {}: "body" JSON section requires "masses" section)", id);
 
   // auto-generate special bonds if needed and not in file
 
@@ -1812,9 +1870,14 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                  "Cannot auto-generate special bonds before simulation box is defined");
 
     special_generate();
+    specialflag_user = 0;
     specialflag = 1;
     nspecialflag = 1;
   }
+
+  if (auto_angleflag) generate_angles();
+  if (auto_dihedralflag) generate_dihedrals();
+  if (auto_improperflag) generate_impropers();
 
   // body particle must have natom = 1
   // set radius by having body class compute its own radius
@@ -1831,6 +1894,273 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   // clean up
 
   memory->destroy(count);
+}
+
+// clang-format on
+// ------------------------------------------------------------------------------
+//  convert json data structure to molecule data structure
+// ------------------------------------------------------------------------------
+
+json Molecule::to_json() const
+{
+  json moldata;
+
+  // required global settings
+  moldata["application"] = "LAMMPS";
+  moldata["format"] = "molecule";
+  moldata["revision"] = 1;
+  moldata["schema"] = "https://download.lammps.org/json/molecule-schema.json";
+  moldata["title"] = title;
+  moldata["units"] = update->unit_style;
+
+  // optional global settings
+  if (massflag_user) moldata["masstotal"] = masstotal;
+  if (comflag_user) {
+    moldata["com"][0] = com[0];
+    moldata["com"][1] = com[1];
+    moldata["com"][2] = com[2];
+  }
+  if (inertiaflag_user) {
+    moldata["inertia"][0] = itensor[0];
+    moldata["inertia"][1] = itensor[1];
+    moldata["inertia"][2] = itensor[2];
+    moldata["inertia"][3] = itensor[3];
+    moldata["inertia"][4] = itensor[4];
+    moldata["inertia"][5] = itensor[5];
+  }
+
+  // fields with format
+  if (xflag) {
+    moldata["coords"]["format"] = {"atom-id", "x", "y", "z"};
+    for (int i = 0; i < natoms; ++i) {
+      moldata["coords"]["data"][i] = {i + 1, x[i][0], x[i][1], x[i][2]};
+    }
+  }
+
+  if (typeflag) {
+    moldata["types"]["format"] = {"atom-id", "type"};
+    if (atom->labelmapflag && atom->lmap->is_complete(Atom::ATOM)) {
+      for (int i = 0; i < natoms; ++i) {
+        moldata["types"]["data"][i] = {i + 1, atom->lmap->find_label(type[i], Atom::ATOM)};
+      }
+    } else {
+      for (int i = 0; i < natoms; ++i) moldata["types"]["data"][i] = {i + 1, type[i]};
+    }
+  }
+
+  if (moleculeflag) {
+    moldata["molecules"]["format"] = {"atom-id", "molecule-id"};
+    for (int i = 0; i < natoms; ++i) moldata["molecules"]["data"][i] = {i + 1, molecule[i]};
+  }
+
+  if (fragmentflag) {
+    moldata["fragments"]["format"] = {"fragment-id", "atom-id-list"};
+    for (int i = 0; i < nfragments; ++i) {
+      moldata["fragments"]["data"][i][0] = fragmentnames[i];
+      int k = 0;
+      for (int j = 0; j < natoms; ++j) {
+        if (fragmentmask[i][j]) {
+          moldata["fragments"]["data"][i][1][k] = j + 1;
+          ++k;
+        }
+      }
+    }
+  }
+
+  if (qflag) {
+    moldata["charges"]["format"] = {"atom-id", "charge"};
+    for (int i = 0; i < natoms; ++i) moldata["charges"]["data"][i] = {i + 1, q[i]};
+  }
+
+  if (radiusflag) {
+    moldata["diameters"]["format"] = {"atom-id", "diameter"};
+    for (int i = 0; i < natoms; ++i) moldata["diameters"]["data"][i] = {i + 1, 2.0 * radius[i]};
+  }
+
+  if (muflag) {
+    moldata["dipoles"]["format"] = {"atom-id", "mux", "muy", "muz"};
+    for (int i = 0; i < natoms; ++i)
+      moldata["dipoles"]["data"][i] = {i + 1, mu[i][0], mu[i][1], mu[i][2]};
+  }
+
+  if (rmassflag) {
+    moldata["masses"]["format"] = {"atom-id", "mass"};
+    for (int i = 0; i < natoms; ++i) moldata["masses"]["data"][i] = {i + 1, rmass[i]};
+  }
+
+  bool has_newton_bond = force->newton_bond > 0;
+
+  if (bondflag) {
+    int idx = 0;
+    bool has_typelabels = (atom->labelmapflag != 0) && atom->lmap->is_complete(Atom::BOND);
+    moldata["bonds"]["format"] = {"bond-type", "atom1", "atom2"};
+    for (int i = 0; i < natoms; i++) {
+      for (int j = 0; j < num_bond[i]; j++) {
+        if (has_newton_bond || (i + 1 < bond_atom[i][j])) {
+          if (has_typelabels) {
+            moldata["bonds"]["data"][idx] = {atom->lmap->find_label(bond_type[i][j], Atom::BOND),
+                                             i + 1, bond_atom[i][j]};
+          } else {
+            moldata["bonds"]["data"][idx] = {bond_type[i][j], i + 1, bond_atom[i][j]};
+          }
+          ++idx;
+        }
+      }
+    }
+  }
+
+  if (angleflag) {
+    int idx = 0;
+    bool has_typelabels = (atom->labelmapflag != 0) && atom->lmap->is_complete(Atom::ANGLE);
+    moldata["angles"]["format"] = {"angle-type", "atom1", "atom2", "atom3"};
+    for (int i = 0; i < natoms; i++) {
+      for (int j = 0; j < num_angle[i]; j++) {
+        if (has_newton_bond || (i + 1 == angle_atom2[i][j])) {
+          if (has_typelabels) {
+            moldata["angles"]["data"][idx] = {atom->lmap->find_label(angle_type[i][j], Atom::ANGLE),
+                                              angle_atom1[i][j], angle_atom2[i][j],
+                                              angle_atom3[i][j]};
+          } else {
+            moldata["angles"]["data"][idx] = {angle_type[i][j], angle_atom1[i][j],
+                                              angle_atom2[i][j], angle_atom3[i][j]};
+          }
+          ++idx;
+        }
+      }
+    }
+  }
+
+  if (dihedralflag) {
+    int idx = 0;
+    bool has_typelabels = (atom->labelmapflag != 0) && atom->lmap->is_complete(Atom::DIHEDRAL);
+    moldata["dihedrals"]["format"] = {"dihedral-type", "atom1", "atom2", "atom3", "atom4"};
+    for (int i = 0; i < natoms; i++) {
+      for (int j = 0; j < num_dihedral[i]; j++) {
+        if (has_newton_bond || (i + 1 == dihedral_atom2[i][j])) {
+          if (has_typelabels) {
+            moldata["dihedrals"]["data"][idx] = {
+                atom->lmap->find_label(dihedral_type[i][j], Atom::DIHEDRAL), dihedral_atom1[i][j],
+                dihedral_atom2[i][j], dihedral_atom3[i][j], dihedral_atom4[i][j]};
+          } else {
+            moldata["dihedrals"]["data"][idx] = {dihedral_type[i][j], dihedral_atom1[i][j],
+                                                 dihedral_atom2[i][j], dihedral_atom3[i][j],
+                                                 dihedral_atom4[i][j]};
+          }
+          ++idx;
+        }
+      }
+    }
+  }
+
+  if (improperflag) {
+    int idx = 0;
+    bool has_typelabels = (atom->labelmapflag != 0) && atom->lmap->is_complete(Atom::IMPROPER);
+    moldata["impropers"]["format"] = {"improper-type", "atom1", "atom2", "atom3", "atom4"};
+    for (int i = 0; i < natoms; i++) {
+      for (int j = 0; j < num_improper[i]; j++) {
+        if (has_newton_bond || (i + 1 == improper_atom2[i][j])) {
+          if (has_typelabels) {
+            moldata["impropers"]["data"][idx] = {
+                atom->lmap->find_label(improper_type[i][j], Atom::IMPROPER), improper_atom1[i][j],
+                improper_atom2[i][j], improper_atom3[i][j], improper_atom4[i][j]};
+          } else {
+            moldata["impropers"]["data"][idx] = {improper_type[i][j], improper_atom1[i][j],
+                                                 improper_atom2[i][j], improper_atom3[i][j],
+                                                 improper_atom4[i][j]};
+          }
+          ++idx;
+        }
+      }
+    }
+  }
+
+  if (specialflag_user) {
+    moldata["special"]["counts"]["format"] = {"atom-id", "n12", "n13", "n14"};
+    moldata["special"]["bonds"]["format"] = {"atom-id", "atom-id-list"};
+    for (int i = 0; i < natoms; i++) {
+      moldata["special"]["counts"]["data"][i] = {
+          i + 1, nspecial[i][0], nspecial[i][1] - nspecial[i][0], nspecial[i][2] - nspecial[i][1]};
+      moldata["special"]["bonds"]["data"][i][0] = i + 1;
+      for (int j = 0; j < nspecial[i][2]; ++j)
+        moldata["special"]["bonds"]["data"][i][1][j] = special[i][j];
+    }
+  }
+
+  if (shakeflag) {
+    moldata["shake"]["flags"]["format"] = {"atom-id", "flag"};
+    moldata["shake"]["atoms"]["format"] = {"atom-id", "atom-id-list"};
+    moldata["shake"]["types"]["format"] = {"atom-id", "type-list"};
+    for (int i = 0; i < natoms; ++i) {
+      bool has_typelabels = (atom->labelmapflag != 0) && atom->lmap->is_complete(Atom::BOND);
+      moldata["shake"]["flags"]["data"][i] = {i + 1, shake_flag[i]};
+      moldata["shake"]["atoms"]["data"][i][0] = i + 1;
+      moldata["shake"]["types"]["data"][i][0] = i + 1;
+      switch (shake_flag[i]) {
+        case 1:
+          has_typelabels = has_typelabels && atom->lmap->is_complete(Atom::ANGLE);
+          moldata["shake"]["atoms"]["data"][i][1] = {shake_atom[i][0], shake_atom[i][1],
+                                                     shake_atom[i][2]};
+          if (has_typelabels) {
+            moldata["shake"]["types"]["data"][i][1] = {
+                atom->lmap->find_label(shake_type[i][0], Atom::BOND),
+                atom->lmap->find_label(shake_type[i][1], Atom::BOND),
+                atom->lmap->find_label(shake_type[i][2], Atom::ANGLE)};
+          } else {
+            moldata["shake"]["types"]["data"][i][1] = {shake_type[i][0], shake_type[i][1],
+                                                       shake_type[i][2]};
+          }
+          break;
+        case 2:
+          moldata["shake"]["atoms"]["data"][i][1] = {shake_atom[i][0], shake_atom[i][1]};
+          if (has_typelabels) {
+            moldata["shake"]["types"]["data"][i][1] = {
+                atom->lmap->find_label(shake_type[i][0], Atom::BOND),
+                atom->lmap->find_label(shake_type[i][1], Atom::BOND)};
+          } else {
+            moldata["shake"]["types"]["data"][i][1] = {shake_type[i][0], shake_type[i][1]};
+          }
+          break;
+        case 3:
+          moldata["shake"]["atoms"]["data"][i][1] = {shake_atom[i][0], shake_atom[i][1],
+                                                     shake_atom[i][2]};
+          if (has_typelabels) {
+            moldata["shake"]["types"]["data"][i][1] = {
+                atom->lmap->find_label(shake_type[i][0], Atom::BOND),
+                atom->lmap->find_label(shake_type[i][1], Atom::BOND),
+                atom->lmap->find_label(shake_type[i][2], Atom::BOND)};
+          } else {
+            moldata["shake"]["types"]["data"][i][1] = {shake_type[i][0], shake_type[i][1],
+                                                       shake_type[i][2]};
+          }
+          break;
+        case 4:
+          moldata["shake"]["atoms"]["data"][i][1] = {shake_atom[i][0], shake_atom[i][1],
+                                                     shake_atom[i][2], shake_atom[i][3]};
+          if (has_typelabels) {
+            moldata["shake"]["types"]["data"][i][1] = {
+                atom->lmap->find_label(shake_type[i][0], Atom::BOND),
+                atom->lmap->find_label(shake_type[i][1], Atom::BOND),
+                atom->lmap->find_label(shake_type[i][2], Atom::BOND),
+                atom->lmap->find_label(shake_type[i][3], Atom::BOND)};
+          } else {
+            moldata["shake"]["types"]["data"][i][1] = {shake_type[i][0], shake_type[i][1],
+                                                       shake_type[i][2], shake_type[i][3]};
+          }
+          break;
+        case 0:
+          moldata["shake"]["atoms"]["data"][i][1] = nullptr;
+          moldata["shake"]["types"]["data"][i][1] = nullptr;
+          break;
+      }
+    }
+  }
+
+  if (bodyflag) {
+    for (int i = 0; i < nibody; ++i) { moldata["body"]["integers"][i] = ibodyparams[i]; }
+    for (int i = 0; i < nibody; ++i) { moldata["body"]["doubles"][i] = dbodyparams[i]; }
+  }
+
+  return moldata;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2092,7 +2422,7 @@ void Molecule::read(int flag)
 
     // check for units keyword in first line and print warning on mismatch
 
-    auto units = Tokenizer(utils::strfind(line, "units = \\w+")).as_vector();
+    auto units = Tokenizer(utils::strfind(line, R"(units = \w+)")).as_vector();
     if ((flag == 0) && (units.size() > 2)) {
       if (units[2] != update->unit_style)
         error->warning(FLERR, "Inconsistent units in data file: current = {}, data file = {}",
@@ -2108,6 +2438,8 @@ void Molecule::read(int flag)
   // skip blank lines or lines that start with "#"
   // stop when read an unrecognized line
   bool has_atoms = false;
+  bool has_lines = false;
+  bool has_tris = false;
 
   while (true) {
 
@@ -2117,40 +2449,49 @@ void Molecule::read(int flag)
 
     auto text = utils::trim(utils::trim_comment(line));
     if (text.empty()) continue;
-    if (utils::strmatch(text, "^\\s*#")) continue;
+    if (utils::strmatch(text, R"(^\s*#)")) continue;
 
     // search line for header keywords and set corresponding variable
+
     try {
       ValueTokenizer values(text);
 
       int nmatch = values.count();
       int nwant = 0;
-      if (values.matches("^\\s*\\d+\\s+atoms\\s*$")) {
+      if (values.matches(R"(^\s*\d+\s+atoms\s*$)")) {
         natoms = values.next_int();
         nwant = 2;
         has_atoms = true;
-      } else if (values.matches("^\\s*\\d+\\s+bonds\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+lines\s*$)")) {
+        nlines = values.next_int();
+        nwant = 2;
+        has_lines = true;
+      } else if (values.matches(R"(^\s*\d+\s+triangles\s*$)")) {
+        ntris = values.next_int();
+        nwant = 2;
+        has_tris = true;
+      } else if (values.matches(R"(^\s*\d+\s+bonds\s*$)")) {
         nbonds = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+angles\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+angles\s*$)")) {
         nangles = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+dihedrals\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+dihedrals\s*$)")) {
         ndihedrals = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+impropers\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+impropers\s*$)")) {
         nimpropers = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+fragments\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+fragments\s*$)")) {
         nfragments = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\f+\\s+mass\\s*$")) {
-        massflag = 1;
+      } else if (values.matches(R"(^\s*\f+\s+mass\s*$)")) {
+        massflag = massflag_user = 1;
         masstotal = values.next_double();
         nwant = 2;
         masstotal *= sizescale * sizescale * sizescale;
-      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+\\f+\\s+com\\s*$")) {
-        comflag = 1;
+      } else if (values.matches(R"(^\s*\f+\s+\f+\s+\f+\s+com\s*$)")) {
+        comflag = comflag_user = 1;
         com[0] = values.next_double();
         com[1] = values.next_double();
         com[2] = values.next_double();
@@ -2160,8 +2501,8 @@ void Molecule::read(int flag)
         com[2] *= sizescale;
         if ((domain->dimension == 2) && (com[2] != 0.0))
           error->all(FLERR, fileiarg, "Molecule file z center-of-mass must be 0.0 for 2d systems");
-      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+inertia\\s*$")) {
-        inertiaflag = 1;
+      } else if (values.matches(R"(^\s*\f+\s+\f+\s+\f+\s+\f+\s+\f+\s+\f+\s+inertia\s*$)")) {
+        inertiaflag = inertiaflag_user = 1;
         itensor[0] = values.next_double();
         itensor[1] = values.next_double();
         itensor[2] = values.next_double();
@@ -2176,20 +2517,20 @@ void Molecule::read(int flag)
         itensor[3] *= scale5;
         itensor[4] *= scale5;
         itensor[5] *= scale5;
-      } else if (values.matches("^\\s*\\d+\\s+\\d+\\s+body\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+\d+\s+body\s*$)")) {
         bodyflag = 1;
         avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
         if (!avec_body) error->all(FLERR, fileiarg, "Molecule file requires atom style body");
         nibody = values.next_int();
         ndbody = values.next_int();
         nwant = 3;
-      } else if (values.matches("^\\s*\\d+\\s+\\S+\\s+types\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+\S+\s+types\s*$)")) {
         error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
-      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+[xyz]lo\\s+[xyz]hi\\s*$")) {
+      } else if (values.matches(R"(^\s*\f+\s+\f+\s+[xyz]lo\s+[xyz]hi\s*$)")) {
         error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
       } else {
         // unknown header keyword
-        if (values.matches("^\\s*\\f+\\s+\\S+")) {
+        if (values.matches(R"(^\s*\f+\s+\S+)")) {
           error->all(FLERR, fileiarg, "Unknown keyword or incorrectly formatted header line: {}",
                      line);
         } else
@@ -2204,17 +2545,33 @@ void Molecule::read(int flag)
 
   // error checks
 
-  if (!has_atoms)
-    error->all(FLERR, fileiarg, "Required \"atoms\" header keyword not found in molecule file");
-  if (natoms < 1) error->all(FLERR, fileiarg, "No atoms or invalid atom count in molecule file");
+  if (!has_atoms && !has_lines && !has_tris)
+    error->all(FLERR, fileiarg, "Required \"atoms\" or \"lines\" or \"tris\" header keyword not found in molecule file");
+  if (has_atoms && natoms < 1) error->all(FLERR, fileiarg, "No atoms or invalid atom count in molecule file");
+  if (has_lines && nlines < 1) error->all(FLERR, fileiarg, "No lines or invalid line count in molecule file");
+  if (has_tris && ntris < 1) error->all(FLERR, fileiarg, "No tris or invalid tri count in molecule file");
+
+  if (natoms < 0) error->all(FLERR, fileiarg, "Invalid atom count in molecule file");
+  if (nlines < 0) error->all(FLERR, fileiarg, "Invalid line count in molecule file");
+  if (ntris < 0) error->all(FLERR, fileiarg, "Invalid triangle count in molecule file");
   if (nbonds < 0) error->all(FLERR, fileiarg, "Invalid bond count in molecule file");
   if (nangles < 0) error->all(FLERR, fileiarg, "Invalid angle count in molecule file");
   if (ndihedrals < 0) error->all(FLERR, fileiarg, "Invalid dihedral count in molecule file");
   if (nimpropers < 0) error->all(FLERR, fileiarg, "Invalid improper count in molecule file");
 
-  // count = vector for tallying bonds,angles,etc per atom
+  if (has_lines && domain->dimension != 2)
+    error->all(FLERR, fileiarg, "Molecule file with lines must be for 2d simulation");
+  if (has_tris && domain->dimension != 3)
+    error->all(FLERR, fileiarg, "Molecule file with triangles must be for 3d simulation");
 
-  if (flag == 0) memory->create(count, natoms, "molecule:count");
+  // count = vector for tallying values in different sections of file
+  // set length to max of natoms, nlines, ntris
+
+  if (flag == 0) {
+    int maxcount = MAX(natoms,nlines);
+    maxcount = MAX(maxcount,ntris);
+    memory->create(count, maxcount, "molecule:count");
+  }
 
   // grab keyword and skip next line
 
@@ -2275,6 +2632,19 @@ void Molecule::read(int flag)
       else
         skip_lines(natoms, line, keyword);
 
+    } else if (keyword == "Lines") {
+      lineflag = 1;
+      if (flag)
+        line_segments(line);
+      else
+        skip_lines(nlines, line, keyword);
+    } else if (keyword == "Triangles") {
+      triflag = 1;
+      if (flag)
+        triangles(line);
+      else
+        skip_lines(ntris, line, keyword);
+
     } else if (keyword == "Bonds") {
       if (nbonds == 0)
         error->all(FLERR, fileiarg, "Found Bonds section but no nbonds setting in header");
@@ -2297,10 +2667,13 @@ void Molecule::read(int flag)
       impropers(flag, line);
 
     } else if (keyword == "Special Bond Counts") {
-      nspecialflag = 1;
+      nspecialflag = specialflag_user = 1;
       nspecial_read(flag, line);
     } else if (keyword == "Special Bonds") {
       specialflag = tag_require = 1;
+      if (!nspecialflag)
+        error->all(FLERR, fileiarg,
+                   "Special Bond Counts section must come before Special Bonds section");
       if (flag)
         special_read(line);
       else
@@ -2376,6 +2749,10 @@ void Molecule::read(int flag)
       error->all(FLERR, fileiarg, "Molecule file has no Body Doubles section");
     if (nfragments > 0 && !fragmentflag)
       error->all(FLERR, fileiarg, "Molecule file has no Fragments section");
+    if (nlines > 0 && !lineflag)
+      error->all(FLERR, fileiarg, "Molecule file has no Lines section");
+    if (ntris > 0 && !triflag)
+      error->all(FLERR, fileiarg, "Molecule file has no Triangles section");
   }
 
   // auto-generate special bonds if needed and not in file
@@ -2387,10 +2764,15 @@ void Molecule::read(int flag)
 
     if (flag) {
       special_generate();
+      specialflag_user = 0;
       specialflag = 1;
       nspecialflag = 1;
     }
   }
+
+  if (flag && auto_angleflag) generate_angles();
+  if (flag && auto_dihedralflag) generate_dihedrals();
+  if (flag && auto_improperflag) generate_impropers();
 
   // body particle must have natom = 1
   // set radius by having body class compute its own radius
@@ -2497,7 +2879,7 @@ void Molecule::types(char *line)
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid atom type {} in {}: {}", typestr, location,
                      utils::trim(line));
-        type[iatom] = atom->lmap->find(typestr, Atom::ATOM);
+        type[iatom] = atom->lmap->find_type(typestr, Atom::ATOM);
         if (type[iatom] == -1)
           error->all(FLERR, fileiarg, "Unknown atom type {} in {}: {}", typestr, location,
                      utils::trim(line));
@@ -2519,8 +2901,8 @@ void Molecule::types(char *line)
 }
 // clang-format off
 /* ----------------------------------------------------------------------
-   read molecules from file
-   set nmolecules = max of any molecule type
+   read molecule IDs from file
+   set nmolecules = max of any molecule ID
 ------------------------------------------------------------------------- */
 
 void Molecule::molecules(char *line)
@@ -2733,6 +3115,124 @@ void Molecule::masses(char *line)
 }
 
 /* ----------------------------------------------------------------------
+   read line segments from file
+   do NOT subtract one from point indices
+------------------------------------------------------------------------- */
+
+void Molecule::line_segments(char *line)
+{
+  for (int i = 0; i < nlines; i++) count[i] = 0;
+  try {
+    for (int i = 0; i < nlines; i++) {
+      readline(line);
+
+      ValueTokenizer values(utils::trim_comment(line));
+      if (values.count() != 7)
+        error->all(FLERR, "Invalid line in Lines section of molecule file: {}", line);
+
+      int iline = values.next_int() - 1;
+      if (iline < 0 || iline >= nlines)
+        error->all(FLERR, "Invalid line index in Lines section of molecule file");
+      count[iline]++;
+      molline[iline] = values.next_int();
+      typeline[iline] = values.next_int();
+      lines[iline][0] = values.next_double();
+      lines[iline][1] = values.next_double();
+      lines[iline][2] = values.next_double();
+      lines[iline][3] = values.next_double();
+
+      // apply geometric operations to line points
+
+      lines[iline][0] *= sizescale;
+      lines[iline][1] *= sizescale;
+      lines[iline][2] *= sizescale;
+      lines[iline][3] *= sizescale;
+    }
+  } catch (TokenizerException &e) {
+    error->all(FLERR, "Invalid line in Lines section of molecule file: {}\n{}", e.what(), line);
+  }
+
+  // check all line molecule-IDs and types
+  // add toffset to line type
+
+  for (int i = 0; i < nlines; i++) {
+    if (count[i] == 0)
+      error->all(FLERR, "Line {} missing in Lines section of molecule file", i + 1);
+    if (molline[i] < 0)
+      error->all(FLERR,"Invalid line molecule ID in molecule file");
+    if (typeline[i] <= 0)
+      error->all(FLERR,"Invalid line type in molecule file");
+
+    typeline[i] += toffset;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   read triangles from file
+   do NOT subtract one from point indices
+------------------------------------------------------------------------- */
+
+void Molecule::triangles(char *line)
+{
+  for (int i = 0; i < ntris; i++) count[i] = 0;
+  try {
+    for (int i = 0; i < ntris; i++) {
+      readline(line);
+
+      ValueTokenizer values(utils::trim_comment(line));
+      if (values.count() != 12)
+        error->all(FLERR, "Invalid triangle in Triangles section of molecule file: {}", line);
+
+      int itri = values.next_int() - 1;
+      if (itri < 0 || itri >= ntris)
+        error->all(FLERR, "Invalid triangle index in Triangles section of molecule file");
+      count[itri]++;
+      moltri[itri] = values.next_int();
+      typetri[itri] = values.next_int();
+
+      tris[itri][0] = values.next_double();
+      tris[itri][1] = values.next_double();
+      tris[itri][2] = values.next_double();
+      tris[itri][3] = values.next_double();
+      tris[itri][4] = values.next_double();
+      tris[itri][5] = values.next_double();
+      tris[itri][6] = values.next_double();
+      tris[itri][7] = values.next_double();
+      tris[itri][8] = values.next_double();
+
+      // apply geometric operations to triangle points
+
+      tris[itri][0] *= sizescale;
+      tris[itri][1] *= sizescale;
+      tris[itri][2] *= sizescale;
+      tris[itri][3] *= sizescale;
+      tris[itri][4] *= sizescale;
+      tris[itri][5] *= sizescale;
+      tris[itri][6] *= sizescale;
+      tris[itri][7] *= sizescale;
+      tris[itri][8] *= sizescale;
+    }
+
+  } catch (TokenizerException &e) {
+    error->all(FLERR, "Invalid tri in Triangles section of molecule file: {}\n{}", e.what(), line);
+  }
+
+  // check all triangle molecule-IDs and types
+  // add toffset to triangle type
+
+  for (int i = 0; i < ntris; i++) {
+    if (count[i] == 0)
+      error->all(FLERR, "Triangle {} missing in Triangles section of molecule file", i + 1);
+    if (moltri[i] < 0)
+      error->all(FLERR,"Invalid triangle molecule ID in molecule file");
+    if (typetri[i] <= 0)
+      error->all(FLERR,"Invalid triangle type in molecule file");
+
+    typetri[i] += toffset;
+  }
+}
+
+/* ----------------------------------------------------------------------
    read bonds from file
    set nbondtypes = max type of any bond
    store each with both atoms if newton_bond = 0
@@ -2775,7 +3275,7 @@ void Molecule::bonds(int flag, char *line)
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid bond type {} in {}: {}", typestr, location, utils::trim(line));
-        itype = atom->lmap->find(typestr, Atom::BOND);
+        itype = atom->lmap->find_type(typestr, Atom::BOND);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown bond type {} in {}: {}", typestr, location, utils::trim(line));
         break;
@@ -2861,7 +3361,7 @@ void Molecule::angles(int flag, char *line)
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid angle type {} in {}: {}", typestr, location, utils::trim(line));
-        itype = atom->lmap->find(typestr, Atom::ANGLE);
+        itype = atom->lmap->find_type(typestr, Atom::ANGLE);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown angle type {} in {}: {}", typestr, location, utils::trim(line));
         break;
@@ -2962,7 +3462,7 @@ void Molecule::dihedrals(int flag, char *line)
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid dihedral type {} in {}: {}", typestr, location, utils::trim(line));
-        itype = atom->lmap->find(typestr, Atom::DIHEDRAL);
+        itype = atom->lmap->find_type(typestr, Atom::DIHEDRAL);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown dihedral type {} in {}: {}", typestr, location, utils::trim(line));
         break;
@@ -3077,7 +3577,7 @@ void Molecule::impropers(int flag, char *line)
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid improper type {} in {}: {}", typestr, location, utils::trim(line));
-        itype = atom->lmap->find(typestr, Atom::IMPROPER);
+        itype = atom->lmap->find_type(typestr, Atom::IMPROPER);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown improper type {} in {}: {}", typestr, location, utils::trim(line));
         break;
@@ -3241,6 +3741,346 @@ void Molecule::special_read(char *line)
       error->all(FLERR, fileiarg, "Atom {} missing in Special Bonds section of molecule file",
                  i + 1);
   }
+}
+
+/* ----------------------------------------------------------------------
+   auto generate angles from bond info
+------------------------------------------------------------------------- */
+
+void Molecule::generate_angles()
+{
+  if (specialflag == 0)
+    error->all(FLERR, fileiarg, "Unable to generate angles without special bonds.");
+
+  if (angleflag == 1) {
+    error->warning(FLERR, "Generating angles will overwrite angle data from molecule template.");
+    nangletypes = 0;
+    nangles = 0;
+    memory->destroy(angle_type);
+    memory->destroy(angle_atom1);
+    memory->destroy(angle_atom2);
+    memory->destroy(angle_atom3);
+  }
+
+  int newton_bond = force->newton_bond;
+  int itype, signed_itype;
+  tagint m, atom1, atom2, atom3;
+  std::vector<tagint> atom1_found, atom2_found, atom3_found;
+
+  for (int i = 0; i < natoms; i++) {
+    count[i] = 0;
+    num_angle[i] = 0;
+  }
+
+  for (atom2 = 0; atom2 < natoms; atom2++) {
+    for (int i = 0; i < nspecial[atom2][0]; i++) {
+      atom1 = special[atom2][i] - 1;
+      for (int j = i + 1; j < nspecial[atom2][0]; j++) {
+        atom3 = special[atom2][j] - 1;
+        count[atom2]++;
+        nangles++;
+        atom1_found.push_back(atom1 + 1);
+        atom2_found.push_back(atom2 + 1);
+        atom3_found.push_back(atom3 + 1);
+        if (newton_bond == 0) {
+          count[atom1]++;
+          count[atom3]++;
+        }
+      }
+    }
+  }
+
+  angle_per_atom = 0;
+  for (int i = 0; i < natoms; i++) angle_per_atom = MAX(angle_per_atom, count[i]);
+
+  memory->create(angle_type, natoms, angle_per_atom, "molecule:angle_type");
+  memory->create(angle_atom1, natoms, angle_per_atom, "molecule:angle_atom1");
+  memory->create(angle_atom2, natoms, angle_per_atom, "molecule:angle_atom2");
+  memory->create(angle_atom3, natoms, angle_per_atom, "molecule:angle_atom3");
+
+  for (int i = 0; i < nangles; i++) {
+    atom1 = atom1_found[i];
+    atom2 = atom2_found[i];
+    atom3 = atom3_found[i];
+    signed_itype = atom->lmap->infer_angletype(type[atom1 - 1], type[atom2 - 1], type[atom3 - 1]);
+    if (!signed_itype) error->one(FLERR, "Unable to infer angle type from bonds.");
+    itype = std::abs(signed_itype);
+    if (signed_itype < 0)
+      std::swap(atom1, atom3);
+    m = atom2 - 1;
+    nangletypes = MAX(nangletypes, itype);
+    angle_type[m][num_angle[m]] = itype;
+    angle_atom1[m][num_angle[m]] = atom1;
+    angle_atom2[m][num_angle[m]] = atom2;
+    angle_atom3[m][num_angle[m]] = atom3;
+    num_angle[m]++;
+    if (newton_bond == 0) {
+      m = atom1 - 1;
+      angle_type[m][num_angle[m]] = itype;
+      angle_atom1[m][num_angle[m]] = atom1;
+      angle_atom2[m][num_angle[m]] = atom2;
+      angle_atom3[m][num_angle[m]] = atom3;
+      num_angle[m]++;
+      m = atom3 - 1;
+      angle_type[m][num_angle[m]] = itype;
+      angle_atom1[m][num_angle[m]] = atom1;
+      angle_atom2[m][num_angle[m]] = atom2;
+      angle_atom3[m][num_angle[m]] = atom3;
+      num_angle[m]++;
+    }
+  }
+
+  angleflag = tag_require = 1;
+}
+
+/* ----------------------------------------------------------------------
+   auto generate dihedrals from bond info
+------------------------------------------------------------------------- */
+
+void Molecule::generate_dihedrals()
+{
+  if (specialflag == 0)
+    error->all(FLERR, fileiarg, "Unable to generate dihedrals without special bonds.");
+
+  if (dihedralflag == 1) {
+    error->warning(FLERR, "Generating dihedrals will overwrite dihedral data from molecule template.");
+    ndihedraltypes = 0;
+    ndihedrals = 0;
+    memory->destroy(dihedral_type);
+    memory->destroy(dihedral_atom1);
+    memory->destroy(dihedral_atom2);
+    memory->destroy(dihedral_atom3);
+    memory->destroy(dihedral_atom4);
+  }
+
+  int newton_bond = force->newton_bond;
+  int itype, signed_itype;
+  tagint m, atom1, atom2, atom3, atom4;
+  std::vector<tagint> atom1_found, atom2_found, atom3_found, atom4_found;
+
+  for (int i = 0; i < natoms; i++) {
+    count[i] = 0;
+    num_dihedral[i] = 0;
+  }
+
+  for (atom2 = 0; atom2 < natoms; atom2++) {
+    for (int i = 0; i < nspecial[atom2][0]; i++) {
+      atom3 = special[atom2][i] - 1;
+      if (atom3 <= atom2) continue; // avoid duplicates
+
+      for (int j = 0; j < nspecial[atom2][0]; j++) {
+        atom1 = special[atom2][j] - 1;
+        if (atom1 == atom3) continue;
+        if (atom1 == atom2) continue;
+
+        for (int k = 0; k < nspecial[atom3][0]; k++) {
+          atom4 = special[atom3][k] - 1;
+          if (atom4 == atom3) continue;
+          if (atom4 == atom2) continue;
+          if (atom4 == atom1) continue;
+
+          count[atom2]++;
+          if (newton_bond == 0) {
+            count[atom1]++;
+            count[atom3]++;
+            count[atom4]++;
+          }
+
+          ndihedrals++;
+          atom1_found.push_back(atom1 + 1);
+          atom2_found.push_back(atom2 + 1);
+          atom3_found.push_back(atom3 + 1);
+          atom4_found.push_back(atom4 + 1);
+        }
+      }
+    }
+  }
+
+  dihedral_per_atom = 0;
+  for (int i = 0; i < natoms; i++) dihedral_per_atom = MAX(dihedral_per_atom, count[i]);
+
+  memory->create(dihedral_type, natoms, dihedral_per_atom, "molecule:dihedral_type");
+  memory->create(dihedral_atom1, natoms, dihedral_per_atom, "molecule:dihedral_atom1");
+  memory->create(dihedral_atom2, natoms, dihedral_per_atom, "molecule:dihedral_atom2");
+  memory->create(dihedral_atom3, natoms, dihedral_per_atom, "molecule:dihedral_atom3");
+  memory->create(dihedral_atom4, natoms, dihedral_per_atom, "molecule:dihedral_atom4");
+
+  ndihedraltypes = 0;
+  for (int i = 0; i < ndihedrals; i++) {
+    atom1 = atom1_found[i];
+    atom2 = atom2_found[i];
+    atom3 = atom3_found[i];
+    atom4 = atom4_found[i];
+    signed_itype = atom->lmap->infer_dihedraltype(type[atom1 - 1], type[atom2 - 1],
+        type[atom3 - 1], type[atom4 - 1]);
+    if (!signed_itype) error->one(FLERR, "Unable to infer dihedral type from bonds.");
+    itype = std::abs(signed_itype);
+    if (signed_itype < 0) {
+      atom1 = atom4_found[i];
+      atom2 = atom3_found[i];
+      atom3 = atom2_found[i];
+      atom4 = atom1_found[i];
+    }
+    m = atom2 - 1;
+    ndihedraltypes = MAX(ndihedraltypes, itype);
+    dihedral_type[m][num_dihedral[m]] = itype;
+    dihedral_atom1[m][num_dihedral[m]] = atom1;
+    dihedral_atom2[m][num_dihedral[m]] = atom2;
+    dihedral_atom3[m][num_dihedral[m]] = atom3;
+    dihedral_atom4[m][num_dihedral[m]] = atom4;
+    num_dihedral[m]++;
+    if (newton_bond == 0) {
+      m = atom1 - 1;
+      dihedral_type[m][num_dihedral[m]] = itype;
+      dihedral_atom1[m][num_dihedral[m]] = atom1;
+      dihedral_atom2[m][num_dihedral[m]] = atom2;
+      dihedral_atom3[m][num_dihedral[m]] = atom3;
+      dihedral_atom4[m][num_dihedral[m]] = atom4;
+      num_dihedral[m]++;
+      m = atom3 - 1;
+      dihedral_type[m][num_dihedral[m]] = itype;
+      dihedral_atom1[m][num_dihedral[m]] = atom1;
+      dihedral_atom2[m][num_dihedral[m]] = atom2;
+      dihedral_atom3[m][num_dihedral[m]] = atom3;
+      dihedral_atom4[m][num_dihedral[m]] = atom4;
+      num_dihedral[m]++;
+      m = atom4 - 1;
+      dihedral_type[m][num_dihedral[m]] = itype;
+      dihedral_atom1[m][num_dihedral[m]] = atom1;
+      dihedral_atom2[m][num_dihedral[m]] = atom2;
+      dihedral_atom3[m][num_dihedral[m]] = atom3;
+      dihedral_atom4[m][num_dihedral[m]] = atom4;
+      num_dihedral[m]++;
+    }
+  }
+
+  dihedralflag = tag_require = 1;
+}
+
+/* ----------------------------------------------------------------------
+   auto generate impropers from bond info
+------------------------------------------------------------------------- */
+
+void Molecule::generate_impropers()
+{
+  if (specialflag == 0)
+    error->all(FLERR, fileiarg, "Unable to generate impropers without special bonds.");
+
+  if (improperflag == 1) {
+    error->warning(FLERR, "Generating impropers will overwrite improper data from molecule template.");
+    nimpropertypes = 0;
+    nimpropers = 0;
+    memory->destroy(improper_type);
+    memory->destroy(improper_atom1);
+    memory->destroy(improper_atom2);
+    memory->destroy(improper_atom3);
+    memory->destroy(improper_atom4);
+  }
+
+  int newton_bond = force->newton_bond;
+  int itype, signed_itype;
+  tagint m, atom1, atom2, atom3, atom4;
+  std::vector<tagint> atom1_found, atom2_found, atom3_found, atom4_found;
+  std::array<int, 4> iorder;
+
+  for (int i = 0; i < natoms; i++) {
+    count[i] = 0;
+    num_improper[i] = 0;
+  }
+
+  for (atom2 = 0; atom2 < natoms; atom2++) {
+    if (nspecial[atom2][0] == 3) {
+      atom1 = special[atom2][0] - 1;
+      atom3 = special[atom2][1] - 1;
+      atom4 = special[atom2][2] - 1;
+
+      count[atom2]++;
+      if (newton_bond == 0) {
+        count[atom1]++;
+        count[atom3]++;
+        count[atom4]++;
+      }
+      atom1_found.push_back(atom1 + 1);
+      atom2_found.push_back(atom2 + 1);
+      atom3_found.push_back(atom3 + 1);
+      atom4_found.push_back(atom4 + 1);
+
+      tagint *iptrs[4] = {&atom1_found[nimpropers], &atom2_found[nimpropers],
+        &atom3_found[nimpropers], &atom4_found[nimpropers]};
+      std::array<tagint, 4> tags = {atom1_found[nimpropers], atom2_found[nimpropers],
+        atom3_found[nimpropers], atom4_found[nimpropers]};
+      for (int iatom = 0; iatom < 4; iatom++) {
+        if (force->improper && force->improper->symmatoms[iatom] == 1) {
+          *iptrs[iatom] = tags[1];
+          *iptrs[1] = tags[iatom];
+        }
+      }
+
+      nimpropers++;
+    }
+  }
+
+  improper_per_atom = 0;
+  for (int i = 0; i < natoms; i++) improper_per_atom = MAX(improper_per_atom, count[i]);
+
+  memory->create(improper_type, natoms, improper_per_atom, "molecule:improper_type");
+  memory->create(improper_atom1, natoms, improper_per_atom, "molecule:improper_atom1");
+  memory->create(improper_atom2, natoms, improper_per_atom, "molecule:improper_atom2");
+  memory->create(improper_atom3, natoms, improper_per_atom, "molecule:improper_atom3");
+  memory->create(improper_atom4, natoms, improper_per_atom, "molecule:improper_atom4");
+
+  for (int i = 0; i < nimpropers; i++) {
+    atom1 = atom1_found[i];
+    atom2 = atom2_found[i];
+    atom3 = atom3_found[i];
+    atom4 = atom4_found[i];
+
+    tagint *iptrs[4] = {&atom1, &atom2, &atom3, &atom4};
+    signed_itype = atom->lmap->infer_impropertype(type[atom1 - 1], type[atom2 - 1],
+        type[atom3 - 1], type[atom4 - 1], &iorder);
+    if (!signed_itype) error->one(FLERR, "Unable to infer improper type from bonds.");
+    itype = std::abs(signed_itype);
+    if (signed_itype < 0) {
+      // rearrange atoms based on the order found by infer_impropertype
+      std::array<tagint, 4> tags = {atom1, atom2, atom3, atom4};
+      for (int iatom = 0; iatom < 4; iatom++)
+        *iptrs[iatom] = tags[iorder[iatom]];
+    }
+
+    m = atom2 - 1;
+    nimpropertypes = MAX(nimpropertypes, itype);
+    improper_type[m][num_improper[m]] = itype;
+    improper_atom1[m][num_improper[m]] = atom1;
+    improper_atom2[m][num_improper[m]] = atom2;
+    improper_atom3[m][num_improper[m]] = atom3;
+    improper_atom4[m][num_improper[m]] = atom4;
+    num_improper[m]++;
+    if (newton_bond == 0) {
+      m = atom1 - 1;
+      improper_type[m][num_improper[m]] = itype;
+      improper_atom1[m][num_improper[m]] = atom1;
+      improper_atom2[m][num_improper[m]] = atom2;
+      improper_atom3[m][num_improper[m]] = atom3;
+      improper_atom4[m][num_improper[m]] = atom4;
+      num_improper[m]++;
+      m = atom3 - 1;
+      improper_type[m][num_improper[m]] = itype;
+      improper_atom1[m][num_improper[m]] = atom1;
+      improper_atom2[m][num_improper[m]] = atom2;
+      improper_atom3[m][num_improper[m]] = atom3;
+      improper_atom4[m][num_improper[m]] = atom4;
+      num_improper[m]++;
+      m = atom4 - 1;
+      improper_type[m][num_improper[m]] = itype;
+      improper_atom1[m][num_improper[m]] = atom1;
+      improper_atom2[m][num_improper[m]] = atom2;
+      improper_atom3[m][num_improper[m]] = atom3;
+      improper_atom4[m][num_improper[m]] = atom4;
+      num_improper[m]++;
+    }
+  }
+
+  improperflag = tag_require = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -3485,17 +4325,17 @@ void Molecule::shaketype_read(char *line)
       case 1:
         subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
         if (subst) values[1] = subst;
-        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + (subst ? 0 : boffset);
         delete[] subst;
 
         subst = utils::expand_type(FLERR, values[2], Atom::BOND, lmp);
         if (subst) values[2] = subst;
-        shake_type[iatom][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][1] = utils::inumeric(FLERR, values[2], false, lmp) + (subst ? 0 : boffset);
         delete[] subst;
 
         subst = utils::expand_type(FLERR, values[3], Atom::ANGLE, lmp);
         if (subst) values[3] = subst;
-        shake_type[iatom][2] = utils::inumeric(FLERR, values[3], false, lmp) + ((subst) ? 0 : aoffset);
+        shake_type[iatom][2] = utils::inumeric(FLERR, values[3], false, lmp) + (subst ? 0 : aoffset);
         delete[] subst;
 
         nwant = 4;
@@ -3504,7 +4344,7 @@ void Molecule::shaketype_read(char *line)
       case 2:
         subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
         if (subst) values[1] = subst;
-        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + (subst ? 0 : boffset);
         delete[] subst;
 
         nwant = 2;
@@ -3513,12 +4353,12 @@ void Molecule::shaketype_read(char *line)
       case 3:
         subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
         if (subst) values[1] = subst;
-        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + (subst ? 0 : boffset);
         delete[] subst;
 
         subst = utils::expand_type(FLERR, values[2], Atom::BOND, lmp);
         if (subst) values[2] = subst;
-        shake_type[iatom][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][1] = utils::inumeric(FLERR, values[2], false, lmp) + (subst ? 0 : boffset);
         delete[] subst;
 
         nwant = 3;
@@ -3527,17 +4367,17 @@ void Molecule::shaketype_read(char *line)
       case 4:
         subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
         if (subst) values[1] = subst;
-        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + (subst ? 0 : boffset);
         delete[] subst;
 
         subst = utils::expand_type(FLERR, values[2], Atom::BOND, lmp);
         if (subst) values[2] = subst;
-        shake_type[iatom][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][1] = utils::inumeric(FLERR, values[2], false, lmp) + (subst ? 0 : boffset);
         delete[] subst;
 
         subst = utils::expand_type(FLERR, values[3], Atom::BOND, lmp);
         if (subst) values[3] = subst;
-        shake_type[iatom][2] = utils::inumeric(FLERR, values[3], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][2] = utils::inumeric(FLERR, values[3], false, lmp) + (subst ? 0 : boffset);
         delete[] subst;
 
         nwant = 4;
@@ -3584,10 +4424,12 @@ void Molecule::body(int flag, int pflag, char *line)
       ValueTokenizer values(utils::trim_comment(line));
       int ncount = values.count();
 
+      std::string sec = "Body ";
+      sec += pflag ? "Doubles" : "Integers";
       if (ncount == 0)
-        error->all(FLERR, fileiarg, "Too few values in body section of molecule file");
+        error->all(FLERR, fileiarg, "Too few values in {} section of molecule file", sec);
       if (nword + ncount > nparam)
-        error->all(FLERR, fileiarg, "Too many values in body section of molecule file");
+        error->all(FLERR, fileiarg, "Too many values in {} section of molecule file", sec);
 
       if (flag) {
         if (pflag == 0) {
@@ -3680,6 +4522,7 @@ void Molecule::initialize()
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
   nibody = ndbody = 0;
   nfragments = 0;
+  nlines = ntris = 0;
   masstotal = 0.0;
   maxradius = 0.0;
   molradius = 0.0;
@@ -3695,11 +4538,14 @@ void Molecule::initialize()
 
   xflag = typeflag = moleculeflag = fragmentflag = qflag = radiusflag = muflag = rmassflag = 0;
   bondflag = angleflag = dihedralflag = improperflag = 0;
+  auto_angleflag = auto_dihedralflag = auto_improperflag = 0;
   nspecialflag = specialflag = 0;
   shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
   bodyflag = ibodyflag = dbodyflag = 0;
+  lineflag = triflag = 0;
 
   centerflag = massflag = comflag = inertiaflag = 0;
+  massflag_user = comflag_user = inertiaflag_user = specialflag_user = 0;
   tag_require = 0;
 
   x = nullptr;
@@ -3707,6 +4553,13 @@ void Molecule::initialize()
   q = nullptr;
   radius = nullptr;
   rmass = nullptr;
+
+  molline = nullptr;
+  typeline = nullptr;
+  lines = nullptr;
+  moltri = nullptr;
+  typetri = nullptr;
+  tris = nullptr;
 
   num_bond = nullptr;
   bond_type = nullptr;
@@ -3759,6 +4612,19 @@ void Molecule::allocate()
   if (muflag) memory->create(mu, natoms, 3, "molecule:mu");
   if (radiusflag) memory->create(radius, natoms, "molecule:radius");
   if (rmassflag) memory->create(rmass, natoms, "molecule:rmass");
+
+  // lines or triangles with corner points
+
+  if (lineflag) {
+    memory->create(molline,nlines,"molecule:molline");
+    memory->create(typeline,nlines,"molecule:typeline");
+    memory->create(lines,nlines,4,"molecule:lines");
+  }
+  if (triflag) {
+    memory->create(moltri,ntris,"molecule:moltri");
+    memory->create(typetri,ntris,"molecule:typetri");
+    memory->create(tris,ntris,9,"molecule:tris");
+  }
 
   // always allocate num_bond,num_angle,etc and nspecial
   // even if not in molecule file, initialize to 0
@@ -3835,6 +4701,13 @@ void Molecule::deallocate()
   memory->destroy(fragmentmask);
 
   if (fragmentflag) { fragmentnames.clear(); }
+
+  memory->destroy(molline);
+  memory->destroy(typeline);
+  memory->destroy(lines);
+  memory->destroy(moltri);
+  memory->destroy(typetri);
+  memory->destroy(tris);
 
   memory->destroy(num_bond);
   memory->destroy(bond_type);
@@ -3946,12 +4819,187 @@ void Molecule::skip_lines(int n, char *line, const std::string &section)
   }
 }
 
+/* ----------------------------------------------------------------------
+   check type label self-consistency
+------------------------------------------------------------------------- */
+
+void Molecule::check_labels()
+{
+  bool perfect_labels = true;
+  if (atom->labelmapflag) {
+    // in rare cases, bonds are not symmetric. only check if newton on for bonds
+    if (force->newton_bond && check_which_labels[0]) {
+      for (int i = 0; i < natoms; i++) {
+        int atom1 = i+1;
+        for (int j = 0; j < num_bond[i]; j++) {
+          int btype = bond_type[i][j];
+          int atom2 = bond_atom[i][j];
+          int inferred_type = atom->lmap->infer_bondtype(type[atom1-1], type[atom2-1]);
+          if (inferred_type != btype) {
+            perfect_labels = false;
+            std::string atom1_label = atom->lmap->find_label(type[atom1-1], Atom::ATOM);
+            std::string atom2_label = atom->lmap->find_label(type[atom2-1], Atom::ATOM);
+            std::string blabel = atom->lmap->find_label(btype, Atom::BOND);
+            if (inferred_type == -btype)
+              error->warning(FLERR, "In molecule template '{}', the bond between atoms {}, {} has constituent atom types ({}, {}) in reverse "
+                                    "order compared to its bond type label ({})", id, atom1, atom2, atom1_label, atom2_label, blabel);
+            else error->warning(FLERR, "In molecule template '{}', the bond between atoms {}, {} has constituent atom types ({}, {}) that do "
+                                       "not match its type label ({})", id, atom1, atom2, atom1_label, atom2_label, blabel);
+          }
+        }
+      }
+      if (perfect_labels) utils::logmesg(lmp, "All bonds in molecule '{}' have self-consistent type labels\n", id);
+    }
+    // some angles are not symmetric, like class2
+    perfect_labels = true;
+    if (check_which_labels[1]) {
+      for (int i = 0; i < natoms; i++) {
+        for (int j = 0; j < num_angle[i]; j++) {
+          int atype = angle_type[i][j];
+          int atom1 = angle_atom1[i][j];
+          int atom2 = angle_atom2[i][j];
+          int atom3 = angle_atom3[i][j];
+          int inferred_type = atom->lmap->infer_angletype(type[atom1-1], type[atom2-1], type[atom3-1]);
+          if (inferred_type != atype) {
+            perfect_labels = false;
+            std::string atom1_label = atom->lmap->find_label(type[atom1-1], Atom::ATOM);
+            std::string atom2_label = atom->lmap->find_label(type[atom2-1], Atom::ATOM);
+            std::string atom3_label = atom->lmap->find_label(type[atom3-1], Atom::ATOM);
+            std::string alabel = atom->lmap->find_label(atype, Atom::ANGLE);
+            if (inferred_type == -atype)
+              error->warning(FLERR, "In molecule template '{}', the angle between atoms {}, {}, {} has constituent atom types ({}, {}, {}) in reverse "
+                                    "order compared to its angle type label ({})", id, atom1, atom2, atom3, atom1_label, atom2_label, atom3_label, alabel);
+            else error->warning(FLERR, "In molecule template '{}', the angle between atoms {}, {}, {} has constituent atom types ({}, {}, {}) that do not "
+                                       "match its type label ({})", id, atom1, atom2, atom3, atom1_label, atom2_label, atom3_label, alabel);
+          }
+        }
+      }
+      if (perfect_labels) utils::logmesg(lmp, "All angles in molecule '{}' have self-consistent type labels\n", id);
+    }
+    // some dihedrals are not symmetric, like class2
+    perfect_labels = true;
+    if (check_which_labels[2]) {
+      for (int i = 0; i < natoms; i++) {
+        for (int j = 0; j < num_dihedral[i]; j++) {
+          int dtype = dihedral_type[i][j];
+          int atom1 = dihedral_atom1[i][j];
+          int atom2 = dihedral_atom2[i][j];
+          int atom3 = dihedral_atom3[i][j];
+          int atom4 = dihedral_atom4[i][j];
+          int inferred_type = atom->lmap->infer_dihedraltype(type[atom1-1], type[atom2-1], type[atom3-1], type[atom4-1]);
+          if (inferred_type != dtype) {
+            perfect_labels = false;
+            std::string atom1_label = atom->lmap->find_label(type[atom1-1], Atom::ATOM);
+            std::string atom2_label = atom->lmap->find_label(type[atom2-1], Atom::ATOM);
+            std::string atom3_label = atom->lmap->find_label(type[atom3-1], Atom::ATOM);
+            std::string atom4_label = atom->lmap->find_label(type[atom4-1], Atom::ATOM);
+            std::string dlabel = atom->lmap->find_label(dtype, Atom::DIHEDRAL);
+            if (inferred_type == -dtype)
+              error->warning(FLERR, "In molecule template '{}', the dihedral between atoms {}, {}, {}, {} has constituent atom types ({}, {}, {}, {}) in reverse order "
+                                    "compared to its dihedral type label ({})", id, atom1, atom2, atom3, atom4, atom1_label, atom2_label, atom3_label, atom4_label, dlabel);
+            else error->warning(FLERR, "In molecule template '{}', the dihedral between atoms {}, {}, {}, {} has constituent atom types ({}, {}, {}, {}) that do "
+                                       "not match its dihedral label ({})", id, atom1, atom2, atom3, atom4, atom1_label, atom2_label, atom3_label, atom4_label, dlabel);
+          }
+        }
+      }
+      if (perfect_labels) utils::logmesg(lmp, "All dihedrals in molecule '{}' have self-consistent type labels\n", id);
+    }
+    // some impropers are not symmetric, like class2
+    perfect_labels = true;
+    if (check_which_labels[3]) {
+      for (int i = 0; i < natoms; i++) {
+        for (int j = 0; j < num_improper[i]; j++) {
+          int itype = improper_type[i][j];
+          int atom1 = improper_atom1[i][j];
+          int atom2 = improper_atom2[i][j];
+          int atom3 = improper_atom3[i][j];
+          int atom4 = improper_atom4[i][j];
+          int inferred_type = atom->lmap->infer_impropertype(type[atom1-1], type[atom2-1], type[atom3-1], type[atom4-1]);
+          if (inferred_type != itype) {
+            perfect_labels = false;
+            std::string atom1_label = atom->lmap->find_label(type[atom1-1], Atom::ATOM);
+            std::string atom2_label = atom->lmap->find_label(type[atom2-1], Atom::ATOM);
+            std::string atom3_label = atom->lmap->find_label(type[atom3-1], Atom::ATOM);
+            std::string atom4_label = atom->lmap->find_label(type[atom4-1], Atom::ATOM);
+            std::string ilabel = atom->lmap->find_label(itype, Atom::IMPROPER);
+            if (inferred_type == -itype)
+              error->warning(FLERR, "In molecule template '{}', the improper containing atoms {}, {}, {}, {} has constituent atom types ({}, {}, {}, {}) in a different order "
+                                    "compared to its improper type label ({})", id, atom1, atom2, atom3, atom4, atom1_label, atom2_label, atom3_label, atom4_label, ilabel);
+            else error->warning(FLERR, "In molecule template '{}', the improper containing atoms {}, {}, {}, {} has constituent atom types ({}, {}, {}, {}) that do "
+                                       "not match its improper label ({})", id, atom1, atom2, atom3, atom4, atom1_label, atom2_label, atom3_label, atom4_label, ilabel);
+          }
+        }
+      }
+      if (perfect_labels) utils::logmesg(lmp, "All impropers in molecule '{}' have self-consistent type labels\n", id);
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double Molecule::memory_usage()
+{
+  double bytes = 0.0;
+
+  // per-atom coordinate and property arrays
+  if (xflag) bytes += (double) natoms * 3 * sizeof(double);
+  if (typeflag) bytes += (double) natoms * sizeof(int);
+  if (moleculeflag) bytes += (double) natoms * sizeof(tagint);
+  if (qflag) bytes += (double) natoms * sizeof(double);
+  if (radiusflag) bytes += (double) natoms * sizeof(double);
+  if (rmassflag) bytes += (double) natoms * sizeof(double);
+  if (muflag) bytes += (double) natoms * 3 * sizeof(double);
+
+  // connectivity counts (always allocated)
+  bytes += (double) natoms * 4 * sizeof(int);    // num_bond/angle/dihedral/improper
+  bytes += (double) natoms * 3 * sizeof(int);    // nspecial[natoms][3]
+
+  if (specialflag) bytes += (double) natoms * maxspecial * sizeof(tagint);
+
+  if (bondflag) {
+    bytes += (double) natoms * bond_per_atom * sizeof(int);
+    bytes += (double) natoms * bond_per_atom * sizeof(tagint);
+  }
+  if (angleflag) {
+    bytes += (double) natoms * angle_per_atom * sizeof(int);
+    bytes += (double) natoms * angle_per_atom * 3 * sizeof(tagint);
+  }
+  if (dihedralflag) {
+    bytes += (double) natoms * dihedral_per_atom * sizeof(int);
+    bytes += (double) natoms * dihedral_per_atom * 4 * sizeof(tagint);
+  }
+  if (improperflag) {
+    bytes += (double) natoms * improper_per_atom * sizeof(int);
+    bytes += (double) natoms * improper_per_atom * 4 * sizeof(tagint);
+  }
+
+  if (shakeflag) {
+    bytes += (double) natoms * sizeof(int);          // shake_flag
+    bytes += (double) natoms * 4 * sizeof(tagint);   // shake_atom[natoms][4]
+    bytes += (double) natoms * 3 * sizeof(int);      // shake_type[natoms][3]
+  }
+
+  if (bodyflag) {
+    bytes += (double) nibody * sizeof(int);
+    bytes += (double) ndbody * sizeof(double);
+  }
+
+  if (fragmentflag) bytes += (double) nfragments * natoms * sizeof(int);
+
+  // geometric displacement arrays (allocated lazily by compute_center/com/inertia)
+  if (centerflag) bytes += (double) natoms * 3 * sizeof(double);   // dx
+  if (comflag) bytes += (double) natoms * 3 * sizeof(double);      // dxcom
+  if (inertiaflag) bytes += (double) natoms * 3 * sizeof(double);  // dxbody
+
+  return bytes;
+}
+
 /* ------------------------------------------------------------------------------ */
 
 void Molecule::stats()
 {
   if (title.empty()) title = "(no title)";
-  if (comm->me == 0)
+  if (comm->me == 0) {
     utils::logmesg(lmp,
                    "Read molecule template {}:\n{}\n"
                    "  {} molecules\n"
@@ -3964,107 +5012,302 @@ void Molecule::stats()
                    "  {} impropers with max type {}\n",
                    id, title, nmolecules, nfragments, bodyflag, natoms, ntypes, nbonds, nbondtypes,
                    nangles, nangletypes, ndihedrals, ndihedraltypes, nimpropers, nimpropertypes);
+    if (nlines) utils::logmesg(lmp,"  {} lines\n",nlines);
+    if (ntris) utils::logmesg(lmp,"  {} triangles\n",ntris);
+  }
 }
 
+// clang-format on
 /* ----------------------------------------------------------------------
-   proc 0 prints molecule params
+   print molecule file. may only be called from MPI rank 0
 ------------------------------------------------------------------------- */
 
-/*
-
-void Molecule::print()
+void Molecule::print(FILE *out)
 {
-  printf("MOLECULE %s\n",id);
-  printf("  %d natoms\n",natoms);
-  if (nbonds) printf("  %d nbonds\n",nbonds);
-  if (nangles) printf("  %d nangles\n",nangles);
-  if (ndihedrals) printf("  %d ndihedrals\n",ndihedrals);
-  if (nimpropers) printf("  %d nimpropers\n",nimpropers);
+  utils::print(out, "  {} atoms\n", natoms);
+  if (nbonds) utils::print(out, "  {} bonds\n", nbonds);
+  if (nangles) utils::print(out, "  {} angles\n", nangles);
+  if (ndihedrals) utils::print(out, "  {} dihedrals\n", ndihedrals);
+  if (nimpropers) utils::print(out, "  {} impropers\n", nimpropers);
+  if (nfragments) utils::print(out, "  {} fragments\n", nfragments);
+  if (massflag_user) utils::print(out, "  {} mass\n", masstotal);
+  if (bodyflag) utils::print(out, "  {} {} body\n", nibody, ndbody);
+  if (comflag_user) utils::print(out, "  {} {} {} com\n", com[0], com[1], com[2]);
+  if (inertiaflag_user)
+    utils::print(out, "  {} {} {} {} {} {} inertia\n", itensor[0], itensor[1], itensor[2],
+                 itensor[3], itensor[4], itensor[5]);
 
   if (xflag) {
-    printf(  "Coords:\n");
+    fputs("\nCoords\n\n", out);
     for (int i = 0; i < natoms; i++)
-      printf("    %d %g %g %g\n",i+1,x[i][0],x[i][1],x[i][2]);
+      utils::print(out, " {}  {} {} {}\n", i + 1, x[i][0], x[i][1], x[i][2]);
   }
+
   if (typeflag) {
-    printf(  "Types:\n");
-    for (int i = 0; i < natoms; i++)
-      printf("    %d %d\n",i+1,type[i]);
+    fputs("\nTypes\n\n", out);
+    if (atom->labelmapflag && atom->lmap->is_complete(Atom::ATOM)) {
+      for (int i = 0; i < natoms; i++)
+        utils::print(out, " {} {}\n", i + 1, atom->lmap->find_label(type[i], Atom::ATOM));
+    } else {
+      for (int i = 0; i < natoms; i++) utils::print(out, " {}  {}\n", i + 1, type[i]);
+    }
   }
+
+  if (moleculeflag) {
+    fputs("\nMolecules\n\n", out);
+    for (int i = 0; i < natoms; i++) utils::print(out, " {}  {}\n", i + 1, molecule[i]);
+  }
+
+  if (fragmentflag) {
+    fputs("\nFragments\n\n", out);
+    for (int i = 0; i < nfragments; i++) {
+      utils::print(out, " {} ", fragmentnames[i]);
+      for (int j = 0; j < natoms; j++) {
+        if (fragmentmask[i][j]) utils::print(out, " {}", j + 1);
+      }
+      fputs("\n", out);
+    }
+  }
+
   if (qflag) {
-    printf(  "Charges:\n");
-    for (int i = 0; i < natoms; i++)
-      printf("    %d %g\n",i+1,q[i]);
+    fputs("\nCharges\n\n", out);
+    for (int i = 0; i < natoms; i++) utils::print(out, " {}  {}\n", i + 1, q[i]);
   }
-  if (radiusflag) {
-    printf(  "Radii:\n");
-    for (int i = 0; i < natoms; i++)
-      printf("    %d %g\n",i+1,radius[i]);
+
+  if (radiusflag && !bodyflag) {
+    fputs("\nDiameters\n\n", out);
+    for (int i = 0; i < natoms; i++) utils::print(out, " {}  {}\n", i + 1, 2.0 * radius[i]);
   }
+
   if (muflag) {
-    printf(  "Dipoles:\n");
+    fputs("\nDipoles\n\n", out);
     for (int i = 0; i < natoms; i++)
-      printf("    %d %g %g %g\n",i+1,mu[i][0],mu[i][1],mu[i][2]);
+      utils::print(out, " {}  {} {} {}\n", i + 1, mu[i][0], mu[i][1], mu[i][2]);
   }
+
   if (rmassflag) {
-    printf(  "Masses:\n");
-    for (int i = 0; i < natoms; i++)
-      printf("    %d %g\n",i+1,rmass[i]);
+    fputs("\nMasses\n\n", out);
+    for (int i = 0; i < natoms; i++) utils::print(out, " {}  {}\n", i + 1, rmass[i]);
   }
+
+  bool has_newton_bond = force->newton_bond > 0;
 
   if (bondflag) {
-    printf(  "Bonds:\n");
+    fputs("\nBonds\n\n", out);
+    int idx = 0;
+    bool has_typelabels = (atom->labelmapflag != 0) && atom->lmap->is_complete(Atom::BOND);
+
     for (int i = 0; i < natoms; i++) {
-      printf("    %d %d\n",i+1,num_bond[i]);
-      for (int j = 0; j < num_bond[i]; j++)
-        printf("      %d %d %d %d\n",j+1,bond_type[i][j],i+1,bond_atom[i][j]);
-    }
-  }
-  if (angleflag) {
-    printf(  "Angles:\n");
-    for (int i = 0; i < natoms; i++) {
-      printf("    %d %d\n",i+1,num_angle[i]);
-      for (int j = 0; j < num_angle[i]; j++)
-        printf("      %d %d %d %d %d\n",
-               j+1,angle_type[i][j],
-               angle_atom1[i][j],angle_atom2[i][j],angle_atom3[i][j]);
-    }
-  }
-  if (dihedralflag) {
-    printf(  "Dihedrals:\n");
-    for (int i = 0; i < natoms; i++) {
-      printf("    %d %d\n",i+1,num_dihedral[i]);
-      for (int j = 0; j < num_dihedral[i]; j++)
-        printf("      %d %d %d %d %d %d\n",
-               j+1,dihedral_type[i][j],
-               dihedral_atom1[i][j],dihedral_atom2[i][j],
-               dihedral_atom3[i][j],dihedral_atom4[i][j]);
-    }
-  }
-  if (improperflag) {
-    printf(  "Impropers:\n");
-    for (int i = 0; i < natoms; i++) {
-      printf("    %d %d\n",i+1,num_improper[i]);
-      for (int j = 0; j < num_improper[i]; j++)
-        printf("      %d %d %d %d %d %d\n",
-               j+1,improper_type[i][j],
-               improper_atom1[i][j],improper_atom2[i][j],
-               improper_atom3[i][j],improper_atom4[i][j]);
+      for (int j = 0; j < num_bond[i]; j++) {
+        if (has_newton_bond || (i + 1 < bond_atom[i][j])) {
+          ++idx;
+          if (has_typelabels) {
+            utils::print(out, " {}  {}", idx, atom->lmap->find_label(bond_type[i][j], Atom::BOND));
+          } else {
+            utils::print(out, " {}  {}", idx, bond_type[i][j]);
+          }
+          utils::print(out, " {} {}\n", i + 1, bond_atom[i][j]);
+        }
+      }
     }
   }
 
-  if (specialflag) {
-    printf(  "Special neighs:\n");
+  if (angleflag) {
+    fputs("\nAngles\n\n", out);
+    int idx = 0;
+    bool has_typelabels = (atom->labelmapflag != 0) && atom->lmap->is_complete(Atom::ANGLE);
     for (int i = 0; i < natoms; i++) {
-      printf("    %d %d %d %d\n",i+1,
-             nspecial[i][0],nspecial[i][1]-nspecial[i][0],
-             nspecial[i][2]-nspecial[i][1]);
-      printf("      ");
-      for (int j = 0; j < nspecial[i][2]; j++)
-        printf(" %d",special[i][j]);
-      printf("\n");
+      for (int j = 0; j < num_angle[i]; j++) {
+        if (has_newton_bond || (i + 1 == angle_atom2[i][j])) {
+          ++idx;
+          if (has_typelabels) {
+            utils::print(out, " {}  {}", idx,
+                         atom->lmap->find_label(angle_type[i][j], Atom::ANGLE));
+          } else {
+            utils::print(out, " {}  {}", idx, angle_type[i][j]);
+          }
+          utils::print(out, " {} {} {}\n", angle_atom1[i][j], angle_atom2[i][j], angle_atom3[i][j]);
+        }
+      }
+    }
+  }
+
+  if (dihedralflag) {
+    fputs("\nDihedrals\n\n", out);
+    int idx = 0;
+    bool has_typelabels = (atom->labelmapflag != 0) && atom->lmap->is_complete(Atom::DIHEDRAL);
+    for (int i = 0; i < natoms; i++) {
+      for (int j = 0; j < num_dihedral[i]; j++) {
+        if (has_newton_bond || (i + 1 == dihedral_atom2[i][j])) {
+          ++idx;
+          if (has_typelabels) {
+            utils::print(out, " {}  {}", idx,
+                         atom->lmap->find_label(dihedral_type[i][j], Atom::DIHEDRAL));
+          } else {
+            utils::print(out, " {}  {}", idx, dihedral_type[i][j]);
+          }
+          utils::print(out, " {} {} {} {}\n", dihedral_atom1[i][j], dihedral_atom2[i][j],
+                       dihedral_atom3[i][j], dihedral_atom4[i][j]);
+        }
+      }
+    }
+  }
+
+  if (improperflag) {
+    fputs("\nImpropers\n\n", out);
+    int idx = 0;
+    bool has_typelabels = (atom->labelmapflag != 0) && atom->lmap->is_complete(Atom::IMPROPER);
+    for (int i = 0; i < natoms; i++) {
+      for (int j = 0; j < num_improper[i]; j++) {
+        if (has_newton_bond || (i + 1 == improper_atom2[i][j])) {
+          ++idx;
+          if (has_typelabels) {
+            utils::print(out, " {}  {}", idx,
+                         atom->lmap->find_label(improper_type[i][j], Atom::IMPROPER));
+          } else {
+            utils::print(out, " {}  {}", idx, improper_type[i][j]);
+          }
+          utils::print(out, " {} {} {} {}\n", improper_atom1[i][j], improper_atom2[i][j],
+                       improper_atom3[i][j], improper_atom4[i][j]);
+        }
+      }
+    }
+  }
+
+  if (specialflag_user) {
+    fputs("\nSpecial Bond Counts\n\n", out);
+    for (int i = 0; i < natoms; i++) {
+      utils::print(out, " {}  {} {} {}\n", i + 1, nspecial[i][0], nspecial[i][1] - nspecial[i][0],
+                   nspecial[i][2] - nspecial[i][1]);
+    }
+
+    fputs("\nSpecial Bonds\n\n", out);
+    for (int i = 0; i < natoms; i++) {
+      utils::print(out, " {} ", i + 1);
+      for (int j = 0; j < nspecial[i][2]; j++) utils::print(out, " {}", special[i][j]);
+      utils::print(out, "\n");
+    }
+  }
+
+  if (shakeflag) {
+    fputs("\nShake Flags\n\n", out);
+    for (int i = 0; i < natoms; i++) utils::print(out, " {}  {}\n", i + 1, shake_flag[i]);
+
+    fputs("\nShake Atoms\n\n", out);
+    for (int i = 0; i < natoms; i++) {
+      utils::print(out, " {} ", i + 1);
+      switch (shake_flag[i]) {
+        case 1:
+          utils::print(out, " {} {} {}\n", shake_atom[i][0], shake_atom[i][1], shake_atom[i][2]);
+          break;
+
+        case 2:
+          utils::print(out, " {} {}\n", shake_atom[i][0], shake_atom[i][1]);
+          break;
+
+        case 3:
+          utils::print(out, " {} {} {}\n", shake_atom[i][0], shake_atom[i][1], shake_atom[i][2]);
+          break;
+
+        case 4:
+          utils::print(out, " {} {} {} {}\n", shake_atom[i][0], shake_atom[i][1], shake_atom[i][2],
+                       shake_atom[i][3]);
+          break;
+
+        case 0:
+          fputs("\n", out);
+          break;
+      }
+    }
+
+    fputs("\nShake Bond Types\n\n", out);
+    for (int i = 0; i < natoms; i++) {
+      bool has_typelabels = (atom->labelmapflag != 0) && atom->lmap->is_complete(Atom::BOND);
+      utils::print(out, " {} ", i + 1);
+      switch (shake_flag[i]) {
+        case 1:
+          has_typelabels = has_typelabels && atom->lmap->is_complete(Atom::ANGLE);
+          if (has_typelabels) {
+            utils::print(out, " {} {} {}\n", atom->lmap->find_label(shake_type[i][0], Atom::BOND),
+                         atom->lmap->find_label(shake_type[i][1], Atom::BOND),
+                         atom->lmap->find_label(shake_type[i][2], Atom::ANGLE));
+          } else {
+            utils::print(out, " {} {} {}\n", shake_type[i][0], shake_type[i][1], shake_type[i][2]);
+          }
+          break;
+
+        case 2:
+          if (has_typelabels) {
+            utils::print(out, " {} {}\n", atom->lmap->find_label(shake_type[i][0], Atom::BOND),
+                         atom->lmap->find_label(shake_type[i][1], Atom::BOND));
+          } else {
+            utils::print(out, " {} {}\n", shake_type[i][0], shake_type[i][1]);
+          }
+          break;
+
+        case 3:
+          if (has_typelabels) {
+            utils::print(out, " {} {} {}\n", atom->lmap->find_label(shake_type[i][0], Atom::BOND),
+                         atom->lmap->find_label(shake_type[i][1], Atom::BOND),
+                         atom->lmap->find_label(shake_type[i][2], Atom::BOND));
+          } else {
+            utils::print(out, " {} {} {}\n", shake_type[i][0], shake_type[i][1], shake_type[i][2]);
+          }
+          break;
+
+        case 4:
+          if (has_typelabels) {
+            utils::print(out, " {} {} {} {}\n",
+                         atom->lmap->find_label(shake_type[i][0], Atom::BOND),
+                         atom->lmap->find_label(shake_type[i][1], Atom::BOND),
+                         atom->lmap->find_label(shake_type[i][2], Atom::BOND),
+                         atom->lmap->find_label(shake_type[i][3], Atom::BOND));
+          } else {
+            utils::print(out, " {} {} {} {}\n", shake_type[i][0], shake_type[i][1],
+                         shake_type[i][2], shake_type[i][3]);
+          }
+          break;
+
+        case 0:
+          fputs("\n", out);
+          break;
+      }
+    }
+  }
+
+  if (bodyflag) {
+    auto *avec = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
+    if (avec) {
+      fputs("\nBody Integers\n\n", out);
+      if ((strcmp(avec->bptr->style, "nparticle") == 0) ||
+          (strcmp(avec->bptr->style, "rounded/polygon") == 0)) {
+        utils::print(out, " {}\n", ibodyparams[0]);
+      }
+      if (strcmp(avec->bptr->style, "rounded/polyhedron") == 0) {
+        utils::print(out, " {} {} {}\n", ibodyparams[0], ibodyparams[1], ibodyparams[2]);
+      }
+      fputs("\nBody Doubles\n\n", out);
+      utils::print(out, " {} {} {} {} {} {}\n", dbodyparams[0], dbodyparams[1], dbodyparams[2],
+                   dbodyparams[3], dbodyparams[4], dbodyparams[5]);
+      int idx = 6;
+      for (int i = 0; i < ibodyparams[0]; ++i) {
+        utils::print(out, " {} {} {}\n", dbodyparams[idx], dbodyparams[idx + 1],
+                     dbodyparams[idx + 2]);
+        idx += 3;
+      }
+      if (strcmp(avec->bptr->style, "rounded/polyhedron") == 0) {
+        for (int i = 0; i < ibodyparams[1]; ++i) {
+          utils::print(out, " {} {}\n", dbodyparams[idx], dbodyparams[idx + 1]);
+          idx += 2;
+        }
+        for (int i = 0; i < ibodyparams[2]; ++i) {
+          utils::print(out, " {} {} {} {}\n", dbodyparams[idx], dbodyparams[idx + 1],
+                       dbodyparams[idx + 2], dbodyparams[idx + 3]);
+          idx += 4;
+        }
+      }
+      utils::print(out, " {}\n", dbodyparams[idx]);
     }
   }
 }
-
-*/
+// clang-format off

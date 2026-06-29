@@ -35,11 +35,9 @@ FixStyle(colvars,FixColvars);
 #define LMP_FIX_COLVARS_H
 
 #include "fix.h"
+#include <unordered_map>
 
 // Forward declarations
-namespace IntHash_NS {
-struct inthash_t;
-}
 class colvarproxy_lammps;
 
 namespace LAMMPS_NS {
@@ -61,6 +59,7 @@ class FixColvars : public Fix {
   void end_of_step() override;
   void post_run() override;
   double compute_scalar() override;
+  double compute_array(int, int) override;
   double memory_usage() override;
 
   void write_restart(FILE *) override;
@@ -87,12 +86,11 @@ class FixColvars : public Fix {
   /// Arguments passed from fix_modify to the Colvars script interface
   unsigned char *script_args[100];
 
-  IntHash_NS::inthash_t *idmap;    // hash for mapping atom indices to consistent order.
+  std::unordered_map<int, int> idmap; // for mapping atom indices to consistent order.
 
   int nlevels_respa;       // flag to determine respa levels.
   int store_forces;        // flag to determine whether to store total forces
   int unwrap_flag;         // 1 if atom coords are unwrapped, 0 if not
-  int init_flag;           // 1 if initialized, 0 if not
   static int instances;    // count fix instances, since colvars currently
                            // only supports one instance at a time
   MPI_Comm root2root;      // inter-root communicator for multi-replica support
@@ -110,6 +108,8 @@ class FixColvars : public Fix {
   /// \param arg Array of strings
   /// \param fix_constructor If false, try Colvars commands if LAMMPS ones fail
   int parse_fix_arguments(int narg, char **arg, bool fix_constructor = true);
+
+  void setup_colvars(); // update size_array_rows and colname_auto
 };
 
 }    // namespace LAMMPS_NS

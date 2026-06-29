@@ -208,6 +208,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`cnp/atom <compute_cnp_atom>` - common neighborhood parameter (CNP) for each atom
 * :doc:`com <compute_com>` - center of mass of group of atoms
 * :doc:`com/chunk <compute_com_chunk>` - center of mass for each chunk
+* :doc:`composition/atom <compute_composition_atom>` - local composition for each atom
 * :doc:`contact/atom <compute_contact_atom>` - contact count for each spherical particle
 * :doc:`coord/atom <compute_coord_atom>` - coordination number for each atom
 * :doc:`count/type <compute_count_type>` - count of atoms or bonds by type
@@ -243,6 +244,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`gyration/chunk <compute_gyration_chunk>` - radius of gyration for each chunk
 * :doc:`gyration/shape <compute_gyration_shape>` - shape parameters from gyration tensor
 * :doc:`gyration/shape/chunk <compute_gyration_shape_chunk>` - shape parameters from gyration tensor for each chunk
+* :doc:`hbond/local <compute_hbond_local>` - identify hydrogen bonds
 * :doc:`heat/flux <compute_heat_flux>` - heat flux through a group of atoms
 * :doc:`heat/flux/tally <compute_tally>` - heat flux through a group of atoms via the tally callback mechanism
 * :doc:`heat/flux/virial/tally <compute_tally>` - virial heat flux between two groups via the tally callback mechanism
@@ -256,7 +258,6 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
-* :doc:`composition/atom <compute_composition_atom>` - local composition for each atom
 * :doc:`mliap <compute_mliap>` - gradients of energy and forces with respect to model parameters and related quantities for training machine learning interatomic potentials
 * :doc:`momentum <compute_momentum>` - translational momentum
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms

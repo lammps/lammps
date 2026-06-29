@@ -6,6 +6,7 @@ pair_style srp command
 
 pair_style srp/react command
 ============================
+
 Syntax
 """"""
 
@@ -57,7 +58,7 @@ Examples
 
 
 Description
-
+"""""""""""
 
 Style *srp* computes a soft segmental repulsive potential (SRP) that
 acts between pairs of bonds. This potential is useful for preventing

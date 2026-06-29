@@ -39,70 +39,59 @@ struct TagComputeTempDeformRemoveBias{};
 
 struct TagComputeTempDeformRestoreBias{};
 
+struct TagComputeTempDeformApplyBias{};
+
 template<class DeviceType>
 class ComputeTempDeformKokkos: public ComputeTempDeform {
  public:
-  struct s_CTEMP {
-    double t0, t1, t2, t3, t4, t5;
-    KOKKOS_INLINE_FUNCTION
-    s_CTEMP() {
-      t0 = t1 = t2 = t3 = t4 = t5 = 0.0;
-    }
-    KOKKOS_INLINE_FUNCTION
-    s_CTEMP& operator+=(const s_CTEMP &rhs) {
-      t0 += rhs.t0;
-      t1 += rhs.t1;
-      t2 += rhs.t2;
-      t3 += rhs.t3;
-      t4 += rhs.t4;
-      t5 += rhs.t5;
-      return *this;
-    }
-  };
-
-  typedef s_CTEMP CTEMP;
-  typedef CTEMP value_type;
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeTempDeformKokkos(class LAMMPS *, int, char **);
+  void post_constructor() override;
   double compute_scalar() override;
   void compute_vector() override;
   void remove_bias_all() override;
   void remove_bias_all_kk() override;
   void restore_bias_all() override;
+  void restore_bias_all_kk() override;
 
-  template<int RMASS>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagComputeTempDeformScalar<RMASS>, const int&, CTEMP&) const;
+  void remove_deform_bias_all() override;
+  void remove_deform_bias_all_kk() override;
+  void restore_deform_bias_all() override;
+  void restore_deform_bias_all_kk() override;
+  void apply_deform_bias_all(double dtv = 0.0) override;
+  void apply_deform_bias_all_kk(double dtv = 0.0) override;
 
-  template<int RMASS>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagComputeTempDeformVector<RMASS>, const int&, CTEMP&) const;
-
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeTempDeformRemoveBias, const int &i) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeTempDeformRestoreBias, const int &i) const;
 
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagComputeTempDeformApplyBias, const int &i) const;
+
  protected:
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_v_array vbiasall;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread mask;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkfloat_1d_3 v;
+  typename AT::t_kkfloat_1d_3 vbiasall;
+  typename AT::t_kkfloat_1d_randomread rmass;
+  typename AT::t_kkfloat_1d_randomread mass;
+  typename AT::t_int_1d_randomread type;
+  typename AT::t_int_1d_randomread mask;
 
   class DomainKokkos *domainKK;
 
-  Few<double, 6> h_rate, h_ratelo;
+  Few<double, 6> h_rate, h_ratelo, d_grad_u;
+  Few<double, 5> d_xref;  // stores xmid[3], ylo, zlo
 
-  };
+};
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestHIP_Category.hpp>
 #include <TestMultiGPU.hpp>
@@ -133,7 +120,7 @@ TEST_F(TEST_CATEGORY_FIXTURE(multi_gpu), stream_sync_semantics_raw_hip) {
 
     // Launch "long" kernel on device 0.
     KOKKOS_IMPL_HIP_SAFE_CALL(hipSetDevice(devices[0]));
-    constexpr size_t size = 10000;
+    constexpr int size = 10000;
     accumulate_kernel<size><<<1, 1, 0, streams[0]>>>(value);
 
     // Wait for the kernel running on device 0 while we are on device 1, then

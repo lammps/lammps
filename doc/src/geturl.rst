@@ -36,7 +36,7 @@ Description
 .. versionadded:: 29Aug2024
 
 Download a file from an URL to the local disk. This is implemented with
-the `libcurl library <https:://curl.se/libcurl/>`_ which supports a
+the `libcurl library <https://curl.se/libcurl/>`_ which supports a
 large variety of protocols including "http", "https", "ftp", "scp",
 "sftp", "file".  The transfer will only be performed on MPI rank 0.
 
@@ -69,7 +69,7 @@ failure.
 .. admonition:: Using *geturl* with proxies for http or https
    :class: note
 
-   The `libcurl library <https:://curl.se/libcurl/>`_ supports `routing
+   The `libcurl library <https://curl.se/libcurl/>`_ supports `routing
    traffic through proxies
    <https://everything.curl.dev/usingcurl/proxies/env.html>`_ by setting
    suitable environment variables (e.g. ``http_proxy`` or

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include "PerfTest_ViewFill.hpp"
 
@@ -23,10 +10,24 @@ BENCHMARK(ViewFill_Rank1<Kokkos::LayoutLeft>)
     ->Arg(N)
     ->UseManualTime();
 
+#ifdef KOKKOS_HAS_SHARED_SPACE
+BENCHMARK(ViewFill_Rank1<Kokkos::LayoutLeft, Kokkos::SharedSpace>)
+    ->ArgName("N")
+    ->Arg(N)
+    ->UseManualTime();
+#endif
+
 BENCHMARK(ViewFill_Rank1<Kokkos::LayoutRight>)
     ->ArgName("N")
     ->Arg(N)
     ->UseManualTime();
+
+#ifdef KOKKOS_HAS_SHARED_SPACE
+BENCHMARK(ViewFill_Rank1<Kokkos::LayoutRight, Kokkos::SharedSpace>)
+    ->ArgName("N")
+    ->Arg(N)
+    ->UseManualTime();
+#endif
 
 BENCHMARK(ViewFill_Rank2<Kokkos::LayoutLeft>)
     ->ArgName("N")

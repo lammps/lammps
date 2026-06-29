@@ -59,7 +59,7 @@ enum {NOBIAS,BIAS};
 
 
 static const char* cite_fix_nvt_manifold_rattle =
-  "fix nvt/manifold/rattle command: doi:10.1016/j.bpj.2016.02.017\n\n"
+  "fix nvt/manifold/rattle command: https://doi.org/10.1016/j.bpj.2016.02.017\n\n"
   "@article{paquay-2016,\n"
   "   author        = {Paquay, Stefan and Kusters, Remy},\n"
   "   doi           = {10.1016/j.bpj.2016.02.017},\n"
@@ -133,8 +133,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
 
   id_temp = utils::strdup(std::string(id) + "_temp");
   modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
-  int icompute = modify->find_compute(id_temp);
-  temperature = modify->compute[icompute];
+  temperature = modify->get_compute_by_id(id_temp);
   if (temperature->tempbias) which = BIAS;
   else                        which = NOBIAS;
 

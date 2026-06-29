@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 static constexpr double EPSILON = 1.0e-10;
 
 static const char cite_pair_tdpd[] =
-  "pair tdpd command: doi:10.1063/1.4923254\n\n"
+  "pair tdpd command: https://doi.org/10.1063/1.4923254\n\n"
   "@Article{ZLi2015_JCP,\n"
   " author = {Li, Z. and Yazdani, A. and Tartakovsky, A. and Karniadakis, G. E.},\n"
   " title = {Transport Dissipative Particle Dynamics Model for Mesoscopic Advection-Diffusion-Reaction Problems},\n"

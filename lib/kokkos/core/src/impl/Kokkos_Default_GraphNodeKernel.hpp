@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_KOKKOS_HOST_GRAPHNODEKERNEL_HPP
 #define KOKKOS_KOKKOS_HOST_GRAPHNODEKERNEL_HPP
@@ -43,6 +30,25 @@ struct GraphNodeKernelDefaultImpl {
       : m_execution_space(std::move(exec)) {}
 
   ExecutionSpace m_execution_space;
+};
+
+template <typename ExecutionSpace, typename Functor>
+struct GraphNodeThenHostImpl
+    : public GraphNodeKernelDefaultImpl<ExecutionSpace> {
+  using execute_kernel_vtable_base_t =
+      GraphNodeKernelDefaultImpl<ExecutionSpace>;
+
+  explicit GraphNodeThenHostImpl(Functor functor)
+      : execute_kernel_vtable_base_t{}, m_functor(std::move(functor)) {}
+
+  void execute_kernel() override final {
+    this->m_execution_space.fence(
+        "Kokkos::DefaultGraphNode::then_host: fence needed before host "
+        "callback");
+    m_functor();
+  }
+
+  Functor m_functor;
 };
 
 // TODO Indicate that this kernel specialization is only for the Host somehow?

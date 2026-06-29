@@ -36,6 +36,13 @@ class PPPMDipole : public PPPM {
   int timing_3d(int, double &) override;
   double memory_usage() override;
 
+  // grid communication
+
+  void pack_forward_grid(int, void *, int, int *) override;
+  void unpack_forward_grid(int, void *, int, int *) override;
+  void pack_reverse_grid(int, void *, int, int *) override;
+  void unpack_reverse_grid(int, void *, int, int *) override;
+
  protected:
   void set_grid_global() override;
   double newton_raphson_f() override;
@@ -47,13 +54,6 @@ class PPPMDipole : public PPPM {
   void compute_gf_denom() override;
 
   void slabcorr() override;
-
-  // grid communication
-
-  void pack_forward_grid(int, void *, int, int *) override;
-  void unpack_forward_grid(int, void *, int, int *) override;
-  void pack_reverse_grid(int, void *, int, int *) override;
-  void unpack_reverse_grid(int, void *, int, int *) override;
 
   // dipole
 

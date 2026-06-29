@@ -11,6 +11,7 @@ to run directly from LAMMPS, use:
 
 mpirun -np 4 lmp.exe -in in.elastic
 
+The results are written to log file log.elastic.ortho.
 This simulates an orthorhombic box with the cubic crystal axes
 aligned with x, y, and z.
 The default settings replicate the 1477~K benchmark of
@@ -27,6 +28,8 @@ mpirun -np 4 python elastic.py
 
 This will first run the orthorhombic supercell as before,
 follows by an equivalent simulation using a triclinic structure.
+The results are written to log files log.elastic.ortho and
+log.elastic.tri, respectively. 
 The script shows how the standard triclinic primitive cell for cubic diamond
 can be rotated in to the LAMMPS upper triangular frame. The resultant
 elastic constant matrix does not exhibit the standard symmetries of cubic crystals.
@@ -34,4 +37,6 @@ However, the matrix is then rotated back to the standard orientation
 to recover the cubic symmetry form of the elastic matrix,
 resulting in elastic constants that are the same for both
 simulations, modulo statistical uncertainty.
+A summary of both runs and the
+numerical differences is appended to the screen output.
 

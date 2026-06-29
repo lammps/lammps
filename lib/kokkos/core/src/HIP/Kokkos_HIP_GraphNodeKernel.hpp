@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HIP_GRAPHNODEKERNEL_HPP
 #define KOKKOS_HIP_GRAPHNODEKERNEL_HPP
@@ -29,6 +16,49 @@
 
 namespace Kokkos {
 namespace Impl {
+
+template <typename Functor>
+struct GraphNodeThenHostImpl<Kokkos::HIP, Functor> {
+  Functor m_functor;
+  hipGraphNode_t m_node = nullptr;
+
+  explicit GraphNodeThenHostImpl(Functor functor)
+      : m_functor(std::move(functor)) {}
+
+  static void callback(void* data) {
+    reinterpret_cast<Functor*>(data)->operator()();
+  }
+
+  void add_to_graph(hipGraph_t graph) {
+    hipHostNodeParams params = {};
+    params.fn                = callback;
+    params.userData          = &m_functor;
+
+    KOKKOS_IMPL_HIP_SAFE_CALL(
+        hipGraphAddHostNode(&m_node, graph, nullptr, 0, &params));
+  }
+};
+
+template <typename Functor>
+struct GraphNodeCaptureImpl<Kokkos::HIP, Functor> {
+  Functor m_functor;
+  hipGraphNode_t m_node = nullptr;
+
+  void capture(const Kokkos::HIP& exec, hipGraph_t graph) {
+    KOKKOS_IMPL_HIP_SAFE_CALL(
+        hipStreamBeginCapture(exec.hip_stream(), hipStreamCaptureModeGlobal));
+
+    m_functor(exec);
+
+    hipGraph_t captured_subgraph(nullptr);
+
+    KOKKOS_IMPL_HIP_SAFE_CALL(
+        hipStreamEndCapture(exec.hip_stream(), &captured_subgraph));
+
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipGraphAddChildGraphNode(&m_node, graph, nullptr,
+                                                        0, captured_subgraph));
+  }
+};
 
 template <typename PolicyType, typename Functor, typename PatternTag,
           typename... Args>
@@ -68,8 +98,7 @@ class GraphNodeKernelImpl<Kokkos::HIP, PolicyType, Functor, PatternTag, Args...>
 
   hipGraph_t const* get_hip_graph_ptr() const { return m_graph_ptr; }
 
-  Kokkos::ObservingRawPtr<base_t> allocate_driver_memory_buffer(
-      const HIP& exec) const {
+  base_t* allocate_driver_memory_buffer(const HIP& exec) const {
     KOKKOS_EXPECTS(m_driver_storage == nullptr);
     std::string alloc_label =
         label + " - GraphNodeKernel global memory functor storage";
@@ -87,9 +116,9 @@ class GraphNodeKernelImpl<Kokkos::HIP, PolicyType, Functor, PatternTag, Args...>
   auto get_driver_storage() const { return m_driver_storage; }
 
  private:
-  Kokkos::ObservingRawPtr<const hipGraph_t> m_graph_ptr    = nullptr;
-  Kokkos::ObservingRawPtr<hipGraphNode_t> m_graph_node_ptr = nullptr;
-  mutable std::shared_ptr<base_t> m_driver_storage         = nullptr;
+  hipGraph_t const* m_graph_ptr                    = nullptr;
+  hipGraphNode_t* m_graph_node_ptr                 = nullptr;
+  mutable std::shared_ptr<base_t> m_driver_storage = nullptr;
   std::string label;
 };
 
@@ -99,13 +128,13 @@ template <typename KernelType,
           typename Tag =
               typename PatternTagFromImplSpecialization<KernelType>::type>
 struct get_graph_node_kernel_type
-    : type_identity<
+    : std::type_identity<
           GraphNodeKernelImpl<Kokkos::HIP, typename KernelType::Policy,
                               typename KernelType::functor_type, Tag>> {};
 
 template <typename KernelType>
 struct get_graph_node_kernel_type<KernelType, Kokkos::ParallelReduceTag>
-    : type_identity<GraphNodeKernelImpl<
+    : std::type_identity<GraphNodeKernelImpl<
           Kokkos::HIP, typename KernelType::Policy,
           CombinedFunctorReducer<typename KernelType::functor_type,
                                  typename KernelType::reducer_type>,

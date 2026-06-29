@@ -75,7 +75,7 @@ void Fingerprint::generate_rinvssqrttable()
   int res = pair->res;
   rinvsqrttable = new double[res + buf];
   for (m = 0; m < (res + buf); m++) {
-    r1 = cutmax * cutmax * (double) (m) / (double) (res);
+    r1 = cutmax * cutmax * (double) m / (double) res;
     rinvsqrttable[m] = 1 / sqrt(r1);
   }
 }

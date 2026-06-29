@@ -39,6 +39,7 @@ BondMorse::BondMorse(LAMMPS *_lmp) : Bond(_lmp)
 
 BondMorse::~BondMorse()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(d0);

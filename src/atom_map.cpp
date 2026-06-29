@@ -335,8 +335,8 @@ void Atom::map_delete()
     map_array = nullptr;
   } else {
     if (map_nhash) {
-      delete [] map_bucket;
-      delete [] map_hash;
+      delete[] map_bucket;
+      delete[] map_hash;
       map_bucket = nullptr;
       map_hash = nullptr;
     }

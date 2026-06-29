@@ -77,11 +77,8 @@ class CommTiled : public Comm {
   double ***sendbox;    // bounding box of atoms to send per swap/proc
 
   double **cutghostmulti;         // cutghost on a per-collection basis
-  double **cutghostmultiold;      // cutghost on a per-type basis
   double ****sendbox_multi;       // bounding box of atoms to send
                                   //   per swap/proc for multi comm
-  double ****sendbox_multiold;    // bounding box of atoms to send
-                                  //   per swap/proc for multi/old comm
 
   // exchange comm info, proc lists do not include self
 

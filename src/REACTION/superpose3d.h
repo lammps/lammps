@@ -271,7 +271,7 @@ Scalar Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::Superpose(
   // Optional: Decide the scale factor, c
   c = 1.0;    // by default, don't rescale the coordinates
 
-  if ((allow_rescale) && (!singular)) {
+  if (allow_rescale && !singular) {
     Scalar Waxaixai = 0.0;
     Scalar WaxaiXai = 0.0;
     for (size_t a = 0; a < N; a++) {

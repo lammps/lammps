@@ -113,4 +113,5 @@ Commands
    write_coeff
    write_data
    write_dump
+   write_molecule
    write_restart

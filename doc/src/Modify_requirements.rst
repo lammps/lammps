@@ -78,9 +78,9 @@ Integration testing (strict)
 
 Where possible we use available continuous integration tools to search
 for common programming mistakes, portability limitations, incompatible
-formatting, and undesired side effects. Contributed code must pass the
+formatting, and undesired side effects.  Contributed code must pass the
 automated tests on GitHub before it can be merged with the LAMMPS
-distribution. These tests compile LAMMPS in a variety of environments
+distribution.  These tests compile LAMMPS in a variety of environments
 and settings and run the bundled unit tests.  At the discretion of the
 LAMMPS developer managing the pull request, additional tests may be
 activated that test for "side effects" on running a collection of
@@ -105,7 +105,7 @@ Documentation (strict)
 Contributions that add new styles or commands or augment existing ones
 must include the corresponding new or modified documentation in
 `ReStructuredText format <rst_>`_ (.rst files in the ``doc/src/``
-folder). The documentation should be written in American English and the
+folder).  The documentation should be written in American English and the
 .rst file must only use ASCII characters, so it can be cleanly
 translated to PDF files (via `sphinx <https://www.sphinx-doc.org>`_ and
 PDFLaTeX).  Special characters may be included via embedded math
@@ -115,11 +115,17 @@ expression typeset in a LaTeX subset.
 
 When adding new commands, they need to be integrated into the sphinx
 documentation system, and the corresponding command tables and lists
-updated. When translating the documentation into html files there
-should be no warnings. When adding a new package, some lists
+updated.  When translating the documentation into html files there
+should be no warnings.  When adding a new package, some lists
 describing packages must also be updated as well as a package specific
 description added.  Likewise, if necessary, some package specific
 build instructions should be included.
+
+A detailed, step-by-step guide for what a documentation page must
+contain, how to register a new style in the command tables and overview
+lists, how to document accelerated variants, and which consistency
+checks to run is given on the :doc:`Writing or updating documentation
+<Developer_write_docs>` page.
 
 As appropriate, the text files with the documentation can include
 inline mathematical expressions or figures (see ``doc/JPG`` for
@@ -166,20 +172,23 @@ out your new feature.
 Programming language standards (strict)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The core of LAMMPS is written in C++11 in a style that can be mostly
+The core of LAMMPS is written in C++17 in a style that can be mostly
 described as "C with classes".  Advanced C++ features like operator
 overloading or excessive use of templates are avoided with the intent to
 keep the code readable to programmers that have limited C++ programming
 experience.  C++ constructs are acceptable when they help improve the
 readability and reliability of the code, e.g. when using the
 `std::string` class instead of manipulating pointers and calling the
-string functions of the C library.  In addition, a collection of
+string functions of the C library or when using `auto` to avoid
+redundant data type specifications.  In addition, a collection of
 convenient :doc:`utility functions and classes <Developer_utils>` for
 recurring tasks and a collection of :doc:`platform neutral functions
-<Developer_platform>` for improved portability are provided.
-Contributions with code requiring more recent C++ standards are only
-accepted as packages with the post C++11 standard code confined to the
-package so that it is optional.
+<Developer_platform>` for improved portability are provided.  Containers
+from C++ standard library have to be used with caution, but
+`std::vector` can be useful and is compatible with efficient
+communication via MPI.  Contributions with code requiring more recent
+C++ standards are only accepted as packages with the post C++17 standard
+code confined to the package so that it is optional.
 
 Included Fortran code has to be compatible with the Fortran 2003
 standard.  Since not all platforms supported by LAMMPS provide good
@@ -206,10 +215,11 @@ Build system (strict)
 
 LAMMPS currently supports two build systems: one that is based on
 :doc:`traditional Makefiles <Build_make>` and one that is based on
-:doc:`CMake <Build_cmake>`.  As of fall 2024, it is no longer required
-to support the traditional make build system.  New packages may choose
-to only support building with CMake.  Additions to existing packages
-must follow the requirements set by that package.
+:doc:`CMake <Build_cmake>`.  As of fall 2025, it is no longer required
+to support the traditional :doc:`traditional GNU make build system
+<Build_make>`.  New packages may choose to only support :doc:`building
+with CMake <Build_cmake>`.  Additions to existing packages must follow
+the requirements set by that package.
 
 For a single pair of header and implementation files that are an
 independent feature, it is usually only required to add them to
@@ -238,7 +248,7 @@ should only use letters, numbers, or forward slashes.  They should be
 descriptive and initialisms should be avoided unless they are well
 established (e.g. lj for Lennard-Jones).  For a compute style
 "some/name" the source files must be called ``compute_some_name.h`` and
-``compute_some_name.cpp``. The "include guard" in the header file would
+``compute_some_name.cpp``.  The "include guard" in the header file would
 then be ``LMP_COMPUTE_SOME_NAME_H`` and the class name
 ``ComputeSomeName``.
 
@@ -261,7 +271,7 @@ Examples (preferred)
 
 For many new features, it is preferred that example scripts (simple,
 small, fast to complete on 1 CPU) are included that demonstrate the
-use of new or extended functionality. These are typically include
+use of new or extended functionality.  These are typically include
 under the examples or examples/PACKAGES directory and are further
 described on the :doc:`examples page <Examples>`.  Guidelines for
 input scripts include:
@@ -309,10 +319,15 @@ so that one could look up the cause by reading the source code.
 
 The new policy encourages more specific error messages that ideally
 indicate the cause directly, and requiring no further lookup. This is
-aided by the `{fmt} library <https://fmt.dev>`_ enabling Error class
-methods that take a variable number of arguments and an error text that
-will be treated like a {fmt} syntax format string. Error messages should
-still preferably be kept to a single line or two lines at most.
+aided by either the `{fmt} library <https://fmt.dev>`_ or the `C++
+format library
+<https://cppreference.com/w/cpp/utility/format.html>`_ (for C++20
+and later) enabling :cpp:class:`LAMMPS_NS::Error` class methods that
+take a variable number of arguments and an error text that will be
+treated like a `C++ format string
+<https://cppreference.com/w/cpp/utility/format/spec.html>`_. Error
+messages should still preferably be kept to a single line or two lines
+at most.
 
 For more complex explanations or errors that have multiple possible
 reasons, a paragraph should be added to the `Error_details` page with an
@@ -343,29 +358,25 @@ Citation reminder (optional)
 
 If there is a paper of yours describing your feature (either the
 algorithm/science behind the feature itself, or its initial usage, or
-its implementation in LAMMPS), you can add the citation to the \*.cpp
-source file.  See ``src/DIFFRACTION/compute_saed.cpp`` for an example.
-A BibTeX format citation is stored in a string variable at the top of
-the file, and a single line of code registering this variable is added
-to the constructor of the class.  When your feature is used, then
-LAMMPS (by default) will print the brief info and the DOI in the first
-line to the screen and the full citation to the log file.
+its implementation in LAMMPS), you can add the citation to the ``.cpp``
+source file.  A description of how to add the reminder is
+:doc:`available elsewhere in this manual <Classes_cite>`.
 
 If there is additional functionality (which may have been added later)
 described in a different publication, additional citation descriptions
-may be added so long as they are only registered when the
-corresponding keyword activating this functionality is used.
+may be added so long as they are only registered when the corresponding
+keyword activating this functionality is used.
 
 With these options, it is possible to have LAMMPS output a specific
-citation reminder whenever a user invokes your feature from their
-input script.  Please note that you should *only* use this for the
-*most* relevant paper for a feature and a publication that you or your
-group authored.  E.g. adding a citation in the source code for a paper
-by Nose and Hoover if you write a fix that implements their integrator
-is not the intended usage.  That kind of citation should just be
-included in the documentation page you provide describing your
-contribution.  If you are not sure what the best option would be,
-please contact the LAMMPS developers for advice.
+citation reminder whenever a user invokes your feature from their input
+script.  Please note that you should *only* use this for the *most*
+relevant paper for a feature and a publication that you or your group
+authored.  E.g. adding a citation in the source code for a paper by Nose
+and Hoover if you write a fix that implements their integrator is not
+the intended usage.  That kind of citation should just be included in
+the documentation page you provide describing your contribution.  If you
+are not sure what the best option would be, please contact the LAMMPS
+developers for advice.
 
 .. _ReqUnitTesting:
 
@@ -373,11 +384,11 @@ Testing (optional)
 ------------------
 
 If your contribution contains new utility functions or a supporting
-class (i.e. anything that does not depend on a LAMMPS object), new
-unit tests should be added to a suitable folder in the ``unittest``
-tree.  When adding a new LAMMPS style computing forces or selected
-fixes, a ``.yaml`` file with a test configuration and reference data
-should be added for the styles where a suitable tester program already
-exists (e.g. pair styles, bond styles, etc.). Please see :ref:`this
-section in the manual <testing>` for more information on how to
-enable, run, and expand testing.
+class (i.e. anything that does not depend on a LAMMPS object), new unit
+tests should be added to a suitable folder in the ``unittest`` tree.
+When adding a new LAMMPS style computing forces or selected fixes, a
+``.yaml`` file with a test configuration and reference data should be
+added for the styles where a suitable tester program already exists
+(e.g. pair styles, bond styles, etc.).  Please see :ref:`this section in
+the manual <testing>` for more information on how to enable, run, and
+expand testing.

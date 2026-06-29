@@ -174,7 +174,7 @@ void FixQTB::init()
                "with alpha value as {}!\n", 0.5/h_timestep, alpha);
 
   // set force prefactors
-  if (!atom->rmass) {
+  if (atom->mass) {
     for (int i = 1; i <= atom->ntypes; i++) {
       //gfactor1 is the friction force \gamma{}m_{i}\frac{dv}{dt}
       gfactor1[i] = (atom->mass[i]*fric_coef) / force->ftm2v;

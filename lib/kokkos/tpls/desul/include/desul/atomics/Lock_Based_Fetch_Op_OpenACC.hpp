@@ -10,7 +10,9 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #define DESUL_ATOMICS_LOCK_BASED_FETCH_OP_OPENACC_HPP_
 
 #include <desul/atomics/Common.hpp>
+#include <desul/atomics/Compare_Exchange_OpenACC.hpp>
 #include <desul/atomics/Lock_Array.hpp>
+#include <desul/atomics/Operator_Function_Objects.hpp>
 #include <desul/atomics/Thread_Fence.hpp>
 #include <type_traits>
 
@@ -21,9 +23,7 @@ template <class Oper,
           class T,
           class MemoryOrder,
           class MemoryScope,
-          // equivalent to:
-          //   requires !atomic_always_lock_free(sizeof(T))
-          std::enable_if_t<!atomic_always_lock_free(sizeof(T)), int> = 0>
+          std::enable_if_t<!device_atomic_always_lock_free<T>, int> = 0>
 inline T device_atomic_fetch_oper(const Oper& op,
                                   T* const dest,
                                   dont_deduce_this_parameter_t<const T> val,
@@ -39,37 +39,10 @@ inline T device_atomic_fetch_oper(const Oper& op,
   }
 
   device_atomic_thread_fence(MemoryOrderAcquire(), scope);
-  T return_val = *dest;
+  T return_val{};
+  if constexpr (!std::is_same_v<Oper, _store_fetch_operator<T, const T>>)
+    return_val = *dest;
   *dest = op.apply(return_val, val);
-  device_atomic_thread_fence(MemoryOrderRelease(), scope);
-  unlock_address((void*)dest, scope);
-  return return_val;
-}
-
-template <class Oper,
-          class T,
-          class MemoryOrder,
-          class MemoryScope,
-          // equivalent to:
-          //   requires !atomic_always_lock_free(sizeof(T))
-          std::enable_if_t<!atomic_always_lock_free(sizeof(T)), int> = 0>
-inline T device_atomic_oper_fetch(const Oper& op,
-                                  T* const dest,
-                                  dont_deduce_this_parameter_t<const T> val,
-                                  MemoryOrder /*order*/,
-                                  MemoryScope scope) {
-  if (acc_on_device(acc_device_not_host)) {
-    printf(
-        "DESUL error in device_atomic_oper_fetch(): Not supported atomic operation in "
-        "the OpenACC backend\n");
-  }
-  // Acquire a lock for the address
-  while (!lock_address((void*)dest, scope)) {
-  }
-
-  device_atomic_thread_fence(MemoryOrderAcquire(), scope);
-  T return_val = op.apply(*dest, val);
-  *dest = return_val;
   device_atomic_thread_fence(MemoryOrderRelease(), scope);
   unlock_address((void*)dest, scope);
   return return_val;

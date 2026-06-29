@@ -88,22 +88,24 @@ template<class DeviceType, int TRIM>
 class NPairSkipKokkos : public NPair {
  public:
   typedef DeviceType device_type;
-  typedef int value_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef int value_type;
 
   NPairSkipKokkos(class LAMMPS *);
   void build(class NeighList *) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNPairSkipCompute, const int&, int&, const bool&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNPairSkipCountLocal, const int&, int&) const;
 
  private:
   int nlocal,num_skip,cutsq_custom;
 
-  typename AT::t_x_array_randomread x;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_int_1d_randomread type;
 
   typename AT::t_int_scalar d_inum;

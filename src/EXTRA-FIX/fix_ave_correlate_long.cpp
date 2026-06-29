@@ -45,7 +45,7 @@ using MathSpecial::powint;
 enum { AUTO, UPPER, LOWER, AUTOUPPER, AUTOLOWER, FULL, FIRST };
 
 static const char cite_fix_ave_correlate_long[] =
-    "fix ave/correlate/long command: doi:10.1063/1.3491098\n\n"
+    "fix ave/correlate/long command: https://doi.org/10.1063/1.3491098\n\n"
     "@Article{Ramirez10,\n"
     " author = {Jorge Rami{\'}rez and Sathish K. Sukumaran and Bart Vorselaars and Alexei E. "
     "Likhtman},\n"
@@ -592,34 +592,34 @@ void FixAveCorrelateLong::accumulate()
   } else if (type == UPPER) {
     ipair = 0;
     for (i=0; i < nvalues; i++)
-      for (j=i+1; j < nvalues; j++) add(ipair++,cvalues[i],cvalues[j]);
+      for (j=i+1; j < nvalues; j++) add(ipair++,cvalues[j],cvalues[i]);
   } else if (type == LOWER) {
     ipair = 0;
     for (i=0; i < nvalues; i++)
-      for (j=0; j < i; j++) add(ipair++,cvalues[i],cvalues[j]);
+      for (j=0; j < i; j++) add(ipair++,cvalues[j],cvalues[i]);
   } else if (type == AUTOUPPER) {
     ipair = 0;
     for (i=0; i < nvalues; i++)
       for (j=i; j < nvalues; j++) {
         if (i == j) add(ipair++,cvalues[i]);
-        else add(ipair++,cvalues[i],cvalues[j]);
+        else add(ipair++,cvalues[j],cvalues[i]);
       }
   } else if (type == AUTOLOWER) {
     ipair = 0;
     for (i=0; i < nvalues; i++)
       for (j=0; j <=i; j++) {
         if (i==j) add(ipair++,cvalues[i]);
-        else add(ipair++,cvalues[i],cvalues[j]);
+        else add(ipair++,cvalues[j],cvalues[i]);
       }
   } else if (type == FULL) {
     ipair = 0;
     for (i=0; i < nvalues; i++)
       for (j=0; j < nvalues; j++) {
         if (i == j) add(ipair++,cvalues[i]);
-        else add(ipair++,cvalues[i],cvalues[j]);
+        else add(ipair++,cvalues[j],cvalues[i]);
       }
   } else if (type == FIRST) {
-    for (i=0; i < nvalues; i++) add(i,cvalues[0],cvalues[i]);
+    for (i=0; i < nvalues; i++) add(i,cvalues[i],cvalues[0]);
   }
   last_accumulated_step = update->ntimestep;
 }

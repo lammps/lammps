@@ -39,7 +39,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_bond_swap[] =
-  "fix bond/swap command: doi:10.1063/1.1628670\n\n"
+  "fix bond/swap command: https://doi.org/10.1063/1.1628670\n\n"
   "@Article{Auhl03,\n"
   " author = {R. Auhl and R. Everaers and G. S. Grest and K. Kremer and S. J. Plimpton},\n"
   " title = {Equilibration of Long Chain Polymer Melts in Computer Simulations},\n"
@@ -85,7 +85,7 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR,"Cannot use fix bond/swap with non-molecular systems");
+    error->all(FLERR, 2, "Cannot use fix bond/swap with non-molecular systems");
 
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
@@ -136,7 +136,7 @@ void FixBondSwap::init()
   // require an atom style with molecule IDs
 
   if (atom->molecule == nullptr)
-    error->all(FLERR, "Must use atom style with molecule IDs with fix bond/swap");
+    error->all(FLERR, "Must use an atom style with molecule IDs with fix bond/swap");
 
   temperature = modify->get_compute_by_id(id_temp);
   if (!temperature) {
@@ -698,10 +698,9 @@ int FixBondSwap::modify_param(int narg, char **arg)
     delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
       error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
       error->all(FLERR,"Fix_modify temperature ID does not "

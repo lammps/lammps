@@ -193,6 +193,7 @@ void CreateBox::command(int narg, char **arg)
 
   // process optional args that can overwrite default settings
 
+  int maxexchange = atom->avec->maxexchange;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "bond/types") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box bond/type", error);
@@ -223,12 +224,14 @@ void CreateBox::command(int narg, char **arg)
       if (!atom->avec->bonds_allow)
         error->all(FLERR, "No bonds allowed with atom style {}", atom->get_style());
       atom->bond_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      maxexchange += 2 * atom->bond_per_atom;
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/angle/per/atom") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box extra/angle/per/atom", error);
       if (!atom->avec->angles_allow)
         error->all(FLERR, "No angles allowed with atom style {}", atom->get_style());
       atom->angle_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      maxexchange += 4 * atom->angle_per_atom;
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/dihedral/per/atom") == 0) {
       if (iarg + 2 > narg)
@@ -236,6 +239,7 @@ void CreateBox::command(int narg, char **arg)
       if (!atom->avec->dihedrals_allow)
         error->all(FLERR, "No dihedrals allowed with atom style {}", atom->get_style());
       atom->dihedral_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      maxexchange += 5 * atom->dihedral_per_atom;
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/improper/per/atom") == 0) {
       if (iarg + 2 > narg)
@@ -243,6 +247,7 @@ void CreateBox::command(int narg, char **arg)
       if (!atom->avec->impropers_allow)
         error->all(FLERR, "No impropers allowed with atom style {}", atom->get_style());
       atom->improper_per_atom = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      maxexchange += 5 * atom->improper_per_atom;
       iarg += 2;
     } else if (strcmp(arg[iarg], "extra/special/per/atom") == 0) {
       if (iarg + 2 > narg)
@@ -253,6 +258,10 @@ void CreateBox::command(int narg, char **arg)
     } else
       error->all(FLERR, "Unknown create_box keyword: {}", arg[iarg]);
   }
+
+  // set per-atom communication buffersize for contributions like bonds, angles, etc.
+
+  atom->avec->maxexchange = maxexchange;
 
   // setup the simulation box and initial system
   // deallocate/grow ensures any extra settings are used for topology arrays

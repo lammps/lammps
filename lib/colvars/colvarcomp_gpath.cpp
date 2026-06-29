@@ -69,12 +69,12 @@ int colvar::CartesianBasedPath::init(std::string const &conf)
     }
     // Setup alignment to compute RMSD with respect to reference frames
     for (size_t i_frame = 0; i_frame < reference_frames.size(); ++i_frame) {
-        cvm::atom_group* tmp_atoms = parse_group(conf, "atoms");
+        auto* tmp_atoms = parse_group(conf, "atoms");
         if (!has_user_defined_fitting) {
             // Swipe from the rmsd class
             tmp_atoms->enable(f_ag_center);
             tmp_atoms->enable(f_ag_rotate);
-            tmp_atoms->ref_pos = reference_frames[i_frame];
+            tmp_atoms->set_ref_pos_from_aos(reference_frames[i_frame]);
             tmp_atoms->center_ref_pos();
             tmp_atoms->enable(f_ag_fit_gradients);
         } else {
@@ -83,7 +83,7 @@ int colvar::CartesianBasedPath::init(std::string const &conf)
             cvm::atom_group* tmp_fitting_atoms = new cvm::atom_group(fitting_group_name.c_str());
             tmp_fitting_atoms->parse(fitting_conf);
             tmp_fitting_atoms->disable(f_ag_scalable);
-            tmp_fitting_atoms->fit_gradients.assign(tmp_fitting_atoms->size(), cvm::atom_pos(0.0, 0.0, 0.0));
+            tmp_fitting_atoms->fit_gradients.assign(3 * tmp_fitting_atoms->size(), 0);
             std::string reference_position_file_lookup = "refPositionsFile" + cvm::to_str(i_frame + 1);
             std::string reference_position_filename;
             get_keyval(conf, reference_position_file_lookup.c_str(), reference_position_filename, std::string(""));
@@ -94,7 +94,7 @@ int colvar::CartesianBasedPath::init(std::string const &conf)
             tmp_atoms->enable(f_ag_rotate);
             tmp_atoms->b_user_defined_fit = true;
             tmp_atoms->disable(f_ag_scalable);
-            tmp_atoms->ref_pos = reference_fitting_position;
+            tmp_atoms->set_ref_pos_from_aos(reference_fitting_position);
             tmp_atoms->center_ref_pos();
             tmp_atoms->enable(f_ag_fit_gradients);
             tmp_atoms->enable(f_ag_fitting_group);
@@ -123,7 +123,11 @@ void colvar::CartesianBasedPath::computeDistanceToReferenceFrames(std::vector<cv
     for (size_t i_frame = 0; i_frame < reference_frames.size(); ++i_frame) {
         cvm::real frame_rmsd = 0.0;
         for (size_t i_atom = 0; i_atom < atoms->size(); ++i_atom) {
-            frame_rmsd += ((*(comp_atoms[i_frame]))[i_atom].pos - reference_frames[i_frame][i_atom]).norm2();
+            const cvm::atom_pos p(
+                comp_atoms[i_frame]->pos_x(i_atom),
+                comp_atoms[i_frame]->pos_y(i_atom),
+                comp_atoms[i_frame]->pos_z(i_atom));
+            frame_rmsd += (p - reference_frames[i_frame][i_atom]).norm2();
         }
         frame_rmsd /= cvm::real(atoms->size());
         frame_rmsd = cvm::sqrt(frame_rmsd);
@@ -215,10 +219,14 @@ void colvar::gspath::updateDistanceToReferenceFrames() {
 void colvar::gspath::prepareVectors() {
     size_t i_atom;
     for (i_atom = 0; i_atom < atoms->size(); ++i_atom) {
-        // v1 = s_m - z
-        v1[i_atom] = reference_frames[min_frame_index_1][i_atom] - (*(comp_atoms[min_frame_index_1]))[i_atom].pos;
-        // v2 = z - s_(m-1)
-        v2[i_atom] = (*(comp_atoms[min_frame_index_2]))[i_atom].pos - reference_frames[min_frame_index_2][i_atom];
+        const cvm::atom_pos p1(comp_atoms[min_frame_index_1]->pos_x(i_atom),
+                               comp_atoms[min_frame_index_1]->pos_y(i_atom),
+                               comp_atoms[min_frame_index_1]->pos_z(i_atom));
+        v1[i_atom] = reference_frames[min_frame_index_1][i_atom] - p1;
+        const cvm::atom_pos p2(comp_atoms[min_frame_index_2]->pos_x(i_atom),
+                               comp_atoms[min_frame_index_2]->pos_y(i_atom),
+                               comp_atoms[min_frame_index_2]->pos_z(i_atom));
+        v2[i_atom] = p2 - reference_frames[min_frame_index_2][i_atom];
     }
     if (min_frame_index_3 < 0 || min_frame_index_3 > M) {
         cvm::atom_pos reference_cog_1, reference_cog_2;
@@ -317,8 +325,12 @@ void colvar::gspath::calc_gradients() {
         tmp_atom_grad_v2[0] = sign * 0.5 * dfdv2[i_atom][0] / M;
         tmp_atom_grad_v2[1] = sign * 0.5 * dfdv2[i_atom][1] / M;
         tmp_atom_grad_v2[2] = sign * 0.5 * dfdv2[i_atom][2] / M;
-        (*(comp_atoms[min_frame_index_1]))[i_atom].grad += tmp_atom_grad_v1;
-        (*(comp_atoms[min_frame_index_2]))[i_atom].grad += tmp_atom_grad_v2;
+        comp_atoms[min_frame_index_1]->grad_x(i_atom) += tmp_atom_grad_v1.x;
+        comp_atoms[min_frame_index_1]->grad_y(i_atom) += tmp_atom_grad_v1.y;
+        comp_atoms[min_frame_index_1]->grad_z(i_atom) += tmp_atom_grad_v1.z;
+        comp_atoms[min_frame_index_2]->grad_x(i_atom) += tmp_atom_grad_v2.x;
+        comp_atoms[min_frame_index_2]->grad_y(i_atom) += tmp_atom_grad_v2.y;
+        comp_atoms[min_frame_index_2]->grad_z(i_atom) += tmp_atom_grad_v2.z;
     }
 }
 
@@ -410,8 +422,14 @@ void colvar::gzpath::prepareVectors() {
     }
     const auto rot_mat_v4 = rot_v4.matrix();
     for (i_atom = 0; i_atom < atoms->size(); ++i_atom) {
-        v1[i_atom] = reference_frames[min_frame_index_1][i_atom] - (*(comp_atoms[min_frame_index_1]))[i_atom].pos;
-        v2[i_atom] = (*(comp_atoms[min_frame_index_2]))[i_atom].pos - reference_frames[min_frame_index_2][i_atom];
+        const cvm::atom_pos p1(comp_atoms[min_frame_index_1]->pos_x(i_atom),
+                               comp_atoms[min_frame_index_1]->pos_y(i_atom),
+                               comp_atoms[min_frame_index_1]->pos_z(i_atom));
+        const cvm::atom_pos p2(comp_atoms[min_frame_index_2]->pos_x(i_atom),
+                               comp_atoms[min_frame_index_2]->pos_y(i_atom),
+                               comp_atoms[min_frame_index_2]->pos_z(i_atom));
+        v1[i_atom] = reference_frames[min_frame_index_1][i_atom] - p1;
+        v2[i_atom] = p2 - reference_frames[min_frame_index_2][i_atom];
         // v4 only computes in gzpath
         // v4 = s_m - s_(m-1)
         v4[i_atom] = rot_mat_v4 * tmp_reference_frame_1[i_atom] - tmp_reference_frame_2[i_atom];
@@ -461,8 +479,12 @@ void colvar::gzpath::calc_gradients() {
     for (size_t i_atom = 0; i_atom < atoms->size(); ++i_atom) {
         tmp_atom_grad_v1 = -1.0 * dzdv1[i_atom];
         tmp_atom_grad_v2 = dzdv2[i_atom];
-        (*(comp_atoms[min_frame_index_1]))[i_atom].grad += tmp_atom_grad_v1;
-        (*(comp_atoms[min_frame_index_2]))[i_atom].grad += tmp_atom_grad_v2;
+        comp_atoms[min_frame_index_1]->grad_x(i_atom) += tmp_atom_grad_v1.x;
+        comp_atoms[min_frame_index_1]->grad_y(i_atom) += tmp_atom_grad_v1.y;
+        comp_atoms[min_frame_index_1]->grad_z(i_atom) += tmp_atom_grad_v1.z;
+        comp_atoms[min_frame_index_2]->grad_x(i_atom) += tmp_atom_grad_v2.x;
+        comp_atoms[min_frame_index_2]->grad_y(i_atom) += tmp_atom_grad_v2.y;
+        comp_atoms[min_frame_index_2]->grad_z(i_atom) += tmp_atom_grad_v2.z;
     }
 }
 
@@ -768,7 +790,14 @@ void colvar::gspathCV::calc_gradients() {
                     // Loop over all atoms in the k-th atom group
                     for (size_t l_atom = 0; l_atom < (cv[i_cv]->atom_groups)[k_ag]->size(); ++l_atom) {
                         // Chain rule
-                        (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad = factor_polynomial * ((*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad * tmp_cv_grad_v1[j_elem] + (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad * tmp_cv_grad_v2[j_elem]);
+                        cvm::rvector g(
+                            (cv[i_cv]->atom_groups)[k_ag]->grad_x(l_atom),
+                            (cv[i_cv]->atom_groups)[k_ag]->grad_y(l_atom),
+                            (cv[i_cv]->atom_groups)[k_ag]->grad_z(l_atom));
+                        g = factor_polynomial * (g * tmp_cv_grad_v1[j_elem] + g * tmp_cv_grad_v2[j_elem]);
+                        (cv[i_cv]->atom_groups)[k_ag]->grad_x(l_atom) = g.x;
+                        (cv[i_cv]->atom_groups)[k_ag]->grad_y(l_atom) = g.y;
+                        (cv[i_cv]->atom_groups)[k_ag]->grad_z(l_atom) = g.z;
                     }
                 }
             }
@@ -907,7 +936,14 @@ void colvar::gzpathCV::calc_gradients() {
                     // Loop over all atoms in the k-th atom group
                     for (size_t l_atom = 0; l_atom < (cv[i_cv]->atom_groups)[k_ag]->size(); ++l_atom) {
                         // Chain rule
-                        (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad = factor_polynomial * ((*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad * tmp_cv_grad_v1[j_elem] + (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad * tmp_cv_grad_v2[j_elem]);
+                        cvm::rvector g(
+                            (cv[i_cv]->atom_groups)[k_ag]->grad_x(l_atom),
+                            (cv[i_cv]->atom_groups)[k_ag]->grad_y(l_atom),
+                            (cv[i_cv]->atom_groups)[k_ag]->grad_z(l_atom));
+                        g = factor_polynomial * (g * tmp_cv_grad_v1[j_elem] + g * tmp_cv_grad_v2[j_elem]);
+                        (cv[i_cv]->atom_groups)[k_ag]->grad_x(l_atom) = g.x;
+                        (cv[i_cv]->atom_groups)[k_ag]->grad_y(l_atom) = g.y;
+                        (cv[i_cv]->atom_groups)[k_ag]->grad_z(l_atom) = g.z;
                     }
                 }
             }

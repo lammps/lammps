@@ -152,11 +152,11 @@ static bool optimal_quaternion(double* A, bool polar, double E0, double* p_nrmsd
 
         double C[3];
         C[0] = Sxy2Sxz2Syx2Szx2 * Sxy2Sxz2Syx2Szx2
-                 + (Sxx2Syy2Szz2Syz2Szy2 + SyzSzymSyySzz2) * (Sxx2Syy2Szz2Syz2Szy2 - SyzSzymSyySzz2)
-                 + (-(SxzpSzx)*(SyzmSzy)+(SxymSyx)*(SxxmSyy-Szz)) * (-(SxzmSzx)*(SyzpSzy)+(SxymSyx)*(SxxmSyy+Szz))
-                 + (-(SxzpSzx)*(SyzpSzy)-(SxypSyx)*(SxxpSyy-Szz)) * (-(SxzmSzx)*(SyzmSzy)-(SxypSyx)*(SxxpSyy+Szz))
-                 + (+(SxypSyx)*(SyzpSzy)+(SxzpSzx)*(SxxmSyy+Szz)) * (-(SxymSyx)*(SyzmSzy)+(SxzpSzx)*(SxxpSyy+Szz))
-                 + (+(SxypSyx)*(SyzmSzy)+(SxzmSzx)*(SxxmSyy-Szz)) * (-(SxymSyx)*(SyzpSzy)+(SxzmSzx)*(SxxpSyy-Szz));
+          + (Sxx2Syy2Szz2Syz2Szy2 + SyzSzymSyySzz2) * (Sxx2Syy2Szz2Syz2Szy2 - SyzSzymSyySzz2)
+          + (-SxzpSzx*SyzmSzy + SxymSyx*(SxxmSyy-Szz)) * (-SxzmSzx*SyzpSzy + SxymSyx*(SxxmSyy+Szz))
+          + (-SxzpSzx*SyzpSzy - SxypSyx*(SxxpSyy-Szz)) * (-SxzmSzx*SyzmSzy - SxypSyx*(SxxpSyy+Szz))
+          + (SxypSyx*SyzpSzy + SxzpSzx*(SxxmSyy+Szz)) * (-SxymSyx*SyzmSzy + SxzpSzx*(SxxpSyy+Szz))
+          + (SxypSyx*SyzmSzy + SxzmSzx*(SxxmSyy-Szz)) * (-SxymSyx*SyzpSzy + SxzmSzx*(SxxpSyy-Szz));
 
         C[1] = 8.0 * (Sxx*Syz*Szy + Syy*Szx*Sxz + Szz*Sxy*Syx - Sxx*Syy*Szz - Syz*Szx*Sxy - Szy*Syx*Sxz);
         C[2] = -2.0 * fnorm_squared;

@@ -14,9 +14,9 @@
 #ifndef LMP_MATH_CONST_H
 #define LMP_MATH_CONST_H
 
-namespace LAMMPS_NS {
 
-namespace MathConst {
+
+namespace LAMMPS_NS::MathConst {
   static constexpr double THIRD = 1.0 / 3.0;
   static constexpr double TWOTHIRDS = 2.0 / 3.0;
   static constexpr double MY_PI = 3.14159265358979323846;           // pi
@@ -31,11 +31,11 @@ namespace MathConst {
   static constexpr double MY_SQRT2 = 1.41421356237309504880;        // sqrt(2)
   static constexpr double MY_ISQRT2 = 0.707106781186547524401;      // 1/sqrt(2)
   static constexpr double MY_CUBEROOT2 = 1.25992104989487316476;    // 2^(1/3)
-  static constexpr double MY_TWOBYSIXTH = 1.12246204830937298142;   // 2^(1/6)                                                                  //
+  static constexpr double MY_TWOBYSIXTH = 1.12246204830937298142;   // 2^(1/6)
   static constexpr double DEG2RAD = MY_PI / 180.0;                  // degree to radians
   static constexpr double RAD2DEG = 180.0 / MY_PI;                  // radians to degree
-}    // namespace MathConst
+} // namespace LAMMPS_NS::MathConst
 
-}    // namespace LAMMPS_NS
+
 
 #endif

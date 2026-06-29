@@ -1,28 +1,34 @@
 .. index:: pair_style nm/cut
+.. index:: pair_style nm/cut/kk
 .. index:: pair_style nm/cut/split
 .. index:: pair_style nm/cut/coul/cut
+.. index:: pair_style nm/cut/coul/cut/kk
 .. index:: pair_style nm/cut/coul/long
+.. index:: pair_style nm/cut/coul/long/kk
 .. index:: pair_style nm/cut/omp
+.. index:: pair_style nm/cut/split/omp
 .. index:: pair_style nm/cut/coul/cut/omp
 .. index:: pair_style nm/cut/coul/long/omp
 
 pair_style nm/cut command
 =========================
 
-Accelerator Variants: *nm/cut/omp*
+Accelerator Variants: *nm/cut/kk*, *nm/cut/omp*
 
 pair_style nm/cut/split command
 ===============================
 
+Accelerator Variants: *nm/cut/split/omp*
+
 pair_style nm/cut/coul/cut command
 ==================================
 
-Accelerator Variants: *nm/cut/coul/cut/omp*
+Accelerator Variants: *nm/cut/coul/cut/kk*, *nm/cut/coul/cut/omp*
 
 pair_style nm/cut/coul/long command
-===================================
+====================================
 
-Accelerator Variants: *nm/cut/coul/long/omp*
+Accelerator Variants: *nm/cut/coul/long/kk*, *nm/cut/coul/long/omp*
 
 Syntax
 """"""

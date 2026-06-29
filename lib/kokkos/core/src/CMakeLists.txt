@@ -18,14 +18,14 @@ if(NOT desul_FOUND)
       set(DESUL_ATOMICS_ENABLE_SYCL_SEPARABLE_COMPILATION ON)
     endif()
   endif()
-  if(KOKKOS_ENABLE_OPENMPTARGET)
-    set(DESUL_ATOMICS_ENABLE_OPENMP ON) # not a typo Kokkos OpenMPTarget -> Desul OpenMP
-  endif()
   if(KOKKOS_ENABLE_OPENACC)
     # FIXME_OPENACC FIXME_CLACC - Below condition will be removed if Clacc can compile atomics.
     if(KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
       set(DESUL_ATOMICS_ENABLE_OPENACC ON)
     endif()
+  endif()
+  if(BUILD_SHARED_LIBS)
+    set(DESUL_IMPL_BUILD_SHARED_LIBS ON)
   endif()
   configure_file(
     ${KOKKOS_SOURCE_DIR}/tpls/desul/Config.hpp.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/desul/atomics/Config.hpp
@@ -49,23 +49,12 @@ append_glob(KOKKOS_CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/impl/*.hpp)
 
 if(KOKKOS_ENABLE_CUDA)
   append_glob(KOKKOS_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/Cuda/*.cpp)
-  if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4)
-    list(REMOVE_ITEM KOKKOS_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/Cuda/Kokkos_Cuda_Task.cpp)
-  endif()
   append_glob(KOKKOS_CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/Cuda/*.hpp)
 endif()
 
 if(KOKKOS_ENABLE_OPENMP)
   append_glob(KOKKOS_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/OpenMP/*.cpp)
-  if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4)
-    list(REMOVE_ITEM KOKKOS_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/OpenMP/Kokkos_OpenMP_Task.cpp)
-  endif()
   append_glob(KOKKOS_CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/OpenMP/*.hpp)
-endif()
-
-if(KOKKOS_ENABLE_OPENMPTARGET)
-  append_glob(KOKKOS_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/OpenMPTarget/*.cpp)
-  append_glob(KOKKOS_CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/OpenMPTarget/*.hpp)
 endif()
 
 if(KOKKOS_ENABLE_OPENACC)
@@ -85,17 +74,11 @@ endif()
 
 if(KOKKOS_ENABLE_HPX)
   append_glob(KOKKOS_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/HPX/*.cpp)
-  if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4)
-    list(REMOVE_ITEM KOKKOS_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/HPX/Kokkos_HPX_Task.cpp)
-  endif()
   append_glob(KOKKOS_CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/HPX/*.hpp)
 endif()
 
 if(KOKKOS_ENABLE_SERIAL)
   append_glob(KOKKOS_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/Serial/*.cpp)
-  if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4)
-    list(REMOVE_ITEM KOKKOS_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/Serial/Kokkos_Serial_Task.cpp)
-  endif()
   append_glob(KOKKOS_CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/Serial/*.hpp)
 endif()
 
@@ -111,10 +94,6 @@ if(NOT desul_FOUND)
     append_glob(KOKKOS_CORE_SRCS ${KOKKOS_SOURCE_DIR}/tpls/desul/src/Lock_Array_HIP.cpp)
   elseif(KOKKOS_ENABLE_SYCL)
     append_glob(KOKKOS_CORE_SRCS ${KOKKOS_SOURCE_DIR}/tpls/desul/src/Lock_Array_SYCL.cpp)
-    # The compiler implicitly generates a file that uses a zero size array for device global variables
-    set_source_files_properties(
-      ${KOKKOS_SOURCE_DIR}/tpls/desul/src/Lock_Array_SYCL.cpp PROPERTIES COMPILE_FLAGS "-Wno-zero-length-array"
-    )
   endif()
   append_glob(KOKKOS_CORE_HEADERS ${KOKKOS_SOURCE_DIR}/tpls/desul/include/desul/*.hpp)
   append_glob(KOKKOS_CORE_HEADERS ${KOKKOS_SOURCE_DIR}/tpls/desul/include/desul/*/*.hpp)
@@ -131,14 +110,27 @@ if(NOT desul_FOUND)
     PATTERN "*.hpp"
   )
 
-  message(STATUS "Using internal desul_atomics copy")
+  file(STRINGS "${KOKKOS_SOURCE_DIR}/tpls/desul-hash.txt" KOKKOS_DESUL_HASH)
+  global_set(KOKKOS_DESUL_VERSION "${KOKKOS_DESUL_HASH}")
+  message(STATUS "Using bundled desul_atomics copy (desul/desul@${KOKKOS_DESUL_HASH})")
 else()
+  global_set(KOKKOS_DESUL_VERSION "unknown")
   message(STATUS "Using external desul_atomics install found at:")
   message(STATUS "  " ${desul_DIR})
 endif()
 
+if(Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES)
+  set(KOKKOS_CORE_MODULE_FILES Kokkos_Core.cppm Kokkos_Core_Impl.cppm)
+endif()
+
 kokkos_add_library(
-  kokkoscore SOURCES ${KOKKOS_CORE_SRCS} HEADERS ${KOKKOS_CORE_HEADERS}
+  kokkoscore
+  SOURCES
+  ${KOKKOS_CORE_SRCS}
+  MODULE_INTERFACE
+  ${KOKKOS_CORE_MODULE_FILES}
+  HEADERS
+  ${KOKKOS_CORE_HEADERS}
   ADD_BUILD_OPTIONS # core should be given all the necessary compiler/linker flags
 )
 
@@ -146,27 +138,19 @@ kokkos_lib_include_directories(
   kokkoscore ${KOKKOS_TOP_BUILD_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
 )
 if(NOT desul_FOUND)
-  kokkos_lib_include_directories(kokkoscore ${KOKKOS_SOURCE_DIR}/tpls/desul/include)
+  target_include_directories(kokkoscore SYSTEM PUBLIC $<BUILD_INTERFACE:${KOKKOS_SOURCE_DIR}/tpls/desul/include>)
+  if(BUILD_SHARED_LIBS)
+    target_compile_definitions(kokkoscore PRIVATE DESUL_IMPL_EXPORT_SYMBOLS)
+  endif()
 endif()
 
 if(Kokkos_ENABLE_IMPL_MDSPAN)
-  message(STATUS "Experimental mdspan support is enabled")
-
-  # Some compilers now include mdspan... we just flag on their version
-  # for now until we can get some compiler detection support
-  include(CheckIncludeFileCXX)
-  check_include_file_cxx(experimental/mdspan KOKKOS_COMPILER_SUPPORTS_EXPERIMENTAL_MDSPAN)
-  check_include_file_cxx(mdspan KOKKOS_COMPILER_SUPPORTS_MDSPAN)
-
   if(Kokkos_ENABLE_MDSPAN_EXTERNAL)
+    global_set(KOKKOS_MDSPAN_VERSION "unknown")
     message(STATUS "Using external mdspan")
     target_link_libraries(kokkoscore PUBLIC std::mdspan)
-  elseif(KOKKOS_COMPILER_SUPPORTS_MDSPAN AND NOT Kokkos_ENABLE_IMPL_SKIP_COMPILER_MDSPAN)
-    message(STATUS "Using compiler-supplied mdspan")
-  elseif(KOKKOS_COMPILER_SUPPORTS_EXPERIMENTAL_MDSPAN AND NOT Kokkos_ENABLE_IMPL_SKIP_COMPILER_MDSPAN)
-    message(STATUS "Using compiler-supplied experimental/mdspan")
   else()
-    kokkos_lib_include_directories(kokkoscore ${KOKKOS_SOURCE_DIR}/tpls/mdspan/include)
+    target_include_directories(kokkoscore SYSTEM PUBLIC $<BUILD_INTERFACE:${KOKKOS_SOURCE_DIR}/tpls/mdspan/include>)
 
     append_glob(KOKKOS_CORE_HEADERS ${KOKKOS_SOURCE_DIR}/tpls/mdspan/include/experimental/__p0009_bits/*.hpp)
     append_glob(KOKKOS_CORE_HEADERS ${KOKKOS_SOURCE_DIR}/tpls/mdspan/include/experimental/mdspan)
@@ -178,14 +162,20 @@ if(Kokkos_ENABLE_IMPL_MDSPAN)
       PATTERN "mdspan"
       PATTERN "*.hpp"
     )
-    message(STATUS "Using internal mdspan directory ${KOKKOS_SOURCE_DIR}/tpls/mdspan/include")
+
+    file(STRINGS "${KOKKOS_SOURCE_DIR}/tpls/mdspan-hash.txt" KOKKOS_MDSPAN_HASH)
+    global_set(KOKKOS_MDSPAN_VERSION "${KOKKOS_MDSPAN_HASH}")
+    message(STATUS "Using bundled mdspan copy (kokkos/mdspan@${KOKKOS_MDSPAN_HASH})")
   endif()
+endif()
+
+if(Kokkos_ENABLE_IMPL_VIEW_LEGACY)
+  global_set(KOKKOS_MDSPAN_VERSION "not applicable")
 endif()
 
 kokkos_link_tpl(kokkoscore PUBLIC HWLOC)
 kokkos_link_tpl(kokkoscore PUBLIC CUDA)
 kokkos_link_tpl(kokkoscore PUBLIC HPX)
-kokkos_link_tpl(kokkoscore PUBLIC LIBDL)
 # On *nix-like systems (Linux, macOS) we need pthread for C++ std::thread
 if(NOT WIN32)
   kokkos_link_tpl(kokkoscore PUBLIC THREADS)
@@ -193,14 +183,7 @@ endif()
 if(NOT KOKKOS_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
   kokkos_link_tpl(kokkoscore PUBLIC ROCM)
 endif()
-
-# FIXME: We need a proper solution to figure out whether to enable
-#        libatomic
-# Most compilers only require libatomic for 128-bit CAS
-# I (CT) had removed 128bit CAS from desul to not need libatomic.
-if(KOKKOS_ENABLE_OPENMPTARGET)
-  target_link_libraries(kokkoscore PUBLIC atomic)
-endif()
+kokkos_link_tpl(kokkoscore PUBLIC LIBQUADMATH)
 
 if(desul_FOUND)
   target_link_libraries(kokkoscore PUBLIC desul_atomics)
@@ -210,4 +193,6 @@ if(Kokkos_ENABLE_OPENMP)
   target_link_libraries(kokkoscore PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-kokkos_link_tpl(kokkoscore PUBLIC LIBQUADMATH)
+if(Kokkos_ENABLE_LIBDL)
+  target_link_libraries(kokkoscore PUBLIC ${CMAKE_DL_LIBS})
+endif()

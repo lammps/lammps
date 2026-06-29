@@ -34,13 +34,13 @@ Run a parallel tempering or replica exchange simulation in LAMMPS
 partition mode using multiple generalized replicas (ensembles) of a
 system defined by :doc:`fix grem <fix_grem>`, which stands for the
 generalized replica exchange method (gREM) originally developed by
-:ref:`(Kim) <KimStraub>`.  It uses non-Boltzmann ensembles to sample over first
-order phase transitions. The is done by defining replicas with an
-enthalpy dependent effective temperature
+:ref:`(Kim) <KimStraub>`.  It uses non-Boltzmann ensembles to sample
+over first order phase transitions. The is done by defining replicas
+with an enthalpy dependent effective temperature
 
 Two or more replicas must be used.  See the :doc:`temper <temper>`
 command for an explanation of how to run replicas on multiple
-partitions of one or more processors.
+partitions of one or more MPI processes.
 
 This command is a modification of the :doc:`temper <temper>` command and
 has the same dependencies, restraints, and input variables which are

@@ -47,7 +47,13 @@ class BondBPM : public Bond {
   class FixBondHistory *fix_bond_history;
   class FixUpdateSpecialBonds *fix_update_special_bonds;
 
+  int nbroken;
+
+  virtual void store_data() = 0;
+  void pre_compute();
+  void post_compute();
   void process_broken(int, int);
+  void process_new(int, int, int);
   using FnPtrPack = void (BondBPM::*)(int, int, int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
   double *output_data;

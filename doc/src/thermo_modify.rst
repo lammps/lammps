@@ -21,7 +21,7 @@ Syntax
        *norm* value = *yes* or *no*
        *flush* value = *yes* or *no*
        *line* value = *one* or *multi* or *yaml*
-       *colname* values =  ID string, or *default*
+       *colname* values =  ID string, or *auto* or *default*
          string = new column header name
          ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
               *or* a thermo keyword or reference to compute, fix, property or variable.
@@ -93,20 +93,20 @@ certain whether they are an indication of an error.
 
 Some warning messages are printed during a run (or immediately before)
 each time a specific MPI rank encounters the issue (e.g., bonds that are
-stretched too far or dihedrals in extreme configurations). These number
+stretched too far or dihedrals in extreme configurations).  The number
 of these can quickly blow up the size of the log file and screen output.
-Thus, a limit of 100 warning messages is applied by default.  The warning
-count is applied to the entire input unless reset with a ``thermo_modify
-warn reset`` command.  If there are more warnings than the limit, LAMMPS
-will print one final warning that it will not print any additional
-warning messages.
+A limit of 100 warning messages is therefore applied by default.  The
+warning count is applied to the entire input file, unless it is reset
+with a ``thermo_modify warn reset`` command.  If there are more warnings
+than the limit, LAMMPS will print one final warning that it will not
+print any additional warning messages.
 
 .. note::
 
    The warning limit is enforced on either the per-processor count or
-   the total count across all processors. For efficiency reasons,
+   the total count across all MPI processes.  For efficiency reasons,
    however, the total count is only updated at steps with thermodynamic
-   output. Thus when running on a large number of processors in
+   output.  Thus when running on a large number of MPI processes in
    parallel, the total number of warnings printed can be significantly
    larger than the given limit.
 
@@ -158,19 +158,37 @@ block ("yaml").  This modify option overrides the *one*, *multi*, or
 
 .. versionadded:: 4May2022
 
-The *colname* keyword can be used to change the default header keyword
-for a column or field of thermodynamic output.  The setting for *ID
-string* replaces the default text with the provided string.  *ID* can be
-a positive integer when it represents the column number counting from
-the left, a negative integer when it represents the column number from
-the right (i.e., :math:`-1` is the last column/keyword), or a thermo keyword
-(or compute, fix, property, or variable reference) and then it replaces the
-string for that specific thermo keyword.
+The *colname* keyword can be used to change the default header keyword for
+a column or field of thermodynamic output.  The column names can either be
+manually set by the user, or automatically generated for certain fixes and
+computes.
 
-The *colname* keyword can be used multiple times. If multiple *colname*
-settings refer to the same keyword, the last setting has precedence.  A
-setting of *default* clears all previous settings, reverting all values
-to their default values.
+The setting for *ID string* replaces the default text with the
+provided string.  *ID* can be a positive integer when it represents the
+column number counting from the left, a negative integer when it represents
+the column number from the right (i.e., :math:`-1` is the last
+column/keyword), or a thermo keyword (or compute, fix, property, or
+variable reference) and then it replaces the string for that specific
+thermo keyword.
+
+.. versionadded:: 10Dec2025
+
+With a setting of *auto*, certain fixes or computes will
+generate more descriptive strings as their thermo keywords, which are
+described in the 'output' section of their documentation.  Current commands
+that automatically generate descriptive thermo output strings include 'fix
+nvt', 'fix npt', 'fix nph', 'compute reduce', and 'fix bond/react'.
+
+With a *colname* setting of *default*, the default column names are used.
+The default column names follow the same convention as the arguments
+provided to the :doc:`thermo_style <thermo_style>` command.
+
+The *colname* keyword can be used multiple times.  If multiple *colname*
+settings refer to the same keyword, the last setting has precedence.  The
+*auto* keyword will only override user-provided strings for computes and
+fixes that support automatically generated column names.  A setting of
+*default* clears all previous settings, reverting all values to their
+default values.
 
 The *format* keyword can be used to change the default numeric format of
 any of quantities the :doc:`thermo_style <thermo_style>` command

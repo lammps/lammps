@@ -1,5 +1,6 @@
 import sys,os,unittest
 from lammps import lammps
+from lammps.constants import LMP_MAX_GROUP
 
 class PythonCapabilities(unittest.TestCase):
     def setUp(self):
@@ -112,7 +113,7 @@ class PythonCapabilities(unittest.TestCase):
         self.assertEqual(len(ids),1)
         ids = self.lmp.available_ids('group')
         self.assertIn('none', ids)
-        self.assertEqual(len(ids),2)
+        self.assertEqual(len(ids),LMP_MAX_GROUP)
         ids = self.lmp.available_ids('molecule')
         self.assertEqual(len(ids),0)
         ids = self.lmp.available_ids('region')

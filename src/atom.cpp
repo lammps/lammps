@@ -160,24 +160,23 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   // PERI package
 
-  vfrac = s0 = nullptr;
+  vfrac = s0 = smin = nullptr;
   x0 = nullptr;
 
   // SPIN package
 
   sp = fm = fm_long = nullptr;
 
-  // EFF and AWPMD packages
+  // EFF package
 
   spin = nullptr;
   eradius = ervel = erforce = nullptr;
-  ervelforce = nullptr;
-  cs = csforce = vforce = nullptr;
-  etag = nullptr;
 
   // CG-DNA package
 
+  id3p = nullptr;
   id5p = nullptr;
+  qeff = nullptr;
 
   // DPD-REACT package
 
@@ -496,6 +495,7 @@ void Atom::peratom_create()
 
   add_peratom("vfrac",&vfrac,DOUBLE,0);
   add_peratom("s0",&s0,DOUBLE,0);
+  add_peratom("smin",&smin,DOUBLE,0);
   add_peratom("x0",&x0,DOUBLE,3);
 
   // SPIN package
@@ -511,17 +511,11 @@ void Atom::peratom_create()
   add_peratom("ervel",&ervel,DOUBLE,0);
   add_peratom("erforce",&erforce,DOUBLE,0,1);     // set per-thread flag
 
-  // AWPMD package
-
-  add_peratom("cs",&cs,DOUBLE,2);
-  add_peratom("csforce",&csforce,DOUBLE,2);
-  add_peratom("vforce",&vforce,DOUBLE,3);
-  add_peratom("ervelforce",&ervelforce,DOUBLE,0);
-  add_peratom("etag",&etag,INT,0);
-
   // CG-DNA package
 
+  add_peratom("id3p",&id3p,tagintsize,0);
   add_peratom("id5p",&id5p,tagintsize,0);
+  add_peratom("qeff",&qeff,DOUBLE,0);
 
   // DPD-REACT package
 
@@ -656,16 +650,14 @@ void Atom::set_atomflag_defaults()
   // identical list as 2nd customization in atom.h
 
   labelmapflag = 0;
-  ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+  ellipsoid_flag = line_flag = tri_flag = body_flag = superellipsoid_flag = 0;
   quat_flag = 0;
-  peri_flag = electron_flag = 0;
-  wavepacket_flag = sph_flag = 0;
+  peri_flag = electron_flag = sph_flag = 0;
   molecule_flag = molindex_flag = molatom_flag = 0;
   q_flag = mu_flag = 0;
   rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
   temperature_flag = heatflow_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
-  cs_flag = csforce_flag = vforce_flag = ervelforce_flag = etag_flag = 0;
   rheo_status_flag = conductivity_flag = pressure_flag = viscosity_flag = 0;
   rho_flag = esph_flag = cv_flag = vest_flag = 0;
   dpd_flag = edpd_flag = tdpd_flag = 0;
@@ -822,18 +814,25 @@ std::string Atom::get_style()
 }
 
 /* ----------------------------------------------------------------------
-   return ptr to AtomVec class if matches style or to matching hybrid sub-class
-   return nullptr if no match
+   return ptr to AtomVec class if it matches the style argument w/o suffix
+     or ptr to the matching hybrid sub-class without regard of the suffix
+   return nullptr if no match.
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::style_match(const char *style)
+AtomVec *Atom::style_match(const std::string &style)
 {
-  if (strcmp(atom_style,style) == 0) return avec;
-  else if (strcmp(atom_style,"hybrid") == 0) {
+  std::string pattern = style;
+  pattern.insert(0,1,'^');
+
+  if (utils::strmatch(atom_style, pattern)) return avec;
+  else if (utils::strmatch(atom_style,"^hybrid")) {
     auto *avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
-    for (int i = 0; i < avec_hybrid->nstyles; i++)
-      if (strcmp(avec_hybrid->keywords[i],style) == 0)
-        return avec_hybrid->styles[i];
+    if (avec_hybrid) {
+      for (int i = 0; i < avec_hybrid->nstyles; i++) {
+        if (utils::strmatch(avec_hybrid->keywords[i], pattern))
+          return avec_hybrid->styles[i];
+      }
+    }
   }
   return nullptr;
 }
@@ -1280,7 +1279,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
           case 1: {    // type label
             if (!labelmapflag)
               error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
-            type[nlocal - 1] = lmap->find(typestr, Atom::ATOM);
+            type[nlocal - 1] = lmap->find_type(typestr, Atom::ATOM);
             if (type[nlocal - 1] == -1)
               error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
             break;
@@ -1387,7 +1386,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::BOND);
+          itype = lmap->find_type(typestr, Atom::BOND);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1482,7 +1481,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::ANGLE);
+          itype = lmap->find_type(typestr, Atom::ANGLE);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1594,7 +1593,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::DIHEDRAL);
+          itype = lmap->find_type(typestr, Atom::DIHEDRAL);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1722,7 +1721,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::IMPROPER);
+          itype = lmap->find_type(typestr, Atom::IMPROPER);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1981,7 +1980,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
     case 1: {    // type label
       if (!atom->labelmapflag)
         error->all(file, line, "Invalid atom type in {}: {}", location, utils::trim(str));
-      itype = lmap->find(typestr, Atom::ATOM);
+      itype = lmap->find_type(typestr, Atom::ATOM);
       if (itype == -1)
         error->all(file, line, "Unknown atom type {} in {}: {}", typestr, location,
                    utils::trim(str));
@@ -3142,18 +3141,13 @@ void *Atom::extract(const char *name)
 
   if (strcmp(name,"sp") == 0) return (void *) sp;
 
-  // EFF and AWPMD packages
+  // EFF package
 
   if (strcmp(name,"espin") == 0) return (void *) spin;
   if (strcmp(name,"spin") == 0) return (void *) spin;  // backward compatibility
   if (strcmp(name,"eradius") == 0) return (void *) eradius;
   if (strcmp(name,"ervel") == 0) return (void *) ervel;
   if (strcmp(name,"erforce") == 0) return (void *) erforce;
-  if (strcmp(name,"ervelforce") == 0) return (void *) ervelforce;
-  if (strcmp(name,"cs") == 0) return (void *) cs;
-  if (strcmp(name,"csforce") == 0) return (void *) csforce;
-  if (strcmp(name,"vforce") == 0) return (void *) vforce;
-  if (strcmp(name,"etag") == 0) return (void *) etag;
 
   // RHEO package
 
@@ -3314,18 +3308,12 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"s0") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"x0") == 0) return LAMMPS_DOUBLE_2D;
 
-  // AWPMD package (and in part EFF and ELECTRODE)
+  // EFF and in part ELECTRODE package
 
   if (strcmp(name,"espin") == 0) return LAMMPS_INT;
-  if (strcmp(name,"spin") == 0) return LAMMPS_INT;   // backwards compatibility
   if (strcmp(name,"eradius") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ervel") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"erforce") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"ervelforce") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"cs") == 0) return LAMMPS_DOUBLE_2D;
-  if (strcmp(name,"csforce") == 0) return LAMMPS_DOUBLE_2D;
-  if (strcmp(name,"vforce") == 0) return LAMMPS_DOUBLE_2D;
-  if (strcmp(name,"etag") == 0) return LAMMPS_INT;
 
   // RHEO package
 
@@ -3463,15 +3451,6 @@ int Atom::extract_size(const char *name, int type)
       if (strcmp(name,"fm") == 0) return nlocal;
       if (strcmp(name,"fm_long") == 0) return nlocal;
 
-      // AWPMD package
-
-      if (strcmp(name,"cs") == 0) {
-        if (ghost_vel) return nall;
-        else return nlocal;
-      }
-      if (strcmp(name,"csforce") == 0) return nlocal;
-      if (strcmp(name,"vforce") == 0) return nlocal;
-
       // SPH package
 
       if (strcmp(name,"vest") == 0) return nall;
@@ -3501,12 +3480,6 @@ int Atom::extract_size(const char *name, int type)
       if (strcmp(name,"sp") == 0) return 4;
       if (strcmp(name,"fm") == 0) return 3;
       if (strcmp(name,"fm_long") == 0) return 3;
-
-      // AWPMD package
-
-      if (strcmp(name,"cs") == 0) return 2;
-      if (strcmp(name,"csforce") == 0) return 2;
-      if (strcmp(name,"vforce") == 0) return 3;
 
       // SPH package
 
@@ -3579,19 +3552,18 @@ int Atom::extract_size(const char *name, int type)
     if (strcmp(name,"vfrac") == 0) return nall;
     if (strcmp(name,"s0") == 0) return nall;
 
-    // AWPMD package (and in part EFF and ELECTRODE)
+    // EFF and in part ELECTRODE package
 
     if (strcmp(name,"espin") == 0) return nall;
-    if (strcmp(name,"spin") == 0) return nall;   // backwards compatibility
     if (strcmp(name,"eradius") == 0) return nall;
     if (strcmp(name,"ervel") == 0) return nlocal;
     if (strcmp(name,"erforce") == 0) return nlocal;
-    if (strcmp(name,"ervelforce") == 0) return nlocal;
-    if (strcmp(name,"etag") == 0) return nall;
 
     // CG-DNA package
 
+    if (strcmp(name,"id3p") == 0) return nall;
     if (strcmp(name,"id5p") == 0) return nall;
+    if (strcmp(name,"qeff") == 0) return nall;
 
     // RHEO package
 

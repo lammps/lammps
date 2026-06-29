@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 /**
  * Before digging in to the code, it's worth taking a moment to review this
  * design. Fundamentally, what we're looking to do is allow people to test that
@@ -37,7 +24,12 @@
  * Current examples are in TestEventCorrectness.hpp
  */
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <sstream>
 #include <iostream>
 #include <utility>
@@ -563,7 +555,7 @@ struct ProfileSectionManipulationEvent
   }
 
  private:
-  ProfileSectionManipulationEvent(uint32_t d_i) : id(d_i){};
+  ProfileSectionManipulationEvent(uint32_t d_i) : id(d_i) {}
   friend Derived;
 };
 
@@ -571,19 +563,19 @@ struct StartProfileSectionEvent final
     : public ProfileSectionManipulationEvent<StartProfileSectionEvent> {
   static std::string event_name() { return "StartProfileSectionEvent"; }
   StartProfileSectionEvent(uint32_t d_i)
-      : ProfileSectionManipulationEvent<StartProfileSectionEvent>(d_i){};
+      : ProfileSectionManipulationEvent<StartProfileSectionEvent>(d_i) {}
 };
 struct StopProfileSectionEvent final
     : public ProfileSectionManipulationEvent<StopProfileSectionEvent> {
   static std::string event_name() { return "StopProfileSectionEvent"; }
   StopProfileSectionEvent(uint32_t d_i)
-      : ProfileSectionManipulationEvent<StopProfileSectionEvent>(d_i){};
+      : ProfileSectionManipulationEvent<StopProfileSectionEvent>(d_i) {}
 };
 struct DestroyProfileSectionEvent final
     : public ProfileSectionManipulationEvent<DestroyProfileSectionEvent> {
   static std::string event_name() { return "DestroyProfileSectionEvent"; }
   DestroyProfileSectionEvent(uint32_t d_i)
-      : ProfileSectionManipulationEvent<DestroyProfileSectionEvent>(d_i){};
+      : ProfileSectionManipulationEvent<DestroyProfileSectionEvent>(d_i) {}
 };
 
 struct ProfileEvent final : public UniquelyIdentifiableEventType<ProfileEvent> {
@@ -1217,7 +1209,7 @@ void listen_tool_events_impl(std::integral_constant<int, priority> prio,
   listen_tool_events_impl(prio, in, configs...);
 }
 template <class... Configs>
-void listen_tool_events(Configs... confs) {
+static void listen_tool_events(Configs... confs) {
   ToolValidatorConfiguration conf;
   listen_tool_events_impl(std::integral_constant<int, 0>{}, conf, confs...);
   listen_tool_events_impl(std::integral_constant<int, 1>{}, conf, confs...);
@@ -1240,7 +1232,7 @@ void listen_tool_events(Configs... confs) {
  * matchers success, false otherwise
  */
 template <class Lambda, class... Matchers>
-bool validate_event_set(const Lambda& lam, Matchers&&... matchers) {
+static bool validate_event_set(const Lambda& lam, Matchers&&... matchers) {
   // First, erase events from previous invocations
   found_events.clear();
   // Invoke the lambda (this will populate found_events, via tooling)
@@ -1265,7 +1257,7 @@ bool validate_event_set(const Lambda& lam, Matchers&&... matchers) {
  * @return auto
  */
 template <class Lambda>
-auto get_event_set(const Lambda& lam) {
+static auto get_event_set(const Lambda& lam) {
   found_events.clear();
   lam();
   // return compare_event_vectors(expected, found_events);
@@ -1293,7 +1285,7 @@ MatchDiagnostic check_presence_of(const EventBasePtr& event, const Matcher& m,
 }
 
 template <class Lambda, class... Matchers>
-bool validate_absence(const Lambda& lam, const Matchers... matchers) {
+static bool validate_absence(const Lambda& lam, const Matchers... matchers) {
   // First, erase events from previous invocations
   found_events.clear();
   // Invoke the lambda (this will populate found_events, via tooling)
@@ -1318,7 +1310,7 @@ bool validate_absence(const Lambda& lam, const Matchers... matchers) {
 }
 
 template <class Lambda, class Matcher>
-bool validate_existence(const Lambda& lam, const Matcher matcher) {
+static bool validate_existence(const Lambda& lam, const Matcher matcher) {
   // First, erase events from previous invocations
   found_events.clear();
   // Invoke the lambda (this will populate found_events, via tooling)

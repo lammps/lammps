@@ -17,8 +17,14 @@
 ------------------------------------------------------------------------- */
 
 #include "math_extra.h"
+#include "math_special.h"
+#include "math_const.h"
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
+
+using namespace LAMMPS_NS;
+using MathConst::MY_4PI3;
 
 namespace MathExtra {
 
@@ -471,12 +477,12 @@ void quat_to_mat_trans(const double *quat, double mat[3][3])
 
 /* ----------------------------------------------------------------------
    compute space-frame inertia tensor of an ellipsoid
-   radii = 3 radii of ellipsoid
+   shape = 3 semiaxes of ellipsoid
    quat = orientiation quaternion of ellipsoid
    return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
-void inertia_ellipsoid(double *radii, double *quat, double mass,
+void inertia_ellipsoid(double *shape, double *quat, double mass,
                        double *inertia)
 {
   double p[3][3],ptrans[3][3],itemp[3][3],tensor[3][3];
@@ -484,9 +490,31 @@ void inertia_ellipsoid(double *radii, double *quat, double mass,
 
   quat_to_mat(quat,p);
   quat_to_mat_trans(quat,ptrans);
-  idiag[0] = 0.2*mass * (radii[1]*radii[1] + radii[2]*radii[2]);
-  idiag[1] = 0.2*mass * (radii[0]*radii[0] + radii[2]*radii[2]);
-  idiag[2] = 0.2*mass * (radii[0]*radii[0] + radii[1]*radii[1]);
+  idiag[0] = 0.2*mass * (shape[1]*shape[1] + shape[2]*shape[2]);
+  idiag[1] = 0.2*mass * (shape[0]*shape[0] + shape[2]*shape[2]);
+  idiag[2] = 0.2*mass * (shape[0]*shape[0] + shape[1]*shape[1]);
+  diag_times3(idiag,ptrans,itemp);
+  times3(p,itemp,tensor);
+  inertia[0] = tensor[0][0];
+  inertia[1] = tensor[1][1];
+  inertia[2] = tensor[2][2];
+  inertia[3] = tensor[1][2];
+  inertia[4] = tensor[0][2];
+  inertia[5] = tensor[0][1];
+}
+
+/* ----------------------------------------------------------------------
+  Superellipsoid inertia tensor
+  No need to compute new inertia tensor
+  for superellipsoid since it is stored in bonus_super
+------------------------------------------------------------------------- */
+
+void inertia_ellipsoid(double *idiag, double *quat, double *inertia)
+{
+  double p[3][3],ptrans[3][3],itemp[3][3],tensor[3][3];
+
+  quat_to_mat(quat,p);
+  quat_to_mat_trans(quat,ptrans);
   diag_times3(idiag,ptrans,itemp);
   times3(p,itemp,tensor);
   inertia[0] = tensor[0][0];
@@ -598,6 +626,39 @@ void inertia_triangle(double *idiag, double *quat, double /*mass*/,
   inertia[3] = tensor[1][2];
   inertia[4] = tensor[0][2];
   inertia[5] = tensor[0][1];
+}
+
+/* ----------------------------------------------------------------------
+   compute the volume of the ellipsoid
+   shape = 3 radii of ellipsoid
+   return volume of the ellipsoid
+------------------------------------------------------------------------- */
+
+double volume_ellipsoid(double *shape)
+{
+  double unitvol = MY_4PI3;
+  return unitvol * shape[0] * shape[1] * shape[2];
+}
+
+/* ----------------------------------------------------------------------
+   compute the volume of the (super)ellipsoid
+   shape = 3 radii of (super)ellipsoid
+   block = blockiness exponents of (super)ellipsoid
+   return volume of the (super)ellipsoid
+------------------------------------------------------------------------- */
+
+double volume_ellipsoid(double *shape, double *block, int flag_super)
+{
+  double unitvol = MY_4PI3;
+
+  // superellipsoid, Eq. (12) of Jaklic and Solina, 2003, for p = q = r = 0
+
+  if (flag_super) {
+    double e1 = 2.0 / block[0], e2 = 2.0 / block[1];
+    unitvol = e1 * e2 * beta(0.5 * e1, 1.0 + e1) *
+                        beta(0.5 * e2, 0.5 * e2);
+  }
+  return unitvol * shape[0] * shape[1] * shape[2];
 }
 
 /* ----------------------------------------------------------------------

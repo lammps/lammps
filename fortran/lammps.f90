@@ -208,6 +208,7 @@ MODULE LIBLAMMPS
     PROCEDURE :: version                => lmp_version
     PROCEDURE, NOPASS :: get_os_info    => lmp_get_os_info
     PROCEDURE, NOPASS :: config_has_mpi_support => lmp_config_has_mpi_support
+    PROCEDURE, NOPASS :: config_has_omp_support => lmp_config_has_omp_support
     PROCEDURE, NOPASS :: config_has_gzip_support => lmp_config_has_gzip_support
     PROCEDURE, NOPASS :: config_has_png_support => lmp_config_has_png_support
     PROCEDURE, NOPASS :: config_has_jpeg_support => lmp_config_has_jpeg_support
@@ -839,6 +840,12 @@ MODULE LIBLAMMPS
       IMPLICIT NONE
       INTEGER(c_int) :: lammps_config_has_mpi_support
     END FUNCTION lammps_config_has_mpi_support
+
+    FUNCTION lammps_config_has_omp_support() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_config_has_omp_support
+    END FUNCTION lammps_config_has_omp_support
 
     FUNCTION lammps_config_has_gzip_support() BIND(C)
       IMPORT :: c_int
@@ -3074,6 +3081,14 @@ CONTAINS
     has_mpi_support = lammps_config_has_mpi_support()
     lmp_config_has_mpi_support = (has_mpi_support /= 0_c_int)
   END FUNCTION lmp_config_has_mpi_support
+
+  ! equivalent function to lammps_config_has_omp_support
+  LOGICAL FUNCTION lmp_config_has_omp_support()
+    INTEGER(c_int) :: has_omp_support
+
+    has_omp_support = lammps_config_has_omp_support()
+    lmp_config_has_omp_support = (has_omp_support /= 0_c_int)
+  END FUNCTION lmp_config_has_omp_support
 
   ! equivalent function to lammps_config_has_gzip_support
   LOGICAL FUNCTION lmp_config_has_gzip_support()

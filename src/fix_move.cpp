@@ -349,9 +349,12 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nlocal; i++) {
       quat = nullptr;
       if (mask[i] & groupbit) {
-        if (ellipsoid_flag && ellipsoid[i] >= 0)
-          quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
-        else if (tri_flag && tri[i] >= 0)
+        if (ellipsoid_flag && ellipsoid[i] >= 0) {
+          if (atom->superellipsoid_flag)
+            quat = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+          else
+            quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+        } else if (tri_flag && tri[i] >= 0)
           quat = avec_tri->bonus[tri[i]].quat;
         else if (body_flag && body[i] >= 0)
           quat = avec_body->bonus[body[i]].quat;
@@ -765,8 +768,8 @@ void FixMove::initial_integrate(int /*vflag*/)
           if (omega_flag) {
             flag = 0;
             if (radius_flag && radius[i] > 0.0) flag = 1;
-            if (line_flag && line[i] >= 0.0) flag = 1;
-            if (tri_flag && tri[i] >= 0.0) flag = 1;
+            if (line_flag && line[i] >= 0) flag = 1;
+            if (tri_flag && tri[i] >= 0) flag = 1;
             if (flag) {
               omega[i][0] = omega_rotate * runit[0];
               omega[i][1] = omega_rotate * runit[1];
@@ -779,8 +782,13 @@ void FixMove::initial_integrate(int /*vflag*/)
           if (angmom_flag) {
             quat = inertia = nullptr;
             if (ellipsoid_flag && ellipsoid[i] >= 0) {
-              quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
-              shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
+              if (atom->superellipsoid_flag) {
+                quat = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+                shape = avec_ellipsoid->bonus_super[ellipsoid[i]].shape;
+              } else {
+                quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+                shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
+              }
               inertia_ellipsoid[0] =
                   INERTIA * rmass[i] * (shape[1] * shape[1] + shape[2] * shape[2]);
               inertia_ellipsoid[1] =
@@ -806,7 +814,7 @@ void FixMove::initial_integrate(int /*vflag*/)
 
           // theta for lines
 
-          if (theta_flag && line[i] >= 0.0) {
+          if (theta_flag && line[i] >= 0) {
             theta_new = fmod(toriginal[i] + arg, MY_2PI);
             avec_line->bonus[atom->line[i]].theta = theta_new;
           }
@@ -816,7 +824,10 @@ void FixMove::initial_integrate(int /*vflag*/)
           if (quat_flag && !quat_atom_flag) {
             quat = nullptr;
             if (ellipsoid_flag && ellipsoid[i] >= 0)
-              quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+              if (atom->superellipsoid_flag)
+                quat = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+              else
+                quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
             else if (tri_flag && tri[i] >= 0)
               quat = avec_tri->bonus[tri[i]].quat;
             else if (body_flag && body[i] >= 0)
@@ -909,8 +920,8 @@ void FixMove::initial_integrate(int /*vflag*/)
           if (omega_flag) {
             flag = 0;
             if (radius_flag && radius[i] > 0.0) flag = 1;
-            if (line_flag && line[i] >= 0.0) flag = 1;
-            if (tri_flag && tri[i] >= 0.0) flag = 1;
+            if (line_flag && line[i] >= 0) flag = 1;
+            if (tri_flag && tri[i] >= 0) flag = 1;
             if (flag) {
               omega[i][0] = omega_rotate * runit[0];
               omega[i][1] = omega_rotate * runit[1];
@@ -923,15 +934,20 @@ void FixMove::initial_integrate(int /*vflag*/)
           if (angmom_flag) {
             quat = inertia = nullptr;
             if (ellipsoid_flag && ellipsoid[i] >= 0) {
-              quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
-              shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
-              inertia_ellipsoid[0] =
-                  INERTIA * rmass[i] * (shape[1] * shape[1] + shape[2] * shape[2]);
-              inertia_ellipsoid[1] =
-                  INERTIA * rmass[i] * (shape[0] * shape[0] + shape[2] * shape[2]);
-              inertia_ellipsoid[2] =
-                  INERTIA * rmass[i] * (shape[0] * shape[0] + shape[1] * shape[1]);
-              inertia = inertia_ellipsoid;
+              if (atom->superellipsoid_flag){
+                quat = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+                inertia = avec_ellipsoid->bonus_super[ellipsoid[i]].inertia;
+              } else {
+                quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+                shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
+                inertia_ellipsoid[0] =
+                    INERTIA * rmass[i] * (shape[1] * shape[1] + shape[2] * shape[2]);
+                inertia_ellipsoid[1] =
+                    INERTIA * rmass[i] * (shape[0] * shape[0] + shape[2] * shape[2]);
+                inertia_ellipsoid[2] =
+                    INERTIA * rmass[i] * (shape[0] * shape[0] + shape[1] * shape[1]);
+                inertia = inertia_ellipsoid;
+              }
             } else if (tri_flag && tri[i] >= 0) {
               quat = avec_tri->bonus[tri[i]].quat;
               inertia = avec_tri->bonus[tri[i]].inertia;
@@ -950,7 +966,7 @@ void FixMove::initial_integrate(int /*vflag*/)
 
           // theta for lines
 
-          if (theta_flag && line[i] >= 0.0) {
+          if (theta_flag && line[i] >= 0) {
             theta_new = fmod(toriginal[i] + arg, MY_2PI);
             avec_line->bonus[atom->line[i]].theta = theta_new;
           }
@@ -960,7 +976,10 @@ void FixMove::initial_integrate(int /*vflag*/)
           if (quat_flag && !quat_atom_flag) {
             quat = nullptr;
             if (ellipsoid_flag && ellipsoid[i] >= 0)
-              quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+              if (atom->superellipsoid_flag)
+                quat = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+              else
+                quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
             else if (tri_flag && tri[i] >= 0)
               quat = avec_tri->bonus[tri[i]].quat;
             else if (body_flag && body[i] >= 0)
@@ -1430,7 +1449,7 @@ void FixMove::set_arrays(int i)
 
       // theta for lines
 
-      if (theta_flag && line[i] >= 0.0) {
+      if (theta_flag && line[i] >= 0) {
         theta = avec_line->bonus[atom->line[i]].theta;
         toriginal[i] = theta - 0.0;    // NOTE: edit this line
       }
@@ -1440,7 +1459,10 @@ void FixMove::set_arrays(int i)
       if (quat_flag & !quat_atom_flag) {
         quat = nullptr;
         if (ellipsoid_flag && ellipsoid[i] >= 0)
-          quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+          if (atom->superellipsoid_flag)
+            quat = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+          else
+            quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
         else if (tri_flag && tri[i] >= 0)
           quat = avec_tri->bonus[tri[i]].quat;
         else if (body_flag && body[i] >= 0)
@@ -1493,7 +1515,7 @@ void FixMove::set_arrays(int i)
 
       // theta for lines
 
-      if (theta_flag && line[i] >= 0.0) {
+      if (theta_flag && line[i] >= 0) {
         theta = avec_line->bonus[atom->line[i]].theta;
         toriginal[i] = theta - 0.0;    // NOTE: edit this line
       }
@@ -1503,7 +1525,10 @@ void FixMove::set_arrays(int i)
       if (quat_flag && !quat_atom_flag) {
         quat = nullptr;
         if (ellipsoid_flag && ellipsoid[i] >= 0)
-          quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+          if (atom->superellipsoid_flag)
+            quat = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+          else
+            quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
         else if (tri_flag && tri[i] >= 0)
           quat = avec_tri->bonus[tri[i]].quat;
         else if (body_flag && body[i] >= 0)

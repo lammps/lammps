@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SHARED_ALLOC_HPP
 #define KOKKOS_SHARED_ALLOC_HPP
@@ -105,6 +92,7 @@ class SharedAllocationRecord<void, void> {
   SharedAllocationRecord(const SharedAllocationRecord&)            = delete;
   SharedAllocationRecord& operator=(SharedAllocationRecord&&)      = delete;
   SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
+  virtual ~SharedAllocationRecord()                                = default;
 
   /**\brief  Construct and insert into 'arg_root' tracking set.
    *         use_count is zero.
@@ -142,8 +130,6 @@ class SharedAllocationRecord<void, void> {
    *        shared allocation tracking flag.
    */
   static void tracking_enable() { t_tracking_enabled = 1; }
-
-  virtual ~SharedAllocationRecord() = default;
 
   SharedAllocationRecord()
       : m_alloc_ptr(nullptr),
@@ -234,7 +220,15 @@ class SharedAllocationRecordCommon : public SharedAllocationRecord<void, void> {
   static void deallocate(record_base_t* arg_rec);
 
  public:
+  SharedAllocationRecordCommon(const SharedAllocationRecordCommon&) = delete;
+  SharedAllocationRecordCommon(SharedAllocationRecordCommon&&)      = delete;
+  SharedAllocationRecordCommon& operator=(const SharedAllocationRecordCommon&) =
+      delete;
+  SharedAllocationRecordCommon& operator=(SharedAllocationRecordCommon&&) =
+      delete;
+
   ~SharedAllocationRecordCommon();
+
   template <class ExecutionSpace>
   SharedAllocationRecordCommon(
       ExecutionSpace const& exec, MemorySpace const& space,
@@ -318,7 +312,17 @@ class HostInaccessibleSharedAllocationRecordCommon
   static void deallocate(record_base_t* arg_rec);
 
  public:
+  HostInaccessibleSharedAllocationRecordCommon(
+      const HostInaccessibleSharedAllocationRecordCommon&) = delete;
+  HostInaccessibleSharedAllocationRecordCommon(
+      HostInaccessibleSharedAllocationRecordCommon&&) = delete;
+  HostInaccessibleSharedAllocationRecordCommon& operator=(
+      const HostInaccessibleSharedAllocationRecordCommon&) = delete;
+  HostInaccessibleSharedAllocationRecordCommon& operator=(
+      HostInaccessibleSharedAllocationRecordCommon&&) = delete;
+
   ~HostInaccessibleSharedAllocationRecordCommon();
+
   template <class ExecutionSpace>
   HostInaccessibleSharedAllocationRecordCommon(
       ExecutionSpace const& exec, MemorySpace const& space,
@@ -481,11 +485,12 @@ class SharedAllocationRecord
             &Kokkos::Impl::deallocate<MemorySpace, DestroyFunctor>),
         m_destroy() {}
 
+ public:
   SharedAllocationRecord()                                         = delete;
   SharedAllocationRecord(const SharedAllocationRecord&)            = delete;
   SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
+  ~SharedAllocationRecord()                                        = default;
 
- public:
   DestroyFunctor m_destroy;
 
   // Allocate with a zero use count.  Incrementing the use count from zero to
@@ -532,7 +537,7 @@ union SharedAllocationTracker {
   // number of symbols and inline functions.
 
 #ifdef KOKKOS_ENABLE_IMPL_REF_COUNT_BRANCH_UNLIKELY
-#define KOKKOS_IMPL_BRANCH_PROB KOKKOS_IMPL_ATTRIBUTE_UNLIKELY
+#define KOKKOS_IMPL_BRANCH_PROB [[unlikely]]
 #else
 #define KOKKOS_IMPL_BRANCH_PROB
 #endif
@@ -604,15 +609,27 @@ union SharedAllocationTracker {
 
   // Copy:
   KOKKOS_FORCEINLINE_FUNCTION
+  // NOLINTNEXTLINE(bugprone-exception-escape)
   ~SharedAllocationTracker(){KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT}
 
-  KOKKOS_FORCEINLINE_FUNCTION constexpr SharedAllocationTracker()
-      : m_record_bits(DO_NOT_DEREF_FLAG) {}
+  KOKKOS_FORCEINLINE_FUNCTION
+#if defined(KOKKOS_COMPILER_NVCC) || !defined(KOKKOS_COMPILER_GNU) || \
+    (KOKKOS_COMPILER_GNU < 1220) || (KOKKOS_COMPILER_GNU > 1240)
+      // FIXME_GCC: The ViewSupport test fails with gcc 12.2, 12.3 and 12.4
+      // because this constructor is optimized out, which leads to a nullptr
+      // dereference. Removing the constexpr fixes the issue but nvcc complains,
+      // so we keep the constexpr but only when using anything other than those
+      // three faulty gcc versions.
+      constexpr
+#endif
+      SharedAllocationTracker()
+      : m_record_bits(DO_NOT_DEREF_FLAG) {
+  }
 
   // Move:
 
   KOKKOS_FORCEINLINE_FUNCTION
-  SharedAllocationTracker(SharedAllocationTracker&& rhs)
+  SharedAllocationTracker(SharedAllocationTracker&& rhs) noexcept
       : m_record_bits(rhs.m_record_bits) {
     rhs.m_record_bits = DO_NOT_DEREF_FLAG;
   }

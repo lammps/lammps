@@ -1,25 +1,29 @@
 .. index:: pair_style born
-.. index:: pair_style born/omp
 .. index:: pair_style born/gpu
+.. index:: pair_style born/kk
+.. index:: pair_style born/omp
 .. index:: pair_style born/coul/long
 .. index:: pair_style born/coul/long/gpu
+.. index:: pair_style born/coul/long/kk
 .. index:: pair_style born/coul/long/omp
 .. index:: pair_style born/coul/msm
 .. index:: pair_style born/coul/msm/omp
 .. index:: pair_style born/coul/wolf
 .. index:: pair_style born/coul/wolf/gpu
+.. index:: pair_style born/coul/wolf/kk
 .. index:: pair_style born/coul/wolf/omp
 .. index:: pair_style born/coul/dsf
+.. index:: pair_style born/coul/dsf/omp
 
 pair_style born command
 =======================
 
-Accelerator Variants: *born/omp*, *born/gpu*
+Accelerator Variants: *born/gpu*, *born/kk*, *born/omp*
 
 pair_style born/coul/long command
 =================================
 
-Accelerator Variants: *born/coul/long/gpu*, *born/coul/long/omp*
+Accelerator Variants: *born/coul/long/gpu*, *born/coul/long/kk*, *born/coul/long/omp*
 
 pair_style born/coul/msm command
 ================================
@@ -29,10 +33,12 @@ Accelerator Variants: *born/coul/msm/omp*
 pair_style born/coul/wolf command
 =================================
 
-Accelerator Variants: *born/coul/wolf/gpu*, *born/coul/wolf/omp*
+Accelerator Variants: *born/coul/wolf/gpu*, *born/coul/wolf/kk*, *born/coul/wolf/omp*
 
 pair_style born/coul/dsf command
 ================================
+
+Accelerator Variants: *born/coul/dsf/omp*
 
 Syntax
 """"""

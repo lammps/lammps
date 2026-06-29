@@ -143,9 +143,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   num_ver = utils::date2num(version);
   restart_ver = -1;
 
-  // append git descriptor info to update string when compiling development or maintenance version
-
   std::string update_string = UPDATE_STRING; // NOLINT
+
+  // increment the version number for development branch
+  // so that it is larger than that of the release version
+  if (update_string == " - Development") ++num_ver;
+
+  // append git descriptor info to update string when compiling development or maintenance version
   if (has_git_info() && ((update_string == " - Development") || (update_string == " - Maintenance")))
     update_string += fmt::format(" - {}", git_descriptor());
 
@@ -1490,14 +1494,15 @@ void LAMMPS::print_config(FILE *fp)
   fputs("\n\n",fp);
 }
 
-/** Create vector of argv string pointers including terminating nullptr element
+/** Create vector of argv char pointers including terminating nullptr element
  *
  * \param args list of arguments
+ * \return vector of argument pointers
  */
-std::vector<char*> LAMMPS::argv_pointers(argv & args){
+std::vector<char*> LAMMPS::argv_pointers(argv &args){
   std::vector<char*> r;
   r.reserve(args.size()+1);
-  for(auto & a : args) {
+  for(auto &a : args) {
     r.push_back((char*)a.data());
   }
   r.push_back(nullptr);

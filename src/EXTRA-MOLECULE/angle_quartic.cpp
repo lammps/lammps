@@ -47,6 +47,8 @@ AngleQuartic::AngleQuartic(LAMMPS *lmp) : Angle(lmp)
 
 AngleQuartic::~AngleQuartic()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k2);

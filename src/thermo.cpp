@@ -139,7 +139,8 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
     lineflag = YAMLLINE;
 
   } else if (strcmp(style, "custom") == 0) {
-    if (narg == 1) error->all(FLERR, Error::ARGZERO, "Illegal thermo style custom command");
+    if (narg == 1)
+      error->all(FLERR, Error::ARGZERO, "Cannot use thermo style custom without custom keywords");
 
     // expand args if any have wildcard character "*"
 
@@ -162,7 +163,7 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
     }
 
   } else
-    error->all(FLERR, Error::ARGZERO, "Illegal thermo style {}", style);
+    error->all(FLERR, Error::ARGZERO, "Unknown thermo style {}", style);
 
   index_temp = index_press_scalar = index_press_vector = index_pe = -1;
 
@@ -453,7 +454,7 @@ void Thermo::compute(int flag)
   // add each thermo value to line with its specific format
   if (update_field_data) {
     lock_cache();
-    if ((int)field_data.size() != nfield) field_data.resize(nfield);
+    if ((int) field_data.size() != nfield) field_data.resize(nfield);
   }
 
   for (ifield = 0; ifield < nfield; ifield++) {
@@ -508,7 +509,7 @@ bigint Thermo::lost_check()
     warnbefore = 1;
     if (comm->me == 0)
       utils::logmesg(
-          lmp, "WARNING: Too many warnings: {} vs {}. All future warnings willbe suppressed\n",
+          lmp, "WARNING: Too many warnings: {} vs {}. All future warnings will be suppressed\n",
           ntotal[1], maxwarn);
   }
   error->set_allwarn(MIN(MAXSMALLINT, ntotal[1]));
@@ -693,6 +694,9 @@ void Thermo::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg + 1], "default") == 0) {
         for (auto &item : keyword_user) item.clear();
         iarg += 2;
+      } else if (strcmp(arg[iarg + 1], "auto") == 0) {
+        colname_auto();
+        iarg += 2;
       } else {
         if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "thermo_modify colname", error);
         int icol = -1;
@@ -741,7 +745,7 @@ void Thermo::modify_params(int narg, char **arg)
             format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
       } else if (strcmp(arg[iarg + 1], "float") == 0) {
         format_float_user = arg[iarg + 2];
-      } else if (utils::strmatch(arg[iarg + 1], "^\\d*\\*\\d*$")) {
+      } else if (utils::strmatch(arg[iarg + 1], R"(^\d*\*\d*$)")) {
         // handles cases such as 2*6; currently doesn't allow negatives
         int nlo, nhi;
         utils::bounds(FLERR, arg[iarg + 1], 1, nfield_initial, nlo, nhi, error);
@@ -1102,7 +1106,7 @@ void Thermo::parse_fields(const std::string &str)
         auto *icompute = modify->get_compute_by_id(argi.get_name());
         if (!icompute)
           error->all(FLERR, nfield + 1, "Could not find thermo custom compute ID: {}",
-                     icompute->id);
+                     argi.get_name());
         if (argi.get_dim() == 0) {    // scalar
           if (icompute->scalar_flag == 0)
             error->all(FLERR, nfield + 1, "Thermo custom compute {} does not compute a scalar",
@@ -1142,7 +1146,7 @@ void Thermo::parse_fields(const std::string &str)
       } else if (argi.get_type() == ArgInfo::FIX) {
         auto *ifix = modify->get_fix_by_id(argi.get_name());
         if (!ifix)
-          error->all(FLERR, nfield + 1, "Could not find thermo custom fix ID: {}", ifix->id);
+          error->all(FLERR, nfield + 1, "Could not find thermo custom fix ID: {}", argi.get_name());
         if (argi.get_dim() == 0) {    // scalar
           if (ifix->scalar_flag == 0)
             error->all(FLERR, nfield + 1, "Thermo custom fix {} does not compute a scalar",
@@ -1201,6 +1205,28 @@ void Thermo::parse_fields(const std::string &str)
   }
   field_data.clear();
   field_data.resize(nfield);
+}
+
+/* ----------------------------------------------------------------------
+   update auto-generated column names for computes, fixes
+------------------------------------------------------------------------- */
+
+void Thermo::colname_auto()
+{
+  for (ifield = 0; ifield < nfield; ifield++) {
+    std::string word = keyword[ifield];
+    ArgInfo argi(word);
+    if (argi.get_type() == ArgInfo::COMPUTE) {
+      auto *icompute = modify->get_compute_by_id(argi.get_name());
+      if (icompute->thermo_modify_colname)
+        keyword_user[ifield] = icompute->get_thermo_colname(argindex1[ifield]-1);
+    }
+    if (argi.get_type() == ArgInfo::FIX) {
+      auto *ifix = modify->get_fix_by_id(argi.get_name());
+      if (ifix->thermo_modify_colname)
+        keyword_user[ifield] = ifix->get_thermo_colname(argindex1[ifield]-1);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1374,15 +1400,21 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
     dvalue = bivalue;
 
   } else if (word == "elapsed") {
-    if (update->whichflag == 0)
-      error->all(FLERR, "The variable thermo keyword elapsed cannot be used between runs");
-    compute_elapsed();
+    // if this is before the first run return 0, otherwise the result from last step of last run
+    if ((update->whichflag == 0) && (update->first_update == 0)) {
+      bivalue = 0;
+    } else {
+      compute_elapsed();
+    }
     dvalue = bivalue;
 
   } else if (word == "elaplong") {
-    if (update->whichflag == 0)
-      error->all(FLERR, "The variable thermo keyword elaplong cannot be used between runs");
-    compute_elapsed_long();
+    // if this is before the first run return 0, otherwise the result from last step of last run
+    if ((update->whichflag == 0) && (update->first_update == 0)) {
+      bivalue = 0;
+    } else {
+      compute_elapsed_long();
+    }
     dvalue = bivalue;
 
   } else if (word == "dt") {
@@ -2121,6 +2153,7 @@ void Thermo::compute_enthalpy()
 void Thermo::compute_ecouple()
 {
   dvalue = modify->energy_couple();
+  if (normflag) dvalue /= natoms;
 }
 
 /* ---------------------------------------------------------------------- */

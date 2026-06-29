@@ -160,7 +160,7 @@ If IMD control messages are received, a line of text describing the
 message and its effect will be printed to the LAMMPS output screen, if
 screen output is active.
 
-.. _VMD: https://www.ks.uiuc.edu/Research/vmd
+.. _VMD: https://www.ks.uiuc.edu/Research/vmd/
 
 .. _imdvmd: https://www.ks.uiuc.edu/Research/vmd/imd/
 

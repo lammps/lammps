@@ -1,0 +1,97 @@
+LAMMPS (10 Sep 2025 - Development - patch_10Sep2025-385-g4714d8fc87)
+Processor partition = 2
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+variable ibead uloop 4 pad
+
+units lj
+atom_style atomic
+atom_modify map yes
+boundary p p p
+pair_style lj/cut 2.8015
+read_data data.lj01
+Reading data file ...
+  orthogonal box = (-3.4945131 -3.4945131 -3.4945131) to (3.4945131 3.4945131 3.4945131)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  200 atoms
+  read_data CPU = 0.001 seconds
+
+pair_coeff    * * 1.0 1.0
+pair_modify shift yes
+
+mass 1 1.0
+mass 2 1.0
+
+group real_atom type 1
+190 atoms in group real_atom
+group virtual_atom type 2
+10 atoms in group virtual_atom
+
+timestep 0.00044905847
+
+fix 1 real_atom pimd/langevin ensemble nvt integrator obabo temp 1.00888 sp 0.1924 thermostat PILE_L ${ibead}
+fix 1 real_atom pimd/langevin ensemble nvt integrator obabo temp 1.00888 sp 0.1924 thermostat PILE_L 3
+
+thermo_style custom step temp f_1[*] vol press
+thermo 10
+thermo_modify norm no
+
+dump dcd all custom 1 traj${ibead}.lammpstrj id type x y z vx vy vz ix iy iz fx fy fz
+dump dcd all custom 1 traj3.lammpstrj id type x y z vx vy vz ix iy iz fx fy fz
+dump_modify dcd sort id #format line "%d %d %.16f %.16f %.16f %.16f %.16f %.16f %d %d %d %.16f %.16f %.16f"
+
+run 100
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.1015
+  ghost atom cutoff = 3.1015
+  binsize = 1.55075, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.117 | 3.117 | 3.117 Mbytes
+   Step          Temp          f_1[1]         f_1[2]         f_1[3]         f_1[4]         f_1[5]         f_1[6]         f_1[7]         f_1[8]         f_1[9]        f_1[10]         Volume         Press     
+         0   0              0              0             -875.67022     -3502.6809      1150.1232     -318.66378      287.5308       2.2459657     -5.5241869     -1.3810467      341.38937     -1.3810467    
+        10   3.2100516      958.2004       487.3899      -874.71924      607.35164      882.79327     -320.26623      288.2661       0.15779338    -2.5239404     -1.3657413      341.38937      0.49377893   
+        20   3.7004281      1104.5778      864.00196     -872.98147      2124.5945      531.89382     -307.45159      289.26032     -2.5831586     -2.3962011     -1.3530669      341.38937      0.79083579   
+        30   3.8240183      1141.4695      1032.9297     -873.28891      2754.5415      400.34522     -299.15173      289.68836     -3.6107134     -2.3455211     -1.3579805      341.38937      0.86681287   
+        40   3.5116357      1048.2233      1123.5156     -876.63162      3083.9611      337.74565     -297.11938      289.80669     -4.0996923     -2.3657142     -1.3758725      341.38937      0.65011359   
+        50   3.6896088      1101.3482      1143.8222     -880.66105      3326.3374      307.07562     -295.85336      289.91582     -4.3392625     -2.376709      -1.4004763      341.38937      0.68749352   
+        60   4.0395542      1205.8069      1105.3957     -883.62552      3365.2012      333.37849     -293.70956      289.91798     -4.1338051     -2.3839596     -1.4311286      341.38937      0.84146614   
+        70   4.0847702      1219.3039      1195.2086     -886.86728      3584.46        288.23481     -276.80315      290.05161     -4.4864321     -2.5011786     -1.4616792      341.38937      0.8049205    
+        80   3.6472589      1088.7068      1187.7165     -888.21501      3284.7027      302.99827     -249.81444      289.95097     -4.3711116     -2.9102009     -1.4995513      341.38937      0.51747319   
+        90   3.6312106      1083.9164      1173.2819     -889.9147       3359.4223      309.73339     -213.62144      289.97647     -4.3185021     -2.9826863     -1.5347979      341.38937      0.47098068   
+       100   4.0525008      1209.6715      997.92904     -892.34552      3139.839       355.2448      -170.81276      289.79697     -3.9630025     -3.1960291     -1.5721301      341.38937      0.68771054   
+Loop time of 0.0572731 on 1 procs for 100 steps with 200 atoms
+
+Performance: 67743.209 tau/day, 1746.020 timesteps/s, 349.204 katom-step/s
+95.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0091062  | 0.0091062  | 0.0091062  |   0.0 | 15.90
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00030389 | 0.00030389 | 0.00030389 |   0.0 |  0.53
+Output  | 0.034873   | 0.034873   | 0.034873   |   0.0 | 60.89
+Modify  | 0.0129     | 0.0129     | 0.0129     |   0.0 | 22.52
+Other   |            | 8.977e-05  |            |       |  0.16
+
+Nlocal:            200 ave         200 max         200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1142 ave        1142 max        1142 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           7503 ave        7503 max        7503 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 7503
+Ave neighs/atom = 37.515
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

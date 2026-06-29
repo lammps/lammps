@@ -33,6 +33,7 @@ class FixNH : public Fix {
   void pre_exchange() override;
   double compute_scalar() override;
   double compute_vector(int) override;
+  std::string get_thermo_colname(int) override;
   void write_restart(FILE *) override;
   virtual int pack_restart_data(double *);    // pack restart data
   void restart(char *) override;
@@ -120,6 +121,9 @@ class FixNH : public Fix {
   int scalexz;     // 1 if xz scaled with lz
   int scalexy;     // 1 if xy scaled with ly
   int flipflag;    // 1 if box flips are invoked as needed
+  int isochoric;   // 1 if isochoric NPT simulation
+  int p_isoch[3];  // 1 if dimension is used for isochoric simulation
+  double vol_start; // reference volume for isochoric simulation
 
   int pre_exchange_flag;    // set if pre_exchange needed for box flips
 

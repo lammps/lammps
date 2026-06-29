@@ -38,11 +38,13 @@ template<class DeviceType>
 class PackKokkos {
  public:
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 
 struct pack_3d_functor {
 public:
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;
@@ -65,6 +67,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -119,6 +122,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -174,6 +178,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -227,6 +232,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -284,6 +290,7 @@ public:
       nqty          = plan->nqty         ;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -338,6 +345,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -391,6 +399,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -446,6 +455,7 @@ public:
       nqty          = plan->nqty         ;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);

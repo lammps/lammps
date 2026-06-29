@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -30,13 +30,13 @@ class FixPIMDBLangevin : public FixPIMDLangevin {
   ~FixPIMDBLangevin() override;
 
   double compute_vector(int) override;
-  void compute_spring_energy() override;
-  void compute_t_prim() override;
 
   char **filtered_args;
   int filtered_narg;
 
  protected:
+  void compute_spring_energy() override;
+  void compute_t_prim() override;
   void prepare_coordinates() override;
   void spring_force() override;
 

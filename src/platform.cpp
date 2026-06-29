@@ -18,12 +18,18 @@
 #include "platform.h"
 
 #include "fmt/format.h"
+#include "safe_pointers.h"
 #include "text_file_reader.h"
 #include "utils.h"
 
+#include <cerrno>
+#include <chrono>
+#include <cstring>
 #include <deque>
 #include <exception>
+#include <filesystem>
 #include <mpi.h>
+#include <thread>
 #include <utility>
 
 ////////////////////////////////////////////////////////////////////////
@@ -72,16 +78,12 @@
 
 ////////////////////////////////////////////////////////////////////////
 
-#include <chrono>
-#include <cstring>
-#include <thread>
-
 /* ------------------------------------------------------------------ */
 namespace {
 /// Struct for listing on-the-fly compression/decompression commands
 struct compress_info {
   /// identifier for the different compression algorithms
-  enum styles { NONE, GZIP, BZIP2, ZSTD, XZ, LZMA, LZ4 };
+  enum styles { NONE, GZIP, BZIP2, ZSTD, XZ, LZMA, LZ4, BROTLI, SEVENZIP };
   const std::string extension;          ///< filename extension for the current algorithm
   const std::string command;            ///< command to perform compression or decompression
   const std::string compressflags;      ///< flags to append to compress from stdin to stdout
@@ -98,6 +100,8 @@ const std::vector<compress_info> compress_styles = {
     {"xz",   "xz",    " > ",    " -cdf ",  compress_info::XZ},
     {"lzma", "xz", " --format=lzma > ", " --format=lzma -cdf ", compress_info::LZMA},
     {"lz4",  "lz4",   " > ",    " -cdf ",  compress_info::LZ4},
+    {"br",   "brotli", " > ",   " -cdf ",  compress_info::BROTLI},
+    {"7z",   "7z", " a -bb0 -si ",   " x -so ",  compress_info::SEVENZIP},
 };
 // clang-format on
 
@@ -120,7 +124,10 @@ const compress_info &find_compress_type(const std::string &file)
 // set reference time stamp during executable/library init.
 // should provide better resolution than using epoch, if the system clock supports it.
 auto initial_time = std::chrono::steady_clock::now();
-}
+
+// same for file time stamps where we use the current working directory as reference
+auto initial_file_time = std::filesystem::last_write_time(".");
+}    // namespace
 using namespace LAMMPS_NS;
 
 // get CPU time
@@ -256,6 +263,8 @@ std::string platform::os_info()
     buf = "Windows 11 24H2";
   } else if (build == "26200") {
     buf = "Windows 11 25H2";
+  } else if (build == "28000") {
+    buf = "Windows 11 26H1";
   } else {
     buf = "Windows Build " + build;
   }
@@ -750,76 +759,18 @@ bool platform::is_console(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   Get string with path to the current directory
-   PATH_MAX may not be a compile time constant, so we must allocate and delete a buffer.
-------------------------------------------------------------------------- */
-
-std::string platform::current_directory()
-{
-  std::string cwd;
-
-#if defined(_WIN32)
-  char *buf = new char[MAX_PATH];
-  if (_getcwd(buf, MAX_PATH)) { cwd = buf; }
-#else
-  auto *buf = new char[PATH_MAX];
-  if (::getcwd(buf, PATH_MAX)) { cwd = buf; }
-#endif
-  delete[] buf;
-  return cwd;
-}
-
-/* ----------------------------------------------------------------------
-   check if a path is a directory
-------------------------------------------------------------------------- */
-
-bool platform::path_is_directory(const std::string &path)
-{
-#if defined(_WIN32)
-  struct _stat info;
-  memset(&info, 0, sizeof(info));
-  if (_stat(path.c_str(), &info) != 0) return false;
-#else
-  struct stat info;
-  memset(&info, 0, sizeof(info));
-  if (stat(path.c_str(), &info) != 0) return false;
-#endif
-  return ((info.st_mode & S_IFDIR) != 0);
-}
-
-/* ----------------------------------------------------------------------
    get directory listing in string vector
 ------------------------------------------------------------------------- */
 
 std::vector<std::string> platform::list_directory(const std::string &dir)
 {
   std::vector<std::string> files;
-  if (!path_is_directory(dir)) return files;
+  // return empty list for non-directories
+  if (!std::filesystem::is_directory(dir)) return files;
 
-#if defined(_WIN32)
-  HANDLE handle;
-  WIN32_FIND_DATA fd;
-  std::string searchname = dir + filepathsep[0] + "*";
-  handle = FindFirstFile(searchname.c_str(), &fd);
-  if (handle == ((HANDLE) -1)) return files;
-  while (FindNextFile(handle, &fd)) {
-    std::string entry(fd.cFileName);
-    if ((entry == "..") || (entry == ".")) continue;
-    files.push_back(std::move(entry));
+  for (const auto &dir_entry : std::filesystem::directory_iterator{dir}) {
+    files.push_back(dir_entry.path().filename().string());
   }
-  FindClose(handle);
-#else
-  std::string dirname = dir + filepathsep[0];
-  DIR *handle = opendir(dirname.c_str());
-  if (handle == nullptr) return files;
-  struct dirent *fd;
-  while ((fd = readdir(handle)) != nullptr) {
-    std::string entry(fd->d_name);
-    if ((entry == "..") || (entry == ".")) continue;
-    files.push_back(std::move(entry));
-  }
-  closedir(handle);
-#endif
   return files;
 }
 
@@ -829,11 +780,9 @@ std::vector<std::string> platform::list_directory(const std::string &dir)
 
 int platform::chdir(const std::string &path)
 {
-#if defined(_WIN32)
-  return ::_chdir(path.c_str());
-#else
-  return ::chdir(path.c_str());
-#endif
+  std::error_code ec;
+  std::filesystem::current_path(path, ec);
+  return (ec.value() == 0) ? 0 : -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -842,26 +791,9 @@ int platform::chdir(const std::string &path)
 
 int platform::mkdir(const std::string &path)
 {
-  std::deque<std::string> dirlist = {path};
-  std::string dirname = path_dirname(path);
-
-  while ((dirname != ".") && (dirname != "")) {
-    dirlist.push_front(dirname);
-    dirname = path_dirname(dirname);
-  }
-
-  int rv;
-  for (const auto &dir : dirlist) {
-    if (!path_is_directory(dir)) {
-#if defined(_WIN32)
-      rv = ::_mkdir(dir.c_str());
-#else
-      rv = ::mkdir(dir.c_str(), S_IRWXU | S_IRGRP | S_IXGRP);
-#endif
-      if (rv != 0) return rv;
-    }
-  }
-  return 0;
+  std::error_code ec;
+  std::filesystem::create_directories(path, ec);
+  return (ec.value() == 0) ? 0 : -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -870,33 +802,29 @@ int platform::mkdir(const std::string &path)
 
 int platform::rmdir(const std::string &path)
 {
-  // recurse through directory tree deleting files and directories
-  auto entries = list_directory(path);
-  for (const auto &entry : entries) {
-    const auto newpath = path_join(path, entry);
-    if (path_is_directory(newpath))
-      rmdir(newpath);
-    else
-      unlink(newpath);
-  }
-#if defined(_WIN32)
-  return ::_rmdir(path.c_str());
-#else
-  return ::rmdir(path.c_str());
-#endif
+  return static_cast<int>(std::filesystem::remove_all(path));
 }
 
 /* ----------------------------------------------------------------------
    Delete a file
 ------------------------------------------------------------------------- */
 
+// Linux sets errno to EISDIR when trying to unlink a directory while POSIX says to use EPERM.
+// So we fall back on EPERM if EISDIR is not available on the OS.
+#if !defined(EISDIR)
+#define EISDIR EPERM
+#endif
+
 int platform::unlink(const std::string &path)
 {
-#if defined(_WIN32)
-  return ::_unlink(path.c_str());
-#else
-  return ::unlink(path.c_str());
-#endif
+  // set errno so utils::getsyserror() produces a meaningful error message.
+  if (std::filesystem::is_directory(path)) {
+    errno = EISDIR;
+    return -1;
+  }
+  std::error_code ec;
+  bool deleted = std::filesystem::remove(path, ec);
+  return (deleted && (ec.value() == 0)) ? 0 : -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -994,15 +922,7 @@ int platform::pclose(FILE *fp)
 
 std::string platform::path_basename(const std::string &path)
 {
-  size_t start = path.find_last_of(platform::filepathsep);
-
-  if (start == std::string::npos) {
-    start = 0;
-  } else {
-    start += 1;
-  }
-
-  return path.substr(start);
+  return std::filesystem::path(path).filename().string();
 }
 
 /* ----------------------------------------------------------------------
@@ -1011,11 +931,14 @@ std::string platform::path_basename(const std::string &path)
 
 std::string platform::path_dirname(const std::string &path)
 {
-  size_t start = path.find_last_of(platform::filepathsep);
-
-  if (start == std::string::npos) return ".";
-
-  return path.substr(0, start);
+  auto dir = std::filesystem::path(path).parent_path().string();
+#if defined(WIN32)
+  if ((dir == "") || utils::strmatch(dir, "^[a-zA-Z]:$")) return {"."};
+#else
+  if (dir == "") return {"."};
+#endif
+  else
+    return dir;
 }
 
 /* ----------------------------------------------------------------------
@@ -1051,11 +974,8 @@ std::string platform::path_join(const std::string &a, const std::string &b)
 
 bool platform::file_is_readable(const std::string &path)
 {
-  FILE *fp = fopen(path.c_str(), "r");
-  if (fp) {
-    fclose(fp);
-    return true;
-  }
+  SafeFilePtr fp = fopen(path.c_str(), "r");
+  if (fp) return true;
   return false;
 }
 
@@ -1067,21 +987,49 @@ bool platform::file_is_writable(const std::string &path)
 {
   // if the file exists, try to append and don't delete
 
+  SafeFilePtr fp;
   if (file_is_readable(path)) {
-    FILE *fp = fopen(path.c_str(), "a");
-    if (fp) {
-      fclose(fp);
-      return true;
-    }
+    fp = fopen(path.c_str(), "a");
+    if (fp) return true;
   } else {
-    FILE *fp = fopen(path.c_str(), "w");
+    fp = fopen(path.c_str(), "w");
     if (fp) {
-      fclose(fp);
+      fp = nullptr;
       unlink(path);
       return true;
     }
   }
   return false;
+}
+
+/* ----------------------------------------------------------------------
+   read first line of file to see if it is a redirect file of a git checkout
+   on a file system without symlinks
+------------------------------------------------------------------------- */
+
+std::string platform::file_redirect(const std::string &path)
+{
+#if defined(_WIN32)
+  // read the first (and only) line and see if it is a valid path
+  SafeFilePtr fp = fopen(path.c_str(), "r");
+  if (fp) {
+    char buffer[1024];
+    if (fgets(buffer, 1024, fp)) {
+      auto target = utils::trim(buffer);
+      if (platform::file_is_readable(target)) return target;
+    }
+  }
+#endif
+  return path;
+}
+
+/* ----------------------------------------------------------------------
+   get file modification time since initial time stamp
+------------------------------------------------------------------------- */
+double platform::file_write_time(const std::string &path)
+{
+  auto timediff = std::filesystem::last_write_time(path) - initial_file_time;
+  return std::chrono::duration<double>(timediff).count();
 }
 
 /* ----------------------------------------------------------------------
@@ -1136,6 +1084,18 @@ FILE *platform::compressed_read(const std::string &file)
   const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
+  // make certain the file exists and is readable
+
+  std::error_code ec;
+  if (!std::filesystem::exists(file, ec)) {
+    errno = ENOENT;
+    return nullptr;
+  }
+  if (!file_is_readable(file)) {
+    errno = EPERM;
+    return nullptr;
+  }
+
   if (find_exe_path(compress.command).size())
     // put quotes around file name so that they may contain blanks
     fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
@@ -1156,9 +1116,14 @@ FILE *platform::compressed_write(const std::string &file)
   if (compress.style == ::compress_info::NONE) return nullptr;
   if (!file_is_writable(file)) return nullptr;
 
-  if (find_exe_path(compress.command).size())
-    // put quotes around file name so that they may contain blanks
+  if (find_exe_path(compress.command).size()) {
+    // explicitly delete existing files for compatibility with commands that cannot write to stdout
+    // and thus we don't use redirection to a file, but provide the file name as argument directly.
+    // this can result in failure or inclusion of the same filename multiple times with out deleting
+    if (file_is_readable(file)) unlink(file);
+    // put quotes around file name for shell command so that they may contain blanks
     fp = popen((compress.command + compress.compressflags + "\"" + file + "\""), "w");
+  }
 #endif
   return fp;
 }

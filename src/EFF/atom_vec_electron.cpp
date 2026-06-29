@@ -25,7 +25,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_user_eff_package[] =
-    "EFF package: doi:10.1002/jcc.21637\n\n"
+    "EFF package: https://doi.org/10.1002/jcc.21637\n\n"
     "@Article{Jaramillo-Botero11,\n"
     " author = {A. Jaramillo-Botero and J. Su and A. Qi and Goddard, III, W. A.},\n"
     " title = {Large-Scale, Long-Term Nonadiabatic Electron Molecular Dynamics for Describing "

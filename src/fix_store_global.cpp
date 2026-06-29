@@ -30,9 +30,13 @@ FixStoreGlobal::FixStoreGlobal(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 5) error->all(FLERR, "Illegal fix STORE/GLOBAL command: incorrect number of args");
 
   // syntax: id group style n1 n2
-  //   N2 = 1 is vector, N2 > 1 is array, no tensor allowed (yet)
+  //   group is ignored
+  //   N2 = 1 is vector,
+  //   N2 > 1 is array,
+  //   no tensor allowed (yet)
 
   vecflag = arrayflag = 0;
+  dynamic_group_allow = 1;
 
   restart_global = 1;
   n1 = utils::inumeric(FLERR, arg[3], false, lmp);

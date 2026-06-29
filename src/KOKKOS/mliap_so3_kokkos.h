@@ -84,14 +84,14 @@ template <class DeviceType> class MLIAP_SO3Kokkos : protected Pointers {
 
  public:
   void spectrum(int nlocal, DAT::tdual_int_1d numneighs, DAT::tdual_int_1d jelems,
-                DAT::tdual_float_1d wjelem, DAT::tdual_float_2d rij, DAT::tdual_int_1d k_ij,
+                DAT::tdual_double_1d wjelem, DAT::tdual_double_2d_lr rij, DAT::tdual_int_1d k_ij,
                 int nmax, int lmax, double rcut, double alpha, int totaln, int ncoefs);
   struct MLIAPSO3SpectrumTag {};
   KOKKOS_FUNCTION
   void operator()(const MLIAPSO3SpectrumTag &, int ii) const;
 
   void spectrum_dxdr(int nlocal, DAT::tdual_int_1d numneighs, DAT::tdual_int_1d jelems,
-                     DAT::tdual_float_1d wjelem, DAT::tdual_float_2d rij, DAT::tdual_int_1d k_ij,
+                     DAT::tdual_double_1d wjelem, DAT::tdual_double_2d_lr rij, DAT::tdual_int_1d k_ij,
                      int nmax, int lmax, double rcut, double alpha, bigint npairs, int ncoefs);
   struct MLIAPSO3SpectrumDXDRTag {};
   KOKKOS_FUNCTION

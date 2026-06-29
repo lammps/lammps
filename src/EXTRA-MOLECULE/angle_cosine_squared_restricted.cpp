@@ -42,6 +42,8 @@ AngleCosineSquaredRestricted::AngleCosineSquaredRestricted(LAMMPS *_lmp) : Angle
 
 AngleCosineSquaredRestricted::~AngleCosineSquaredRestricted()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

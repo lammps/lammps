@@ -41,16 +41,17 @@ class FixViscousKokkos : public FixViscous {
   void init() override;
   void post_force(int) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixViscous, const int&) const;
 
  private:
-  typename AT::t_v_array v;
-  typename AT::t_f_array f;
+  typename AT::t_kkfloat_1d_3 v;
+  typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread mask;
   typename AT::t_int_1d_randomread type;
 
-  Kokkos::DualView<double*, Kokkos::LayoutRight, DeviceType> k_gamma;
+  Kokkos::DualView<KK_FLOAT*, Kokkos::LayoutRight, DeviceType> k_gamma;
 };
 
 }

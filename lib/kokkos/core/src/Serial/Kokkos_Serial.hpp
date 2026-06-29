@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 /// \file Kokkos_Serial.hpp
 /// \brief Declaration and definition of Kokkos::Serial device.
@@ -49,20 +36,19 @@ namespace Kokkos {
 namespace Impl {
 class SerialInternal {
  public:
-  SerialInternal() = default;
+  SerialInternal();
+  ~SerialInternal();
 
-  bool is_initialized();
-
-  void initialize();
-
-  void finalize();
-
-  static SerialInternal& singleton();
+  SerialInternal(SerialInternal const&)            = delete;
+  SerialInternal& operator=(SerialInternal const&) = delete;
 
   std::mutex m_instance_mutex;
 
+  static HostSharedPtr<SerialInternal> default_instance;
   static std::vector<SerialInternal*> all_instances;
   static std::mutex all_instances_mutex;
+
+  void fence(const std::string& name);
 
   // Resize thread team data scratch memory
   void resize_thread_team_data(size_t pool_reduce_bytes,
@@ -71,7 +57,6 @@ class SerialInternal {
                                size_t thread_local_bytes);
 
   HostThreadTeamData m_thread_team_data;
-  bool m_is_initialized = false;
 };
 }  // namespace Impl
 
@@ -113,28 +98,17 @@ class Serial {
 
   //@}
 
+  KOKKOS_DEFAULTED_FUNCTION Serial(const Serial&) = default;
+  KOKKOS_FUNCTION Serial(Serial&& other) noexcept
+      : Serial(static_cast<const Serial&>(other)) {}
+  KOKKOS_DEFAULTED_FUNCTION Serial& operator=(const Serial&) = default;
+  KOKKOS_FUNCTION Serial& operator=(Serial&& other) noexcept {
+    return *this = static_cast<const Serial&>(other);
+  }
+  ~Serial();
   Serial();
 
   explicit Serial(NewInstance);
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  template <typename T = void>
-  KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Serial execution space should be constructed explicitly.")
-  Serial(NewInstance)
-      : Serial(NewInstance{}) {}
-#endif
-
-  /// \brief True if and only if this method is being called in a
-  ///   thread-parallel function.
-  ///
-  /// For the Serial device, this method <i>always</i> returns false,
-  /// because parallel_for or parallel_reduce with the Serial device
-  /// always execute sequentially.
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED inline static int in_parallel() { return false; }
-#endif
 
   /// \brief Wait until all dispatched functors complete.
   ///
@@ -171,39 +145,16 @@ class Serial {
 
   void fence(const std::string& name =
                  "Kokkos::Serial::fence: Unnamed Instance Fence") const {
-#ifdef KOKKOS_ENABLE_ATOMICS_BYPASS
-    auto fence = []() {};
-#else
-    auto fence = [this]() {
-      auto* internal_instance = this->impl_internal_space_instance();
-      std::lock_guard<std::mutex> lock(internal_instance->m_instance_mutex);
-    };
-#endif
-    if (Kokkos::Tools::profileLibraryLoaded()) {
-      Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Serial>(
-          name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1},
-          fence);  // TODO: correct device ID
-    } else {
-      fence();
-    }
-#ifndef KOKKOS_ENABLE_ATOMICS_BYPASS
-    Kokkos::memory_fence();
-#endif
+    this->impl_internal_space_instance()->fence(name);
   }
 
   /** \brief  Return the maximum amount of concurrency.  */
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  static int concurrency() { return 1; }
-#else
   int concurrency() const { return 1; }
-#endif
 
   //! Print configuration information to the given output stream.
   void print_configuration(std::ostream& os, bool verbose = false) const;
 
   static void impl_initialize(InitializationSettings const&);
-
-  static bool impl_is_initialized();
 
   //! Free any resources being consumed by the device.
   static void impl_finalize();
@@ -270,44 +221,24 @@ struct MemorySpaceAccess<Kokkos::Serial::memory_space,
 }  // namespace Impl
 }  // namespace Kokkos
 
-namespace Kokkos::Experimental {
-
-template <class... Args>
-std::vector<Serial> partition_space(const Serial&, Args...) {
-  static_assert(
-      (... && std::is_arithmetic_v<Args>),
-      "Kokkos Error: partitioning arguments must be integers or floats");
-  std::vector<Serial> instances;
-  instances.reserve(sizeof...(Args));
-  std::generate_n(std::back_inserter(instances), sizeof...(Args),
-                  []() { return Serial{NewInstance{}}; });
-  return instances;
-}
-
+namespace Kokkos::Experimental::Impl {
+// Create new instance of Serial execution space for each partition, ignoring
+// weights
 template <class T>
-std::vector<Serial> partition_space(const Serial&,
-                                    std::vector<T> const& weights) {
-  static_assert(
-      std::is_arithmetic_v<T>,
-      "Kokkos Error: partitioning arguments must be integers or floats");
-
-  // We only care about the number of instances to create and ignore weights
-  // otherwise.
+std::vector<Serial> impl_partition_space(const Serial&,
+                                         const std::vector<T>& weights) {
   std::vector<Serial> instances;
   instances.reserve(weights.size());
   std::generate_n(std::back_inserter(instances), weights.size(),
-                  []() { return Serial{NewInstance{}}; });
+                  []() { return Serial(NewInstance{}); });
+
   return instances;
 }
-
-}  // namespace Kokkos::Experimental
+}  // namespace Kokkos::Experimental::Impl
 
 #include <Serial/Kokkos_Serial_Parallel_Range.hpp>
 #include <Serial/Kokkos_Serial_Parallel_MDRange.hpp>
 #include <Serial/Kokkos_Serial_Parallel_Team.hpp>
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-#include <Serial/Kokkos_Serial_Task.hpp>
-#endif
 #include <Serial/Kokkos_Serial_UniqueToken.hpp>
 
 #endif  // defined( KOKKOS_ENABLE_SERIAL )

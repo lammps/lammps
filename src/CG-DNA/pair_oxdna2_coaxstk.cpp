@@ -19,14 +19,17 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "constants_oxdna.h"
 #include "error.h"
+#include "fix_oxdna_lrf.h"
 #include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "mf_oxdna.h"
+#include "modify.h"
 #include "neigh_list.h"
+#include "neighbor.h"
+#include "nucleotide_oxdna.h"
 #include "potential_file_reader.h"
 
 #include <cmath>
@@ -41,8 +44,31 @@ using namespace MFOxdna;
 
 PairOxdna2Coaxstk::PairOxdna2Coaxstk(LAMMPS *lmp) : Pair(lmp)
 {
+  // dummy sequence-specific coaxial stacking strength
+  // A:0 C:1 G:2 T:3, 3'- [i] X [j] -5'
+
+  eta_cxst[0][0] = 1.00000;
+  eta_cxst[1][0] = 1.00000;
+  eta_cxst[2][0] = 1.00000;
+  eta_cxst[3][0] = 1.00000;
+
+  eta_cxst[0][1] = 1.00000;
+  eta_cxst[1][1] = 1.00000;
+  eta_cxst[2][1] = 1.00000;
+  eta_cxst[3][1] = 1.00000;
+
+  eta_cxst[0][2] = 1.00000;
+  eta_cxst[1][2] = 1.00000;
+  eta_cxst[2][2] = 1.00000;
+  eta_cxst[3][2] = 1.00000;
+
+  eta_cxst[0][3] = 1.00000;
+  eta_cxst[1][3] = 1.00000;
+  eta_cxst[2][3] = 1.00000;
+  eta_cxst[3][3] = 1.00000;
+
   single_enable = 0;
-  writedata = 1;
+  writedata = 0;
   trim_flag = 0;
 }
 
@@ -96,9 +122,30 @@ PairOxdna2Coaxstk::~PairOxdna2Coaxstk()
   }
 }
 
+/* -----------------------------------------------------------------------
+    compute vector COM-sugar-phosphate backbone interaction site
+    uses oxDNA1 backbone site
+-------------------------------------------------------------------------- */
+inline void PairOxdna2Coaxstk::compute_backbone_site(double e1[3], double /*e2*/[3],
+  double /*e3*/[3], double rbk[3]) const
+{
+  NucleotideOxdna1 oxdna1;
+  oxdna1.backbone_site(e1, nullptr, nullptr, rbk);
+}
+
 /* ----------------------------------------------------------------------
-   compute function for oxDNA pair interactions
-   st=stacking site
+    compute vector COM-stacking interaction site in oxDNA2
+    uses oxDNA1 stacking site
+------------------------------------------------------------------------- */
+inline void PairOxdna2Coaxstk::compute_stacking_site(double e1[3], double /*e2*/[3],
+    double /*e3*/[3], double rstk[3]) const
+{
+  NucleotideOxdna1 oxdna1;
+  oxdna1.stacking_site(e1, nullptr, nullptr, rstk);
+}
+
+/* ----------------------------------------------------------------------
+   compute function for oxDNA2 pair interactions
 ------------------------------------------------------------------------- */
 
 void PairOxdna2Coaxstk::compute(int eflag, int vflag)
@@ -107,24 +154,21 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
   double delf[3],delta[3],deltb[3]; // force, torque increment;
   double evdwl,finc,tpair,factor_lj;
   double v1tmp[3];
-  double delr_ss[3],delr_ss_norm[3],rsq_ss,r_ss,rinv_ss;
-  double delr_st[3],delr_st_norm[3],rsq_st,r_st,rinv_st;
+  double delr_bkbk[3],delr_bkbk_norm[3],rsq_bkbk,r_bkbk,rinv_bkbk;
+  double delr_stkstk[3],delr_stkstk_norm[3],rsq_stkstk,r_stkstk,rinv_stkstk;
   double theta1,theta1p,t1dir[3],cost1;
   double theta4,t4dir[3],cost4;
   double theta5,theta5p,t5dir[3],cost5;
   double theta6,theta6p,t6dir[3],cost6;
   double cosphi3;
 
-  // distances COM-backbone site, COM-stacking site
-  double d_cs = ConstantsOxdna::get_d_cs();
-  double d_cst = ConstantsOxdna::get_d_cst();
   // vectors COM-backbone site, COM-stacking site in lab frame
-  double ra_cs[3],ra_cst[3];
-  double rb_cs[3],rb_cst[3];
+  double ra_cbk[3],ra_cstk[3];
+  double rb_cbk[3],rb_cstk[3];
 
   // Cartesian unit vectors in lab frame
-  double ax[3],az[3];
-  double bx[3],bz[3];
+  double ax[3],ay[3],az[3];
+  double bx[3],by[3],bz[3];
 
   double **x = atom->x;
   double **f = atom->f;
@@ -136,10 +180,14 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
   int *alist,*blist,*numneigh,**firstneigh;
   double *special_lj = force->special_lj;
 
+  tagint *id3p = atom->id3p;
+  tagint *id5p = atom->id5p;
+
   int a,b,ia,ib,anum,bnum,atype,btype;
+  double k_cxst_ab;
 
   double f2,f4f6t1,f4t4,f4t5,f4t6;
-  double df2,df4f6t1,df4t4,df4t5,df4t6,rsint;
+  double df2,df4f6t1,df4t4,df4t5,df4t6;
 
   evdwl = 0.0;
   ev_init(eflag,vflag);
@@ -149,31 +197,29 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // n(x/z)_xtrct = extracted local unit vectors from oxdna_excv
-  int dim;
-  nx_xtrct = (double **) force->pair->extract("nx",dim);
-  nz_xtrct = (double **) force->pair->extract("nz",dim);
+  // nxyz_xtrct = extracted local unit vectors in lab frame from fix OXDNA/LRF
+  nxyz_xtrct = fix_lrf->array_atom;
 
   // loop over pair interaction neighbors of my atoms
 
   for (ia = 0; ia < anum; ia++) {
 
     a = alist[ia];
+
+    // a has to be terminal nucleotide
+    if(id3p[a]!=-1 && id5p[a]!=-1) continue;
+
     atype = type[a];
 
-    ax[0] = nx_xtrct[a][0];
-    ax[1] = nx_xtrct[a][1];
-    ax[2] = nx_xtrct[a][2];
+    ax[0] = nxyz_xtrct[a][0];
+    ax[1] = nxyz_xtrct[a][1];
+    ax[2] = nxyz_xtrct[a][2];
 
     // vector COM a - stacking site a
-    ra_cst[0] = d_cst*ax[0];
-    ra_cst[1] = d_cst*ax[1];
-    ra_cst[2] = d_cst*ax[2];
+    compute_stacking_site(ax,ay,az,ra_cstk);
 
     // vector COM a - backbone site a
-    ra_cs[0] = d_cs*ax[0];
-    ra_cs[1] = d_cs*ax[1];
-    ra_cs[2] = d_cs*ax[2];
+    compute_backbone_site(ax,ay,az,ra_cbk);
 
     blist = firstneigh[a];
     bnum = numneigh[a];
@@ -184,47 +230,46 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
       factor_lj = special_lj[sbmask(b)]; // = 0 for nearest neighbors
       b &= NEIGHMASK;
 
+      // b has to be terminal nucleotide
+      if(id3p[b]!=-1 && id5p[b]!=-1) continue;
+
       btype = type[b];
 
-      bx[0] = nx_xtrct[b][0];
-      bx[1] = nx_xtrct[b][1];
-      bx[2] = nx_xtrct[b][2];
+      bx[0] = nxyz_xtrct[b][0];
+      bx[1] = nxyz_xtrct[b][1];
+      bx[2] = nxyz_xtrct[b][2];
 
       // vector COM b - stacking site b
-      rb_cst[0] = d_cst*bx[0];
-      rb_cst[1] = d_cst*bx[1];
-      rb_cst[2] = d_cst*bx[2];
+      compute_stacking_site(bx,by,bz,rb_cstk);
 
       // vector stacking site b to a
-      delr_st[0] = x[a][0] + ra_cst[0] - x[b][0] - rb_cst[0];
-      delr_st[1] = x[a][1] + ra_cst[1] - x[b][1] - rb_cst[1];
-      delr_st[2] = x[a][2] + ra_cst[2] - x[b][2] - rb_cst[2];
+      delr_stkstk[0] = x[a][0] + ra_cstk[0] - x[b][0] - rb_cstk[0];
+      delr_stkstk[1] = x[a][1] + ra_cstk[1] - x[b][1] - rb_cstk[1];
+      delr_stkstk[2] = x[a][2] + ra_cstk[2] - x[b][2] - rb_cstk[2];
 
-      rsq_st = delr_st[0]*delr_st[0] + delr_st[1]*delr_st[1] + delr_st[2]*delr_st[2];
-      r_st = sqrt(rsq_st);
-      rinv_st = 1.0/r_st;
+      rsq_stkstk = delr_stkstk[0]*delr_stkstk[0] + delr_stkstk[1]*delr_stkstk[1] + delr_stkstk[2]*delr_stkstk[2];
+      r_stkstk = sqrt(rsq_stkstk);
+      rinv_stkstk = 1.0/r_stkstk;
 
-      delr_st_norm[0] = delr_st[0] * rinv_st;
-      delr_st_norm[1] = delr_st[1] * rinv_st;
-      delr_st_norm[2] = delr_st[2] * rinv_st;
+      delr_stkstk_norm[0] = delr_stkstk[0] * rinv_stkstk;
+      delr_stkstk_norm[1] = delr_stkstk[1] * rinv_stkstk;
+      delr_stkstk_norm[2] = delr_stkstk[2] * rinv_stkstk;
 
       // vector COM b - backbone site b
-      rb_cs[0] = d_cs*bx[0];
-      rb_cs[1] = d_cs*bx[1];
-      rb_cs[2] = d_cs*bx[2];
+      compute_backbone_site(bx,by,bz,rb_cbk);
 
       // vector backbone site b to a
-      delr_ss[0] = (x[a][0] + ra_cs[0] - x[b][0] - rb_cs[0]);
-      delr_ss[1] = (x[a][1] + ra_cs[1] - x[b][1] - rb_cs[1]);
-      delr_ss[2] = (x[a][2] + ra_cs[2] - x[b][2] - rb_cs[2]);
+      delr_bkbk[0] = (x[a][0] + ra_cbk[0] - x[b][0] - rb_cbk[0]);
+      delr_bkbk[1] = (x[a][1] + ra_cbk[1] - x[b][1] - rb_cbk[1]);
+      delr_bkbk[2] = (x[a][2] + ra_cbk[2] - x[b][2] - rb_cbk[2]);
 
-      rsq_ss = delr_ss[0]*delr_ss[0] + delr_ss[1]*delr_ss[1] + delr_ss[2]*delr_ss[2];
-      r_ss = sqrt(rsq_ss);
-      rinv_ss = 1.0/r_ss;
+      rsq_bkbk = delr_bkbk[0]*delr_bkbk[0] + delr_bkbk[1]*delr_bkbk[1] + delr_bkbk[2]*delr_bkbk[2];
+      r_bkbk = sqrt(rsq_bkbk);
+      rinv_bkbk = 1.0/r_bkbk;
 
-      delr_ss_norm[0] = delr_ss[0] * rinv_ss;
-      delr_ss_norm[1] = delr_ss[1] * rinv_ss;
-      delr_ss_norm[2] = delr_ss[2] * rinv_ss;
+      delr_bkbk_norm[0] = delr_bkbk[0] * rinv_bkbk;
+      delr_bkbk_norm[1] = delr_bkbk[1] * rinv_bkbk;
+      delr_bkbk_norm[2] = delr_bkbk[2] * rinv_bkbk;
 
       cost1 = -1.0*MathExtra::dot3(ax,bx);
       if (cost1 >  1.0) cost1 =  1.0;
@@ -235,250 +280,277 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
       f4f6t1 = F4(theta1, a_cxst1[atype][btype], theta_cxst1_0[atype][btype],
                   dtheta_cxst1_ast[atype][btype], b_cxst1[atype][btype],
                   dtheta_cxst1_c[atype][btype]) +
-        F6(theta1, AA_cxst1[atype][btype], BB_cxst1[atype][btype]);
+               F6(theta1, AA_cxst1[atype][btype], BB_cxst1[atype][btype]);
 
       // early rejection criterium
       if (f4f6t1 != 0.0) {
 
-        az[0] = nz_xtrct[a][0];
-        az[1] = nz_xtrct[a][1];
-        az[2] = nz_xtrct[a][2];
-        bz[0] = nz_xtrct[b][0];
-        bz[1] = nz_xtrct[b][1];
-        bz[2] = nz_xtrct[b][2];
+      az[0] = nxyz_xtrct[a][6];
+      az[1] = nxyz_xtrct[a][7];
+      az[2] = nxyz_xtrct[a][8];
+      bz[0] = nxyz_xtrct[b][6];
+      bz[1] = nxyz_xtrct[b][7];
+      bz[2] = nxyz_xtrct[b][8];
 
-        cost4 = MathExtra::dot3(az,bz);
-        if (cost4 >  1.0) cost4 =  1.0;
-        if (cost4 < -1.0) cost4 = -1.0;
-        theta4 = acos(cost4);
+      cost4 = MathExtra::dot3(az,bz);
+      if (cost4 >  1.0) cost4 =  1.0;
+      if (cost4 < -1.0) cost4 = -1.0;
+      theta4 = acos(cost4);
 
-        f4t4 = F4(theta4, a_cxst4[atype][btype], theta_cxst4_0[atype][btype],
+      f4t4 = F4(theta4, a_cxst4[atype][btype], theta_cxst4_0[atype][btype],
+                dtheta_cxst4_ast[atype][btype], b_cxst4[atype][btype],
+                dtheta_cxst4_c[atype][btype]) +
+             F4(theta4, a_cxst4[atype][btype], MY_PI - theta_cxst4_0[atype][btype],
+                dtheta_cxst4_ast[atype][btype], b_cxst4[atype][btype],
+                dtheta_cxst4_c[atype][btype]);
+
+      // early rejection criterium
+      if (f4t4 != 0.0) {
+
+      cost5 = MathExtra::dot3(delr_stkstk_norm,az);
+      if (cost5 >  1.0) cost5 =  1.0;
+      if (cost5 < -1.0) cost5 = -1.0;
+      theta5 = acos(cost5);
+      theta5p = MY_PI - theta5;
+
+      f4t5 = F4(theta5, a_cxst5[atype][btype], theta_cxst5_0[atype][btype],
+                dtheta_cxst5_ast[atype][btype], b_cxst5[atype][btype],
+                dtheta_cxst5_c[atype][btype]) +
+             F4(theta5p, a_cxst5[atype][btype], theta_cxst5_0[atype][btype],
+                dtheta_cxst5_ast[atype][btype], b_cxst5[atype][btype],
+                dtheta_cxst5_c[atype][btype]);
+
+      // early rejection criterium
+      if (f4t5 != 0.0) {
+
+      cost6 = MathExtra::dot3(delr_stkstk_norm,bz);
+      if (cost6 >  1.0) cost6 =  1.0;
+      if (cost6 < -1.0) cost6 = -1.0;
+      theta6 = acos(cost6);
+      theta6p = MY_PI - theta6;
+
+      f4t6 = F4(theta6, a_cxst6[atype][btype], theta_cxst6_0[atype][btype],
+                dtheta_cxst6_ast[atype][btype], b_cxst6[atype][btype],
+                dtheta_cxst6_c[atype][btype]) +
+             F4(theta6p, a_cxst6[atype][btype], theta_cxst6_0[atype][btype],
+                dtheta_cxst6_ast[atype][btype], b_cxst6[atype][btype],
+                dtheta_cxst6_c[atype][btype]);
+
+      MathExtra::cross3(delr_bkbk_norm,ax,v1tmp);
+      cosphi3 = MathExtra::dot3(delr_stkstk_norm,v1tmp);
+      if (cosphi3 >  1.0) cosphi3 =  1.0;
+      if (cosphi3 < -1.0) cosphi3 = -1.0;
+
+      // directionality test for base step-dependent coaxial stacking strength
+      // if a -> b is 5' -> 3' retain types
+      if(id5p[a]==-1 && id3p[b]==-1) {
+        k_cxst_ab = k_cxst[atype][btype];
+      }
+      // if a -> b is 3' -> 5' swap types
+      else if(id3p[a]==-1 && id5p[b]==-1) {
+        k_cxst_ab = k_cxst[btype][atype];
+      }
+      // otherwise mix types
+      else {
+        k_cxst_ab = 0.5*(k_cxst[atype][btype]+k_cxst[btype][atype]);
+      }
+
+      f2 = F2(r_stkstk, k_cxst_ab, cut_cxst_0[atype][btype], cut_cxst_lc[atype][btype],
+              cut_cxst_hc[atype][btype], cut_cxst_lo[atype][btype], cut_cxst_hi[atype][btype],
+              b_cxst_lo[atype][btype], b_cxst_hi[atype][btype], cut_cxst_c[atype][btype]);
+
+      evdwl = f2 * f4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj;
+
+      // early rejection criterium
+      if (evdwl != 0.0) {
+
+      df2 = DF2(r_stkstk, k_cxst_ab, cut_cxst_0[atype][btype],
+                cut_cxst_lc[atype][btype], cut_cxst_hc[atype][btype], cut_cxst_lo[atype][btype],
+                cut_cxst_hi[atype][btype], b_cxst_lo[atype][btype], b_cxst_hi[atype][btype]);
+
+      df4f6t1 = (DF4(theta1, a_cxst1[atype][btype], theta_cxst1_0[atype][btype],
+                    dtheta_cxst1_ast[atype][btype], b_cxst1[atype][btype],
+                    dtheta_cxst1_c[atype][btype]) +
+                 DF6(theta1, AA_cxst1[atype][btype], BB_cxst1[atype][btype]))/sin(theta1);
+
+      df4t4 = (DF4(theta4, a_cxst4[atype][btype], theta_cxst4_0[atype][btype],
                   dtheta_cxst4_ast[atype][btype], b_cxst4[atype][btype],
-                  dtheta_cxst4_c[atype][btype]);
+                  dtheta_cxst4_c[atype][btype]) +
+               DF4(theta4, a_cxst4[atype][btype], MY_PI - theta_cxst4_0[atype][btype],
+                  dtheta_cxst4_ast[atype][btype], b_cxst4[atype][btype],
+                  dtheta_cxst4_c[atype][btype]))/sin(theta4);
 
-        // early rejection criterium
-        if (f4t4 != 0.0) {
+      df4t5 = (DF4(theta5, a_cxst5[atype][btype], theta_cxst5_0[atype][btype],
+                  dtheta_cxst5_ast[atype][btype],
+                  b_cxst5[atype][btype], dtheta_cxst5_c[atype][btype]) -
+               DF4(theta5p, a_cxst5[atype][btype], theta_cxst5_0[atype][btype],
+                  dtheta_cxst5_ast[atype][btype], b_cxst5[atype][btype],
+                  dtheta_cxst5_c[atype][btype]))/sin(theta5);
 
-          cost5 = MathExtra::dot3(delr_st_norm,az);
-          if (cost5 >  1.0) cost5 =  1.0;
-          if (cost5 < -1.0) cost5 = -1.0;
-          theta5 = acos(cost5);
-          theta5p = MY_PI - theta5;
+      df4t6 = (DF4(theta6, a_cxst6[atype][btype], theta_cxst6_0[atype][btype],
+                  dtheta_cxst6_ast[atype][btype], b_cxst6[atype][btype],
+                  dtheta_cxst6_c[atype][btype]) -
+               DF4(theta6p, a_cxst6[atype][btype], theta_cxst6_0[atype][btype],
+                  dtheta_cxst6_ast[atype][btype], b_cxst6[atype][btype],
+                  dtheta_cxst6_c[atype][btype]))/sin(theta6);
 
-          f4t5 = F4(theta5, a_cxst5[atype][btype], theta_cxst5_0[atype][btype],
-                    dtheta_cxst5_ast[atype][btype], b_cxst5[atype][btype],
-                    dtheta_cxst5_c[atype][btype]) +
-            F4(theta5p, a_cxst5[atype][btype], theta_cxst5_0[atype][btype],
-               dtheta_cxst5_ast[atype][btype], b_cxst5[atype][btype], dtheta_cxst5_c[atype][btype]);
+      // force, torque and virial contribution for forces between stacking sites
 
-          // early rejection criterium
-          if (f4t5 != 0.0) {
+      delf[0] = 0.0;
+      delf[1] = 0.0;
+      delf[2] = 0.0;
 
-            cost6 = MathExtra::dot3(delr_st_norm,bz);
-            if (cost6 >  1.0) cost6 =  1.0;
-            if (cost6 < -1.0) cost6 = -1.0;
-            theta6 = acos(cost6);
-            theta6p = MY_PI - theta6;
+      delta[0] = 0.0;
+      delta[1] = 0.0;
+      delta[2] = 0.0;
 
-            f4t6 = F4(theta6, a_cxst6[atype][btype], theta_cxst6_0[atype][btype],
-                      dtheta_cxst6_ast[atype][btype],
-                      b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype]) +
-              F4(theta6p, a_cxst6[atype][btype], theta_cxst6_0[atype][btype], dtheta_cxst6_ast[atype][btype],
-                 b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype]);
+      deltb[0] = 0.0;
+      deltb[1] = 0.0;
+      deltb[2] = 0.0;
 
-            MathExtra::cross3(delr_ss_norm,ax,v1tmp);
-            cosphi3 = MathExtra::dot3(delr_st_norm,v1tmp);
-            if (cosphi3 >  1.0) cosphi3 =  1.0;
-            if (cosphi3 < -1.0) cosphi3 = -1.0;
+      // radial force
+      finc  = -df2 * f4f6t1 * f4t4 * f4t5 * f4t6 * rinv_stkstk * factor_lj;
 
-            f2 = F2(r_st, k_cxst[atype][btype], cut_cxst_0[atype][btype],
-                    cut_cxst_lc[atype][btype], cut_cxst_hc[atype][btype], cut_cxst_lo[atype][btype], cut_cxst_hi[atype][btype],
-                    b_cxst_lo[atype][btype], b_cxst_hi[atype][btype], cut_cxst_c[atype][btype]);
+      delf[0] += delr_stkstk[0] * finc;
+      delf[1] += delr_stkstk[1] * finc;
+      delf[2] += delr_stkstk[2] * finc;
 
-            evdwl = f2 * f4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj;
+      // theta5 force
+      if ((theta5 != 0.0) && (theta5p != 0.0)) {
 
-            // early rejection criterium
-            if (evdwl != 0.0) {
+        finc   = -f2 * f4f6t1 * f4t4 * df4t5 * f4t6 * rinv_stkstk * factor_lj;
 
-              df2 = DF2(r_st, k_cxst[atype][btype], cut_cxst_0[atype][btype],
-                        cut_cxst_lc[atype][btype], cut_cxst_hc[atype][btype], cut_cxst_lo[atype][btype],
-                        cut_cxst_hi[atype][btype], b_cxst_lo[atype][btype], b_cxst_hi[atype][btype]);
+        delf[0] += (delr_stkstk_norm[0]*cost5 - az[0]) * finc;
+        delf[1] += (delr_stkstk_norm[1]*cost5 - az[1]) * finc;
+        delf[2] += (delr_stkstk_norm[2]*cost5 - az[2]) * finc;
 
-              rsint = 1.0/sin(theta1);
-              df4f6t1 = DF4(theta1, a_cxst1[atype][btype], theta_cxst1_0[atype][btype],
-                            dtheta_cxst1_ast[atype][btype], b_cxst1[atype][btype],
-                            dtheta_cxst1_c[atype][btype])*rsint +
-                DF6(theta1, AA_cxst1[atype][btype], BB_cxst1[atype][btype])*rsint;
+      }
 
-              df4t4 = DF4(theta4, a_cxst4[atype][btype], theta_cxst4_0[atype][btype],
-                          dtheta_cxst4_ast[atype][btype], b_cxst4[atype][btype],
-                          dtheta_cxst4_c[atype][btype])/sin(theta4);
+      // theta6 force
+      if ((theta6 != 0.0) && (theta6p != 0.0)) {
 
-              rsint = 1.0/sin(theta5);
-              df4t5 = DF4(theta5, a_cxst5[atype][btype], theta_cxst5_0[atype][btype],
-                          dtheta_cxst5_ast[atype][btype],
-                          b_cxst5[atype][btype], dtheta_cxst5_c[atype][btype])*rsint -
-                DF4(theta5p, a_cxst5[atype][btype], theta_cxst5_0[atype][btype],
-                    dtheta_cxst5_ast[atype][btype],
-                    b_cxst5[atype][btype], dtheta_cxst5_c[atype][btype])*rsint;
+        finc   = -f2 * f4f6t1* f4t4 * f4t5 * df4t6 * rinv_stkstk * factor_lj;
 
-              rsint = 1.0/sin(theta6);
-              df4t6 = DF4(theta6, a_cxst6[atype][btype], theta_cxst6_0[atype][btype],
-                          dtheta_cxst6_ast[atype][btype],
-                          b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype])*rsint -
-                DF4(theta6p, a_cxst6[atype][btype], theta_cxst6_0[atype][btype],
-                    dtheta_cxst6_ast[atype][btype],
-                    b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype])*rsint;
+        delf[0] += (delr_stkstk_norm[0]*cost6 - bz[0]) * finc;
+        delf[1] += (delr_stkstk_norm[1]*cost6 - bz[1]) * finc;
+        delf[2] += (delr_stkstk_norm[2]*cost6 - bz[2]) * finc;
 
-              // force, torque and virial contribution for forces between stacking sites
+      }
 
-              delf[0] = 0.0;
-              delf[1] = 0.0;
-              delf[2] = 0.0;
+      // increment forces and torques
 
-              delta[0] = 0.0;
-              delta[1] = 0.0;
-              delta[2] = 0.0;
+      f[a][0] += delf[0];
+      f[a][1] += delf[1];
+      f[a][2] += delf[2];
 
-              deltb[0] = 0.0;
-              deltb[1] = 0.0;
-              deltb[2] = 0.0;
+      MathExtra::cross3(ra_cstk,delf,delta);
 
-              // radial force
-              finc  = -df2 * f4f6t1 * f4t4 * f4t5 * f4t6 * rinv_st * factor_lj;
+      torque[a][0] += delta[0];
+      torque[a][1] += delta[1];
+      torque[a][2] += delta[2];
 
-              delf[0] += delr_st[0] * finc;
-              delf[1] += delr_st[1] * finc;
-              delf[2] += delr_st[2] * finc;
 
-              // theta5 force
-              if ((theta5 != 0.0) && (theta5p != 0.0)) {
+      if (newton_pair || b < nlocal) {
 
-                finc   = -f2 * f4f6t1 * f4t4 * df4t5 * f4t6 * rinv_st * factor_lj;
+        f[b][0] -= delf[0];
+        f[b][1] -= delf[1];
+        f[b][2] -= delf[2];
 
-                delf[0] += (delr_st_norm[0]*cost5 - az[0]) * finc;
-                delf[1] += (delr_st_norm[1]*cost5 - az[1]) * finc;
-                delf[2] += (delr_st_norm[2]*cost5 - az[2]) * finc;
-              }
+        MathExtra::cross3(rb_cstk,delf,deltb);
 
-              // theta6 force
-              if ((theta6 != 0.0) && (theta6p != 0.0)) {
+        torque[b][0] -= deltb[0];
+        torque[b][1] -= deltb[1];
+        torque[b][2] -= deltb[2];
 
-                finc   = -f2 * f4f6t1* f4t4 * f4t5 * df4t6 * rinv_st * factor_lj;
+      }
 
-                delf[0] += (delr_st_norm[0]*cost6 - bz[0]) * finc;
-                delf[1] += (delr_st_norm[1]*cost6 - bz[1]) * finc;
-                delf[2] += (delr_st_norm[2]*cost6 - bz[2]) * finc;
-              }
+      // increment energy and virial
+      // NOTE: The virial is calculated on the 'molecular' basis.
+      // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
 
-              // increment forces and torques
+      if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,delf[0],delf[1],delf[2],
+                               x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
-              f[a][0] += delf[0];
-              f[a][1] += delf[1];
-              f[a][2] += delf[2];
+      // pure torques not expressible as r x f
 
-              MathExtra::cross3(ra_cst,delf,delta);
+      delta[0] = 0.0;
+      delta[1] = 0.0;
+      delta[2] = 0.0;
+      deltb[0] = 0.0;
+      deltb[1] = 0.0;
+      deltb[2] = 0.0;
 
-              torque[a][0] += delta[0];
-              torque[a][1] += delta[1];
-              torque[a][2] += delta[2];
+      // theta1 torque
+      if ((theta1 != 0.0) && (theta1p != 0.0)) {
 
-              if (newton_pair || b < nlocal) {
+        tpair = -f2 * df4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj;
+        MathExtra::cross3(ax,bx,t1dir);
 
-                f[b][0] -= delf[0];
-                f[b][1] -= delf[1];
-                f[b][2] -= delf[2];
+        delta[0] += t1dir[0]*tpair;
+        delta[1] += t1dir[1]*tpair;
+        delta[2] += t1dir[2]*tpair;
 
-                MathExtra::cross3(rb_cst,delf,deltb);
+        deltb[0] += t1dir[0]*tpair;
+        deltb[1] += t1dir[1]*tpair;
+        deltb[2] += t1dir[2]*tpair;
 
-                torque[b][0] -= deltb[0];
-                torque[b][1] -= deltb[1];
-                torque[b][2] -= deltb[2];
-              }
+      }
 
-              // increment energy and virial
-              // NOTE: The virial is calculated on the 'molecular' basis.
-              // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
+      // theta4 torque
+      if (theta4 != 0.0) {
 
-              if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,delf[0],delf[1],delf[2],
-                                       x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
+        tpair = -f2 * f4f6t1 * df4t4 * f4t5 * f4t6 * factor_lj;
+        MathExtra::cross3(bz,az,t4dir);
 
-              // pure torques not expressible as r x f
+        delta[0] += t4dir[0]*tpair;
+        delta[1] += t4dir[1]*tpair;
+        delta[2] += t4dir[2]*tpair;
 
-              delta[0] = 0.0;
-              delta[1] = 0.0;
-              delta[2] = 0.0;
-              deltb[0] = 0.0;
-              deltb[1] = 0.0;
-              deltb[2] = 0.0;
+        deltb[0] += t4dir[0]*tpair;
+        deltb[1] += t4dir[1]*tpair;
+        deltb[2] += t4dir[2]*tpair;
 
-              // theta1 torque
-              if ((theta1 != 0.0) && (theta1p != 0.0)) {
+      }
 
-                tpair = -f2 * df4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj;
-                MathExtra::cross3(ax,bx,t1dir);
+      // theta5 torque
+      if ((theta5 != 0) && (theta5p != 0.0)) {
 
-                delta[0] += t1dir[0]*tpair;
-                delta[1] += t1dir[1]*tpair;
-                delta[2] += t1dir[2]*tpair;
+        tpair = -f2 * f4f6t1 * f4t4 * df4t5 * f4t6 * factor_lj;
+        MathExtra::cross3(delr_stkstk_norm,az,t5dir);
 
-                deltb[0] += t1dir[0]*tpair;
-                deltb[1] += t1dir[1]*tpair;
-                deltb[2] += t1dir[2]*tpair;
-              }
+        delta[0] += t5dir[0] * tpair;
+        delta[1] += t5dir[1] * tpair;
+        delta[2] += t5dir[2] * tpair;
+      }
 
-              // theta4 torque
-              if (theta4 != 0.0) {
+      // theta6 torque
+      if ((theta6 != 0) && (theta6p != 0.0)) {
 
-                tpair = -f2 * f4f6t1 * df4t4 * f4t5 * f4t6 * factor_lj;
-                MathExtra::cross3(bz,az,t4dir);
+        tpair = -f2 * f4f6t1 * f4t4 * f4t5 * df4t6 * factor_lj;
+        MathExtra::cross3(delr_stkstk_norm,bz,t6dir);
 
-                delta[0] += t4dir[0]*tpair;
-                delta[1] += t4dir[1]*tpair;
-                delta[2] += t4dir[2]*tpair;
+        deltb[0] -= t6dir[0] * tpair;
+        deltb[1] -= t6dir[1] * tpair;
+        deltb[2] -= t6dir[2] * tpair;
+      }
 
-                deltb[0] += t4dir[0]*tpair;
-                deltb[1] += t4dir[1]*tpair;
-                deltb[2] += t4dir[2]*tpair;
-              }
+      // increment torques
 
-              // theta5 torque
-              if ((theta5 != 0) && (theta5p != 0.0)) {
+      torque[a][0] += delta[0];
+      torque[a][1] += delta[1];
+      torque[a][2] += delta[2];
 
-                tpair = -f2 * f4f6t1 * f4t4 * df4t5 * f4t6 * factor_lj;
-                MathExtra::cross3(delr_st_norm,az,t5dir);
+      if (newton_pair || b < nlocal) {
 
-                delta[0] += t5dir[0] * tpair;
-                delta[1] += t5dir[1] * tpair;
-                delta[2] += t5dir[2] * tpair;
-              }
+        torque[b][0] -= deltb[0];
+        torque[b][1] -= deltb[1];
+        torque[b][2] -= deltb[2];
 
-              // theta6 torque
-              if ((theta6 != 0) && (theta6p != 0.0)) {
+      }
 
-                tpair = -f2 * f4f6t1 * f4t4 * f4t5 * df4t6 * factor_lj;
-                MathExtra::cross3(delr_st_norm,bz,t6dir);
-
-                deltb[0] -= t6dir[0] * tpair;
-                deltb[1] -= t6dir[1] * tpair;
-                deltb[2] -= t6dir[2] * tpair;
-              }
-
-              // increment torques
-
-              torque[a][0] += delta[0];
-              torque[a][1] += delta[1];
-              torque[a][2] += delta[2];
-
-              if (newton_pair || b < nlocal) {
-
-                torque[b][0] -= deltb[0];
-                torque[b][1] -= deltb[1];
-                torque[b][2] -= deltb[2];
-              }
-            }
-          }
-        }
+      }
+      }
+      }
       }// end early rejection criteria
     }
   }
@@ -564,6 +636,7 @@ void PairOxdna2Coaxstk::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
+  int imod4,jmod4;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
@@ -615,6 +688,7 @@ void PairOxdna2Coaxstk::coeff(int narg, char **arg)
   } else {
     if (comm->me == 0) { // read values from potential file
       PotentialFileReader reader(lmp, arg[2], "oxdna potential", " (coaxstk)");
+      reader.set_bufsize(65336);
       char * line;
       std::string iloc, jloc, potential_name;
 
@@ -687,18 +761,32 @@ void PairOxdna2Coaxstk::coeff(int narg, char **arg)
     MPI_Bcast(&BB_cxst1_one, 1, MPI_DOUBLE, 0, world);
   }
 
+  // parameters depending on base step
+  for (int i = ilo; i <= ihi; i++) {
+    imod4 = i%4;
+    if (imod4 == 0) imod4 = 4;
+
+    for (int j = jlo; j <= jhi; j++) {
+      jmod4 = j%4;
+      if (jmod4 == 0) jmod4 = 4;
+
+      k_cxst[i][j] = k_cxst_one * eta_cxst[imod4-1][jmod4-1];
+
+    }
+  }
+
+  // uniform parameters
   b_cxst_lo_one = 0.25 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one)/
         (0.5 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one) -
-        k_cxst_one * 0.5 * (cut_cxst_0_one -cut_cxst_c_one) * (cut_cxst_0_one - cut_cxst_c_one)/k_cxst_one);
+         0.5 * (cut_cxst_0_one -cut_cxst_c_one) * (cut_cxst_0_one - cut_cxst_c_one));
 
   cut_cxst_lc_one = cut_cxst_lo_one - 0.5 * (cut_cxst_lo_one - cut_cxst_0_one)/b_cxst_lo_one;
 
   b_cxst_hi_one = 0.25 * (cut_cxst_hi_one - cut_cxst_0_one) * (cut_cxst_hi_one - cut_cxst_0_one)/
         (0.5 * (cut_cxst_hi_one - cut_cxst_0_one) * (cut_cxst_hi_one - cut_cxst_0_one) -
-        k_cxst_one * 0.5 * (cut_cxst_0_one -cut_cxst_c_one) * (cut_cxst_0_one - cut_cxst_c_one)/k_cxst_one);
+         0.5 * (cut_cxst_0_one -cut_cxst_c_one) * (cut_cxst_0_one - cut_cxst_c_one));
 
   cut_cxst_hc_one = cut_cxst_hi_one - 0.5* (cut_cxst_hi_one - cut_cxst_0_one)/b_cxst_hi_one;
-
 
   b_cxst1_one = a_cxst1_one*a_cxst1_one*dtheta_cxst1_ast_one*dtheta_cxst1_ast_one/(1-a_cxst1_one*dtheta_cxst1_ast_one*dtheta_cxst1_ast_one);
   dtheta_cxst1_c_one = 1/(a_cxst1_one*dtheta_cxst1_ast_one);
@@ -715,7 +803,6 @@ void PairOxdna2Coaxstk::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
 
-      k_cxst[i][j] = k_cxst_one;
       cut_cxst_0[i][j] = cut_cxst_0_one;
       cut_cxst_c[i][j] = cut_cxst_c_one;
       cut_cxst_lo[i][j] = cut_cxst_lo_one;
@@ -762,6 +849,19 @@ void PairOxdna2Coaxstk::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+void PairOxdna2Coaxstk::init_style()
+{
+  fix_lrf = nullptr;
+  auto fixes = modify->get_fix_by_style("^OXDNA/LRF");
+  if (fixes.size() == 0) error->all(FLERR, "Fix OXDNA/LRF not found. Ensure pair oxdna/excv is present");
+  else fix_lrf = dynamic_cast<FixOxdnaLRF *>(fixes[0]);
+
+  neighbor->add_request(this, NeighConst::REQ_DEFAULT);
+}
+
+/* ----------------------------------------------------------------------
    neighbor callback to inform pair style of neighbor list to use regular
 ------------------------------------------------------------------------- */
 
@@ -787,7 +887,6 @@ double PairOxdna2Coaxstk::init_one(int i, int j)
     error->all(FLERR,"Offset not supported in oxDNA");
   }
 
-  k_cxst[j][i] = k_cxst[i][j];
   cut_cxst_0[j][i] = cut_cxst_0[i][j];
   cut_cxst_c[j][i] = cut_cxst_c[i][j];
   cut_cxst_lo[j][i] = cut_cxst_lo[i][j];
@@ -1011,58 +1110,6 @@ void PairOxdna2Coaxstk::read_restart_settings(FILE *fp)
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 writes to data file
-------------------------------------------------------------------------- */
-
-void PairOxdna2Coaxstk::write_data(FILE *fp)
-{
-  for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d\
-         %g %g %g %g %g\
-         %g %g %g %g\
-         %g %g %g %g %g\
-         %g %g %g %g %g\
-         %g %g %g %g %g\
-         %g %g %g %g %g\
-         %g %g\
-         \n",i,
-        k_cxst[i][i],cut_cxst_0[i][i],cut_cxst_c[i][i],cut_cxst_lo[i][i],cut_cxst_hi[i][i],
-        cut_cxst_lc[i][i],cut_cxst_hc[i][i],b_cxst_lo[i][i],b_cxst_hi[i][i],
-        a_cxst1[i][i],theta_cxst1_0[i][i],dtheta_cxst1_ast[i][i],b_cxst1[i][i],dtheta_cxst1_c[i][i],
-        a_cxst4[i][i],theta_cxst4_0[i][i],dtheta_cxst4_ast[i][i],b_cxst4[i][i],dtheta_cxst4_c[i][i],
-        a_cxst5[i][i],theta_cxst5_0[i][i],dtheta_cxst5_ast[i][i],b_cxst5[i][i],dtheta_cxst5_c[i][i],
-        a_cxst6[i][i],theta_cxst6_0[i][i],dtheta_cxst6_ast[i][i],b_cxst6[i][i],dtheta_cxst6_c[i][i],
-        AA_cxst1[i][i],BB_cxst1[i][i]);
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 writes all pairs to data file
-------------------------------------------------------------------------- */
-
-void PairOxdna2Coaxstk::write_data_all(FILE *fp)
-{
-  for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d\
-         %g %g %g %g %g\
-         %g %g %g %g\
-         %g %g %g %g %g\
-         %g %g %g %g %g\
-         %g %g %g %g %g\
-         %g %g %g %g %g\
-         %g %g\
-         \n",i,j,
-        k_cxst[i][j],cut_cxst_0[i][j],cut_cxst_c[i][j],cut_cxst_lo[i][j],cut_cxst_hi[i][j],
-        cut_cxst_lc[i][j],cut_cxst_hc[i][j],b_cxst_lo[i][j],b_cxst_hi[i][j],
-        a_cxst1[i][j],theta_cxst1_0[i][j],dtheta_cxst1_ast[i][j],b_cxst1[i][j],dtheta_cxst1_c[i][j],
-        a_cxst4[i][j],theta_cxst4_0[i][j],dtheta_cxst4_ast[i][j],b_cxst4[i][j],dtheta_cxst4_c[i][j],
-        a_cxst5[i][j],theta_cxst5_0[i][j],dtheta_cxst5_ast[i][j],b_cxst5[i][j],dtheta_cxst5_c[i][j],
-        a_cxst6[i][j],theta_cxst6_0[i][j],dtheta_cxst6_ast[i][j],b_cxst6[i][j],dtheta_cxst6_c[i][j],
-        AA_cxst1[i][j],BB_cxst1[i][j]);
-
 }
 
 /* ---------------------------------------------------------------------- */

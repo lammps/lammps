@@ -86,7 +86,7 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag, 0);
   if (eflag_atom) {
-    if ((int)k_eatom.h_view.extent(0) < maxeatom) {
+    if ((int)k_eatom.view_host().extent(0) < maxeatom) {
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     } else {
@@ -97,7 +97,7 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   }
 
   if (vflag_atom) {
-    if ((int)k_vatom.h_view.extent(0) < maxeatom) {
+    if ((int)k_vatom.view_host().extent(0) < maxeatom) {
       memoryKK->destroy_kokkos(k_vatom,vatom);
       memoryKK->create_kokkos(k_vatom,vatom,maxeatom,6,"pair:eatom");
     } else {
@@ -257,8 +257,8 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
     else if (strcmp(elemname,"NULL") == 0) map[i] = -1;
     else error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   }
-  k_map.modify<LMPHostType>();
-  k_map.sync<LMPDeviceType>();
+  k_map.modify_host();
+  k_map.sync_device();
 
   // clear setflag since coeff() called once with I,J = * *
 
@@ -276,8 +276,8 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
         setflag[i][j] = 1;
         count++;
       }
-  k_setflag.modify<LMPHostType>();
-  k_setflag.sync<LMPDeviceType>();
+  k_setflag.modify_host();
+  k_setflag.sync_device();
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
@@ -285,14 +285,14 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   model->init();
   descriptor->init();
 
-  auto h_cutsq=k_cutsq.template view<LMPHostType>();
+  auto h_cutsq=k_cutsq.view_host();
   for (int itype=1; itype <= atom->ntypes; ++itype)
     for (int jtype=1; jtype <= atom->ntypes; ++jtype)
       // do not set cuts for NULL atoms
       if (map[itype] >= 0 && map[jtype] >= 0) {
         h_cutsq(itype,jtype) = descriptor->cutsq[map[itype]][map[jtype]];
       }
-  k_cutsq.modify<LMPHostType>();
+  k_cutsq.modify_host();
   k_cutsq.sync<DeviceType>();
   constexpr int gradgradflag = -1;
   delete data;
@@ -320,7 +320,7 @@ void PairMLIAPKokkos<DeviceType>::e_tally(MLIAPData* data)
     });
     k_eatom.modify<DeviceType>();
     // This sync has to be here for the hybrid pair type
-    k_eatom.sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 }
 
@@ -400,7 +400,7 @@ int PairMLIAPKokkos<DeviceType>::reverse_comm(CommType* copy_from_, CommType* co
 
 template <class DeviceType>
 int PairMLIAPKokkos<DeviceType>::pack_forward_comm_kokkos(
-    int nv, DAT::tdual_int_1d idx_v, DAT::tdual_xfloat_1d &fill, int int2,
+    int nv, DAT::tdual_int_1d idx_v, DAT::tdual_double_1d &fill, int int2,
     int *intp) {
   switch( comm_type ) {
     case COMM_TYPE::FLOAT:
@@ -419,18 +419,19 @@ int PairMLIAPKokkos<DeviceType>::pack_forward_comm_kokkos(
 template <class DeviceType>
 template <typename CommType>
 int PairMLIAPKokkos<DeviceType>::pack_forward_comm_kokkos(
-  int nv, DAT::tdual_int_1d idx_v, DAT::tdual_xfloat_1d &fill, int /*int2*/,
-  int */*intp*/, CommType *copy_to) {
+  int nv, DAT::tdual_int_1d idx_v, DAT::tdual_double_1d &fill, int /*int2*/,
+  int* /*intp*/, CommType *copy_to) {
   auto idx=idx_v.view<DeviceType>();
   auto val=fill.view<DeviceType>();
   int nf=vec_len;
   auto to=copy_to;
-  Kokkos::parallel_for(nv, KOKKOS_LAMBDA (int i) {
-    int gstart=idx(i)*nf;
-    int start=i*nf;
-    for (int j=0;j<nf;++j)
-      val(start++) = static_cast<double>(to[gstart++]);
-  });
+  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+      const int i = start/nf;
+      const int gstart=idx(i)*nf;
+      const int j = start%nf;
+      val(start) = static_cast<double>(to[gstart+j]);
+    }
+  );
   return nv*nf;
 }
 
@@ -474,7 +475,7 @@ int PairMLIAPKokkos<DeviceType>::pack_forward_comm(int nv, int* idx_v, double *f
 
 template <class DeviceType>
 void PairMLIAPKokkos<DeviceType>::unpack_forward_comm_kokkos(
-    int nv, int first_up, DAT::tdual_xfloat_1d &fill) {
+    int nv, int first_up, DAT::tdual_double_1d &fill) {
   switch( comm_type ) {
     case COMM_TYPE::FLOAT:
       return unpack_forward_comm_kokkos(nv,first_up,fill,std::get<float*>(copy_to));
@@ -491,17 +492,17 @@ void PairMLIAPKokkos<DeviceType>::unpack_forward_comm_kokkos(
 template <class DeviceType>
 template <typename CommType>
 void PairMLIAPKokkos<DeviceType>::unpack_forward_comm_kokkos(
-    int nv, int first_up, DAT::tdual_xfloat_1d &fill, CommType *copy_to) {
+    int nv, int first_up, DAT::tdual_double_1d &fill, CommType *copy_to) {
   auto val=fill.view<DeviceType>();
   int nf=vec_len;
-
-  Kokkos::parallel_for(nv, KOKKOS_LAMBDA (int i) {
-    int gstart=(first_up+i)*nf;
-    int start=i*nf;
-    for (int j=0;j<nf;++j) {
-      copy_to[gstart+j] = static_cast<CommType>(val(start+j));
+  auto to=copy_to;
+  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+      const int i=start/nf;
+      const int gstart=(first_up+i)*nf;
+      const int j=start%nf;
+      to[gstart+j] = static_cast<CommType>(val(start));
     }
-  });
+  );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -535,7 +536,7 @@ void PairMLIAPKokkos<DeviceType>::unpack_forward_comm(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairMLIAPKokkos<DeviceType>::pack_reverse_comm_kokkos(int nv, int first_up, DAT::tdual_xfloat_1d &fill)
+int PairMLIAPKokkos<DeviceType>::pack_reverse_comm_kokkos(int nv, int first_up, DAT::tdual_double_1d &fill)
 {
   switch( comm_type ) {
     case COMM_TYPE::FLOAT:
@@ -553,17 +554,18 @@ int PairMLIAPKokkos<DeviceType>::pack_reverse_comm_kokkos(int nv, int first_up, 
 
 template<class DeviceType>
 template<typename CommType>
-int PairMLIAPKokkos<DeviceType>::pack_reverse_comm_kokkos(int nv, int first_up, DAT::tdual_xfloat_1d &fill, CommType *copy_to)
+int PairMLIAPKokkos<DeviceType>::pack_reverse_comm_kokkos(int nv, int first_up, DAT::tdual_double_1d &fill, CommType *copy_to)
 {
   int nf=vec_len;
   auto val=fill.view<DeviceType>();
-  Kokkos::parallel_for(nv, KOKKOS_LAMBDA (int i) {
-    int gstart=(first_up+i)*nf;
-    int start=i*nf;
-    for (int j=0;j<nf;++j) {
-      val(start++) = static_cast<double>(copy_to[gstart++]);
+  auto to=copy_to;
+  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+      const int i = start/nf;
+      const int gstart=(first_up+i)*nf;
+      const int j = start%nf;
+      val(start) = static_cast<double>(to[gstart+j]);
     }
-  });
+  );
   return nv*nf;
 }
 /* ---------------------------------------------------------------------- */
@@ -601,7 +603,7 @@ int PairMLIAPKokkos<DeviceType>::pack_reverse_comm(int nv, int first_up, double 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm_kokkos(int nv, DAT::tdual_int_1d idx_v, DAT::tdual_xfloat_1d &fill)
+void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm_kokkos(int nv, DAT::tdual_int_1d idx_v, DAT::tdual_double_1d &fill)
 {
   switch( comm_type ) {
     case COMM_TYPE::FLOAT:
@@ -619,18 +621,19 @@ void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm_kokkos(int nv, DAT::tdual_
 
 template<class DeviceType>
 template<typename CommType>
-void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm_kokkos(int nv, DAT::tdual_int_1d idx_v, DAT::tdual_xfloat_1d &fill, CommType *copy_to)
+void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm_kokkos(int nv, DAT::tdual_int_1d idx_v, DAT::tdual_double_1d &fill, CommType *copy_to)
 {
   int nf=vec_len;
   auto val=fill.view<DeviceType>();
   auto idx=idx_v.view<DeviceType>();
   auto to=copy_to;
-  Kokkos::parallel_for(nv, KOKKOS_LAMBDA (int i) {
-    int gstart=idx(i)*nf;
-    int start=i*nf;
-    for (int j=0;j<nf;++j)
-      to[gstart++] += static_cast<CommType>(val(start++));
-  });
+  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+      const int i = start/nf;
+      const int gstart=idx(i)*nf;
+      const int j=start%nf;
+      to[gstart+j] += static_cast<CommType>(val(start));
+    }
+  );
 }
 
 /* ---------------------------------------------------------------------- */

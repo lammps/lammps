@@ -34,7 +34,7 @@ the rest the build process will attempt to download and install them into
 a python virtual environment and local folders.
 
 A current version of the manual (latest feature release, that is the state
-of the *release* branch) is is available online at:
+of the *release* branch) is available online at:
 `https://docs.lammps.org/ <https://docs.lammps.org/>`_.
 A version of the manual corresponding to the ongoing development (that is
 the state of the *develop* branch) is available online at:
@@ -82,14 +82,19 @@ folder.  The following ``make`` commands are available:
 
    make fasthtml      # generate approximate HTML in fasthtml dir using pandoc
 
+   make upgrade       # upgrade sphinx, extensions, and dependencies to latest supported versions
    make clean         # remove intermediate RST files created by HTML build
    make clean-all     # remove entire build folder and any cached data
    make upgrade       # upgrade the python packages in the virtual environment
 
+   make check         # run all checks listed in this block
    make anchor_check  # check for duplicate anchor labels
    make style_check   # check for complete and consistent style lists
    make package_check # check for complete and consistent package lists
-   make link_check    # check for broken or outdated URLs
+   make char_check    # check for non-ASCII characters
+   make role_check    # check for misformatted role keywords
+
+   make link_check    # check for broken external URLs
    make spelling      # spell-check the manual
 
 ----------
@@ -303,7 +308,7 @@ be multiple tests run automatically:
 
 In addition, there is the option to run a spellcheck on the entire
 manual with ``make spelling``.  This requires `a library called enchant
-<https://github.com/AbiWord/enchant>`_.  To avoid printing out *false
+<https://github.com/rrthomas/enchant>`_.  To avoid printing out *false
 positives* (e.g. keywords, names, abbreviations) those can be added to
 the file ``lammps/doc/utils/sphinx-config/false_positives.txt``.
 

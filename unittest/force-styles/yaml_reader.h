@@ -44,7 +44,7 @@ public:
     YamlReader() {}
     virtual ~YamlReader() {}
 
-    std::string get_basename() const { return basename; }
+    [[nodiscard]] std::string get_basename() const { return basename; }
 
     int parse_file(const std::string &infile)
     {

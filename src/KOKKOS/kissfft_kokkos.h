@@ -138,6 +138,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 struct kiss_fft_state_kokkos {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
   int nfft;
   int inverse;
@@ -150,8 +151,10 @@ template<class DeviceType>
 class KissFFTKokkos {
  public:
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly2(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, int m, int Fout_count)
@@ -178,6 +181,7 @@ class KissFFTKokkos {
       } while(--m);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly4(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, const size_t m, int Fout_count)
@@ -236,6 +240,7 @@ class KissFFTKokkos {
       } while(--k);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly3(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, size_t m, int Fout_count)
@@ -288,6 +293,7 @@ class KissFFTKokkos {
       } while(--k);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly5(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, int m, int Fout_count)
@@ -368,6 +374,7 @@ class KissFFTKokkos {
 
   /* perform the butterfly for one stage of a mixed radix FFT */
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly_generic(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
                               const kiss_fft_state_kokkos<DeviceType> &st, int m, int p, int Fout_count)
@@ -407,6 +414,7 @@ class KissFFTKokkos {
       }
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_work(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const typename FFT_AT::t_FFT_DATA_1d_um &d_f,
                       const size_t fstride, int in_stride,
@@ -505,24 +513,25 @@ class KissFFTKokkos {
 
           for (i=0;i<nfft;++i) {
               const double phase = (st.inverse ? 2.0*M_PI:-2.0*M_PI)*i / nfft;
-              kf_cexp(k_twiddles.h_view,i,phase );
+              kf_cexp(k_twiddles.view_host(),i,phase );
           }
 
-          int p_max = kf_factor(nfft,k_factors.h_view);
+          int p_max = kf_factor(nfft,k_factors.view_host());
           st.d_scratch = typename FFT_AT::t_FFT_DATA_1d("kissfft:scratch",p_max);
       }
 
-      k_factors.template modify<LMPHostType>();
-      k_factors.template sync<LMPDeviceType>();
+      k_factors.modify_host();
+      k_factors.sync_device();
       st.d_factors = k_factors.template view<DeviceType>();
 
-      k_twiddles.template modify<LMPHostType>();
-      k_twiddles.template sync<LMPDeviceType>();
+      k_twiddles.modify_host();
+      k_twiddles.sync_device();
       st.d_twiddles = k_twiddles.template view<DeviceType>();
 
       return st;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kiss_fft_stride(const kiss_fft_state_kokkos<DeviceType> &st, const typename FFT_AT::t_FFT_DATA_1d_um &d_fin, typename FFT_AT::t_FFT_DATA_1d_um &d_fout, int in_stride, int offset)
   {
@@ -537,6 +546,7 @@ class KissFFTKokkos {
       //}
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kiss_fft_kokkos(const kiss_fft_state_kokkos<DeviceType> &cfg, const typename FFT_AT::t_FFT_DATA_1d_um d_fin, typename FFT_AT::t_FFT_DATA_1d_um d_fout, int offset)
   {

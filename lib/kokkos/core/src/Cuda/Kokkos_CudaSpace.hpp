@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -73,12 +60,6 @@ class CudaSpace {
   CudaSpace(int device_id, cudaStream_t stream);
 
  public:
-  CudaSpace(CudaSpace&& rhs)                 = default;
-  CudaSpace(const CudaSpace& rhs)            = default;
-  CudaSpace& operator=(CudaSpace&& rhs)      = default;
-  CudaSpace& operator=(const CudaSpace& rhs) = default;
-  ~CudaSpace()                               = default;
-
   /**\brief  Allocate untracked memory in the cuda space */
   void* allocate(const Cuda& exec_space, const size_t arg_alloc_size) const;
   void* allocate(const Cuda& exec_space, const char* arg_label,
@@ -159,11 +140,6 @@ class CudaUVMSpace {
   using device_type     = Kokkos::Device<execution_space, memory_space>;
   using size_type       = unsigned int;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  /** \brief  If UVM capability is available */
-  KOKKOS_DEPRECATED static bool available();
-#endif
-
   /*--------------------------------*/
 
   /*--------------------------------*/
@@ -174,12 +150,6 @@ class CudaUVMSpace {
   CudaUVMSpace(int device_id, cudaStream_t stream);
 
  public:
-  CudaUVMSpace(CudaUVMSpace&& rhs)                 = default;
-  CudaUVMSpace(const CudaUVMSpace& rhs)            = default;
-  CudaUVMSpace& operator=(CudaUVMSpace&& rhs)      = default;
-  CudaUVMSpace& operator=(const CudaUVMSpace& rhs) = default;
-  ~CudaUVMSpace()                                  = default;
-
   /**\brief  Allocate untracked memory in the cuda space */
   template <typename ExecutionSpace>
   void* allocate(const ExecutionSpace&, const size_t arg_alloc_size) const {
@@ -333,9 +303,6 @@ namespace Kokkos {
 namespace Impl {
 
 cudaStream_t cuda_get_deep_copy_stream();
-
-const std::unique_ptr<Kokkos::Cuda>& cuda_get_deep_copy_space(
-    bool initialize = true);
 
 static_assert(Kokkos::Impl::MemorySpaceAccess<Kokkos::CudaSpace,
                                               Kokkos::CudaSpace>::assignable);

@@ -43,8 +43,7 @@ class BondBPMSpringPlastic : public BondBPM {
   int smooth_flag, normalize_flag;
 
   void allocate();
-  void store_data();
-  double store_bond(int, int, int);
+  void store_data() override;
 };
 
 }    // namespace LAMMPS_NS

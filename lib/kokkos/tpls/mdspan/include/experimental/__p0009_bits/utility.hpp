@@ -4,6 +4,12 @@
 #include <type_traits>
 #include <array>
 #include <utility>
+#if defined(MDSPAN_IMPL_HAS_CUDA) && defined(__NVCC__) && (__CUDACC_VER_MAJOR__ * 100 + __CUDACC_VER_MINOR__ * 10 >= 1260)
+#include <cuda/std/limits>
+#else
+#include <limits>
+#endif
+#include "macros.hpp"
 
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
 namespace detail {
@@ -46,7 +52,10 @@ constexpr bool rankwise_equal(with_rank<N>, const T1& x, const T2& y, F func)
   return match;
 }
 
-constexpr struct
+#if MDSPAN_HAS_CXX_17
+inline
+#endif
+constexpr struct extent_functor
 {
   template <class T, class I>
   MDSPAN_INLINE_FUNCTION
@@ -56,7 +65,10 @@ constexpr struct
   }
 } extent;
 
-constexpr struct
+#if MDSPAN_HAS_CXX_17
+inline
+#endif
+constexpr struct stride_functor
 {
   template <class T, class I>
   MDSPAN_INLINE_FUNCTION
@@ -81,7 +93,7 @@ struct integral_constant {
   // These interop functions work, because other than the value_type operator
   // everything of std::integral_constant works on device (defaulted functions)
   MDSPAN_FUNCTION
-  constexpr integral_constant(std::integral_constant<T,v>) {};
+  constexpr integral_constant(std::integral_constant<T,v>) {}
 
   MDSPAN_FUNCTION constexpr operator std::integral_constant<T,v>() const noexcept {
     return std::integral_constant<T,v>{};
@@ -164,8 +176,70 @@ constexpr const auto& get(const tuple<Args...>& vals) { return vals.template get
 template<class ... Elements>
 tuple(Elements ...) -> tuple<Elements...>;
 #endif
+
+#if MDSPAN_HAS_CXX_17
+// std::in_range and friends, tagged for device execution
+// Backport from https://en.cppreference.com/w/cpp/utility/intcmp
+// and https://en.cppreference.com/w/cpp/utility/in_range
+template <class T, class U>
+MDSPAN_INLINE_FUNCTION constexpr bool cmp_less(T t, U u) noexcept {
+  if constexpr (std::is_signed_v<T> == std::is_signed_v<U>)
+    return t < u;
+  else if constexpr (std::is_signed_v<T>)
+    return t < 0 || std::make_unsigned_t<T>(t) < u;
+  else
+    return u >= 0 && t < std::make_unsigned_t<U>(u);
+}
+
+template <class T, class U>
+MDSPAN_INLINE_FUNCTION constexpr bool cmp_less_equal(T t, U u) noexcept {
+  return !cmp_less(u, t);
+}
+
+template <class T, class U>
+MDSPAN_INLINE_FUNCTION constexpr bool cmp_greater_equal(T t, U u) noexcept {
+  return !cmp_less(t, u);
+}
+
+template <class R, class T>
+MDSPAN_INLINE_FUNCTION constexpr bool in_range(T t) noexcept {
+#if defined(MDSPAN_IMPL_HAS_CUDA) && defined(__NVCC__) && (__CUDACC_VER_MAJOR__ * 100 + __CUDACC_VER_MINOR__ * 10 >= 1260)
+  using cuda::std::numeric_limits;
+#else
+  using std::numeric_limits;
+#endif
+  return cmp_greater_equal(t, numeric_limits<R>::min()) &&
+          cmp_less_equal(t, numeric_limits<R>::max());
+}
+
+template <typename T >
+MDSPAN_INLINE_FUNCTION constexpr bool
+check_mul_result_is_nonnegative_and_representable(T a, T b) {
+// FIXME_SYCL The code below compiles to old_llvm.umul.with.overflow.i64
+// which isn't defined in device code
+#ifdef __SYCL_DEVICE_ONLY__
+  return true;
+#else
+  if (b == 0 || a == 0)
+    return true;
+
+  if constexpr (std::is_signed_v<T>) {
+    if ( a < 0 || b < 0 ) return false;
+  }
+#if defined(MDSPAN_IMPL_HAS_CUDA) && defined(__NVCC__) && (__CUDACC_VER_MAJOR__ * 100 + __CUDACC_VER_MINOR__ * 10 >= 1260)
+  using cuda::std::numeric_limits;
+#else
+  using std::numeric_limits;
+#endif
+  return a <= numeric_limits<T>::max() / b;
+#endif
+}
+#endif
 } // namespace detail
 
+#if MDSPAN_HAS_CXX_17
+inline
+#endif
 constexpr struct mdspan_non_standard_tag {
 } mdspan_non_standard;
 

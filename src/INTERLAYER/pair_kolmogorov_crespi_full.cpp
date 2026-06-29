@@ -45,7 +45,7 @@ static constexpr int DELTA = 4;
 static constexpr int PGDELTA = 1;
 
 static const char cite_kc[] =
-    "kolmogorov/crespi/full potential doi:10.1021/acs.nanolett.8b02848\n"
+    "kolmogorov/crespi/full potential: https://doi.org/10.1021/acs.nanolett.8b02848\n\n"
     "@Article{Ouyang2018\n"
     " author = {W. Ouyang and D. Mandelli and M. Urbakh and O. Hod},\n"
     " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
@@ -1035,4 +1035,16 @@ double PairKolmogorovCrespiFull::single(int /*i*/, int /*j*/, int itype, int jty
   else
     philj = Vkc - offset[itype][jtype];
   return factor_lj * philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairKolmogorovCrespiFull::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) maxlocal * (sizeof(int) + sizeof(int *));    // KC_numneigh + KC_firstneigh
+  bytes += (double) nmax * 3 * sizeof(double);                   // normal[nmax][3]
+  bytes += (double) nmax * 9 * sizeof(double);                   // dnormdri[3][3][nmax]
+  bytes += (double) nmax * 27 * sizeof(double);                  // dnormal[3][3][3][nmax]
+  return bytes;
 }

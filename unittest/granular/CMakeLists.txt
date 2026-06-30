@@ -26,7 +26,7 @@ else()
   # we always use static linkage with local compiled libyaml
   target_compile_definitions(granular_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER} YAML_DECLARE_STATIC)
 endif()
-target_include_directories(granular_tests PRIVATE ${LAMMPS_SOURCE_DIR})
+target_include_directories(granular_tests PRIVATE "${LAMMPS_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(granular_tests PUBLIC GTest::GMock Yaml::Yaml lammps)
 
 # propagate sanitizer options to test tools

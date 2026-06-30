@@ -14,11 +14,11 @@
 #include "test_main.h"
 
 #include "atom.h"
-#include "../error_stats.h"
+#include "error_stats.h"
 #include "pointers.h"
 #include "test_config.h"
 #include "test_config_reader.h"
-#include "../yaml_writer.h"
+#include "yaml_writer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 

@@ -28,7 +28,7 @@
 #include "test_analytic_models.h"
 #include "test_config.h"
 #include "test_main.h"
-#include "../yaml_writer.h"
+#include "yaml_writer.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

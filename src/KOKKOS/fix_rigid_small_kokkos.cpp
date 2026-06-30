@@ -239,15 +239,16 @@ void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
 
   atomKK->modified(Host, datamask_modify);
 
-  // The base class did its work through the legacy (double) host atom arrays, so
-  // the modified() above marks the legacy host of the atom:x/v TransformViews.
-  // In a mixed/single-precision build the legacy and Kokkos host views differ;
-  // reconcile by syncing the just-modified arrays into the fix's execution_space
-  // (Kokkos host or device), which copies legacy->Kokkos and clears the legacy
-  // modify flag.  Without this, ModifyKokkos::setup() then marks the Kokkos host
-  // modified while the legacy host is still flagged, tripping the TransformView
-  // concurrent-modification guard.  No-op in a full-double build (no transform).
-  atomKK->sync(execution_space, datamask_modify);
+  // The base class did its work through the host atom arrays, so the modified()
+  // above marks the host side of atom:x/v.  Reconcile to the fix's
+  // execution_space (matching setup_pre_neighbor) before returning, so the
+  // host data is pushed to the device and the host-modified flag cleared.
+  // Otherwise ModifyKokkos::setup() then marks atom:x modified(Device, ...)
+  // while the host is still flagged, which aborts: on a GPU build with a
+  // host/device DualView, and on a mixed/single-precision build with the
+  // legacy/Kokkos host TransformViews.  No-op when host space == device space
+  // and no transform.
+  atomKK->sync(execution_space, datamask_read);
 
   setup_device_push();
 }
@@ -263,7 +264,19 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::setup_device_push()
 {
   // FixRigidSmall::setup() populated the host per-atom arrays, which are the
-  // host mirrors of the tied DualViews -> mark host-modified and push to device
+  // host mirrors of the tied DualViews -> mark host-modified and push to device.
+  // On a GPU build the setup-time device exchange/sort (enabled by
+  // exchange_comm_device/sort_device in the ctor) has already marked these
+  // DualViews device-modified, with pre-body placeholder data; the host arrays
+  // are now authoritative, so clear the stale device-modified state first --
+  // otherwise the modify_host() below trips the DualView concurrent-modification
+  // guard.  No-op on a host build (device view == host view).
+  k_bodyown.clear_sync_state();
+  k_bodytag.clear_sync_state();
+  k_atom2body.clear_sync_state();
+  k_xcmimage.clear_sync_state();
+  k_displace.clear_sync_state();
+  k_vatom.clear_sync_state();
   k_bodyown.modify_host();
   k_bodytag.modify_host();
   k_atom2body.modify_host();

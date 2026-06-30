@@ -27,6 +27,8 @@
 #include "fix.h"
 #include "fix_property_atom_kokkos.h"
 
+#include <map>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -150,6 +152,64 @@ void AtomKokkos::update_property_atom()
   int n = 0;
   for (auto &ifix : prop_atom_fixes)
     fix_prop_atom[n++] = dynamic_cast<FixPropertyAtomKokkos *>(ifix);
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   return a pointer to a per-atom property by name (used by the library
+   interface).  Override the base-class version so that data which lives on
+   the device is first synced back to the host.  Without this, library or
+   Python calls to extract_atom() that are not aligned with an output step
+   (e.g. issued from the LAMMPS GUI or a "python" command during a run) may
+   hand out stale host data when running with KOKKOS on a GPU.  See issue #3945.
+------------------------------------------------------------------------- */
+
+void *AtomKokkos::extract(const char *name)
+{
+  // map the public extract name to the KOKKOS data mask of the dual view that
+  // holds it.  Names whose data is not device-resident are simply absent here
+  // (their host copy is always current) and fall through to Atom::extract().
+
+  static const std::map<std::string, uint64_t> extract_mask = {
+      {"id", TAG_MASK}, {"type", TYPE_MASK}, {"mask", MASK_MASK}, {"image", IMAGE_MASK},
+      {"x", X_MASK}, {"v", V_MASK}, {"f", F_MASK}, {"q", Q_MASK}, {"mu", MU_MASK},
+      {"omega", OMEGA_MASK}, {"angmom", ANGMOM_MASK}, {"torque", TORQUE_MASK},
+      {"radius", RADIUS_MASK}, {"rmass", RMASS_MASK}, {"ellipsoid", ELLIPSOID_MASK},
+      {"molecule", MOLECULE_MASK}, {"nspecial", SPECIAL_MASK}, {"special", SPECIAL_MASK},
+      {"num_bond", BOND_MASK}, {"bond_type", BOND_MASK}, {"bond_atom", BOND_MASK},
+      {"num_angle", ANGLE_MASK}, {"angle_type", ANGLE_MASK},
+      {"angle_atom1", ANGLE_MASK}, {"angle_atom2", ANGLE_MASK}, {"angle_atom3", ANGLE_MASK},
+      {"num_dihedral", DIHEDRAL_MASK}, {"dihedral_type", DIHEDRAL_MASK},
+      {"dihedral_atom1", DIHEDRAL_MASK}, {"dihedral_atom2", DIHEDRAL_MASK},
+      {"dihedral_atom3", DIHEDRAL_MASK}, {"dihedral_atom4", DIHEDRAL_MASK},
+      {"num_improper", IMPROPER_MASK}, {"improper_type", IMPROPER_MASK},
+      {"improper_atom1", IMPROPER_MASK}, {"improper_atom2", IMPROPER_MASK},
+      {"improper_atom3", IMPROPER_MASK}, {"improper_atom4", IMPROPER_MASK},
+      {"sp", SP_MASK}, {"dpdTheta", DPDTHETA_MASK}};
+
+  const auto it = extract_mask.find(name);
+  if (it != extract_mask.end()) {
+    sync(Host, it->second);
+  } else if (utils::strmatch(name, "^[id]2?_")) {
+    // custom per-atom data (fix property/atom). each prefix maps to its own
+    // data mask:
+    //   i_  -> ivector (IVECTOR_MASK)    d_  -> dvector (DVECTOR_MASK)
+    //   i2_ -> iarray  (IARRAY_MASK)     d2_ -> darray  (DARRAY_MASK)
+    // only dvector is currently device-resident, so the other three syncs are
+    // no-ops until that data is ported to the device; using all four masks here
+    // means extract() needs no change once it is.
+    const bool dbl = (name[0] == 'd');
+    const bool arr = (name[1] == '2');
+    uint64_t cmask;
+    if (!dbl && !arr) cmask = IVECTOR_MASK;
+    else if (dbl && !arr) cmask = DVECTOR_MASK;
+    else if (!dbl && arr) cmask = IARRAY_MASK;
+    else cmask = DARRAY_MASK;
+    sync(Host, cmask);
+  }
+
+  return Atom::extract(name);
 }
 
 /* ---------------------------------------------------------------------- */

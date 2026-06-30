@@ -502,7 +502,7 @@ corner such that :math:`\hat{n}_{f,i} = \hat{n}_{r,i}` (red, green) unless
 :math:`\hat{n}_{r,i}` has a component pointing into the adjacent line
 :math:`j`, in which case :math:`\hat{n}_{f,i} = \hat{n}_{s,j}` (blue,
 purple). These rules therefore simply enforce sensible continuity of
-forces as atoms move across line segements.
+forces as atoms move across line segments.
 
 .. figure:: img/gransurf_nonflat_turn.png
             :figwidth: 50%
@@ -523,7 +523,7 @@ the three dot products between :math:`\hat{n}_{s,i}`,
 :math:`\hat{n}_{s,j}`, and :math:`\hat{n}_{r,i}`.
 
 If a particle contacts a corner, then the corner first calculates what
-the directio of :math:`\hat{n}_{f,i}` would be had the particle contacted
+the direction of :math:`\hat{n}_{f,i}` would be had the particle contacted
 either of the two edges, labeled *a* and *b*, :math:`\hat{n}_{f,a}` and
 :math:`\hat{n}_{f,b}` (where the *i* is implied from context).  Let us
 dnote the normalized line vectors of these edges as :math:`\hat{l}_a` and

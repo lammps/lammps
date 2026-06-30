@@ -38,6 +38,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace EwaldConst;
 using namespace MathConst;
 
 static constexpr int MAXORDER =   7;
@@ -205,7 +206,7 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
   part2grid = nullptr;
   part2grid_6 = nullptr;
 
-  memset(function,0,EWALD_FUNCS*sizeof(int));
+  memset(termflag,0,EWALD_NTERMS*sizeof(int));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -289,7 +290,7 @@ void PPPMDisp::init()
   Pair *pair = force->pair;
   int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : nullptr;
   double *p_cutoff = pair ? (double *) pair->extract("cut_coul",tmp) : nullptr;
-  double *p_cutoff_lj = pair ? (double *) pair->extract("cut_LJ",tmp) : nullptr;
+  double *p_cutoff_lj = pair ? (double *) pair->extract("cut_vdwl",tmp) : nullptr;
   if (!(ptr||p_cutoff||p_cutoff_lj))
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -302,7 +303,7 @@ void PPPMDisp::init()
 
   int ewald_order = ptr ? *((int *) ptr) : 1<<1;
   int ewald_mix = ptr ? *((int *) pair->extract("ewald_mix",tmp)) : Pair::GEOMETRIC;
-  memset(function,0,EWALD_FUNCS*sizeof(int));
+  memset(termflag,0,EWALD_NTERMS*sizeof(int));
   for (int i=0; i<=EWALD_MAXORDER; ++i)                 // transcribe order
     if (ewald_order&(1<<i)) {                           // from pair_style
       int  k=0;
@@ -320,17 +321,17 @@ void PPPMDisp::init()
           error->all(FLERR,std::string("Unsupported order in kspace_style pppm/disp, pair_style ")
                      + force->pair_style);
       }
-      function[k] = 1;
+      termflag[k] = 1;
     }
 
-  // warn, if function[0] is not set but charge attribute is set!
+  // warn, if termflag[TERM_COUL] is not set but charge attribute is set!
 
-  if (!function[0] && atom->q_flag && me == 0)
+  if (!termflag[TERM_COUL] && atom->q_flag && me == 0)
     error->warning(FLERR, "Charges are set, but coulombic solver is not used");
 
   // show error message if pppm/disp is not used correctly
 
-  if (function[1] || function[2] || function[3]) {
+  if (termflag[TERM_DISP_GEOM] || termflag[TERM_DISP_ARITH] || termflag[TERM_DISP_NONE]) {
     if (!gridflag_6 && !gewaldflag_6 && accuracy_real_6 < 0
         && accuracy_kspace_6 < 0 && !auto_disp_flag) {
       error->all(FLERR, "PPPMDisp used but no parameters set, "
@@ -339,13 +340,13 @@ void PPPMDisp::init()
     }
   }
 
-  // compute qsum & qsqsum, if function[0] is set, warn if not charge-neutral
+  // compute qsum & qsqsum, if termflag[TERM_COUL] is set, warn if not charge-neutral
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
   natoms_original = atom->natoms;
 
-  if (function[0]) qsum_qsq();
+  if (termflag[TERM_COUL]) qsum_qsq();
 
   // if kspace is TIP4P, extract TIP4P params from pair style
   // bond/angle are not yet init(), so ensure equilibrium request is valid
@@ -402,7 +403,7 @@ void PPPMDisp::init()
   double acc_6,acc_real_6,acc_kspace_6;
 
   int iteration = 0;
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
 
     gc = nullptr;
     while (order >= minorder) {
@@ -460,7 +461,7 @@ void PPPMDisp::init()
   }
 
   iteration = 0;
-  if (function[1] + function[2] + function[3]) {
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
 
     gc6 = nullptr;
     while (order_6 >= minorder) {
@@ -523,7 +524,7 @@ void PPPMDisp::init()
   // pre-compute Green's function denomiator expansion
   // pre-compute 1d charge distribution coefficients
 
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
     compute_gf_denom(gf_b,order);
     compute_rho_coeff(rho_coeff,drho_coeff,order);
     if (differentiation_flag == 1)
@@ -533,7 +534,7 @@ void PPPMDisp::init()
                           sf_precoeff1,sf_precoeff2,sf_precoeff3,
                           sf_precoeff4,sf_precoeff5,sf_precoeff6);
   }
-  if (function[1] + function[2] + function[3]) {
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
     compute_gf_denom(gf_b_6,order_6);
     compute_rho_coeff(rho_coeff_6,drho_coeff_6,order_6);
     if (differentiation_flag == 1)
@@ -546,7 +547,7 @@ void PPPMDisp::init()
 
   // print Coulomb stats
 
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
     int ngrid_max,nfft_both_max;
     MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
     MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
@@ -570,7 +571,7 @@ void PPPMDisp::init()
 
   // print dipserion stats
 
-  if (function[1] + function[2] + function[3]) {
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
     int ngrid_6_max,nfft_both_6_max;
     MPI_Allreduce(&ngrid_6,&ngrid_6_max,1,MPI_INT,MPI_MAX,world);
     MPI_Allreduce(&nfft_both_6,&nfft_both_6_max,1,MPI_INT,MPI_MAX,world);
@@ -630,7 +631,7 @@ void PPPMDisp::setup()
 
   //compute the virial coefficients and green functions
 
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
 
     delxinv = nx_pppm/xprd;
     delyinv = ny_pppm/yprd;
@@ -702,7 +703,7 @@ void PPPMDisp::setup()
     if (differentiation_flag == 1) compute_sf_coeff();
   }
 
-  if (function[1] + function[2] + function[3]) {
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
     delxinv_6 = nx_pppm_6/xprd;
     delyinv_6 = ny_pppm_6/yprd;
     delzinv_6 = nz_pppm_6/zprd_slab;
@@ -794,14 +795,14 @@ void PPPMDisp::reset_grid()
 
   // reset portion of global grid that each proc owns
 
-  if (function[0])
+  if (termflag[TERM_COUL])
     set_grid_local(order,nx_pppm,ny_pppm,nz_pppm,
                    shift,shiftone,shiftatom_lo,shiftatom_hi,
                    nlower,nupper,
                    nxlo_fft,nylo_fft,nzlo_fft,
                    nxhi_fft,nyhi_fft,nzhi_fft);
 
-  if (function[1] + function[2] + function[3])
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE])
     set_grid_local(order_6,nx_pppm_6,ny_pppm_6,nz_pppm_6,
                    shift_6,shiftone_6,shiftatom_lo_6,shiftatom_hi_6,
                    nlower_6,nupper_6,
@@ -814,11 +815,11 @@ void PPPMDisp::reset_grid()
 
   allocate();
 
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
     if (!overlap_allowed && !gc->ghost_adjacent())
       error->all(FLERR,"PPPMDisp grid stencil extends beyond nearest neighbor processor");
   }
-  if (function[1] + function[2] + function[3]) {
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
     if (!overlap_allowed && !gc6->ghost_adjacent())
       error->all(FLERR,"Dispersion PPPMDisp grid stencil extends beyond nearest neighbor proc");
   }
@@ -826,7 +827,7 @@ void PPPMDisp::reset_grid()
   // pre-compute Green's function denomiator expansion
   // pre-compute 1d charge distribution coefficients
 
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
     compute_gf_denom(gf_b,order);
     compute_rho_coeff(rho_coeff,drho_coeff,order);
     if (differentiation_flag == 1)
@@ -836,7 +837,7 @@ void PPPMDisp::reset_grid()
                           sf_precoeff1,sf_precoeff2,sf_precoeff3,
                           sf_precoeff4,sf_precoeff5,sf_precoeff6);
   }
-  if (function[1] + function[2] + function[3]) {
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
     compute_gf_denom(gf_b_6,order_6);
     compute_rho_coeff(rho_coeff_6,drho_coeff_6,order_6);
     if (differentiation_flag == 1)
@@ -878,11 +879,11 @@ void PPPMDisp::compute(int eflag, int vflag)
   // extend size of per-atom arrays if necessary
 
   if (atom->nmax > nmax) {
-    if (function[0]) memory->destroy(part2grid);
-    if (function[1] + function[2] + function[3]) memory->destroy(part2grid_6);
+    if (termflag[TERM_COUL]) memory->destroy(part2grid);
+    if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) memory->destroy(part2grid_6);
     nmax = atom->nmax;
-    if (function[0]) memory->create(part2grid,nmax,3,"pppm/disp:part2grid");
-    if (function[1] + function[2] + function[3])
+    if (termflag[TERM_COUL]) memory->create(part2grid,nmax,3,"pppm/disp:part2grid");
+    if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE])
       memory->create(part2grid_6,nmax,3,"pppm/disp:part2grid_6");
   }
 
@@ -898,7 +899,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   // communication between processors
   // calculation of forces
 
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
 
     // perform calculations for coulomb interactions only
 
@@ -954,7 +955,7 @@ void PPPMDisp::compute(int eflag, int vflag)
     if (evflag_atom) fieldforce_c_peratom();
   }
 
-  if (function[1]) {
+  if (termflag[TERM_DISP_GEOM]) {
 
     // perform calculations for geometric mixing
 
@@ -1014,7 +1015,7 @@ void PPPMDisp::compute(int eflag, int vflag)
     if (evflag_atom) fieldforce_g_peratom();
   }
 
-  if (function[2]) {
+  if (termflag[TERM_DISP_ARITH]) {
 
     // perform calculations for arithmetic mixing
 
@@ -1109,7 +1110,7 @@ void PPPMDisp::compute(int eflag, int vflag)
     if (evflag_atom) fieldforce_a_peratom();
   }
 
-  if (function[3]) {
+  if (termflag[TERM_DISP_NONE]) {
 
     // perform calculations if no mixing rule applies
 
@@ -1204,7 +1205,7 @@ void PPPMDisp::compute(int eflag, int vflag)
     for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
     MPI_Allreduce(virial_6,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
     for (i = 0; i < 6; i++) virial[i] += 0.5*volume*virial_all[i];
-    if (function[1]+function[2]+function[3]) {
+    if (termflag[TERM_DISP_GEOM]+termflag[TERM_DISP_ARITH]+termflag[TERM_DISP_NONE]) {
       double a =  MY_PI*MY_PIS/(6*volume)*pow(g_ewald_6,3)*csumij;
       virial[0] -= a;
       virial[1] -= a;
@@ -1213,7 +1214,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   }
 
   if (eflag_atom) {
-    if (function[0]) {
+    if (termflag[TERM_COUL]) {
       double *q = atom->q;
       // coulomb self energy correction
       for (i = 0; i < atom->nlocal; i++) {
@@ -1221,7 +1222,7 @@ void PPPMDisp::compute(int eflag, int vflag)
           qscale*MY_PI2*q[i]*qsum / (g_ewald*g_ewald*volume);
       }
     }
-    if (function[1] + function[2] + function[3]) {
+    if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
       int tmp;
       for (i = 0; i < atom->nlocal; i++) {
         tmp = atom->type[i];
@@ -1232,7 +1233,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   }
 
   if (vflag_atom) {
-    if (function[1] + function[2] + function[3]) {
+    if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
       int tmp;
       // dispersion self virial correction
       for (i = 0; i < atom->nlocal; i++) {
@@ -1246,8 +1247,8 @@ void PPPMDisp::compute(int eflag, int vflag)
   // 2d slab correction
 
   if (slabflag) slabcorr(eflag);
-  if (function[0]) energy += energy_1;
-  if (function[1] + function[2] + function[3]) energy += energy_6;
+  if (termflag[TERM_COUL]) energy += energy_1;
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) energy += energy_6;
 
   // convert atoms back from lamda to box coords
 
@@ -1269,8 +1270,8 @@ void PPPMDisp::init_coeffs()
 
   // no mixing rule or arithmetic
 
-  if (function[3] + function[2]) {
-    if (function[2] && me == 0)
+  if (termflag[TERM_DISP_NONE] + termflag[TERM_DISP_ARITH]) {
+    if (termflag[TERM_DISP_ARITH] && me == 0)
       utils::logmesg(lmp,"  Optimizing splitting of Dispersion coefficients\n");
 
     // allocate data for eigenvalue decomposition
@@ -1293,7 +1294,7 @@ void PPPMDisp::init_coeffs()
         Q[i][i] = 1.0;
       // perform eigenvalue decomposition with QR algorithm
       converged = qr_alg(A,Q,n);
-      if (function[3] && !converged) {
+      if (termflag[TERM_DISP_NONE] && !converged) {
         error->all(FLERR,
                    "Matrix factorization to split dispersion coefficients failed");
       }
@@ -1353,34 +1354,34 @@ void PPPMDisp::init_coeffs()
 
     } else nsplit = 1;      // use geometric mixing
 
-    // check if the function should preferably be [1] or [2] or [3]
+    // check which dispersion term should preferably be used
 
     if (nsplit == 1) {
       delete[] B;
       B = nullptr;
-      function[3] = 0;
-      function[2] = 0;
-      function[1] = 1;
+      termflag[TERM_DISP_NONE] = 0;
+      termflag[TERM_DISP_ARITH] = 0;
+      termflag[TERM_DISP_GEOM] = 1;
       if (me == 0)
         utils::logmesg(lmp,"  Using geometric mixing for reciprocal space\n");
     }
 
-    if (function[2] && nsplit <= 6) {
+    if (termflag[TERM_DISP_ARITH] && nsplit <= 6) {
       if (me == 0)
         utils::logmesg(lmp,"  Using {} instead of 7 structure factors\n",nsplit);
-      //function[3] = 1;
-      //function[2] = 0;
+      //termflag[TERM_DISP_NONE] = 1;
+      //termflag[TERM_DISP_ARITH] = 0;
       delete[] B;   // remove this when un-comment previous 2 lines
       B = nullptr;
    }
 
-    if (function[2] && (nsplit > 6)) {
+    if (termflag[TERM_DISP_ARITH] && (nsplit > 6)) {
       if (me == 0) utils::logmesg(lmp,"  Using 7 structure factors\n");
       delete[] B;
       B = nullptr;
     }
 
-    if (function[3]) {
+    if (termflag[TERM_DISP_NONE]) {
       if (me == 0)
         utils::logmesg(lmp,"  Using {} structure factors\n",nsplit);
       if (nsplit > 9)
@@ -1392,14 +1393,14 @@ void PPPMDisp::init_coeffs()
     memory->destroy(Q);
   }
 
-  if (function[1]) {                                    // geometric 1/r^6
+  if (termflag[TERM_DISP_GEOM]) {                                    // geometric 1/r^6
     auto *b = (double **) force->pair->extract("B",tmp);
     B = new double[n+1];
     B[0] = 0.0;
     for (int i=1; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
 
-  if (function[2]) {                                    // arithmetic 1/r^6
+  if (termflag[TERM_DISP_ARITH]) {                                    // arithmetic 1/r^6
     auto *epsilon = (double **) force->pair->extract("epsilon",tmp);
     auto *sigma = (double **) force->pair->extract("sigma",tmp);
     if (!(epsilon&&sigma))
@@ -1673,7 +1674,7 @@ void _noopt PPPMDisp::allocate()
   // Coulomb grids
   // --------------------------------------
 
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
 
     // create ghost grid object for rho and electric field communication
     // returns local owned and ghost grid bounds
@@ -1788,7 +1789,7 @@ void _noopt PPPMDisp::allocate()
   // allocations common to all dispersion options
   // --------------------------------------
 
-  if (function[1] + function[2] + function[3]) {
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
 
     // create ghost grid object for dispersion communication
     // returns local owned and ghost grid bounds
@@ -1805,13 +1806,13 @@ void _noopt PPPMDisp::allocate()
 
     gc6->setup_comm(ngc6_buf1,ngc6_buf2);
 
-    if (function[1]) {
+    if (termflag[TERM_DISP_GEOM]) {
       if (differentiation_flag) npergrid6 = 1;
       else npergrid6 = 3;
-    } else if (function[2]) {
+    } else if (termflag[TERM_DISP_ARITH]) {
       if (differentiation_flag) npergrid6 = 7;
       else npergrid6 = 21;
-    } else if (function[3]) {
+    } else if (termflag[TERM_DISP_NONE]) {
       if (differentiation_flag) npergrid6 = 1*nsplit_alloc;
       else npergrid6 = 3*nsplit_alloc;
     }
@@ -1867,7 +1868,7 @@ void _noopt PPPMDisp::allocate()
   // dispersion grids with geometric mixing
   // --------------------------------------
 
-  if (function[1]) {
+  if (termflag[TERM_DISP_GEOM]) {
     memory->create(work1_6,2*nfft_both_6,"pppm/disp:work1_6");
     memory->create(work2_6,2*nfft_both_6,"pppm/disp:work2_6");
 
@@ -1920,7 +1921,7 @@ void _noopt PPPMDisp::allocate()
   // dispersion grids with arithmetic mixing
   // --------------------------------------
 
-  if (function[2]) {
+  if (termflag[TERM_DISP_ARITH]) {
     memory->create(work1_6,2*nfft_both_6,"pppm/disp:work1_6");
     memory->create(work2_6,2*nfft_both_6,"pppm/disp:work2_6");
 
@@ -2054,7 +2055,7 @@ void _noopt PPPMDisp::allocate()
   // dispersion grids with no mixing
   // --------------------------------------
 
-  if (function[3]) {
+  if (termflag[TERM_DISP_NONE]) {
     memory->create(work1_6,2*nfft_both_6,"pppm/disp:work1_6");
     memory->create(work2_6,2*nfft_both_6,"pppm/disp:work2_6");
 
@@ -2123,7 +2124,7 @@ void PPPMDisp::allocate_peratom()
   // Coulomb grids
   // --------------------------------------
 
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
     if (differentiation_flag != 1)
       memory->create3d_offset(u_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                               nxlo_out,nxhi_out,"pppm/disp:u_brick");
@@ -2156,7 +2157,7 @@ void PPPMDisp::allocate_peratom()
   // dispersion grids with geometric mixing
   // --------------------------------------
 
-  if (function[1]) {
+  if (termflag[TERM_DISP_GEOM]) {
     if (differentiation_flag != 1 )
       memory->create3d_offset(u_brick_g,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
                               nxlo_out_6,nxhi_out_6,"pppm/disp:u_brick_g");
@@ -2189,7 +2190,7 @@ void PPPMDisp::allocate_peratom()
   // dispersion grids with arithmetic mixing
   // --------------------------------------
 
-  if (function[2]) {
+  if (termflag[TERM_DISP_ARITH]) {
     if (differentiation_flag != 1) {
       memory->create3d_offset(u_brick_a0,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
                               nxlo_out_6,nxhi_out_6,"pppm/disp:u_brick_a0");
@@ -2314,7 +2315,7 @@ void PPPMDisp::allocate_peratom()
   // dispersion grids with no mixing
   // --------------------------------------
 
-  if (function[3]) {
+  if (termflag[TERM_DISP_NONE]) {
     if (differentiation_flag != 1)
       memory->create4d_offset(u_brick_none,nsplit_alloc,
                               nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
@@ -3350,7 +3351,7 @@ void PPPMDisp::calc_csum()
 
   // following variables distinguish between arithmetic and geometric mixing
 
-  if (function[1]) {
+  if (termflag[TERM_DISP_GEOM]) {
     for (i = 1; i <= ntypes; i++)
       cii[i] = B[i]*B[i];
     int tmp;
@@ -3360,7 +3361,7 @@ void PPPMDisp::calc_csum()
       csum += B[tmp]*B[tmp];
     }
   }
-  if (function[2]) {
+  if (termflag[TERM_DISP_ARITH]) {
     for (i = 1; i <= ntypes; i++)
       cii[i] = 64.0/20.0*B[7*i+3]*B[7*i+3];
     int tmp;
@@ -3370,7 +3371,7 @@ void PPPMDisp::calc_csum()
       csum += 64.0/20.0*B[7*tmp+3]*B[7*tmp+3];
     }
   }
-  if (function[3]) {
+  if (termflag[TERM_DISP_NONE]) {
     for (i = 1; i <= ntypes; i++)
       for (j = 0; j < nsplit; j++)
         cii[i] += B[j]*B[nsplit*i + j]*B[nsplit*i + j];
@@ -3395,7 +3396,7 @@ void PPPMDisp::calc_csum()
 
   double d1, d2;
 
-  if (function[1]) {
+  if (termflag[TERM_DISP_GEOM]) {
     for (i=1; i<=ntypes; i++) {
       for (j=1; j<=ntypes; j++) {
         csumi[i] += neach_all[j]*B[i]*B[j];
@@ -3407,7 +3408,7 @@ void PPPMDisp::calc_csum()
     }
   }
 
-  if (function[2]) {
+  if (termflag[TERM_DISP_ARITH]) {
     for (i=1; i<=ntypes; i++) {
       for (j=1; j<=ntypes; j++) {
         for (k=0; k<=6; k++) {
@@ -3421,7 +3422,7 @@ void PPPMDisp::calc_csum()
     }
   }
 
-  if (function[3]) {
+  if (termflag[TERM_DISP_NONE]) {
     for (i=1; i<=ntypes; i++) {
       for (j=1; j<=ntypes; j++) {
         for (k=0; k<nsplit; k++) {
@@ -8115,17 +8116,17 @@ int PPPMDisp::timing_1d(int n, double &time1d)
 {
   double time1,time2;
   int mixing = 1;
-  if (function[2]) mixing = 4;
-  if (function[3]) mixing = nsplit_alloc/2;
+  if (termflag[TERM_DISP_ARITH]) mixing = 4;
+  if (termflag[TERM_DISP_NONE]) mixing = nsplit_alloc/2;
 
-  if (function[0]) for (int i = 0; i < 2*nfft_both; i++) work1[i] = ZEROF;
-  if (function[1] + function[2] + function[3])
+  if (termflag[TERM_COUL]) for (int i = 0; i < 2*nfft_both; i++) work1[i] = ZEROF;
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE])
     for (int i = 0; i < 2*nfft_both_6; i++) work1_6[i] = ZEROF;
 
   MPI_Barrier(world);
   time1 = platform::walltime();
 
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
     for (int i = 0; i < n; i++) {
       fft1->timing1d(work1,nfft_both,FFT3d::FORWARD);
       fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
@@ -8143,7 +8144,7 @@ int PPPMDisp::timing_1d(int n, double &time1d)
   MPI_Barrier(world);
   time1 = platform::walltime();
 
-  if (function[1] + function[2] + function[3]) {
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
     for (int i = 0; i < n; i++) {
       fft1_6->timing1d(work1_6,nfft_both_6,FFT3d::FORWARD);
       fft2_6->timing1d(work1_6,nfft_both_6,FFT3d::BACKWARD);
@@ -8170,17 +8171,17 @@ int PPPMDisp::timing_3d(int n, double &time3d)
 {
   double time1,time2;
   int mixing = 1;
-  if (function[2]) mixing = 4;
-  if (function[3]) mixing = nsplit_alloc/2;
+  if (termflag[TERM_DISP_ARITH]) mixing = 4;
+  if (termflag[TERM_DISP_NONE]) mixing = nsplit_alloc/2;
 
-  if (function[0]) for (int i = 0; i < 2*nfft_both; i++) work1[i] = ZEROF;
-  if (function[1] + function[2] + function[3])
+  if (termflag[TERM_COUL]) for (int i = 0; i < 2*nfft_both; i++) work1[i] = ZEROF;
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE])
     for (int i = 0; i < 2*nfft_both_6; i++) work1_6[i] = ZEROF;
 
   MPI_Barrier(world);
   time1 = platform::walltime();
 
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
     for (int i = 0; i < n; i++) {
       fft1->compute(work1,work1,FFT3d::FORWARD);
       fft2->compute(work1,work1,FFT3d::BACKWARD);
@@ -8198,7 +8199,7 @@ int PPPMDisp::timing_3d(int n, double &time3d)
   MPI_Barrier(world);
   time1 = platform::walltime();
 
-  if (function[1] + function[2] + function[3]) {
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
     for (int i = 0; i < n; i++) {
       fft1_6->compute(work1_6,work1_6,FFT3d::FORWARD);
       fft2_6->compute(work1_6,work1_6,FFT3d::BACKWARD);
@@ -8233,10 +8234,10 @@ double PPPMDisp::memory_usage()
     per = 6;
   }
   if (!evflag_atom) per = 0;
-  if (function[2]) mixing = 7;
-  if (function[3]) mixing = nsplit_alloc;
+  if (termflag[TERM_DISP_ARITH]) mixing = 7;
+  if (termflag[TERM_DISP_NONE]) mixing = nsplit_alloc;
 
-  if (function[0]) {
+  if (termflag[TERM_COUL]) {
     int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
       (nzhi_out-nzlo_out+1);
     bytes += (double)(1 + diff +  per) * nbrick * sizeof(FFT_SCALAR);     //brick memory
@@ -8245,7 +8246,7 @@ double PPPMDisp::memory_usage()
     bytes += (double)nfft_both * 3 * sizeof(FFT_SCALAR);    // density_FFT, work1, work2
   }
 
-  if (function[1] + function[2] + function[3]) {
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
     int nbrick = (nxhi_out_6-nxlo_out_6+1) * (nyhi_out_6-nylo_out_6+1) *
       (nzhi_out_6-nzlo_out_6+1);
     // density_brick + vd_brick + per atom bricks

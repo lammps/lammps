@@ -128,6 +128,7 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
 
   cutneighmax = 0.0;
   cutneighmin = BIG;
+  cutneighminall = BIG;
   cutneighsq = nullptr;
   cutneighghostsq = nullptr;
   cuttype = nullptr;
@@ -381,19 +382,20 @@ void Neighbor::init()
   }
   cutneighmaxsq = cutneighmax * cutneighmax;
 
-  // cutneighmin_pair = smallest per-type-pair cutoff of the default master list
-  //   (built from force->pair cutoffs only, before custom request cutoffs are
-  //   folded in below). A custom-cutoff list can only safely copy/trim from the
-  //   default master if its cutoff does not exceed this value, otherwise the
-  //   master is missing the longer-range pairs for the short-cutoff type pairs.
+  // at this point cutneighmin is the smallest cutoff over type pairs from the
+  //   pair styles only (the default master list is built to these cutoffs)
+  // cutneighminall additionally folds in custom neighbor-list request cutoffs
+  // a custom-cutoff list can only safely copy/trim from the default master if
+  //   its cutoff does not exceed cutneighmin, otherwise the master is missing
+  //   the longer-range pairs for the short-cutoff type pairs
 
-  cutneighmin_pair = cutneighmin;
+  cutneighminall = cutneighmin;
 
-  // update cutneighmin based on individual neighbor list requests
+  // reduce cutneighminall by individual neighbor list request cutoffs
 
   for (i = 0; i < nrequest; ++i) {
-    if (requests[i]->cut) cutneighmin = MIN(cutneighmin, requests[i]->cutoff +
-                                            (requests[i]->occasional ? 0.0 : skin));
+    if (requests[i]->cut) cutneighminall = MIN(cutneighminall, requests[i]->cutoff +
+                                               (requests[i]->occasional ? 0.0 : skin));
   }
 
   // Define cutoffs for multi
@@ -1207,10 +1209,9 @@ void Neighbor::morph_unique()
   for (int i = 0; i < nrequest; i++) {
     irq = requests[i];
 
-    // if cut flag set by requestor and cutoff is larger than minimum for default,
-    //   and the list is not a skip list, set unique flag; otherwise unset cut flag
-    // this forces Pair,Stencil,Bin styles to be instantiated separately
-    // also add skin to cutoff of perpetual lists
+    // set unique flag (own Pair/Stencil/Bin) when cutoff != cutneighmax or occasional
+    // occasional must stay unique: compute rdf etc. add skin, so its cutoff can equal
+    //   cutneighmax exactly; dropping cut would copy the truncated per-type master
 
     if (irq->cut) {
       if (!irq->occasional)
@@ -1535,7 +1536,7 @@ void Neighbor::morph_copy_trim()
 
       // cannot copy or trim if some pair-wise cutoffs are too small
 
-      if (irq->cut && !jrq->cut && (irq->cutoff > cutneighmin_pair)) continue;
+      if (irq->cut && !jrq->cut && (irq->cutoff > cutneighmin)) continue;
 
       // trim a list with longer cutoff
 
@@ -1781,7 +1782,7 @@ void Neighbor::print_pairwise_info()
   bbox[2] =  bboxhi[2] - bboxlo[2];
   if (binsizeflag) binsize = binsize_user;
   else if (style == Neighbor::BIN) binsize = 0.5 * cutneighmax;
-  else binsize = 0.5 * cutneighmin;
+  else binsize = 0.5 * cutneighminall;
   if (binsize == 0.0) binsize = bbox[0];
 
   int nperpetual = 0;

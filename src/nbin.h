@@ -71,7 +71,7 @@ class NBin : protected Pointers {
   // data from Neighbor class
 
   int includegroup;
-  double cutneighmin;
+  double cutneighminall;
   double cutneighmax;
   int binsizeflag;
   double binsize_user;

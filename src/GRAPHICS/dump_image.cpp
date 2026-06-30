@@ -843,7 +843,7 @@ void DumpImage::init_style()
       error->all(FLERR, "Dump image autobond requires a pair style to be defined");
     if (bondcutoff > neighbor->cutneighmax)
       error->all(FLERR, "Dump image autobond cutoff > neighbor cutoff");
-    if ((bondcutoff > neighbor->cutneighmin) && (comm->me == 0))
+    if ((bondcutoff > neighbor->cutneighminall) && (comm->me == 0))
       error->warning(FLERR, "Dump image autobond cutoff > minimum neighbor cutoff");
     if ((domain->xperiodic && (bondcutoff > domain->xprd)) ||
         (domain->yperiodic && (bondcutoff > domain->yprd)) ||

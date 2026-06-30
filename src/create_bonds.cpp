@@ -190,7 +190,7 @@ void CreateBonds::many()
   if (force->pair == nullptr) error->all(FLERR, "Create_bonds requires a pair style be defined");
   if (rmax > neighbor->cutneighmax)
     error->all(FLERR, "Create_bonds max distance > neighbor cutoff");
-  if (rmax > neighbor->cutneighmin && comm->me == 0)
+  if (rmax > neighbor->cutneighminall && comm->me == 0)
     error->warning(FLERR, "Create_bonds max distance > minimum neighbor cutoff");
 
   if ((domain->xperiodic && (rmax > domain->xprd)) ||

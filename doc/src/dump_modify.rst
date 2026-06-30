@@ -760,11 +760,10 @@ processors who accumulate the data.
 
 .. note::
 
-   Because balancing is performed before data accumulation, *nfile* or
-   *fileper* should divide the total number of processors evenly when
-   using the *balance* keyword. Otherwise, some processors will
-   accumulate more data than others, reintroducing imbalance during
-   file output.
+   The balancing is performed on a per-processor basis, not per-file
+   when using *nfile* or *fileper*. If different numbers of processors
+   contribute data to different dump files, the files will naturally be
+   of different lengths.
 
 .. note::
 

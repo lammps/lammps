@@ -55,8 +55,11 @@ namespace LAMMPS_NS {
 //    default), with the tied DualViews flushed to the host in pre_exchange() and
 //    re-synced in pre_neighbor().  The exchange and the sort must run on the same
 //    side -- a mixed configuration would let a host sort permute the per-atom
-//    arrays out from under a device exchange -- so setup_device_push() errors on
-//    a mismatch.  Forward/reverse comm run on the device during the run.
+//    arrays out from under a device exchange -- so setup_pre_neighbor()/
+//    setup_device_push() tie sort_device to the exchange side: if another fix
+//    forces a host exchange (e.g. fix property/atom, which has no device
+//    exchange), the fix follows it onto the host sort.  Forward/reverse comm run
+//    on the device during the run.
 template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 
  public:

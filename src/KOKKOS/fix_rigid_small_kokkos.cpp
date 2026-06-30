@@ -222,6 +222,16 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
   // finite-size particles), which are not in this fix's per-step datamask.
   atomKK->sync(Host, datamask_read | IMAGE_MASK | MASK_MASK | RMASS_MASK);
 
+  // Keep the exchange and the sort on the same side.  A coexisting fix that grows
+  // per-atom arrays but has no device exchange (e.g. fix property/atom for per-atom
+  // rmass) forces CommKokkos onto a host exchange (sets kokkos->exchange_comm_legacy);
+  // follow it onto the host for sorting too (sort_device=0 makes AtomKokkos::sort()
+  // use the legacy host sort) so the setup-time sort in neighbor->build (right after
+  // this) can't permute the body arrays out from under the host exchange.  No-op in
+  // the normal all-device case.
+  if (std::is_same<DeviceType,LMPDeviceType>::value)
+    sort_device = (exchange_comm_device && !lmp->kokkos->exchange_comm_legacy) ? 1 : 0;
+
   // On the 2nd and later runs reinitflag re-runs the host body build
   // (setup_bodies_static/dynamic), which reads bodytag/bodyown/atom2body/
   // xcmimage and rewrites body[].  After a preceding run that state is live on
@@ -460,23 +470,18 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
   // the constructor) so CommKokkos doesn't fall back to the legacy path.
   if (std::is_same<DeviceType,LMPDeviceType>::value) {
     forward_comm_device = 1;
-    sort_device = 1;
     reverse_comm_device = 1;
 
-    // The per-reneighbor migration pipeline (exchange -> sort) must run entirely
-    // on one side: device sort reorders the body owners that device exchange
-    // produced, and vice versa.  A mixed configuration (e.g. "comm device" while
-    // sorting stays on the legacy host path) lets a host sort permute the per-atom
-    // arrays out from under the device exchange, silently corrupting the
-    // body<->atom bookkeeping.  Require the two to match.  Both default to host on
-    // CPU/OpenMP and to device on GPU, so this only triggers for an explicit,
-    // inconsistent override such as "-pk kokkos comm device" without "sort device".
-    bool exchange_on_device = exchange_comm_device && !lmp->kokkos->exchange_comm_legacy;
-    bool sort_on_device = !lmp->kokkos->sort_legacy;
-    if (exchange_on_device != sort_on_device)
-      error->all(FLERR, "fix rigid/small/kk requires Kokkos atom exchange and sorting "
-                 "to run on the same side; use matching settings, e.g. "
-                 "'-pk kokkos comm device sort device' or the defaults");
+    // Keep the per-reneighbor exchange and sort on the same side: a device sort
+    // reordering the body owners a device exchange produced (or vice versa) would
+    // permute the per-atom arrays out from under the other, corrupting the
+    // body<->atom bookkeeping.  CommKokkos may have been forced onto a host
+    // exchange (kokkos->exchange_comm_legacy set) by a coexisting fix that grows
+    // per-atom arrays without device exchange (e.g. fix property/atom for per-atom
+    // rmass); follow it onto the host sort then, rather than erroring.
+    // setup_pre_neighbor() already set this before the setup-time sort; repeat it
+    // here so the run stays consistent.
+    sort_device = (exchange_comm_device && !lmp->kokkos->exchange_comm_legacy) ? 1 : 0;
   }
 
   // The setup-time atom sort permutes the per-atom arrays (bodyown/bodytag) to

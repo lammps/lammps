@@ -416,11 +416,18 @@ void BondBPMPeri::compute(int eflag, int vflag)
         if (tdnorm_b > yieldnorm) {
           const double radial = yieldnorm / tdnorm_b;    // < 1 in the plastic regime
           rkdev = radial * tdtrial;                       // returned deviatoric force state
-          // dimensionally consistent plastic-extension increment: the elastic
-          // deviatoric extension (dev - edp) is scaled by the same radial factor,
-          // edp absorbs the remainder. Converges to the yield surface in one step,
-          // unlike the legacy edp += rkNew*deltalambda update whose ~2/r0 gain
-          // overshoots (a likely latent PERI bug -- report).
+          // Radial return in extension space: scale the elastic deviatoric
+          // extension (dev - edp) by the radial factor, edp absorbs the
+          // remainder, so the deviatoric force state lands on the yield surface
+          // in a single step.  Because the plastic extension is stored per bond
+          // here, this dimensionally exact, per-bond form is the natural choice.
+          // The legacy pair_style peri/eps stores edp per (node,bond) and, as of
+          // PR #5046, ships a minimal interior-only correction of the same
+          // physics; see the detailed dimensional derivation in
+          // src/PERI/pair_peri_eps.cpp (PairPeriEPS::compute).  The two agree in
+          // the interior and differ only by a bounded factor at free surfaces;
+          // unifying them on this exact form is a tracked follow-up pending
+          // review by a peridynamics expert.
           edp_new = edp + (dev - edp) * (1.0 - radial);
         }
         rk += rkdev;

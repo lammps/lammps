@@ -88,18 +88,18 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   id_pe = utils::strdup(std::string(id) + "_pe");
   modify->add_compute(fmt::format("{} all pe",id_pe));
 
-  int ifix = modify->find_fix(id_nh);
-  if (ifix < 0)
+  Fix *nh = modify->get_fix_by_id(id_nh);
+  if (!nh)
     error->all(FLERR,"Fix id for nvt or npt fix does not exist");
-  Fix *nh = modify->fix[ifix];
 
   pressflag = 0;
-  int *p_flag = (int *)nh->extract("p_flag",ifix);
-  if ((p_flag == nullptr) || (ifix != 1) || (p_flag[0] == 0)
+  int dim;
+  int *p_flag = (int *)nh->extract("p_flag",dim);
+  if ((p_flag == nullptr) || (dim != 1) || (p_flag[0] == 0)
       || (p_flag[1] == 0) || (p_flag[2] == 0)) {
     pressflag = 0;
   } else if ((p_flag[0] == 1) && (p_flag[1] == 1)
-             && (p_flag[2] == 1) && (ifix == 1)) {
+             && (p_flag[2] == 1) && (dim == 1)) {
     pressflag = 1;
     char *modargs[2];
     modargs[0] = (char *) "press";

@@ -832,3 +832,10 @@ int FixWallBodyPolygon::image(int *&objs, double **&parms)
   parms = imgparms;
   return numwalls;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixWallBodyPolygon::memory_usage()
+{
+  return (double) nmax * 4 * sizeof(int);    // dnum + dfirst + ednum + edfirst [nmax]
+}

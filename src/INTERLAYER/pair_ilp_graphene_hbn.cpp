@@ -1058,3 +1058,15 @@ double PairILPGrapheneHBN::single(int /*i*/, int /*j*/, int itype, int jtype, do
   philj = Vilp * Tap;
   return factor_lj * philj;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairILPGrapheneHBN::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) maxlocal * (sizeof(int) + sizeof(int *));    // ILP_numneigh + ILP_firstneigh
+  bytes += (double) nmax * 3 * sizeof(double);                   // normal[nmax][3]
+  bytes += (double) nmax * 9 * sizeof(double);                   // dnormdri[3][3][nmax]
+  bytes += (double) nmax * 27 * sizeof(double);                  // dnormal[3][3][3][nmax]
+  return bytes;
+}

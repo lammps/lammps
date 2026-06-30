@@ -903,15 +903,15 @@ void Dump::balance()
   static int warn = 1;
   if (warn && multiproc > 1 && me == 0) {
     if (nprocs % nfile) {
-      error->warning(FLERR,"Value of dump_modify 'nfile' keyword does not divide the total number"
-                           " of processors evenly; since balancing is performed per-processor, not"
-                           " per-file, the dump files will be of different lengths");
+      error->warning(FLERR,"Dump file balancing requested but dump_modify 'nfile'"
+                           " keyword does not divide the number processors evenly;"
+                           " dump files will be of different lengths");
       warn = 0;
     }
     if (nprocs % nper) {
-      error->warning(FLERR,"Value of dump_modify 'fileper' keyword does not divide the total number"
-                           " of processors evenly; since balancing is performed per-processor, not"
-                           " per-file, the dump files will be of different lengths");
+      error->warning(FLERR,"Dump file balancing requested but dump_modify 'fileper'"
+                           " keyword does not divide the number processors evenly;"
+                           " dump files will be of different lengths");
       warn = 0;
     }
   }

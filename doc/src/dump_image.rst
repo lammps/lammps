@@ -32,7 +32,9 @@ Syntax
        *adiam* size = numeric value for atom diameter (distance units)
        *autobond* values = cutoff width = bond cutoff and width of bonds
        *bond* values = color width = color and width of bonds
-         color = *atom* or *type* or *none*
+         color = *atom* or *type* or *none* or c_ID or c_ID[I]
+           c_ID = per-bond vector computed by a local compute with ID
+           c_ID[I] = Ith column of per-bond array computed by a local compute with ID
          width = number or *atom* or *type* or *none*
            number = numeric value for bond width (distance units)
        *grid* = per-grid value to use when coloring each grid cell
@@ -127,7 +129,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *lights* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *lights* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -209,6 +211,7 @@ Syntax
        *framerate* arg = fps
          fps = frames per second for movie
        *gmap* args = identical to *amap* args
+       *bmap* args = identical to *amap* args
 
 Examples
 """"""""
@@ -468,6 +471,23 @@ orange, lime, gray, darkred, darkgreen, darkblue, darkcyan, darkmagenta,
 and darkgray for the first 16 bond types and repeats itself after that.
 This mapping can be changed by the "dump_modify bcolor" command, as
 described below.
+
+.. versionadded:: TBD
+
+If a compute reference *c_ID* or *c_ID[I]* is specified for the *color*
+value, then each bond is colored by a per-bond value taken from that
+compute, mapped to a color through a color map (set with the
+"dump_modify bmap" command, described below) in the same way per-atom
+values are mapped via *amap*.  The referenced compute must produce
+*local* per-bond data, for example :doc:`compute bond/local
+<compute_bond_local>` with the *dist* (bond length) or *engpot* (bond
+energy) attribute.  Use *c_ID* when the compute produces a per-bond
+vector (a single attribute) and *c_ID[I]* to select column *I* when it
+produces a per-bond array (multiple attributes).  The compute must
+generate one value for each bond that is drawn, in the same order, so it
+should compute over the same set of bonds as is being visualized
+(typically the *all* group).  If the number of values produced does not
+match the number of bonds drawn, LAMMPS stops with an error.
 
 The bond *width* value can be a numeric value or *atom* or *type* (or
 *none* as indicated above).
@@ -1223,6 +1243,20 @@ when it is drawn, based on the grid cell value, which is a numeric
 quantity specified with the *grid* keyword.
 
 The arguments for the *gmap* keyword are identical to those for the
+*amap* keyword (for atom coloring) described above.
+
+----------
+
+.. versionadded:: TBD
+
+The *bmap* keyword can be used with the dump image command, with its
+*bond* keyword, when the bond *color* value is a compute reference
+(*c_ID* or *c_ID[I]*), to setup a color map.  The color map is used to
+assign a specific RGB (red/green/blue) color value to an individual bond
+when it is drawn, based on the per-bond value returned by the referenced
+compute.
+
+The arguments for the *bmap* keyword are identical to those for the
 *amap* keyword (for atom coloring) described above.
 
 ----------

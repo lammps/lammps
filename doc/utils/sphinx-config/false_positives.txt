@@ -358,6 +358,7 @@ blockiness
 blocksize
 blocky
 blueviolet
+bmap
 bn
 bni
 bnumeric
@@ -608,6 +609,7 @@ collisional
 colname
 colorbar
 colormap
+colormaps
 colorscale
 Columic
 colvars
@@ -923,6 +925,7 @@ dmi
 dname
 dnf
 DNi
+dnote
 Dobnikar
 Dobson
 docenv
@@ -1822,6 +1825,7 @@ iter
 iteratively
 iters
 Ith
+Itokawa
 Itsets
 itype
 itypeN

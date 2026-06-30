@@ -2383,6 +2383,29 @@ void FixRigidSmallKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, B
 {
   Kokkos::Profiling::pushRegion("rigid/small sort");
 
+  // At setup (setupflag still 0) this sort fires after create_bodies() wrote the
+  // host body arrays -- those host copies are authoritative, but the ctor's
+  // setup-time exchange left the DualViews device-modified with placeholder data,
+  // so the sync<DeviceType>() below would be a no-op and we would sort the stale
+  // device copy and permute it out of alignment with the atoms the sort reorders.
+  // The host bookkeeping then no longer matches the atom order: reset_atom2body
+  // leaves bodyown[map(bodytag)] < 0 and set_v() skips those atoms, leaving their
+  // velocities unprojected.  Make the device copies match the authoritative host
+  // data before sorting.
+  if (!setupflag) {
+    k_bodytag.clear_sync_state();   k_bodytag.modify_host();
+    k_bodyown.clear_sync_state();   k_bodyown.modify_host();
+    k_atom2body.clear_sync_state(); k_atom2body.modify_host();
+    k_xcmimage.clear_sync_state();  k_xcmimage.modify_host();
+    k_displace.clear_sync_state();  k_displace.modify_host();
+    k_vatom.clear_sync_state();     k_vatom.modify_host();
+    if (extended) {
+      k_eflags.clear_sync_state();  k_eflags.modify_host();
+      if (orientflag)  { k_orient.clear_sync_state();  k_orient.modify_host(); }
+      if (dorientflag) { k_dorient.clear_sync_state(); k_dorient.modify_host(); }
+    }
+  }
+
   // sort the device side of each tied DualView in place
   auto space = LMPDeviceType();
   k_bodytag.template sync<LMPDeviceType>();
@@ -2426,12 +2449,24 @@ void FixRigidSmallKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, B
     }
   }
 
-  // Before setup_bodies_static() has run there are no bodies yet (all atoms
-  // carry bodytag=0 / bodyown=-1 placeholders that setup() will overwrite), so
-  // there is nothing to re-link.  This guard lets the setup-time atom->sort()
-  // (Verlet::setup() calls it before modify->setup()) proceed on device instead
-  // of forcing AtomKokkos::sort() permanently onto the legacy host path.
+  // At setup the host setup path (setup_bodies_static -> reset_atom2body / set_v)
+  // reads these right after, so pull the freshly sorted device copies back to the
+  // host -- they now follow the same permutation as the reordered atoms.  No
+  // body.ilocal re-link yet: bodies are not fully wired until setup() completes.
+  // During a run setupflag is 1 and the device copies stay authoritative (the
+  // host is synced on demand).
   if (!setupflag) {
+    k_bodytag.sync_host();
+    k_bodyown.sync_host();
+    k_atom2body.sync_host();
+    k_xcmimage.sync_host();
+    k_displace.sync_host();
+    k_vatom.sync_host();
+    if (extended) {
+      k_eflags.sync_host();
+      if (orientflag)  k_orient.sync_host();
+      if (dorientflag) k_dorient.sync_host();
+    }
     Kokkos::Profiling::popRegion();
     return;
   }

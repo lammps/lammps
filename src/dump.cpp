@@ -14,7 +14,6 @@
 #include "dump.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
@@ -902,7 +901,7 @@ void Dump::balance()
   memory->create(proc_new_offsets,nprocs+1,"dump:proc_new_offsets");
 
   static int warn = 1;
-  if (warn && multiproc > 1 && comm->me == 0) {
+  if (warn && multiproc > 1 && me == 0) {
     if (nprocs % nfile) {
       error->warning(FLERR,"Value of dump_modify 'nfile' keyword does not divide the total number"
                            " of processors evenly; since balancing is performed per-processor, not"

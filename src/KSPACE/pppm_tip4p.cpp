@@ -50,6 +50,12 @@ void PPPMTIP4P::init()
     error->all(FLERR,"Kspace style pppm/tip4p requires newton on");
 
   PPPM::init();
+
+  // slab correction is not (yet) supported for triclinic boxes with pppm/tip4p:
+  // the TIP4P M-site reconstruction in find_M() assumes lamda coordinates.
+
+  if (domain->triclinic && slabflag)
+    error->all(FLERR,"Cannot (yet) use pppm/tip4p with triclinic box and slab correction");
 }
 
 /* ----------------------------------------------------------------------

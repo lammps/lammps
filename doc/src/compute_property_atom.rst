@@ -34,6 +34,7 @@ Syntax
                              corner2x, corner2y, corner2z,
                              corner3x, corner3y, corner3z,
                              i_name, d_name, i2_name[I], d2_name[I],
+              history[I][J],
                              vfrac, s0, espin, eradius, ervel, erforce,
                              rho, drho, e, de, cv, buckling,
                              apip_lambda, apip_lambda_input, apip_e_fast,
@@ -76,6 +77,7 @@ Syntax
            *d_name* = custom floating point vector with name
            *i2_name[I]* = Ith column of custom integer array with name
            *d2_name[I]* = Ith column of custom floating-point array with name
+           *history[I][J]* = Ith most recent history frame (1 to Nrepeat) for Jth attribute (1 to Nattribute)
 
   .. parsed-literal::
 
@@ -91,7 +93,7 @@ Syntax
 
            PERI package per-atom properties:
            vfrac = volume fraction
-           s0 = max stretch of any bond a particle is part of
+           s0 = critical bond stretch (bond-breaking threshold) of a particle
 
   .. parsed-literal::
 
@@ -109,6 +111,20 @@ Syntax
            e = energy
            de = change in thermal energy
            cv = heat capacity
+
+  .. parsed-literal::
+
+           APIP package per-atom properties:
+           *apip_lambda* = switching parameter
+           *apip_lambda_input* = input used to calculate the switching parameter
+           *apip_e_fast,apip_e_precise* = potential energies mixed by the adaptive-precision potential
+
+* zero or more keyword/arg pairs may be appended
+* keyword = *history*
+
+  .. parsed-literal::
+       *history* arg = fixID
+         fixID = ID of a :doc:`fix store/state <fix_store_state>` command with history enabled
 
 Examples
 """"""""
@@ -152,8 +168,30 @@ which are the "name" portion of these attributes.  For arrays
 *i2_name* and *d2_name*, the column of the array must also be included
 following the name in brackets (e.g., d2_xyz[2] or i2_mySpin[3]).
 
-The additional quantities only accessible via this command, and not
-directly via the :doc:`dump custom <dump>` command, are as follows.
+Attribute *history* refers to per-atom history values stored by the
+:doc:`fix store/state <fix_store_state>` command using its history
+keyword.  If this attribute is used, the optional *history* keyword
+must also be used to specify the *fixID* of the fix store/state
+command.
+
+The associated :doc:`fix store/state <fix_store_state>` command
+specifies *Nattribute* per-atom attributes, and its history keyword
+specifies *Nrepeat* and *Nfreq*.  *Nfreq* determines which timesteps
+the history can be accessed, which must be compatible with each
+timestep this compute is invoked.  *Nrepeat* sets the count of how
+many history values are stored for each attribute.  The first *I*
+index of attribute *history[I][J]* must be a value from 1 to
+*Nrepeat*, where 1 is the most recent history and *Nrepeat* is the
+oldest history.  If this compute is invoked before all *Nrepeat*
+history values have been stored (e.g. early in a run), then zeroes
+will be stored by this compute for not-yet-available history.  The
+second *J* index of attribute *history[I][J]* must be a value from 1
+to *Nattribute* for the per-atom attribute to access.  See the
+:doc:`fix store/state <fix_store_state>` doc page for more details.
+
+The additional per-atom attributes only accessible via this command,
+and not directly via the :doc:`dump custom <dump>` command, are as
+follows.
 
 *Nbonds* is available for all molecular atom styles and refers to the
 number of explicit bonds assigned to an atom.  Note that if the
@@ -193,21 +231,20 @@ segment particles and define the end points of each line segment.
 *corner2z*, *corner3x*, *corner3y*, *corner3z*, are defined for
 triangular particles and define the corner points of each triangle.
 
-The accessible quantities from the :doc:`APIP package <Howto_apip>` are
-explained in the doc pages of this package in detail.
-In short: *apip_lambda* is the switching parameter :math:`\lambda\in[0,1]`.
-The switching parameter can be calculated from *apip_lambda_input* and mixes
-the energies of a
-fast (*apip_e_fast*) and a precise (*apip_e_precise*) potential into an
-adaptive-precision energy.
+The accessible quantities from the :doc:`APIP package <Howto_apip>`
+are explained in the doc pages of this package in detail.  In short:
+*apip_lambda* is the switching parameter :math:`\lambda\in[0,1]`.  The
+switching parameter can be calculated from *apip_lambda_input* and
+mixes the energies of a fast (*apip_e_fast*) and a precise
+(*apip_e_precise*) potential into an adaptive-precision energy.
 
-.. versionchanged:: 30Mar2026
+.. versionchanged:: TBD
 
 Alternatively, the switching parameter can be calculated from a
 locally averaged descriptor (*apip_la_avg*) to obtain a conservative
-potential.
-The descriptor is calculated from an atomic property (*apip_la_inp*) and
-normalized with a locally averaged weighting function (*apip_la_norm*).
+potential.  The descriptor is calculated from an atomic property
+(*apip_la_inp*) and normalized with a locally averaged weighting
+function (*apip_la_norm*).
 
 .. note::
 
@@ -217,13 +254,27 @@ normalized with a locally averaged weighting function (*apip_la_norm*).
    :math:`E_i^\text{precise}` and with :math:`\lambda_i=0` one does
    not need :math:`E_i^\text{fast}`.
 
-
 In addition, the various per-atom quantities listed above for specific
 packages are only accessible by this command.
 
 .. versionchanged:: 15Sep2022
 
   The *espin* property was previously called *spin*.
+
+The accessible quantities from the :doc:`APIP package <Howto_apip>`
+are explained in detail in the doc pages for this package's commands.
+In short: *apip_lambda* is the switching parameter
+:math:`\lambda\in[0,1]`, that is calculated from *apip_lambda_input*
+and that mixes the energies of a fast (*apip_e_fast*) and a precise
+(*apip_e_precise*) potential into an adaptive-precision energy.
+
+.. note::
+
+   The energy according to the fast and the precise potential are only
+   computed for the subset of atoms for which it is required.  I.e.,
+   for an atom :math:`i` with :math:`\lambda_i=1`,
+   :math:`E_i^\text{precise}` is not needed.  And with
+   :math:`\lambda_i=0`, :math:`E_i^\text{fast}`. is not needed.
 
 Output info
 """""""""""
@@ -241,8 +292,8 @@ corresponding attribute is in (e.g., velocity units for *vx*, charge
 units for *q*).
 
 For the spin quantities, *sp* is in the units of the Bohr magneton;
-*spx*, *spy*, and *spz* are unitless quantities; and *fmx*, *fmy*, and *fmz*
-are given in rad/THz.
+*spx*, *spy*, and *spz* are unitless quantities; and *fmx*, *fmy*, and
+*fmz* are given in rad/THz.
 
 Restrictions
 """"""""""""
@@ -251,9 +302,12 @@ none
 Related commands
 """"""""""""""""
 
-:doc:`dump custom <dump>`, :doc:`compute reduce <compute_reduce>`,
-:doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`,
-:doc:`fix property/atom <fix_property_atom>`
+:doc:`dump custom <dump>`,
+:doc:`compute reduce <compute_reduce>`,
+:doc:`fix ave/atom <fix_ave_atom>`,
+:doc:`fix ave/chunk <fix_ave_chunk>`,
+:doc:`fix property/atom <fix_property_atom>`,
+:doc:`fix store/state <fix_store_state>`
 
 Default
 """""""

@@ -36,6 +36,7 @@
 #endif
 
 using namespace LAMMPS_NS;
+using namespace EwaldConst;
 using namespace MathConst;
 
 static constexpr FFT_SCALAR ZEROF = 0.0;
@@ -63,11 +64,11 @@ PPPMDispOMP::~PPPMDispOMP()
 #else
     const int tid = 0;
 #endif
-    if (function[0]) {
+    if (termflag[TERM_COUL]) {
       ThrData * thr = fix->get_thr(tid);
       thr->init_pppm(-order,memory);
     }
-    if (function[1] + function[2]) {
+    if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH]) {
       ThrData * thr = fix->get_thr(tid);
       thr->init_pppm_disp(-order_6,memory);
     }
@@ -92,11 +93,11 @@ void PPPMDispOMP::allocate()
     const int tid = 0;
 #endif
 
-    if (function[0]) {
+    if (termflag[TERM_COUL]) {
       ThrData *thr = fix->get_thr(tid);
       thr->init_pppm(order,memory);
     }
-    if (function[1] + function[2]) {
+    if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH]) {
       ThrData * thr = fix->get_thr(tid);
       thr->init_pppm_disp(order_6,memory);
     }

@@ -117,7 +117,9 @@ to a group.
 The *region* style puts all atoms in the region volume into the group.
 Note that this is a static one-time assignment.  The atoms remain
 assigned (or not assigned) to the group even if they later move out of
-the region volume.
+the region volume.  For extended triangle or line-segment particle,
+the center point of the triangle or line-segment is used to determine
+whether the particle is in the region or not.
 
 The *type*, *id*, and *molecule* styles put all atoms with the
 specified atom types, atom IDs, or molecule IDs into the group.  These

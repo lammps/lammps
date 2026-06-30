@@ -42,11 +42,8 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 5) utils::missing_cmd_args(FLERR,"fix store/state", error);
 
-  restart_peratom = 1;
-  peratom_freq = 1;
-
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery < 0) error->all(FLERR, 3, "Invalid fix store/state nevery value {}", nevery);
+  if (nevery < 0) error->all(FLERR, 3, "Invalid fix store/state N value {}", nevery);
 
   // parse values
   // customize a new keyword by adding to if statement
@@ -239,9 +236,12 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
   }
 
+  vsize = values.size();
+
   // optional args
 
   comflag = 0;
+  historyflag = 0;
   threshflag = 0;
   thresh_name = "";
   thresh_idx = -1;
@@ -253,6 +253,13 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix store/state com", error);
       comflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"history") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"fix store/state history", error);
+      historyflag = 1;
+      nevery_history = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      nrepeat_history = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      nfreq_history = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      iarg += 4;
     } else if (strcmp(arg[iarg],"thresh") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"fix store/state thresh", error);
       if (threshflag)
@@ -282,6 +289,20 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       thresh_val = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else error->all(FLERR, iarg, "Unknown fix store/state keyword: {}", arg[iarg]);
+  }
+
+  // error checks on use of N and history keyword args
+  // then override nevery with nevery_history
+
+  if (historyflag) {
+    if (nevery) error->all(FLERR,"Fix store/state N = 0 required with history keyword");
+    if (nevery_history <= 0)
+      error->all(FLERR,"Invalid fix store/state history Nevery {}",nevery_history);
+    if (nrepeat_history <= 0)
+      error->all(FLERR,"Invalid fix store/state history Nrepeat {}",nrepeat_history);
+    if (nfreq_history < 0 || (nfreq_history % nevery_history))
+      error->all(FLERR,"Invalid fix store/state history Nfreq {}",nfreq_history);
+    nevery = nevery_history;
   }
 
   // error check
@@ -358,19 +379,53 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // this fix produces either a per-atom vector or array
+  // if historyflag = 0:
+  //   this fix produces either a per-atom vector or array, always available
+  //   also saves the per-atom vec/array in the restart file
+  // if historyflag = 1:
+  //   this fix produces neither a per-atom vector or array
+  //   instead provides access via extract() to its saved history frames
+  //     only on steps compatible with nevery_history and nfreq_history
+  //   saves nothing to restart file
 
-  peratom_flag = 1;
-  if (values.size() == 1) size_peratom_cols = 0;
-  else size_peratom_cols = values.size();
+  if (!historyflag) {
+    create_attribute = 1;
+    restart_peratom = 1;
+    peratom_flag = 1;
+    peratom_freq = 1;
+    if (values.size() == 1) size_peratom_cols = 0;
+    else size_peratom_cols = values.size();
+  }
 
-  // perform initial allocation of atom-based array
+  // for historyflag, create avalues_history
+
+  if (historyflag) {
+    avalues_history = (double ***) memory->smalloc(nrepeat_history*sizeof(double **),
+                                                  "store/state:avalues_history");
+    for (int i = 0; i < nrepeat_history; i++) avalues_history[i] = nullptr;
+    create_attribute = 1;
+    most_recent_step = -1;
+    most_recent_index = -1;
+    count_history = 0;
+
+    // pack_exchange() packs up to count_history*vsize doubles per atom, with
+    // count_history <= nrepeat_history.  Reserve that fixed upper bound in
+    // maxexchange so Comm::init_exchange() sizes the exchange buffer's bufextra
+    // accordingly (BUFEXTRA alone is not guaranteed to be large enough).
+
+    maxexchange = nrepeat_history * vsize;
+  }
+
+  // perform initial allocation of atom-based arrays
   // register with Atom class
 
   avalues = nullptr;
   FixStoreState::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+
+  // only historyflag = 0 writes per-atom data to restart files.
+
+  if (!historyflag) atom->add_callback(Atom::RESTART);
 
   // zero the array since dump may access it on timestep 0
   // zero the array since a variable may access it before first run
@@ -381,10 +436,14 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       avalues[i][m] = 0.0;
 
   // store current values for keywords but not for compute, fix, variable
+  // only for historyflag = 0
 
-  kflag = 1;
-  cfv_flag = 0;
-  FixStoreState::end_of_step();
+  if (!historyflag) {
+    kflag = 1;
+    cfv_flag = 0;
+    FixStoreState::end_of_step();
+  }
+
   firstflag = 1;
 }
 
@@ -395,9 +454,16 @@ FixStoreState::~FixStoreState()
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
+
+  // the RESTART callback is only registered for historyflag = 0
+  if (!historyflag) atom->delete_callback(id,Atom::RESTART);
 
   memory->destroy(avalues);
+
+  if (historyflag) {
+    for (int i = 0; i < nrepeat_history; i++) memory->destroy(avalues_history[i]);
+    memory->sfree(avalues_history);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -470,21 +536,46 @@ void FixStoreState::init()
 
 void FixStoreState::setup(int /*vflag*/)
 {
-  // if first invocation, store current values for compute, fix, variable
+  // if first run since fix created:
+  // for historyflag = 0: store current values for only compute, fix, variable
+  // for historyflag = 1: store all current values if timestep is multiple of nevery
+  //   eox() will skip if this step is not not needed
 
   if (firstflag) {
-    kflag = 0;
-    cfv_flag = 1;
-    end_of_step();
-    firstflag = 0;
-    kflag = cfv_flag = 1;
+    if (!historyflag) {
+      kflag = 0;
+      cfv_flag = 1;
+      end_of_step();
+    } else if (update->ntimestep % nevery == 0) {
+      kflag = 1;
+      cfv_flag = 1;
+      end_of_step();
+    }
   }
+
+  firstflag = 0;
+  kflag = cfv_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixStoreState::end_of_step()
 {
+  // for historyflag = 0:
+  //   if nevery = 0: eos() called only once
+  //     from constructor with kflag = 1, from setup() of first run with cvf_flag = 1
+  //   if nevery > 0: eos() called same as for nevery = 0
+  //     plus called on every step which is multiple of nevery
+  // for historyflag = 1, nevery is > 0:
+  //   eos() called on every step which is multiple of nevery, including from setup()
+  //   logic here will skip this step if not needed in history
+
+  if (historyflag && nfreq_history > nevery*nrepeat_history && update->ntimestep % nfreq_history) {
+    bigint nfreq_next = (update->ntimestep/nfreq_history)*nfreq_history + nfreq_history;
+    bigint nprevious = (nfreq_next-update->ntimestep) / nevery;
+    if (nprevious >= nrepeat_history) return;
+  }
+
   // skip storing data if threshold condition is not met
 
   if (threshflag) {
@@ -518,11 +609,13 @@ void FixStoreState::end_of_step()
     group->xcm(igroup,masstotal,cm);
   }
 
-  // if any compute/fix/variable and nevery, wrap with clear/add
+  // if any compute/fix/variable is needed on future step, wrap with clear/add
+  // not the case if nevery = 0
 
   if (cfv_any && nevery) modify->clearstep_compute();
 
-  // fill vector or array with per-atom values
+  // fill avalues with per-atom values
+  // for historyflag, avalues will be copied to avalues_history at the end
 
   if (avalues) vbuf = &avalues[0][0];
   else vbuf = nullptr;
@@ -605,44 +698,105 @@ void FixStoreState::end_of_step()
     ++m;
   }
 
-  // if any compute/fix/variable and nevery, wrap with clear/add
+  // if any compute/fix/variable is needed on future step, add nextstep when needed
+  // not the case if nevery = 0
+  // for historyflag with large enough nfreq_history to skip steps, calculate nextstep
 
   if (cfv_any && nevery) {
-    const bigint nextstep = (update->ntimestep/nevery)*nevery + nevery;
+    bigint nextstep;
+    if (historyflag && nfreq_history > nevery*nrepeat_history && update->ntimestep % nfreq_history)
+      nextstep = update->ntimestep + nfreq_history - nevery*(nrepeat_history-1);
+    else
+      nextstep = (update->ntimestep/nevery)*nevery + nevery;
     modify->addstep_compute(nextstep);
+  }
+
+  // if historyflag
+  // copy single snapshot of avalues to avalues_history at most_recent_index
+
+  if (historyflag) {
+    if (update->ntimestep - most_recent_step > nevery) count_history = 0;
+    most_recent_step = update->ntimestep;
+    if (count_history < nrepeat_history) count_history++;
+    most_recent_index++;
+    if (most_recent_index == nrepeat_history) most_recent_index = 0;
+
+    int nlocal = atom->nlocal;
+    if (avalues)
+      memcpy(&avalues_history[most_recent_index][0][0],&avalues[0][0],
+             nlocal*values.size()*sizeof(double));
   }
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based array
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double FixStoreState::memory_usage()
 {
-  double bytes = (double)atom->nmax*values.size() * sizeof(double);
+  double bytes = (double)atom->nmax*values.size() * sizeof(double);  // avalues
+  if (historyflag)                                                   // history
+    bytes += (double)(nrepeat_history)*atom->nmax*values.size() * sizeof(double);
   return bytes;
 }
 
 /* ----------------------------------------------------------------------
-   allocate atom-based array
+   allocate atom-based arrays
+   avalues always used, history only used if historyflag is set
 ------------------------------------------------------------------------- */
 
 void FixStoreState::grow_arrays(int nmax)
 {
   memory->grow(avalues,nmax,values.size(),"store/state:avalues");
+
   if (values.size() == 1) {
     if (nmax) vector_atom = &avalues[0][0];
     else vector_atom = nullptr;
   } else array_atom = avalues;
+
+  if (historyflag) {
+    for (int i = 0; i < nrepeat_history; i++)
+      memory->grow(avalues_history[i],nmax,values.size(),"store/state:avalues_history");
+  }
 }
 
 /* ----------------------------------------------------------------------
-   copy values within local atom-based array
+   copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
 void FixStoreState::copy_arrays(int i, int j, int /*delflag*/)
 {
-  for (std::size_t m = 0; m < values.size(); m++) avalues[j][m] = avalues[i][m];
+  if (!historyflag)
+    for (std::size_t m = 0; m < values.size(); m++) avalues[j][m] = avalues[i][m];
+
+  if (historyflag) {
+    int k = most_recent_index;
+    for (int n = 0; n < count_history; n++) {
+      for (std::size_t m = 0; m < values.size(); m++)
+        avalues_history[k][j][m] = avalues_history[k][i][m];
+      k--;
+      if (k < 0) k += nrepeat_history;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's stored values, called when atom is created
+   just set to zero, since cannot know values in the past
+   and future values will be reset along with other atoms
+------------------------------------------------------------------------- */
+
+void FixStoreState::set_arrays(int i)
+{
+  if (!historyflag)
+    for (std::size_t m = 0; m < values.size(); m++) avalues[i][m] = 0.0;
+
+  if (historyflag) {
+    for (int n = 0; n < nrepeat_history; n++) {
+      for (std::size_t m = 0; m < values.size(); m++)
+        avalues_history[n][i][m] = 0.0;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -651,8 +805,22 @@ void FixStoreState::copy_arrays(int i, int j, int /*delflag*/)
 
 int FixStoreState::pack_exchange(int i, double *buf)
 {
-  for (std::size_t m = 0; m < values.size(); m++) buf[m] = avalues[i][m];
-  return values.size();
+  if (!historyflag)
+    for (std::size_t m = 0; m < values.size(); m++) buf[m] = avalues[i][m];
+
+  if (historyflag) {
+    int m = vsize;
+    int k = most_recent_index;
+    for (int n = 0; n < count_history; n++) {
+      memcpy(&buf[m],avalues_history[k][i],vsize*sizeof(double));
+      m += vsize;
+      k--;
+      if (k < 0) k += nrepeat_history;
+    }
+  }
+
+  if (!historyflag) return values.size();
+  return count_history*values.size();
 }
 
 /* ----------------------------------------------------------------------
@@ -661,12 +829,27 @@ int FixStoreState::pack_exchange(int i, double *buf)
 
 int FixStoreState::unpack_exchange(int nlocal, double *buf)
 {
-  for (std::size_t m = 0; m < values.size(); m++) avalues[nlocal][m] = buf[m];
-  return values.size();
+  if (!historyflag)
+    for (std::size_t m = 0; m < values.size(); m++) avalues[nlocal][m] = buf[m];
+
+  if (historyflag) {
+    int m = vsize;
+    int k = most_recent_index;
+    for (int n = 0; n < count_history; n++) {
+      memcpy(avalues_history[k][nlocal],&buf[m],vsize*sizeof(double));
+      m += vsize;
+      k--;
+      if (k < 0) k += nrepeat_history;
+    }
+  }
+
+  if (!historyflag) return values.size();
+  return count_history*values.size();
 }
 
 /* ----------------------------------------------------------------------
    pack values in local atom-based arrays for restart file
+   only called when historyflag = 0
 ------------------------------------------------------------------------- */
 
 int FixStoreState::pack_restart(int i, double *buf)
@@ -679,6 +862,7 @@ int FixStoreState::pack_restart(int i, double *buf)
 
 /* ----------------------------------------------------------------------
    unpack values from atom->extra array to restart the fix
+   only called when historyflag = 0 in new fix
 ------------------------------------------------------------------------- */
 
 void FixStoreState::unpack_restart(int nlocal, int nth)
@@ -697,20 +881,70 @@ void FixStoreState::unpack_restart(int nlocal, int nth)
 
 /* ----------------------------------------------------------------------
    maxsize of any atom's restart data
+   only called when historyflag = 0
 ------------------------------------------------------------------------- */
 
 int FixStoreState::maxsize_restart()
 {
-  return values.size()+1;
+  return values.size() + 1;
 }
 
 /* ----------------------------------------------------------------------
    size of atom nlocal's restart data
+   only called when historyflag = 0
 ------------------------------------------------------------------------- */
 
 int FixStoreState::size_restart(int /*nlocal*/)
 {
-  return values.size()+1;
+  return values.size() + 1;
+}
+
+/* ----------------------------------------------------------------------
+   extract info about stored history frames
+------------------------------------------------------------------------- */
+
+void *FixStoreState::extract(const char *str, int &dim)
+{
+  // scalar history params which can be useful to caller
+
+  if (strcmp(str, "flag_history") == 0) {
+    dim = 0;
+    return &historyflag;
+  }
+  if (strcmp(str, "nattribute_history") == 0) {
+    dim = 0;
+    return &vsize;
+  }
+  if (strcmp(str, "nevery_history") == 0) {
+    dim = 0;
+    return &nevery_history;
+  }
+  if (strcmp(str, "nrepeat_history") == 0) {
+    dim = 0;
+    return &nrepeat_history;
+  }
+  if (strcmp(str, "nfreq_history") == 0) {
+    dim = 0;
+    return &nfreq_history;
+  }
+  if (strcmp(str, "count_history") == 0) {
+    dim = 0;
+    return &count_history;
+  }
+  if (strcmp(str, "most_recent_index") == 0) {
+    dim = 0;
+    return &most_recent_index;
+  }
+
+  // extract the 3d history tensor
+  // up to caller to determine if accessing tensor on valid timestep
+
+  if (strcmp(str, "history") == 0) {
+    dim = 3;
+    return avalues_history;
+  }
+
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

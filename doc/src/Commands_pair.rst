@@ -33,6 +33,8 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`body/nparticle (o) <pair_body_nparticle>`
    * :doc:`body/rounded/polygon (o) <pair_body_rounded_polygon>`
    * :doc:`body/rounded/polyhedron (o) <pair_body_rounded_polyhedron>`
+   * :doc:`bondval (k) <pair_bondval>`
+   * :doc:`bondval/vec (k) <pair_bondval>`
    * :doc:`bop <pair_bop>`
    * :doc:`born (gko) <pair_born>`
    * :doc:`born/coul/dsf (o) <pair_born>`
@@ -174,6 +176,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut/dipole/long (go) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/cut/soft (o) <pair_fep_soft>`
+   * :doc:`lj/cut/soft/gapsys <pair_fep_soft>`
    * :doc:`lj/cut/sphere (ko) <pair_lj_cut_sphere>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
    * :doc:`lj/cut/tip4p/cut (o) <pair_lj_cut_tip4p>`
@@ -301,6 +304,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`spin/neel <pair_spin_neel>`
    * :doc:`srp <pair_srp>`
    * :doc:`srp/react <pair_srp>`
+   * :doc:`surf/granular <pair_surf_granular>`
    * :doc:`sw (giko) <pair_sw>`
    * :doc:`sw/angle/table <pair_sw_angle_table>`
    * :doc:`sw/mod (o) <pair_sw>`

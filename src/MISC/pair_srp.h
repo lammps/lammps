@@ -39,6 +39,7 @@ class PairSRP : public Pair {
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
+  double memory_usage() override;
 
  protected:
   inline void onetwoexclude(int *&, int &, int *&, int *&, int **&);

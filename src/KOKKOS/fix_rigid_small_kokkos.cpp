@@ -948,18 +948,30 @@ template<class DeviceType>
 bigint FixRigidSmallKokkos<DeviceType>::dof(int tgroup)
 {
   // FixRigidSmall::dof() returns 0 before setup; otherwise it reads the per-atom
-  // atom2body (and eflags for extended particles) on the host.  On the device
-  // path a reneighbor may have left those host mirrors stale, so sync them when
-  // they will actually be read (setupflag true).  sync_host() is a no-op when
-  // the host copy is already current (e.g. the first dof() right after
-  // FixRigidSmall::setup()), so this is safe and cheap at every call site.  dof()
-  // does not read body[], so no copy_body_host() is needed here.
+  // atom2body/bodyown/bodytag (and eflags for extended particles) and atom->mask
+  // on the host, and does a DOF reverse_comm.  On the device path a reneighbor
+  // may have left those host mirrors stale, so flush them when they are actually
+  // read (setupflag true); sync_host() is a no-op when the host copy is current.
+  // dof() does not read body[], so no copy_body_host() is needed.
   if (setupflag) {
     k_atom2body.sync_host();
+    k_bodyown.sync_host();
+    k_bodytag.sync_host();
     if (extended) k_eflags.sync_host();
+    atomKK->sync(Host, MASK_MASK);
   }
 
-  return FixRigidSmall::dof(tgroup);
+  // Route the DOF reverse_comm through the host comm path: with
+  // reverse_comm_device set for the run, CommKokkos would send it to
+  // pack_reverse_comm_kokkos, which only handles FORCE_TORQUE.  Clearing the
+  // flag around the base call makes CommKokkos use CommBrick::reverse_comm and
+  // the base host packer (which handles commflag == DOF).  dof() is an
+  // infrequent diagnostic query (compute temp), so the host path is fine.
+  const int saved_reverse_comm_device = reverse_comm_device;
+  reverse_comm_device = 0;
+  bigint ndof = FixRigidSmall::dof(tgroup);
+  reverse_comm_device = saved_reverse_comm_device;
+  return ndof;
 }
 
 /* ----------------------------------------------------------------------

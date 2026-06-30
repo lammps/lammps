@@ -55,6 +55,16 @@ at the mesoscopic and macroscopic scales.  See `this document
 <PDF/PDLammps_overview.pdf>`_ for an overview of LAMMPS commands for
 Peridynamics modeling.
 
+.. note::
+
+   The :doc:`BPM package <Howto_bpm>` provides an alternative implementation of
+   these peridynamics models as :doc:`bond_style bpm/peri <bond_bpm_peri>`, with
+   the companion contact :doc:`pair_style bpm/peri <pair_bpm_peri>`.  It covers
+   the same PMB, LPS, VES, and EPS material models recast on the BPM framework
+   and is significantly faster than the *peri* pair styles documented here.  See
+   the :doc:`Peridynamics Howto <Howto_peri>` for a side-by-side comparison,
+   per-model timings, and guidance on choosing between the two implementations.
+
 Style *peri/pmb* implements the Peridynamic bond-based prototype
 microelastic brittle (PMB) model.
 

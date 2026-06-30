@@ -426,7 +426,7 @@ void BondBPMPeri::compute(int eflag, int vflag)
           // physics; see the detailed dimensional derivation in
           // src/PERI/pair_peri_eps.cpp (PairPeriEPS::compute).  The two agree in
           // the interior and differ only by a bounded factor at free surfaces;
-          // unifying them on this exact form is a tracked follow-up pending
+          // unifying them on this exact form is tracked as issue #5064, pending
           // review by a peridynamics expert.
           edp_new = edp + (dev - edp) * (1.0 - radial);
         }

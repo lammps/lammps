@@ -1241,11 +1241,19 @@ natoms, double vol, double b2)
   double rg6 = rg4*rg2;
   double Cc = 4.0*rg4 + 6.0*rg2 + 3.0;
   double Dc = 8.0*rg6 + 20.0*rg4 + 30.0*rg2 + 15.0;
-  double f = (b2/(sqrt(vol*powint(x,4)*powint(Rc,9)*natoms)) *
+  double df_rspace = (b2/(sqrt(vol*powint(x,4)*powint(Rc,9)*natoms)) *
     sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) *
-    exp(-rg2)) - accuracy;
+    exp(-rg2));
 
-  return f;
+  // add charge-charge rspace error in quadrature
+  // for consistency with newton_raphson_f() and compute_df_kspace_dipole()
+
+  if (q2 != 0.0) {
+    double df_rspace_q = 2.0*q2*exp(-rg2)/sqrt((double)natoms*Rc*vol);
+    df_rspace = sqrt(df_rspace*df_rspace + df_rspace_q*df_rspace_q);
+  }
+
+  return df_rspace - accuracy;
 }
 
 /* ----------------------------------------------------------------------

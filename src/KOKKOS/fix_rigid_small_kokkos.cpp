@@ -274,6 +274,30 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
 
   atomKK->modified(Host, datamask_modify);
   atomKK->sync(execution_space, datamask_read);
+
+  // The host body arrays just (re)written above are authoritative until setup()
+  // pushes them to the device, but the ctor's setup-time exchange left these
+  // DualViews device-modified with placeholder data.  ModifyKokkos::setup() runs
+  // compute temp -> dof() (which sync_host()s them) BEFORE the fix setup() loop;
+  // without clearing that stale flag dof() pulls the placeholder over the good
+  // host arrays and segfaults.  Clear it and re-mark host-modified now (no-op when
+  // host space == device space; setup_device_push() repeats this and pushes).
+  k_bodyown.clear_sync_state();
+  k_bodytag.clear_sync_state();
+  k_atom2body.clear_sync_state();
+  k_xcmimage.clear_sync_state();
+  k_displace.clear_sync_state();
+  k_bodyown.modify_host();
+  k_bodytag.modify_host();
+  k_atom2body.modify_host();
+  k_xcmimage.modify_host();
+  k_displace.modify_host();
+  if (extended) {
+    k_eflags.clear_sync_state();
+    k_eflags.modify_host();
+    if (orientflag) { k_orient.clear_sync_state(); k_orient.modify_host(); }
+    if (dorientflag) { k_dorient.clear_sync_state(); k_dorient.modify_host(); }
+  }
 }
 
 /* ----------------------------------------------------------------------

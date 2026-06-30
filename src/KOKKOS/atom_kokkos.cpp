@@ -212,9 +212,8 @@ void *AtomKokkos::extract(const char *name)
     // data mask:
     //   i_  -> ivector (IVECTOR_MASK)    d_  -> dvector (DVECTOR_MASK)
     //   i2_ -> iarray  (IARRAY_MASK)     d2_ -> darray  (DARRAY_MASK)
-    // only dvector is currently device-resident, so the other three syncs are
-    // no-ops until that data is ported to the device; using all four masks here
-    // means extract() needs no change once it is.
+    // all four custom data types are device-resident, so each sync pulls the
+    // requested property back to the host before extract() returns it.
     const bool dbl = (name[0] == 'd');
     const bool arr = (name[1] == '2');
     uint64_t cmask;
@@ -476,9 +475,10 @@ void AtomKokkos::remove_custom(int index, int flag, int cols)
 {
   // the per-atom data is Kokkos-managed (k_ivector/k_dvector are contiguous, and
   // k_iarray/k_darray are views-of-views), so do NOT memory->destroy() it here --
-  // that would free pointers that alias into a Kokkos view.  Just drop the legacy
-  // alias (ivector/dvector) or free the row-pointer array via destroy_kokkos
-  // (iarray/darray); the view data is released when the Atom is destroyed.
+  // that would free pointers that alias into a Kokkos view.  For ivector/dvector
+  // the data lives in a shared contiguous view and cannot be freed per index, so
+  // just drop the legacy alias; for iarray/darray we free both the row-pointer
+  // array and the inner DualView's host+device storage.
 
   if (flag == 0 && cols == 0) {
     ivector[index] = nullptr;
@@ -491,13 +491,22 @@ void AtomKokkos::remove_custom(int index, int flag, int cols)
     dvname[index] = nullptr;
 
   } else if (flag == 0 && cols) {
+    // destroy_kokkos receives the inner view by value, so it only frees the
+    // row-pointer array; reset the stored inner DualView to release its
+    // host+device data, then push the emptied slot to the device-side view
     memoryKK->destroy_kokkos(k_iarray.view_host()[index].k_view, iarray[index]);
+    k_iarray.view_host()[index].k_view = DAT::tdual_int_2d_lr();
+    k_iarray.modify_host();
+    k_iarray.sync_device();
     iarray[index] = nullptr;
     delete[] ianame[index];
     ianame[index] = nullptr;
 
   } else if (flag == 1 && cols) {
     memoryKK->destroy_kokkos(k_darray.view_host()[index].k_view, darray[index]);
+    k_darray.view_host()[index].k_view = DAT::tdual_double_2d_lr();
+    k_darray.modify_host();
+    k_darray.sync_device();
     darray[index] = nullptr;
     delete[] daname[index];
     daname[index] = nullptr;

@@ -87,6 +87,17 @@ FixPropertyAtomKokkos::~FixPropertyAtomKokkos()
 
 void FixPropertyAtomKokkos::grow_arrays(int nmax)
 {
+  // ivector is one shared contiguous 2D view holding all custom int vectors,
+  // so grow it once here rather than re-growing the whole view once per IVEC
+  // value inside the loop below
+  if (ivector_flag) {
+    atomKK->sync(Device,IVECTOR_MASK);
+    atomKK->modified(Device,IVECTOR_MASK);
+    memoryKK->grow_kokkos(atomKK->k_ivector,atom->ivector,atomKK->k_ivector.extent(0),nmax,
+                        "atom:ivector");
+    atomKK->sync(Host,IVECTOR_MASK);
+  }
+
   for (int nv = 0; nv < nvalue; nv++) {
     if (styles[nv] == MOLECULE) {
       atomKK->sync(Device,MOLECULE_MASK);
@@ -112,12 +123,8 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
       size_t nbytes = (nmax - nmax_old) * sizeof(double);
       memset(&atom->heatflow[nmax_old], 0, nbytes);
     } else if (styles[nv] == IVEC) {
-      // width-1: single contiguous 2D view, grown like k_dvector
-      atomKK->sync(Device,IVECTOR_MASK);
-      atomKK->modified(Device,IVECTOR_MASK);
-      memoryKK->grow_kokkos(atomKK->k_ivector,atom->ivector,atomKK->k_ivector.extent(0),nmax,
-                          "atom:ivector");
-      atomKK->sync(Host,IVECTOR_MASK);
+      // storage was grown once above (shared contiguous k_ivector); just zero
+      // this vector's newly added tail
       size_t nbytes = (nmax-nmax_old) * sizeof(int);
       memset(&atom->ivector[index[nv]][nmax_old],0,nbytes);
     } else if (styles[nv] == DVEC) {
@@ -127,12 +134,20 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
                           "atom:dvector");
       atomKK->sync(Host,DVECTOR_MASK);
     } else if (styles[nv] == IARRAY) {
-      // ragged cols: grow this property's inner DualView in the view-of-views
+      // ragged cols: grow this property's inner DualView in the view-of-views,
+      // using the same device/host sync handshake as the DVEC branch so a grow
+      // that follows a device-side modification does not lose data
       int idx = index[nv];
       auto& inner = atomKK->k_iarray.view_host()[idx].k_view;
+      inner.sync_device();
+      inner.modify_device();
       memoryKK->grow_kokkos(inner, atom->iarray[idx], nmax, cols[nv], "atom:iarray");
+      inner.sync_host();
       size_t nbytes = (size_t) (nmax - nmax_old) * cols[nv] * sizeof(int);
-      if (nbytes) memset(&atom->iarray[idx][nmax_old][0], 0, nbytes);
+      if (nbytes) {
+        memset(&atom->iarray[idx][nmax_old][0], 0, nbytes);
+        inner.modify_host();   // the memset wrote host; mark it so it reaches device
+      }
       // re-sync the outer struct array: growing the inner view changed its
       // device pointer, which the device-side view-of-views must see
       atomKK->k_iarray.modify_host();
@@ -140,9 +155,15 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
     } else if (styles[nv] == DARRAY) {
       int idx = index[nv];
       auto& inner = atomKK->k_darray.view_host()[idx].k_view;
+      inner.sync_device();
+      inner.modify_device();
       memoryKK->grow_kokkos(inner, atom->darray[idx], nmax, cols[nv], "atom:darray");
+      inner.sync_host();
       size_t nbytes = (size_t) (nmax - nmax_old) * cols[nv] * sizeof(double);
-      if (nbytes) memset(&atom->darray[idx][nmax_old][0], 0, nbytes);
+      if (nbytes) {
+        memset(&atom->darray[idx][nmax_old][0], 0, nbytes);
+        inner.modify_host();
+      }
       atomKK->k_darray.modify_host();
       atomKK->k_darray.sync_device();
     }

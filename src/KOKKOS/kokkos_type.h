@@ -1131,7 +1131,12 @@ struct TransformView {
 
   bool need_sync_device()
   {
-    return (k_view.need_sync_device() || modified_legacy_device);
+    // Under SINGLE_DEVICE the DualView edge is inert and modify_host() records
+    // legacy->device staleness on the HostKK<->Host edge (modified_legacy_hostkk),
+    // so it must be consulted here to stay consistent with need_sync_host() and
+    // with sync_device()'s own SINGLE_DEVICE delegation to sync_hostkk().
+    return (k_view.need_sync_device() || modified_legacy_device ||
+            (SINGLE_DEVICE && modified_legacy_hostkk));
   }
 
   bool need_sync_host()

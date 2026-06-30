@@ -342,3 +342,10 @@ void *FixTempCSLD::extract(const char *str, int &dim)
   }
   return nullptr;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixTempCSLD::memory_usage()
+{
+  return (double) nmax * 3 * sizeof(double);    // vhold[nmax][3]
+}

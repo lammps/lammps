@@ -80,6 +80,7 @@ PACKAGE = \
 	fep \
 	graphics \
 	granular \
+	gransurf \
 	intel \
 	interlayer \
 	latboltz \
@@ -153,6 +154,7 @@ PACKMOST = \
 	fep \
 	graphics \
 	granular \
+	gransurf \
 	interlayer \
 	manybody \
 	mc \
@@ -457,12 +459,6 @@ check-docs:
 
 check-version:
 	$(PYTHON) ../tools/coding_standard/versiontags.py .. || echo
-
-format-src:
-	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h
-
-format-tests:
-	clang-format -i --verbose --style=file ../unittest/*/*.cpp ../unittest/*/*.h
 
 # Package management
 

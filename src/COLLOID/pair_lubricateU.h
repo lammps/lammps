@@ -39,6 +39,7 @@ class PairLubricateU : public Pair {
   void read_restart_settings(FILE *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  protected:
   double cut_inner_global, cut_global;

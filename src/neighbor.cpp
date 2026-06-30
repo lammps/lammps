@@ -206,6 +206,7 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
 
   // Multi data
 
+  bin_hash = 0;
   type2collection = nullptr;
   collection2cut = nullptr;
   collection = nullptr;
@@ -1297,11 +1298,12 @@ void Neighbor::morph_skip()
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
-      // NOTE: need check for 2 Kokkos flags?
+      // no need to check for history flag
+      //   it does not affect what pairs are stored in neigh list
+      // NOTE: need to check for 2 Kokkos flags ?
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
-      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
       if (irq->intel != jrq->intel) continue;
@@ -1318,12 +1320,12 @@ void Neighbor::morph_skip()
     // else create a new identical list except non-skip
     // for new list, set neigh = 1, skip = 0, no skip vec/array,
     //   copy unique flag (since copy_request() will not do it)
-    // note: parents of skip lists do not have associated history
-    //   b/c child skip lists have the associated history
+    // ensure parent history flag is set if any child sets history flag
 
     if (jj < nrequest) {
       irq->skiplist = j;
       irq->trim = trim_flag;
+      if (irq->history) jrq->history = 1;
     } else {
       int newrequest = request(this, -1);
       irq->skiplist = newrequest;
@@ -1333,6 +1335,7 @@ void Neighbor::morph_skip()
       nrq->pair = nrq->fix = nrq->compute = nrq->command = 0;
       nrq->neigh = 1;
       nrq->skip = 0;
+      if (irq->history) nrq->history = 1;
       if (irq->unique) nrq->unique = 1;
 
       sort_requests();
@@ -1388,8 +1391,8 @@ void Neighbor::morph_granular()
     // force parent newton off (newton = 2) to enable onesided skip by child
     // set parent granonesided = 0, so it stores all neighs in usual manner
     // set off2on = 1 for all children, since they expect newton on lists
-    //   this is b/c granonesided only set by line/gran and tri/gran which
-    //   both require system newton on
+    //   this is b/c granonesided is currently only set by line/tri gran
+    //   both of those pair styles require newton on
 
     if (onesided == 2) {
       irq->newton = 2;
@@ -1461,10 +1464,12 @@ void Neighbor::morph_halffull()
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
+      // no need to check for history flag
+      //   it does not affect what pairs are stored in neigh list
+      // NOTE: need to check for 2 Kokkos flags ?
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
-      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
       if (irq->intel != jrq->intel) continue;
@@ -1574,11 +1579,13 @@ void Neighbor::morph_copy_trim()
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
-      // no need to check omp b/c it stores same pairs
-      // NOTE: need check for 2 Kokkos flags?
+      // ghost flag logic was checked above
+      // no need to check for history flag
+      //   it does not affect what pairs are stored in neigh list
+      // no need to check for omp flag b/c it stores same pairs
+      // NOTE: need to check for 2 Kokkos flags ?
 
       if (irq->size != jrq->size) continue;
-      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->intel != jrq->intel) continue;
       if (irq->kokkos_host && !jrq->kokkos_host) continue;
@@ -2157,12 +2164,12 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
   int molecular = atom->molecular;
 
-  //printf("PAIR RQ FLAGS: hf %d %d n %d g %d sz %d gos %d r %d b %d o %d i %d "
-  //       "kk %d %d ss %d dn %d sk %d cp %d hf %d oo %d\n",
-  //        rq->half,rq->full,rq->newton,rq->ghost,rq->size,
-  //        rq->granonesided,rq->respaouter,rq->bond,rq->omp,rq->intel,
-  //       rq->kokkos_host,rq->kokkos_device,rq->ssa,rq->dnum,
-  //      rq->skip,rq->copy,rq->halffull,rq->off2on);
+  //printf("PAIR RQ FLAGS: hf %d %d nw %d gh %d sz %d gos %d ro %d bn %d om %d in %d "
+  //       "kk %d %d ss %d sk %d cp %d hf %d o2o %d\n",
+  //       rq->half,rq->full,rq->newton,rq->ghost,rq->size,
+  //       rq->granonesided,rq->respaouter,rq->bond,rq->omp,rq->intel,
+  //       rq->kokkos_host,rq->kokkos_device,rq->ssa,
+  //       rq->skip,rq->copy,rq->halffull,rq->off2on);
 
   // use request and system settings to match exactly one NPair class mask
   // checks are bitwise using NeighConst bit masks
@@ -2903,6 +2910,12 @@ void Neighbor::modify_params(int narg, char **arg)
       }
 
       iarg += 2 + ncollections;
+    } else if (strcmp(arg[iarg],"bin/hash") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "neigh_modify bin/hash", error);
+      bin_hash = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      if (style != Neighbor::MULTI && bin_hash)
+        error->all(FLERR, iarg, "Cannot use bin/hash command without multi setting");
+      iarg += 2;
     } else error->all(FLERR, iarg, "Unknown neigh_modify keyword: {}", arg[iarg]);
   }
 }

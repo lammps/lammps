@@ -84,6 +84,14 @@ class PairExp6rx : public Pair {
   double *coeffAlpha, *coeffEps, *coeffRm;
   bool fractionalWeighting;
 
+  int nmax_exp6;
+  double *exp6_epsilon1, *exp6_alpha1, *exp6_rm1, *exp6_mixWtSite1;
+  double *exp6_epsilon2, *exp6_alpha2, *exp6_rm2, *exp6_mixWtSite2;
+  double *exp6_epsilonOld1, *exp6_alphaOld1, *exp6_rmOld1, *exp6_mixWtSite1old;
+  double *exp6_epsilonOld2, *exp6_alphaOld2, *exp6_rmOld2, *exp6_mixWtSite2old;
+
+  double memory_usage() override;
+
   [[nodiscard]] double func_rin(const double &) const;
   [[nodiscard]] double expValue(const double) const;
 };

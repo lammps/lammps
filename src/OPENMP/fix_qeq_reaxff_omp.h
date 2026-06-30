@@ -43,6 +43,7 @@ class FixQEqReaxFFOMP : public FixQEqReaxFF {
   double aspc_omega;
   double *aspc_b;
 
+  double memory_usage() override;
   void allocate_storage() override;
   void deallocate_storage() override;
   void init_matvec() override;

@@ -719,6 +719,17 @@ int MinSpinLBFGS::adescent(double phi_0, double phi_j) {
     return 0;
 }
 
+double MinSpinLBFGS::memory_usage()
+{
+  double bytes = (double) 3 * nlocal_max * 3 * sizeof(double);     // g_old + g_cur + p_s [3*nlocal_max]
+  bytes += (double) num_mem * 2 * 3 * nlocal_max * sizeof(double); // ds + dy [num_mem][3*nlocal_max]
+  bytes += (double) num_mem * sizeof(double);                       // rho[num_mem]
+  if (sp_copy) bytes += (double) nlocal_max * 3 * sizeof(double);  // sp_copy[nlocal_max][3]
+  return bytes;
+}
+
+/* ---------------------------------------------------------------------- */
+
 double MinSpinLBFGS::maximum_rotation(double *p)
 {
   double norm2,norm2_global,scaling,alpha;

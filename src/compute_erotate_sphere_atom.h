@@ -32,7 +32,7 @@ class ComputeErotateSphereAtom : public Compute {
   void compute_peratom() override;
   double memory_usage() override;
 
- private:
+ protected:
   int nmax;
   double pfactor;
   double *erot;

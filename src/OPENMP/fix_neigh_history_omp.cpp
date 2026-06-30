@@ -46,18 +46,11 @@ FixNeighHistoryOMP::FixNeighHistoryOMP(class LAMMPS *lmp, int narg, char **argv)
    called during run before atom exchanges, including for restart files
    called at end of run via post_run()
    do not call during setup of run (setup_pre_exchange)
-     b/c there is no guarantee of a current NDS (even on continued run)
+     because there is no guarantee of a current NDS (even on continued run)
    if run command does a 2nd run with pre = no, then no neigh list
      will be built, but old neigh list will still have the info
    onesided and newton on and newton off versions
 ------------------------------------------------------------------------- */
-// below is the pre_exchange() function from the parent class
-// void FixNeighHistory::pre_exchange()
-// {
-//  if (onesided) pre_exchange_onesided();
-//  else if (newton_pair) pre_exchange_newton();
-//  else pre_exchange_no_newton();
-//}
 
 /* ----------------------------------------------------------------------
    onesided version for sphere contact with line/tri particles
@@ -111,7 +104,14 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
     for (i = lfrom; i < lto; i++) npartner[i] = 0;
 
     tagint *tag = atom->tag;
-    NeighList *list = pair->list;
+    NeighList *list;
+    if (surface_global) {
+      if (!otherlist)
+        error->all(FLERR, "Cannot find fix surface/global neighbor list");
+      list = otherlist;
+    } else {
+      list = pair->list;
+    }
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
@@ -162,7 +162,10 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
 
           if ((i >= lfrom) && (i < lto)) {
             m = npartner[i]++;
-            partner[i][m] = tag[j];
+            if (surface_global)
+              partner[i][m] = j;
+            else
+              partner[i][m] = tag[j];
             memcpy(&valuepartner[i][dnum * m], onevalues, dnumbytes);
           }
         }
@@ -544,7 +547,11 @@ void FixNeighHistoryOMP::post_neighbor()
 
     tagint *tag = atom->tag;
 
-    NeighList *list = pair->list;
+    NeighList *list;
+    if (surface_global)
+      list = otherlist;
+    else
+      list = pair->list;
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
@@ -567,18 +574,30 @@ void FixNeighHistoryOMP::post_neighbor()
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        rflag = histmask(j);
+        if (use_bit_flag && !surface_global) {
+          rflag = histmask(j) | pair->beyond_contact;
+          j &= HISTMASK;
+          jlist[jj] = j;
+        } else {
+          rflag = 1;
+        }
+
+        // Remove special bond bits
         j &= NEIGHMASK;
-        jlist[jj] = j;
 
         // rflag = 1 if r < radsum in npair_size() method
         // preserve neigh history info if tag[j] is in old-neigh partner list
         // this test could be more geometrically precise for two sphere/line/tri
 
         if (rflag) {
-          jtag = tag[j];
-          for (m = 0; m < np; m++)
-            if (partner[i][m] == jtag) break;
+          if (surface_global) {
+            for (m = 0; m < np; m++)
+              if (partner[i][m] == j) break;
+          } else {
+            jtag = tag[j];
+            for (m = 0; m < np; m++)
+              if (partner[i][m] == jtag) break;
+          }
           if (m < np) {
             allflags[jj] = 1;
             memcpy(&allvalues[nn], &valuepartner[i][dnum * m], dnumbytes);

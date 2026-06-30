@@ -70,9 +70,10 @@ if(DOWNLOAD_RUNNER)
 
   ExternalProject_Add(runner_build
     GIT_REPOSITORY "https://gitlab.com/runner-suite/runner2.git"
-    GIT_TAG "2.0.2_20260521"
+    GIT_TAG "2.0.3_20260528"
     GIT_SHALLOW YES
     GIT_PROGRESS YES
+    PATCH_COMMAND patch -b -p1 < ${LAMMPS_DIR}/cmake/patches/runner-cmake.patch
 
     # Pass CMake arguments to RuNNer's build system
     CMAKE_ARGS

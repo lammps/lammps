@@ -1035,6 +1035,29 @@ double PairTable::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
      no way to know which tables are active since pair::init() not yet called
 ------------------------------------------------------------------------- */
 
+double PairTable::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  for (int m = 0; m < ntables; m++) {
+    const Table *tb = &tables[m];
+    // input file data (rfile, efile, ffile, e2file, f2file)
+    bytes += (double) tb->ninput * 3 * sizeof(double);
+    if (tabstyle == SPLINE) bytes += (double) tb->ninput * 2 * sizeof(double);
+    // tabulated lookup arrays
+    if (tb->rsq) bytes += (double) tablength * sizeof(double);    // rsq
+    if (tb->e) bytes += (double) tablength * sizeof(double);      // e
+    if (tb->f) bytes += (double) tablength * sizeof(double);      // f
+    if (tb->de) bytes += (double) (tablength - 1) * sizeof(double);
+    if (tb->df) bytes += (double) (tablength - 1) * sizeof(double);
+    if (tb->drsq) bytes += (double) tablength * sizeof(double);   // BITMAP
+    if (tb->e2) bytes += (double) tablength * sizeof(double);
+    if (tb->f2) bytes += (double) tablength * sizeof(double);
+  }
+  return bytes;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void *PairTable::extract(const char *str, int &dim)
 {
   if (strcmp(str, "cut_coul") != 0) return nullptr;

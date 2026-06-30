@@ -1095,6 +1095,7 @@ double FixQBMSST::memory_usage()
   // fran memory usage
   bytes += (double)(atom->nmax* 3 * sizeof(double));
   bytes += (double)(4*N_f * sizeof(double));
+  bytes += (double) atoms_allocated * 3 * sizeof(double);    // old_velocity[atoms_allocated][3]
   return bytes;
 }
 

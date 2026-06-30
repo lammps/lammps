@@ -26,7 +26,7 @@ FixStyle(rigid/nph/small/kk/host,FixRigidNPHSmallKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
+template <class DeviceType>
 class FixRigidNPHSmallKokkos : public FixRigidNHSmallKokkos<DeviceType> {
  public:
   FixRigidNPHSmallKokkos(class LAMMPS *, int, char **);

@@ -52,7 +52,11 @@ using namespace RigidConst;
 template<class DeviceType>
 FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixRigidSmall(lmp, narg, arg),
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool(12345 + comm->me, lmp)
+#else
   rand_pool(12345 + comm->me)
+#endif
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -110,6 +114,15 @@ FixRigidSmallKokkos<DeviceType>::~FixRigidSmallKokkos()
   memoryKK->destroy_kokkos(k_xcmimage, xcmimage);
   memoryKK->destroy_kokkos(k_displace, displace);
   memoryKK->destroy_kokkos(k_vatom, vatom);
+  if (extended) {
+    memoryKK->destroy_kokkos(k_eflags, eflags);
+    if (orientflag) memoryKK->destroy_kokkos(k_orient, orient);
+    if (dorientflag) memoryKK->destroy_kokkos(k_dorient, dorient);
+  }
+
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  if (langflag) rand_pool.destroy();
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -121,25 +134,28 @@ void FixRigidSmallKokkos<DeviceType>::init()
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot yet use respa with Kokkos");
 
-  // seed the device Langevin RNG from the host RNG (which carries the user's
-  // langevin seed) so results are reproducible for a given input
+  // 2d is not supported: the base setup()/final_integrate() call enforce2d()
+  // virtually, which dispatches to the device kk version operating on d_body
+  // before it is populated from the host, leaving the host body's 2d
+  // components un-zeroed for the host set_v.  Error rather than run silently
+  // wrong until the 2d path is validated.
+  if (domain->dimension == 2)
+    error->all(FLERR,"fix rigid/small/kk does not yet support 2d systems");
+
+  // set up the Langevin RNG pool
   if (langflag && random) {
+#ifdef LMP_KOKKOS_DEBUG_RNG
+    // validation build: wrap the base-class host RanMars (random_thr[0] = random)
+    // so a Serial single-thread run draws the identical stream, in the identical
+    // per-body order, as the non-Kokkos apply_langevin_thermostat().  Do not draw
+    // from random here -- that would desync the stream from the non-Kokkos style.
+    rand_pool.init(random, 12345 + comm->me);
+#else
+    // production build: seed the on-device XorShift pool from the host RNG (which
+    // carries the user's langevin seed) so results are reproducible per input.
     int s = (int)(random->uniform() * 900000000.0) + 1;
     rand_pool = Kokkos::Random_XorShift64_Pool<DeviceType>(s + comm->me);
-  }
-
-  // warn about functionality that has not been thoroughly validated on device
-  if (comm->me == 0) {
-    if (langflag && comm->nprocs > 1)
-      error->warning(FLERR,"fix rigid/small/kk: the Langevin thermostat is "
-                     "experimental with Kokkos and may be unstable with MPI "
-                     "domain decomposition (np>1); validate against the "
-                     "non-Kokkos style");
-    if (inpfile)
-      error->warning(FLERR,"fix rigid/small/kk: reading body properties from a "
-                     "file (infile) is experimental with Kokkos");
-    if (id_gravity)
-      error->warning(FLERR,"fix rigid/small/kk: gravity is not supported with Kokkos");
+#endif
   }
 }
 
@@ -223,6 +239,16 @@ void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
 
   atomKK->modified(Host, datamask_modify);
 
+  // The base class did its work through the legacy (double) host atom arrays, so
+  // the modified() above marks the legacy host of the atom:x/v TransformViews.
+  // In a mixed/single-precision build the legacy and Kokkos host views differ;
+  // reconcile by syncing the just-modified arrays into the fix's execution_space
+  // (Kokkos host or device), which copies legacy->Kokkos and clears the legacy
+  // modify flag.  Without this, ModifyKokkos::setup() then marks the Kokkos host
+  // modified while the legacy host is still flagged, tripping the TransformView
+  // concurrent-modification guard.  No-op in a full-double build (no transform).
+  atomKK->sync(execution_space, datamask_modify);
+
   setup_device_push();
 }
 
@@ -251,6 +277,63 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
   k_displace.template sync<DeviceType>();
   k_vatom.template sync<DeviceType>();
   refresh_atom_views();
+
+  // extended-particle arrays: setup_bodies_static() filled eflags/orient/dorient
+  // on the host; push them to the device (they then migrate in the device
+  // exchange) and size the exchange payload to carry them.
+  extended_per_atom = 0;
+  if (extended) {
+    // The device set_xv/set_v kernels handle finite spheres, ellipsoids and
+    // point dipoles.  Line and triangle particles (and a per-atom-quaternion
+    // atom_style) are not handled, so error rather than silently skipping their
+    // per-particle orientation update.  eflags was filled on the host by
+    // setup_bodies_static().
+    int has_line = 0, has_tri = 0;
+    for (int i = 0; i < atom->nlocal; i++) {
+      if (eflags[i] & LINE) has_line = 1;
+      if (eflags[i] & TRIANGLE) has_tri = 1;
+    }
+    int loc[2] = {has_line, has_tri}, glob[2];
+    MPI_Allreduce(loc, glob, 2, MPI_INT, MPI_MAX, world);
+    if (glob[0])
+      error->all(FLERR, "fix rigid/small/kk does not yet support line particles "
+                 "in rigid bodies");
+    if (glob[1])
+      error->all(FLERR, "fix rigid/small/kk does not yet support triangle "
+                 "particles in rigid bodies");
+    if (atom->quat_flag)
+      error->all(FLERR, "fix rigid/small/kk does not yet support a per-atom "
+                 "quaternion (atom_style storing quat) in rigid bodies");
+    if (atom->ellipsoid_flag &&
+        dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid")) == nullptr)
+      error->all(FLERR, "fix rigid/small/kk requires the Kokkos ellipsoid atom "
+                 "style; run with the '-sf kk' suffix");
+
+    k_eflags.modify_host();
+    k_eflags.template sync<DeviceType>();
+    d_eflags = k_eflags.template view<DeviceType>();
+    extended_per_atom = 1;                      // eflags
+    if (orientflag) {
+      k_orient.modify_host();
+      k_orient.template sync<DeviceType>();
+      d_orient = k_orient.template view<DeviceType>();
+      extended_per_atom += orientflag;          // orient cols
+    }
+    if (dorientflag) {
+      k_dorient.modify_host();
+      k_dorient.template sync<DeviceType>();
+      d_dorient = k_dorient.template view<DeviceType>();
+      extended_per_atom += 3;                    // dorient cols
+    }
+    // each migrating body atom now also carries extended_per_atom doubles
+    maxexchange = 1 + 12 + extended_per_atom + bodysize;
+
+    // per-step set_xv/set_v writes these atom-style views for extended particles
+    extended_datamask = 0;
+    if (atom->omega_flag)  extended_datamask |= OMEGA_MASK;
+    if (atom->angmom_flag) extended_datamask |= ANGMOM_MASK;
+    if (atom->mu_flag)     extended_datamask |= MU_MASK;
+  }
 
   // size the body DualView and push host body[] to device
   k_body.sync_host();
@@ -294,6 +377,26 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
       error->all(FLERR, "fix rigid/small/kk requires Kokkos atom exchange and sorting "
                  "to run on the same side; use matching settings, e.g. "
                  "'-pk kokkos comm device sort device' or the defaults");
+  }
+
+  // The setup-time atom sort permutes the per-atom arrays (bodyown/bodytag) to
+  // follow the atoms, but the body array is not permuted, so each body's ilocal
+  // (its owner's local atom index) is left pointing at the pre-sort ordering.
+  // d_bodyown stays correct, but the device exchange body-compaction relies on
+  // body.ilocal to find a moved body's owner, so rebuild ilocal from the
+  // authoritative per-atom bodyown here.  pack/unpack/sort_kokkos keep it
+  // consistent thereafter.
+  {
+    auto d_body_l = k_body.view_device();
+    auto d_bodyown_l = this->d_bodyown;
+    int nlocal = atom->nlocal;
+    Kokkos::parallel_for(
+      "fix rigid/small rebuild body ilocal",
+      Range1D(0, nlocal),
+      KOKKOS_LAMBDA(const int i){
+        if (d_bodyown_l(i) >= 0) d_body_l(d_bodyown_l(i)).ilocal = i;
+      }
+    );
   }
 
   // pre_neighbor isn't called again until necessary during the run,
@@ -340,6 +443,12 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
     k_xcmimage.template sync<DeviceType>();
     k_displace.template sync<DeviceType>();
     k_vatom.template sync<DeviceType>();
+    if (extended) {                 // base-class host exchange updated eflags/...
+      k_eflags.modify_host();
+      k_eflags.template sync<DeviceType>();
+      if (orientflag) { k_orient.modify_host(); k_orient.template sync<DeviceType>(); }
+      if (dorientflag) { k_dorient.modify_host(); k_dorient.template sync<DeviceType>(); }
+    }
     refresh_atom_views();
     copy_body_device();  // push host body[] → d_body
   } else {
@@ -354,6 +463,11 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
     k_xcmimage.template modify<DeviceType>();
     k_displace.template modify<DeviceType>();
     k_vatom.template modify<DeviceType>();
+    if (extended) {
+      k_eflags.template modify<DeviceType>();
+      if (orientflag) k_orient.template modify<DeviceType>();
+      if (dorientflag) k_dorient.template modify<DeviceType>();
+    }
     refresh_atom_views();
     // d_body is already the correct device view; no copy needed
     d_body = k_body.view_device();
@@ -500,10 +614,20 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagInitialIntegrate, const int 
   // returns new normalized quaternion, also updated omega at 1/2 step
   // update ex,ey,ez to reflect new quaternion
 
-  MathExtraKokkos::angmom_to_omega(b.angmom,b.ex_space,b.ey_space,
-                              b.ez_space,b.inertia,b.omega);
-  MathExtraKokkos::richardson(b.quat,b.angmom,b.omega,b.inertia,dtq);
-  MathExtraKokkos::q_to_exyz(b.quat,b.ex_space,b.ey_space,b.ez_space);
+  // rotational quantities computed in KK_FLOAT; the quaternion stays double
+  KK_FLOAT angmom[3] = {(KK_FLOAT)b.angmom[0],(KK_FLOAT)b.angmom[1],(KK_FLOAT)b.angmom[2]};
+  KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+  KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+  KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+  KK_FLOAT inertia[3] = {(KK_FLOAT)b.inertia[0],(KK_FLOAT)b.inertia[1],(KK_FLOAT)b.inertia[2]};
+  KK_FLOAT omega[3];
+  MathExtraKokkos::angmom_to_omega(angmom,ex,ey,ez,inertia,omega);
+  MathExtraKokkos::richardson(b.quat,angmom,omega,inertia,dtq);
+  MathExtraKokkos::q_to_exyz(b.quat,ex,ey,ez);
+  b.ex_space[0]=ex[0]; b.ex_space[1]=ex[1]; b.ex_space[2]=ex[2];
+  b.ey_space[0]=ey[0]; b.ey_space[1]=ey[1]; b.ey_space[2]=ey[2];
+  b.ez_space[0]=ez[0]; b.ez_space[1]=ez[1]; b.ez_space[2]=ez[2];
+  b.omega[0]=omega[0]; b.omega[1]=omega[1]; b.omega[2]=omega[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -548,16 +672,21 @@ void FixRigidSmallKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
       gamma2 = tsqrt * sqrt(24.0*boltz/tp/dt/mvv2e) / ftm2v;
 
       // convert omega from space frame to body frame, compute body-frame torque
+      // (rotational quantities in KK_FLOAT)
 
-      double wbody[3], tbody[3], lang[3];
-      MathExtraKokkos::transpose_matvec(b.ex_space,b.ey_space,b.ez_space,b.omega,wbody);
+      KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+      KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+      KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+      KK_FLOAT omega[3] = {(KK_FLOAT)b.omega[0],(KK_FLOAT)b.omega[1],(KK_FLOAT)b.omega[2]};
+      KK_FLOAT wbody[3], tbody[3], lang[3];
+      MathExtraKokkos::transpose_matvec(ex,ey,ez,omega,wbody);
       tbody[0] = b.inertia[0]*gamma1*wbody[0] + sqrt(b.inertia[0])*gamma2*(rand_gen.drand()-0.5);
       tbody[1] = b.inertia[1]*gamma1*wbody[1] + sqrt(b.inertia[1])*gamma2*(rand_gen.drand()-0.5);
       tbody[2] = b.inertia[2]*gamma1*wbody[2] + sqrt(b.inertia[2])*gamma2*(rand_gen.drand()-0.5);
 
       // convert langevin torque from body frame back to space frame
 
-      MathExtraKokkos::matvec(b.ex_space,b.ey_space,b.ez_space,tbody,lang);
+      MathExtraKokkos::matvec(ex,ey,ez,tbody,lang);
       l_d_langextra(ibody,3) = lang[0];
       l_d_langextra(ibody,4) = lang[1];
       l_d_langextra(ibody,5) = lang[2];
@@ -629,6 +758,17 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
 
   auto d_body = this->d_body;
 
+  // extended particles that carry their own torque (sphere/ellipsoid/line/tri)
+  // contribute it to the body torque; fetch atom torque + eflags on device
+  const bool ext_torque = extended;
+  if (ext_torque) {
+    atomKK->sync(execution_space, TORQUE_MASK);
+    d_torque = atomKK->k_torque.template view<DeviceType>();
+    d_eflags = k_eflags.template view<DeviceType>();
+  }
+  auto d_torque_l = d_torque;
+  auto d_eflags_l = d_eflags;
+
   Kokkos::parallel_for(
     "fix rigid/small zero fcm&tcm",
     Range1D(0,nlocal_body+nghost_body),
@@ -669,6 +809,13 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
       Kokkos::atomic_add(&b.torque[0], dy*d_f(i,2) - dz*d_f(i,1));
       Kokkos::atomic_add(&b.torque[1], dz*d_f(i,0) - dx*d_f(i,2));
       Kokkos::atomic_add(&b.torque[2], dx*d_f(i,1) - dy*d_f(i,0));
+
+      // extended particle's own torque (e.g. granular/dipole) adds to the body
+      if (ext_torque && (d_eflags_l(i) & RigidConst::TORQUE)) {
+        Kokkos::atomic_add(&b.torque[0], d_torque_l(i,0));
+        Kokkos::atomic_add(&b.torque[1], d_torque_l(i,1));
+        Kokkos::atomic_add(&b.torque[2], d_torque_l(i,2));
+      }
     }
   );
 
@@ -702,19 +849,21 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
     Kokkos::Profiling::popRegion();
   }
 
-  // add gravity force to COM of each body
-
-  // TODO?
+  // add gravity force to COM of each body (matches FixRigidSmall::post_force).
+  // gvec points into the gravity fix and is refreshed on the host each step, so
+  // read its three components on the host and apply them in a device kernel.
   if (id_gravity) {
-    error->all(FLERR, "gravity not implemented for fix rigid/small/kk");
-    double mass;
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      mass = body[ibody].mass;
-      double *fcm = body[ibody].fcm;
-      fcm[0] += gvec[0]*mass;
-      fcm[1] += gvec[1]*mass;
-      fcm[2] += gvec[2]*mass;
-    }
+    const double gx = gvec[0], gy = gvec[1], gz = gvec[2];
+    Kokkos::parallel_for(
+      "fix rigid/small gravity",
+      Range1D(0, nlocal_body),
+      KOKKOS_LAMBDA(const int ibody) {
+        Body &b = d_body(ibody);
+        b.fcm[0] += gx*b.mass;
+        b.fcm[1] += gy*b.mass;
+        b.fcm[2] += gz*b.mass;
+      }
+    );
   }
 
   Kokkos::Profiling::popRegion();
@@ -754,8 +903,14 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
       b.angmom[1] += dtf * b.torque[1];
       b.angmom[2] += dtf * b.torque[2];
 
-      MathExtraKokkos::angmom_to_omega(&b.angmom[0],&b.ex_space[0],&b.ey_space[0],
-                                &b.ez_space[0],&b.inertia[0],&b.omega[0]);
+      KK_FLOAT angmom[3] = {(KK_FLOAT)b.angmom[0],(KK_FLOAT)b.angmom[1],(KK_FLOAT)b.angmom[2]};
+      KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+      KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+      KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+      KK_FLOAT inertia[3] = {(KK_FLOAT)b.inertia[0],(KK_FLOAT)b.inertia[1],(KK_FLOAT)b.inertia[2]};
+      KK_FLOAT omega[3];
+      MathExtraKokkos::angmom_to_omega(angmom,ex,ey,ez,inertia,omega);
+      b.omega[0]=omega[0]; b.omega[1]=omega[1]; b.omega[2]=omega[2];
     }
   );
 
@@ -779,11 +934,16 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
 template<class DeviceType>
 bigint FixRigidSmallKokkos<DeviceType>::dof(int tgroup)
 {
-  // uses atom2body/bodyown/bodytag on the host; flush from device first
-  if (!setupflag) {
-    copy_body_host();
-    k_bodyown.sync_host();
-    k_bodytag.sync_host();
+  // FixRigidSmall::dof() returns 0 before setup; otherwise it reads the per-atom
+  // atom2body (and eflags for extended particles) on the host.  On the device
+  // path a reneighbor may have left those host mirrors stale, so sync them when
+  // they will actually be read (setupflag true).  sync_host() is a no-op when
+  // the host copy is already current (e.g. the first dof() right after
+  // FixRigidSmall::setup()), so this is safe and cheap at every call site.  dof()
+  // does not read body[], so no copy_body_host() is needed here.
+  if (setupflag) {
+    k_atom2body.sync_host();
+    if (extended) k_eflags.sync_host();
   }
 
   return FixRigidSmall::dof(tgroup);
@@ -821,6 +981,16 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
 {
   Kokkos::Profiling::pushRegion("rigid/small set_xv");
+
+  // The per-atom centroid virial (cvatom) is filled on the host by the base
+  // Fix::v_tally and has no tied device buffer, so the device set_xv kernel
+  // cannot accumulate it without dereferencing a host pointer on the device.
+  // Refuse rather than crash on GPU / silently corrupt.  The global and the
+  // ordinary per-atom virial (d_vatom) are fully supported.
+  if (cvflag_atom)
+    error->all(FLERR,"fix rigid/small/kk does not support the per-atom centroid "
+               "stress (e.g. compute centroid/stress/atom); use the non-Kokkos style");
+
   this->xprd = domain->xprd;
   this->yprd = domain->yprd;
   this->zprd = domain->zprd;
@@ -836,6 +1006,41 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
   d_mass = atomKK->k_mass.view<DeviceType>();
   d_type = atomKK->k_type.view<DeviceType>();
   int nlocal = atom->nlocal;
+
+  // extended particles: the kernel sets each finite-size particle's
+  // omega/angmom (and dipole mu) from the body's rotational state
+  AtomVecEllipsoidKokkos *avecEllipKK = nullptr;
+  if (extended) {
+    if (atom->omega_flag)  d_omega  = atomKK->k_omega.template view<DeviceType>();
+    if (atom->angmom_flag) d_angmom = atomKK->k_angmom.template view<DeviceType>();
+    if (atom->mu_flag)     d_mu     = atomKK->k_mu.template view<DeviceType>();
+    if (atom->ellipsoid_flag) {
+      avecEllipKK = dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid"));
+      if (avecEllipKK) {
+        avecEllipKK->k_bonus.template sync<DeviceType>();
+        d_bonus = avecEllipKK->k_bonus.template view<DeviceType>();
+        d_ellipsoid = atomKK->k_ellipsoid.template view<DeviceType>();
+        d_rmass = atomKK->k_rmass.template view<DeviceType>();
+      }
+    }
+    d_eflags = k_eflags.template view<DeviceType>();
+  }
+
+  // The kernel also reads atom-style arrays that datamask_read does not cover:
+  // rmass (constraint-force virial and ellipsoid inertia), the per-atom
+  // ellipsoid index, and mu[3] (the dipole magnitude).  Sync them to the device
+  // or they are read stale -- or never initialised -- on a GPU (host==device
+  // hides this on CPU builds).
+  int extra_read = 0;
+  if (atom->rmass) extra_read |= RMASS_MASK;
+  if (extended) {
+    if (atom->mu_flag) extra_read |= MU_MASK;
+    if (atom->ellipsoid_flag && avecEllipKK) extra_read |= ELLIPSOID_MASK;
+  }
+  if (extra_read) atomKK->sync(execution_space, extra_read);
+  // per-type mass is not a datamask-tracked per-atom array; sync the DualView
+  // directly (no-op once it is device-current, as it is set only at setup)
+  if (!atom->rmass) atomKK->k_mass.template sync<DeviceType>();
 
   EV_FLOAT ev;
   if(vflag_atom){
@@ -864,6 +1069,10 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
   }
   // TODO: Specialize
   atomKK->modified(execution_space, datamask_modify);
+  if (extended) {
+    atomKK->modified(execution_space, extended_datamask);
+    if (avecEllipKK) avecEllipKK->k_bonus.template modify<DeviceType>();
+  }
   Kokkos::Profiling::popRegion();
 }
 
@@ -900,8 +1109,12 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
   // x = displacement from center-of-mass, based on body orientation
   // v = vcm + omega around center-of-mass
 
-  double delta[3];
-  MathExtraKokkos::matvec(b.ex_space,b.ey_space,b.ez_space,&d_displace(i,0),delta);
+  KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+  KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+  KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+  KK_FLOAT displace[3] = {(KK_FLOAT)d_displace(i,0),(KK_FLOAT)d_displace(i,1),(KK_FLOAT)d_displace(i,2)};
+  KK_FLOAT delta[3];
+  MathExtraKokkos::matvec(ex,ey,ez,displace,delta);
 
   d_v(i,0) = b.omega[1]*delta[2] - b.omega[2]*delta[1] + b.vcm[0];
   d_v(i,1) = b.omega[2]*delta[0] - b.omega[0]*delta[2] + b.vcm[1];
@@ -949,17 +1162,66 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
     double flist[3] = {0.5*fc0, 0.5*fc1, 0.5*fc2};
     v_tally(ev,i,vr,rlist,flist,b.xgc);
   }
+
+  // extended particles: set per-particle rotational state from the body
+  // (mirrors FixRigidSmall::set_xv / set_v extended block)
+  if (extended) {
+    const int ef = d_eflags(i);
+    if (ef & RigidConst::SPHERE) {
+      d_omega(i,0) = b.omega[0];
+      d_omega(i,1) = b.omega[1];
+      d_omega(i,2) = b.omega[2];
+    }
+    // ellipsoid: compose body orientation with the particle's body-frame
+    // orientation to get its space-frame quaternion, and set its angmom
+    if (ef & RigidConst::ELLIPSOID) {
+      const int e = d_ellipsoid(i);
+      double *shape = d_bonus(e).shape;
+      double *quatatom = d_bonus(e).quat;
+      double orient_i[4] = {d_orient(i,0), d_orient(i,1), d_orient(i,2), d_orient(i,3)};
+      MathExtraKokkos::quatquat(b.quat, orient_i, quatatom);
+      MathExtraKokkos::qnormalize(quatatom);
+      const KK_FLOAT rm = d_rmass(i);
+      KK_FLOAT ione[3];
+      ione[0] = RigidConst::EINERTIA*rm * (shape[1]*shape[1] + shape[2]*shape[2]);
+      ione[1] = RigidConst::EINERTIA*rm * (shape[0]*shape[0] + shape[2]*shape[2]);
+      ione[2] = RigidConst::EINERTIA*rm * (shape[0]*shape[0] + shape[1]*shape[1]);
+      KK_FLOAT exone[3], eyone[3], ezone[3], am[3];
+      KK_FLOAT omegae[3] = {(KK_FLOAT)b.omega[0],(KK_FLOAT)b.omega[1],(KK_FLOAT)b.omega[2]};
+      MathExtraKokkos::q_to_exyz(quatatom, exone, eyone, ezone);
+      MathExtraKokkos::omega_to_angmom(omegae, exone, eyone, ezone, ione, am);
+      d_angmom(i,0) = am[0];
+      d_angmom(i,1) = am[1];
+      d_angmom(i,2) = am[2];
+    }
+    // point dipole: rotate the body-frame dipole orientation into space frame
+    if (ef & RigidConst::DIPOLE) {
+      KK_FLOAT p[3][3];
+      MathExtraKokkos::quat_to_mat(b.quat, p);
+      KK_FLOAT dor[3] = {(KK_FLOAT)d_dorient(i,0), (KK_FLOAT)d_dorient(i,1), (KK_FLOAT)d_dorient(i,2)};
+      KK_FLOAT muvec[3];
+      MathExtraKokkos::matvec(p, dor, muvec);
+      MathExtraKokkos::snormalize3(d_mu(i,3), muvec, muvec);
+      d_mu(i,0) = muvec[0];
+      d_mu(i,1) = muvec[1];
+      d_mu(i,2) = muvec[2];
+    }
+  }
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixRigidSmallKokkos<DeviceType>::operator()(TagUpdateXGC, const int ibody) const {
   Body &b = d_body(ibody);
-  MathExtraKokkos::matvec(b.ex_space,b.ey_space,b.ez_space,
-                    b.xgc_body,b.xgc);
-  b.xgc[0] += b.xcm[0];
-  b.xgc[1] += b.xcm[1];
-  b.xgc[2] += b.xcm[2];
+  KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
+  KK_FLOAT ey[3] = {(KK_FLOAT)b.ey_space[0],(KK_FLOAT)b.ey_space[1],(KK_FLOAT)b.ey_space[2]};
+  KK_FLOAT ez[3] = {(KK_FLOAT)b.ez_space[0],(KK_FLOAT)b.ez_space[1],(KK_FLOAT)b.ez_space[2]};
+  KK_FLOAT xgc_body[3] = {(KK_FLOAT)b.xgc_body[0],(KK_FLOAT)b.xgc_body[1],(KK_FLOAT)b.xgc_body[2]};
+  KK_FLOAT xgc[3];
+  MathExtraKokkos::matvec(ex,ey,ez,xgc_body,xgc);
+  b.xgc[0] = xgc[0] + b.xcm[0];
+  b.xgc[1] = xgc[1] + b.xcm[1];
+  b.xgc[2] = xgc[2] + b.xcm[2];
 }
 
 
@@ -989,6 +1251,11 @@ void FixRigidSmallKokkos<DeviceType>::refresh_atom_views()
   d_xcmimage  = k_xcmimage.template view<DeviceType>();
   d_displace  = k_displace.template view<DeviceType>();
   d_vatom     = k_vatom.template view<DeviceType>();
+  if (extended) {
+    d_eflags  = k_eflags.template view<DeviceType>();
+    if (orientflag) d_orient  = k_orient.template view<DeviceType>();
+    if (dorientflag) d_dorient = k_dorient.template view<DeviceType>();
+  }
 }
 
 template<class DeviceType>
@@ -1033,12 +1300,17 @@ void FixRigidSmallKokkos<DeviceType>::grow_arrays(int nmax)
     prev_size = nsave;
   }
 
-  // extended-particle arrays are not supported on device; keep them on the
-  // host the same way the base class does (init() errors out if extended)
+  // extended-particle per-atom arrays: tied DualViews so the host setup writes
+  // (setup_bodies_static fills eflags/orient/dorient on the host) alias the
+  // device data, and so they migrate in the device exchange.  Allocated lazily
+  // the first time setup_bodies_static() sets extended (it calls grow_arrays).
   if (extended) {
-    memory->grow(eflags,nmax,"rigid/small:eflags");
-    if (orientflag) memory->grow(orient,nmax,orientflag,"rigid/small:orient");
-    if (dorientflag) memory->grow(dorient,nmax,3,"rigid/small:dorient");
+    memoryKK->grow_kokkos(k_eflags, eflags, nmax, "rigid/small:eflags");
+    if (orientflag) memoryKK->grow_kokkos(k_orient, orient, nmax, orientflag, "rigid/small:orient");
+    if (dorientflag) memoryKK->grow_kokkos(k_dorient, dorient, nmax, 3, "rigid/small:dorient");
+    d_eflags = k_eflags.template view<DeviceType>();
+    if (orientflag) d_orient = k_orient.template view<DeviceType>();
+    if (dorientflag) d_dorient = k_dorient.template view<DeviceType>();
   }
 
   memoryKK->grow_kokkos(k_bodyown, bodyown, nmax, "rigid/small:bodyown");
@@ -1101,14 +1373,29 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagprev, int imol,
                                  double *xgeom, double *vcm, double *quat)
 {
-  // TODO: Eliminate host work
-
-  if (comm->me == 0)
-    error->warning(FLERR,"fix rigid/small/kk: inserting molecules (set_molecule, "
-                   "e.g. fix deposit/pour) is experimental with Kokkos");
+  // Molecule insertion (fix deposit/pour) is done on the host: copy the current
+  // bodies down, let the base class add the new body, then push the grown body
+  // list and the new atoms' per-atom data back to the device.  Insertion is a
+  // rare, host-side event, so the round-trip is not a per-step cost.
 
   // copy current bodies to host because they will later overwrite device
   copy_body_host();
+
+  // Flush the per-atom arrays device->host first.  On the device-exchange path
+  // these DualViews are modify-device (last written by unpack_exchange_kokkos),
+  // so the host mirrors are stale; the base set_molecule only appends the new
+  // atoms' rows, leaving the existing rows untouched.  Without this sync the
+  // modify_host/sync<DeviceType> below would push the stale host array back over
+  // the live device state, corrupting body bookkeeping for every existing atom.
+  k_bodytag.sync_host();
+  k_bodyown.sync_host();
+  k_displace.sync_host();
+  k_xcmimage.sync_host();
+  if (extended) {
+    k_eflags.sync_host();
+    if (orientflag) k_orient.sync_host();
+    if (dorientflag) k_dorient.sync_host();
+  }
 
   // add new bodies on host
   FixRigidSmall::set_molecule(nlocalprev, tagprev, imol, xgeom, vcm, quat);
@@ -1116,7 +1403,8 @@ void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagpre
   grow_body();
   copy_body_device();
 
-  // base set_molecule wrote new atoms' bodytag/bodyown/displace/xcmimage on host
+  // base set_molecule wrote new atoms' bodytag/bodyown/displace/xcmimage (and,
+  // for extended particles, eflags/orient/dorient) on the host; push back
   k_bodytag.modify_host();
   k_bodyown.modify_host();
   k_displace.modify_host();
@@ -1125,6 +1413,12 @@ void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagpre
   k_bodyown.template sync<DeviceType>();
   k_displace.template sync<DeviceType>();
   k_xcmimage.template sync<DeviceType>();
+  if (extended) {
+    k_eflags.modify_host();
+    k_eflags.template sync<DeviceType>();
+    if (orientflag) { k_orient.modify_host(); k_orient.template sync<DeviceType>(); }
+    if (dorientflag) { k_dorient.modify_host(); k_dorient.template sync<DeviceType>(); }
+  }
   refresh_atom_views();
 }
 
@@ -1171,6 +1465,22 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
   const int bodysize = this->bodysize;
   const int nsend_local = nsend;
 
+  // extended-particle per-atom data carried alongside each migrating body atom
+  const int ext = extended_per_atom;            // 0 if not extended
+  const int oflag = orientflag;
+  const int dflag = dorientflag;
+  auto d_eflags = this->d_eflags;
+  auto d_orient = this->d_orient;
+  auto d_dorient = this->d_dorient;
+  if (ext) {
+    k_eflags.template sync<DeviceType>();
+    if (oflag) k_orient.template sync<DeviceType>();
+    if (dflag) k_dorient.template sync<DeviceType>();
+    d_eflags = k_eflags.template view<DeviceType>();
+    if (oflag) d_orient = k_orient.template view<DeviceType>();
+    if (dflag) d_dorient = k_dorient.template view<DeviceType>();
+  }
+
   // Variable-stride packing (modeled on fix shake/kk): the first nsend doubles
   // form a header table (d_buf(mysend) = absolute offset of that atom's payload),
   // followed by the densely packed payloads.  A non-body atom costs 1 double, a
@@ -1201,8 +1511,8 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
 
       int size;
       if (btag == 0) size = 1;
-      else if (bown < 0) size = 12;
-      else size = 12 + bodysize;
+      else if (bown < 0) size = 12 + ext;
+      else size = 12 + ext + bodysize;
 
       if (is_final) {
         int m = nsend_local + offset;
@@ -1214,6 +1524,11 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
           d_buf(m++) = d_displace(i,1);
           d_buf(m++) = d_displace(i,2);
           for (int k = 0; k < 6; k++) d_buf(m++) = d_vatom(i,k);
+          if (ext) {                            // extended-particle data
+            d_buf(m++) = d_ubuf(d_eflags(i)).d;
+            for (int k = 0; k < oflag; k++) d_buf(m++) = d_orient(i,k);
+            if (dflag) { d_buf(m++) = d_dorient(i,0); d_buf(m++) = d_dorient(i,1); d_buf(m++) = d_dorient(i,2); }
+          }
           if (bown < 0) {
             d_buf(m++) = 0;
           } else {
@@ -1239,6 +1554,11 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
 #endif
           for (int k = 0; k < 3; k++) d_displace(i,k) = d_displace(j,k);
           for (int k = 0; k < 6; k++) d_vatom(i,k) = d_vatom(j,k);
+          if (ext) {
+            d_eflags(i) = d_eflags(j);
+            for (int k = 0; k < oflag; k++) d_orient(i,k) = d_orient(j,k);
+            if (dflag) { d_dorient(i,0)=d_dorient(j,0); d_dorient(i,1)=d_dorient(j,1); d_dorient(i,2)=d_dorient(j,2); }
+          }
           if (d_bodyown(i) >= 0) d_body(d_bodyown(i)).ilocal = i;
           d_bodyown(j) = -1;
           d_bodytag(j) = -1;
@@ -1296,6 +1616,11 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
   k_vatom.template modify<DeviceType>();
   k_atom2body.template modify<DeviceType>();
   k_bodyown.template modify<DeviceType>();
+  if (ext) {
+    k_eflags.template modify<DeviceType>();
+    if (oflag) k_orient.template modify<DeviceType>();
+    if (dflag) k_dorient.template modify<DeviceType>();
+  }
 
   k_buf.template modify<DeviceType>();
   if (space == HostKK) k_buf.sync_host();
@@ -1330,6 +1655,21 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2
   k_vatom.template sync<DeviceType>();
   k_bodyown.template sync<DeviceType>();
   refresh_atom_views();
+
+  const int ext = extended_per_atom;
+  const int oflag = orientflag;
+  const int dflag = dorientflag;
+  auto d_eflags = this->d_eflags;
+  auto d_orient = this->d_orient;
+  auto d_dorient = this->d_dorient;
+  if (ext) {
+    k_eflags.template sync<DeviceType>();
+    if (oflag) k_orient.template sync<DeviceType>();
+    if (dflag) k_dorient.template sync<DeviceType>();
+    d_eflags = k_eflags.template view<DeviceType>();
+    if (oflag) d_orient = k_orient.template view<DeviceType>();
+    if (dflag) d_dorient = k_dorient.template view<DeviceType>();
+  }
 
   auto d_buf = typename ArrayTypes<DeviceType>::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
@@ -1375,6 +1715,11 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2
         for(int k = 0; k < 6; k++){
           d_vatom(i,k) = d_buf(m++);
         }
+        if (ext) {
+          d_eflags(i) = (int) d_ubuf(d_buf(m++)).i;
+          for (int k = 0; k < oflag; k++) d_orient(i,k) = d_buf(m++);
+          if (dflag) { d_dorient(i,0)=d_buf(m++); d_dorient(i,1)=d_buf(m++); d_dorient(i,2)=d_buf(m++); }
+        }
         if (d_buf(m++) > 0) count++;
       }
     },
@@ -1399,8 +1744,8 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2
       int m = (int) d_buf(irecv);
       if (irecv >= nrecv1_local)
         m = nrecv1extra_local + (int) d_buf(nrecv1extra_local + irecv - nrecv1_local);
-      // payload layout: bodytag(1) xcmimage(1) displace(3) vatom(6) -> flag at +11
-      m += 11;
+      // payload: bodytag(1) xcmimage(1) displace(3) vatom(6) extended(ext) -> flag
+      m += 11 + ext;
 
       // if owning body
       if (d_buf(m) > 0) {
@@ -1423,6 +1768,11 @@ void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2
   k_displace.template modify<DeviceType>();
   k_vatom.template modify<DeviceType>();
   k_bodyown.template modify<DeviceType>();
+  if (ext) {
+    k_eflags.template modify<DeviceType>();
+    if (oflag) k_orient.template modify<DeviceType>();
+    if (dflag) k_dorient.template modify<DeviceType>();
+  }
 
   Kokkos::Profiling::popRegion();
 }
@@ -1872,6 +2222,10 @@ void FixRigidSmallKokkos<DeviceType>::image_shift()
   }
   Kokkos::Profiling::pushRegion("rigid/small image shift");
 
+  // the kernel reads atom->image; sync it to the device first (on the host
+  // exchange path image was last updated on the host, so the device view is
+  // stale -- invisible on CPU where host and device share the buffer)
+  atomKK->sync(execution_space, IMAGE_MASK);
   ImageIntView1D d_image = atomKK->k_image.view<DeviceType>();
   int nlocal = atom->nlocal;
   auto d_body = this->d_body;
@@ -1930,6 +2284,26 @@ void FixRigidSmallKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, B
   k_displace.modify_device();
   k_vatom.modify_device();
   k_atom2body.modify_device();
+
+  // the extended per-atom arrays are indexed by local atom in set_xv, so they
+  // must follow the same permutation (an extended system that ever reaches the
+  // device sort path -- this is currently gated to the host sort, but keep the
+  // sort self-consistent regardless)
+  if (extended) {
+    k_eflags.template sync<LMPDeviceType>();
+    Sorter.sort(space, k_eflags.template view<LMPDeviceType>());
+    k_eflags.modify_device();
+    if (orientflag) {
+      k_orient.template sync<LMPDeviceType>();
+      Sorter.sort(space, k_orient.template view<LMPDeviceType>());
+      k_orient.modify_device();
+    }
+    if (dorientflag) {
+      k_dorient.template sync<LMPDeviceType>();
+      Sorter.sort(space, k_dorient.template view<LMPDeviceType>());
+      k_dorient.modify_device();
+    }
+  }
 
   // Before setup_bodies_static() has run there are no bodies yet (all atoms
   // carry bodytag=0 / bodyown=-1 placeholders that setup() will overwrite), so
@@ -2046,7 +2420,6 @@ void *FixRigidSmallKokkos<DeviceType>::extract(const char *str, int &dim)
   }
 
   if (strcmp(str,"onemol") == 0) {
-    error->all(FLERR, "onemol not implemented");
     dim = 0;
     return onemols;
   }
@@ -2126,15 +2499,16 @@ double FixRigidSmallKokkos<DeviceType>::extract_erotational()
     "fix rigid/small erotational",
     Range1D(0, nlocal_body),
     KOKKOS_LAMBDA(const int i, double &erotate){
-      double wbody[3],rot[3][3];
+      KK_FLOAT wbody[3],rot[3][3];
       double *inertia;
 
       // for Iw^2 rotational term, need wbody = angular velocity in body frame
       // not omega = angular velocity in space frame
 
       inertia = d_body(i).inertia;
+      KK_FLOAT angmom[3] = {(KK_FLOAT)d_body(i).angmom[0],(KK_FLOAT)d_body(i).angmom[1],(KK_FLOAT)d_body(i).angmom[2]};
       MathExtraKokkos::quat_to_mat(d_body(i).quat,rot);
-      MathExtraKokkos::transpose_matvec(rot,d_body(i).angmom,wbody);
+      MathExtraKokkos::transpose_matvec(rot,angmom,wbody);
       if (inertia[0] == 0.0) wbody[0] = 0.0;
       else wbody[0] /= inertia[0];
       if (inertia[1] == 0.0) wbody[1] = 0.0;
@@ -2174,7 +2548,7 @@ double FixRigidSmallKokkos<DeviceType>::compute_scalar()
     "fix rigid/small compute scalar",
     Range1D(0, nlocal_body),
     KOKKOS_LAMBDA(const int i, double &t) {
-      double wbody[3],rot[3][3];
+      KK_FLOAT wbody[3],rot[3][3];
       double *vcm,*inertia;
 
       vcm = d_body(i).vcm;
@@ -2184,8 +2558,9 @@ double FixRigidSmallKokkos<DeviceType>::compute_scalar()
       // not omega = angular velocity in space frame
 
       inertia = d_body(i).inertia;
+      KK_FLOAT angmom[3] = {(KK_FLOAT)d_body(i).angmom[0],(KK_FLOAT)d_body(i).angmom[1],(KK_FLOAT)d_body(i).angmom[2]};
       MathExtraKokkos::quat_to_mat(d_body(i).quat,rot);
-      MathExtraKokkos::transpose_matvec(rot,d_body(i).angmom,wbody);
+      MathExtraKokkos::transpose_matvec(rot,angmom,wbody);
       if (inertia[0] == 0.0) wbody[0] = 0.0;
       else wbody[0] /= inertia[0];
       if (inertia[1] == 0.0) wbody[1] = 0.0;
@@ -2233,24 +2608,11 @@ void FixRigidSmallKokkos<DeviceType>::copy_body_device(){
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixRigidSmallKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int i, double vtot[6], double r[3], double f[3], double center[3]) const{
+  // the centroid (r, f, center) arguments are only needed for the per-atom
+  // centroid virial, which is unsupported on the device and rejected up front
+  // in set_xv_kokkos(); here we only tally the global / ordinary per-atom virial
+  (void) r; (void) f; (void) center;
   v_tally(ev, i, vtot);
-
-  if (cvflag_atom) {
-    const double ri0[3] = {
-      r[0]-center[0],
-      r[1]-center[1],
-      r[2]-center[2],
-    };
-    cvatom[i][0] += ri0[0]*f[0];
-    cvatom[i][1] += ri0[1]*f[1];
-    cvatom[i][2] += ri0[2]*f[2];
-    cvatom[i][3] += ri0[0]*f[1];
-    cvatom[i][4] += ri0[0]*f[2];
-    cvatom[i][5] += ri0[1]*f[2];
-    cvatom[i][6] += ri0[1]*f[0];
-    cvatom[i][7] += ri0[2]*f[0];
-    cvatom[i][8] += ri0[2]*f[1];
-  }
 }
 
 template<class DeviceType>

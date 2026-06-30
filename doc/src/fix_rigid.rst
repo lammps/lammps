@@ -922,11 +922,27 @@ The Kokkos versions of these fixes (the */kk* accelerator variants of
 *rigid/small* and of *rigid/nve/small*, *rigid/nvt/small*,
 *rigid/npt/small*, and *rigid/nph/small*) implement a subset of the
 functionality of the corresponding non-accelerated styles.  The
-*langevin* thermostat is experimental with Kokkos and may be unstable
-when running with MPI domain decomposition (more than one MPI rank);
-results should be validated against the non-Kokkos style.  Reading body
-properties from a file (the *infile* keyword) is likewise experimental,
-and the *gravity* keyword is not supported.
+*langevin* thermostat is supported, including with MPI domain
+decomposition.  Because the random forces are drawn from a Kokkos
+device RNG rather than the host RNG, individual trajectories differ
+from the non-Kokkos style (they are not bit-for-bit comparable), but
+the bodies are thermostatted to the same target temperature.  Reading
+body properties from a file (the *infile* keyword) and inserting rigid
+molecules at runtime (:doc:`fix deposit <fix_deposit>` /
+:doc:`fix pour <fix_pour>`) are both supported.  The *kk* styles run on
+3d systems only.
+
+Rigid bodies built from finite-size *sphere*, *ellipsoid*, and point
+*dipole* particles are supported with Kokkos: in each integration step the
+per-particle rotational state is updated from the body orientation on the
+device (sphere angular velocity, ellipsoid space-frame quaternion and
+angular momentum, dipole moment direction), and the per-particle torque is
+added to the body.  Because the molecule information that groups these atoms
+into bodies is supplied through :doc:`fix property/atom <fix_property_atom>`
+(or an :doc:`atom_style hybrid <atom_style>`), which is not itself ported to
+the device, such systems run the atom migration and sorting on the host
+while the rigid-body integration runs on the device.  Rigid bodies of *line*
+and *triangle* particles are not yet supported with Kokkos.
 
 The Kokkos atom exchange (migration) and atom sorting must run on the
 same side (both on the host or both on the device), because the device

@@ -222,12 +222,13 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
   // finite-size particles), which are not in this fix's per-step datamask.
   atomKK->sync(Host, datamask_read | IMAGE_MASK | MASK_MASK | RMASS_MASK);
 
-  // On a second (or later) run the base re-derives the bodies on the host
-  // (reinitflag defaults to 1), reading bodytag/bodyown/atom2body/xcmimage and
-  // rewriting body[].  After a preceding run that state is live on the device,
-  // so flush it down first or the host rebuilds from stale bookkeeping.
-  // Note the base sets setupflag = 1 before returning, so latch it here: on the
-  // first run the device views do not exist yet and must not be touched.
+  // On the 2nd and later runs reinitflag re-runs the host body build
+  // (setup_bodies_static/dynamic), which reads bodytag/bodyown/atom2body/
+  // xcmimage and rewrites body[].  After a preceding run that state is live on
+  // the device, so flush it down first or the host rebuilds from stale
+  // bookkeeping.  Note the base sets setupflag = 1 before returning, so latch it
+  // here: on the first run the device views do not exist yet and must not be
+  // touched.
   const int rebuild_on_host = setupflag;
   if (rebuild_on_host) {
     copy_body_host();
@@ -243,11 +244,22 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
     }
   }
 
-  // the base setup owns the data for the duration of this call: make the
-  // pre_neighbor() it invokes internally run on the host (see pre_neighbor)
-  host_body_setup = 1;
+  // The host build also drives pre_neighbor/reset_atom2body/image_shift and
+  // non-FORCE_TORQUE forward/reverse comms.  Run 1's setup_device_push() left
+  // *_comm_device=1 and setupflag=1, which would route all of that to the device
+  // packers (FORCE_TORQUE/body-sendlist only) and abort.  Restore the run-1
+  // conditions around the base call: force the host fallback in the overrides
+  // (setup_host_rebuild) and the host comm path; setup_device_push() re-enables
+  // device comm for the run.
+  const int saved_forward_comm_device = forward_comm_device;
+  const int saved_reverse_comm_device = reverse_comm_device;
+  forward_comm_device = 0;
+  reverse_comm_device = 0;
+  setup_host_rebuild = true;
   FixRigidSmall::setup_pre_neighbor();
-  host_body_setup = 0;
+  setup_host_rebuild = false;
+  forward_comm_device = saved_forward_comm_device;
+  reverse_comm_device = saved_reverse_comm_device;
 
   // the host rebuild rewrote body[] and the per-atom body arrays; push them
   // back to the device (setup() -> setup_device_push() does the rest)
@@ -502,8 +514,8 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
 
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
-  // host_body_setup: setup_bodies_static() calls pre_neighbor() (virtually) in
-  // the middle of re-deriving the bodies on the host, to remap each xcm into
+  // setup_host_rebuild: setup_bodies_static() calls pre_neighbor() (virtually)
+  // in the middle of re-deriving the bodies on the host, to remap each xcm into
   // the box and reset the atom xcmimage flags -- and then unwraps the atom
   // coordinates with those host xcmimage values to build the inertia tensor.
   // The device path below updates only d_xcmimage, so taking it here would
@@ -511,7 +523,7 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
   // body straddling a periodic boundary a full box length away, producing a
   // garbage inertia tensor ("Bad principal moments") on the second and later
   // runs.  Use the host path while the host setup owns the data.
-  if (!setupflag || host_body_setup) {
+  if (!setupflag || setup_host_rebuild) {
     FixRigidSmall::pre_neighbor();
     return;
   }
@@ -2266,7 +2278,7 @@ void FixRigidSmallKokkos<DeviceType>::grow_body()
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::reset_atom2body()
 {
-  if (!setupflag) {
+  if (!setupflag || setup_host_rebuild) {
     // called during setup_bodies
     FixRigidSmall::reset_atom2body();
     return;
@@ -2324,7 +2336,7 @@ void FixRigidSmallKokkos<DeviceType>::reset_atom2body()
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::image_shift()
 {
-  if (!setupflag) {
+  if (!setupflag || setup_host_rebuild) {
     // called during setup_bodies
     FixRigidSmall::image_shift();
     return;

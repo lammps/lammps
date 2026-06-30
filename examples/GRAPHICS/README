@@ -16,6 +16,10 @@ Here is a list of the inputs and which graphics features they demonstrate
 - in.breakable:             using autobond, color-by-property, adding objects and text
                             https://www.youtube.com/watch?v=f4hfPs7aCmI
 
+- in.bpm-fracture:          brittle disk (bonded particle model) shattered by a
+                            projectile, coloring each bond by the per-bond force
+                            with "dump image ... bond c_ID" and a "bmap" color map
+
 - in.water-arrows:          box of water molecules, uses many kinds of arrows
                             https://www.youtube.com/shorts/4Cm5p0SfgNU
 

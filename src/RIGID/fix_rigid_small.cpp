@@ -1199,16 +1199,18 @@ void FixRigidSmall::deform(int flag)
 void FixRigidSmall::set_xv()
 {
   int xbox,ybox,zbox;
-  double massone;
+  double x0, x1, x2, massone;
   double ione[3],exone[3],eyone[3],ezone[3],vr[6],p[3][3];
   double fc[3], v_rot[3], acc_centr[3], *langone ;
 
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  double xy = domain->xy;
-  double xz = domain->xz;
-  double yz = domain->yz;
+  if (triclinic) {
+    xy = domain->xy;
+    xz = domain->xz;
+    yz = domain->yz;
+  }
 
   double **x = atom->x;
   double **v = atom->v;
@@ -1266,6 +1268,12 @@ void FixRigidSmall::set_xv()
 	else fc[2] = massone * (b->fcm[2]/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       }
 
+      if (id_gravity) {
+	fc[0] -= gvec[0]*massone;
+	fc[1] -= gvec[1]*massone;
+	fc[2] -= gvec[2]*massone;
+      }
+
       vr[0] = 0.5*x[i][0]*fc[0];
       vr[1] = 0.5*x[i][1]*fc[1];
       vr[2] = 0.5*x[i][2]*fc[2];
@@ -1290,6 +1298,28 @@ void FixRigidSmall::set_xv()
       x[i][0] += b->xcm[0] - xbox*xprd - ybox*xy - zbox*xz;
       x[i][1] += b->xcm[1] - ybox*yprd - zbox*yz;
       x[i][2] += b->xcm[2] - zbox*zprd;
+    }
+
+    if (evflag && id_gravity) {
+      if (triclinic == 0) {
+        x0 = x[i][0] + xbox*xprd;
+        x1 = x[i][1] + ybox*yprd;
+        x2 = x[i][2] + zbox*zprd;
+      } else {
+        x0 = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
+        x1 = x[i][1] + ybox*yprd + zbox*yz;
+        x2 = x[i][2] + zbox*zprd;
+      }
+      vr[0] = 0.5*x0*gvec[0]*massone;
+      vr[1] = 0.5*x1*gvec[1]*massone;
+      vr[2] = 0.5*x2*gvec[2]*massone;
+      vr[3] = 0.5*x0*gvec[1]*massone;
+      vr[4] = 0.5*x0*gvec[2]*massone;
+      vr[5] = 0.5*x1*gvec[2]*massone;
+
+      double rlist[1][3] = {{x0, x1, x2}};
+      double flist[1][3] = {{0.5*gvec[0]*massone, 0.5*gvec[1]*massone, 0.5*gvec[2]*massone}};
+      v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
     }
   }
 
@@ -1382,7 +1412,7 @@ void FixRigidSmall::set_xv()
 
 void FixRigidSmall::set_v()
 {
-  double massone;
+  double x0, x1, x2, massone;
   double ione[3],exone[3],eyone[3],ezone[3],delta[3],vr[6];
   double fc[3], v_rot[3], acc_centr[3], *langone ;
 
@@ -1433,6 +1463,12 @@ void FixRigidSmall::set_v()
 	else fc[2] = massone * (b->fcm[2]/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       }
 
+      if (id_gravity) {
+	fc[0] -= gvec[0]*massone;
+	fc[1] -= gvec[1]*massone;
+	fc[2] -= gvec[2]*massone;
+      }
+
       vr[0] = 0.5*delta[0]*fc[0];
       vr[1] = 0.5*delta[1]*fc[1];
       vr[2] = 0.5*delta[2]*fc[2];
@@ -1443,6 +1479,22 @@ void FixRigidSmall::set_v()
       double rlist[1][3] = {{delta[0], delta[1], delta[2]}};
       double flist[1][3] = {{0.5*fc[0], 0.5*fc[1], 0.5*fc[2]}};
       v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
+
+      if (id_gravity) {
+	x0 = delta[0] + b->xcm[0];
+	x1 = delta[1] + b->xcm[1];
+	x2 = delta[2] + b->xcm[2];
+	vr[0] = 0.5*x0*gvec[0]*massone;
+	vr[1] = 0.5*x1*gvec[1]*massone;
+	vr[2] = 0.5*x2*gvec[2]*massone;
+	vr[3] = 0.5*x0*gvec[1]*massone;
+	vr[4] = 0.5*x0*gvec[2]*massone;
+	vr[5] = 0.5*x1*gvec[2]*massone;
+
+	double rlist[1][3] = {{x0, x1, x2}};
+	double flist[1][3] = {{0.5*gvec[0]*massone, 0.5*gvec[1]*massone, 0.5*gvec[2]*massone}};
+	v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
+      }
     }
   }
 

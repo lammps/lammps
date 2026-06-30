@@ -1691,7 +1691,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
       ++beg;
       add = 1;
       c = *++buf;
-      while (((c != '\'') && (c != '\0')) || ((c == '\\') && (buf[1] == '\''))) {
+      while ((c != '\'') && (c != '\0')) {
         if ((c == '\\') && (buf[1] == '\'')) {
           ++buf;
           ++len;
@@ -1716,7 +1716,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
       ++beg;
       add = 1;
       c = *++buf;
-      while (((c != '"') && (c != '\0')) || ((c == '\\') && (buf[1] == '"'))) {
+      while ((c != '"') && (c != '\0')) {
         if ((c == '\\') && (buf[1] == '"')) {
           ++buf;
           ++len;

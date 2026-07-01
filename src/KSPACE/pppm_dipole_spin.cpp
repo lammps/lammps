@@ -642,8 +642,10 @@ void PPPMDipoleSpin::slabcorr()
   MPI_Allreduce(&spin,&spin_all,1,MPI_DOUBLE,MPI_SUM,world);
 
   // compute corrections
+  // the spin self term is E = (2pi/V) M_z^2 with M_z = sum sp_iz, which is
+  // consistent with the -4pi/V force/field acting on the spins below
 
-  const double e_slabcorr = MY_2PI*(spin_all*spin_all/12.0)/volume;
+  const double e_slabcorr = MY_2PI*(spin_all*spin_all)/volume;
   const double spscale = mub2mu0 * scale;
 
   if (eflag_global) energy += spscale * e_slabcorr;
@@ -651,7 +653,7 @@ void PPPMDipoleSpin::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    double efact = spscale * MY_2PI/volume/12.0;
+    double efact = spscale * MY_2PI/volume;
     for (int i = 0; i < nlocal; i++) {
       spz = sp[i][2]*sp[i][3];
       eatom[i] += efact * spz * spin_all;

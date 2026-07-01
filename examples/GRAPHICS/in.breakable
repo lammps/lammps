@@ -77,7 +77,7 @@ fix arrows all graphics/objects 500 arrow 1 v_rbot 0.0 0.0 v_rtop 0.0 0.0 1.0 0.
 fix vel    all graphics/objects 500 arrow 1 v_lbot 0.0 0.0  v_ltop 0.0 0.0 1.0 0.3 
 
 # add text labels using different styles and references to variables and compute results
-fix labels all graphics/labels  500 text "LAMMPS Tutorial 2 - Stretching CNT using AIREBO potential" 0.0 -7.7 5.3 size 28 &
+fix labels all graphics/labels  500 text "LAMMPS Tutorial 2 - Stretching a CNT using the AIREBO potential" 0.0 -7.7 5.3 size 28 &
                                     framecolor black backcolor darkgray &
                                     text "Simulation time: ${ps} ps" -4.0 7.5 5.0 size 28 &
                                     fontcolor 220/200/0 backcolor darkgray transcolor darkgray framecolor darkgray &

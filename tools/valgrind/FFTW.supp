@@ -1,0 +1,18 @@
+# ---------------------------------------------------------------------------
+# Valgrind suppressions for the FFTW3 library.
+#
+# FFTW's planner reads slightly past the ends of some internal SIMD scratch
+# buffers in fftw_plan_awake() (reached e.g. from fftw_destroy_plan() when
+# LAMMPS tears down a PPPM/FFT3d plan). These are internal to FFTW and are a
+# well-known valgrind false positive, not a LAMMPS defect.
+#
+# Kept deliberately generic (anchored on the FFTW frame, wildcard otherwise)
+# so it keeps matching across FFTW releases.
+# ---------------------------------------------------------------------------
+{
+   FFTW3_plan_awake_invalid_read
+   Memcheck:Addr8
+   ...
+   fun:fftw_plan_awake
+   ...
+}

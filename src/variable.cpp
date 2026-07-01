@@ -3728,10 +3728,17 @@ int Variable::find_matching_paren(char *str, int i, char *&contents, int ivar)
   int istop = i;
 
   int n = istop - istart - 1;
+
+  // copy into a fresh buffer first, then replace the old one, so the new
+  // buffer is never aliased with the freed pointer (avoids a use-after-free
+  // warning) and contents is left intact if the copy were to fail.
+
+  char *newcontents = new char[n+1];
+  strncpy(newcontents,&str[istart+1],n);
+  newcontents[n] = '\0';
+
   delete[] contents;
-  contents = new char[n+1];
-  strncpy(contents,&str[istart+1],n);
-  contents[n] = '\0';
+  contents = newcontents;
 
   return istop;
 }
@@ -5398,13 +5405,20 @@ void Variable::parse_vector(int ivar, char *str)
   std::vector<std::string> args = Tokenizer(std::string(str+1, str+nstr), ",").as_vector();
 
   auto &var = variables[ivar];
-  var.vec.n = var.vec.nmax = args.size();
-  var.vec.currentstep = -1;
-  delete[] var.vec.values;
-  var.vec.values = new double[var.vec.nmax];
+  int nvec = args.size();
 
-  for (int i = 0; i < var.vec.nmax; i++)
-    var.vec.values[i] = utils::numeric(FLERR, utils::trim(args[i]), false, lmp);
+  // parse into a fresh buffer first, then replace the old one.  this keeps
+  // var.vec intact if a token fails to parse, and the new buffer is never
+  // aliased with the freed pointer (avoids a use-after-free warning).
+
+  auto *newvalues = new double[nvec];
+  for (int i = 0; i < nvec; i++)
+    newvalues[i] = utils::numeric(FLERR, utils::trim(args[i]), false, lmp);
+
+  delete[] var.vec.values;
+  var.vec.values = newvalues;
+  var.vec.n = var.vec.nmax = nvec;
+  var.vec.currentstep = -1;
 }
 
 /* ----------------------------------------------------------------------

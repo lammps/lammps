@@ -282,6 +282,7 @@ Batra
 Bayly
 bb
 bbox
+bc
 bcc
 bcolor
 bdiam
@@ -501,6 +502,7 @@ Ceil
 cekk
 centerline
 CentOS
+centric
 centro
 centroid
 Centroid
@@ -1366,6 +1368,7 @@ ftol
 fuer
 fugacity
 Fu
+fullerene
 Fumi
 func
 funcs
@@ -1502,6 +1505,7 @@ granregion
 GRANSURF
 gransurf
 graphene
+graphitic
 Gravelle
 Greathouse
 Greengard

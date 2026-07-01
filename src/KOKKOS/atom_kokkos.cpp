@@ -118,15 +118,23 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_dpdTheta, dpdTheta);
   memoryKK->destroy_kokkos(k_duChem, duChem);
 
-  memoryKK->destroy_kokkos(k_dvector, dvector);
-  dvector = nullptr;
+  // ivector/dvector are single contiguous Kokkos views, with the legacy
+  // ivector[i]/dvector[i] pointers aliasing into them.  Free the view data and
+  // null those aliases, but leave the row-pointer arrays themselves in place:
+  // the base Atom destructor then safely memory->destroy()s the (null) aliases
+  // and sfree()s the row-pointer arrays via the standard nullptr-safe path, so
+  // no Kokkos-specific handling is needed in ~Atom.
 
-  memoryKK->destroy_kokkos(k_ivector, ivector);
-  ivector = nullptr;
+  k_dvector = DAT::ttransform_kkfloat_2d();
+  for (int i = 0; i < ndvector; i++) dvector[i] = nullptr;
 
-  // views-of-views: destroy each inner DualView (this also nulls the legacy
-  // iarray[i]/darray[i] pointers, so the base Atom destructor skips them), then
-  // release the outer DualView.
+  k_ivector = DAT::tdual_int_2d_lr();
+  for (int i = 0; i < nivector; i++) ivector[i] = nullptr;
+
+  // views-of-views: destroy each inner DualView (this frees its row-pointer
+  // array and nulls the legacy iarray[i]/darray[i] alias, so the base Atom
+  // destructor's nullptr-safe memory->destroy() is a no-op for them), then
+  // release the outer DualView, which frees the inner views' data.
 
   for (int i = 0; i < niarray; i++)
     memoryKK->destroy_kokkos(k_iarray.view_host()[i].k_view, iarray[i]);

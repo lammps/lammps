@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2025-gb77e3ac82a)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2152-g107b880cf8-modified)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # COVID main protease (SARS-CoV-2 Mpro) -- CHARMM36, converted GROMACS->PSF(ParmEd)
@@ -12,7 +12,7 @@ read_data       data.covid.gz
 Reading data file ...
   triclinic box = (1.652498 0.007497 -0.009919) to (139.8775 138.2325 97.72992) with tilt (0 69.112503 69.112503)
 WARNING: Triclinic box skew is large. LAMMPS will run inefficiently. (src/domain.cpp:221)
-  2 by 2 by 1 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   reading atom labelmap ...
   reading bond labelmap ...
   reading angle labelmap ...
@@ -30,7 +30,7 @@ WARNING: Triclinic box skew is large. LAMMPS will run inefficiently. (src/domain
   2 = max impropers/atom
   triclinic box = (1.652498 0.007497 -0.009919) to (139.8775 138.2325 97.72992) with tilt (0 69.112503 69.112503)
 WARNING: Triclinic box skew is large. LAMMPS will run inefficiently. (src/domain.cpp:221)
-  2 by 2 by 1 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   reading bonds ...
   128613 bonds
   reading angles ...
@@ -46,8 +46,8 @@ Finding 1-2 1-3 1-4 neighbors ...
      9 = max # of 1-3 neighbors
     19 = max # of 1-4 neighbors
     21 = max # of special neighbors
-  special bonds CPU = 0.014 seconds
-  read_data CPU = 0.472 seconds
+  special bonds CPU = 0.054 seconds
+  read_data CPU = 0.597 seconds
 pair_style      lj/charmm/coul/long 10.0 12.0
 pair_modify     mix arithmetic
 bond_style      harmonic
@@ -822,7 +822,7 @@ Finding SHAKE clusters ...
        0 = # of size 3 clusters
        0 = # of size 4 clusters
    61958 = # of frozen angles
-  find clusters CPU = 0.011 seconds
+  find clusters CPU = 0.039 seconds
 fix             cstr protein ilves 1.0e-4 100 50 b C-CP1 C-CT1 C-CT2 C-N C-NC2 C-NH1 C-O                     CA-CA CA-CAI CA-CT2 CA-CY CA-HP CA-NY CA-OH1 CAI-CPT CAI-HP CC-CT1 CC-CT2                     CC-CT2A CC-NH2 CC-O CC-OC CP1-CP2 CP1-HB1 CP1-N CP2-CP2 CP2-CP3 CP2-HA2                     CP3-HA2 CP3-N CPH1-CPH1 CPH1-CT2 CPH1-HR3 CPH1-NR1 CPH1-NR2 CPH2-HR1                     CPH2-NR1 CPH2-NR2 CPT-CPT CPT-CY CPT-NY CT1-CT1 CT1-CT2 CT1-CT2A CT1-CT3                     CT1-HA1 CT1-HB1 CT1-NH1 CT1-NH3 CT1-OH1 CT2-CT2 CT2-CT2A CT2-CT3 CT2-CY                     CT2-HA2 CT2-HB2 CT2-NC2 CT2-NH1 CT2-NH3 CT2-OH1 CT2-S CT2A-HA2 CT3-HA3                     CT3-S H-NH1 H-NH2 H-NR1 H-NY H-OH1 HC-NC2 HC-NH3 HS-S HT-OT
 
 
@@ -870,8 +870,8 @@ PPPM initialization ...
   stencil order = 5
   estimated absolute RMS force accuracy = 0.037957404
   estimated relative force accuracy = 0.00011430759
-  using double precision KISS FFT
-  3d grid and FFT values/proc = 105472 69984
+  using double precision FFTW3
+  3d grid and FFT values/proc = 358543 279936
 Generated 858 of 861 mixed pair_coeff terms from arithmetic mixing rule
 Neighbor list info ...
   update: every = 1 steps, delay = 5 steps, check = yes
@@ -962,117 +962,117 @@ Bond:  H-OH1       0.959777  0.0195908         51
 Bond:  HC-NC2      1.00053   0.0174536         55
 Bond:  HC-NH3      1.04036   0.0184224         36
 Bond:  HS-S        1.3266    0.0172747         12
-Per MPI rank memory allocation (min/avg/max) = 296.6 | 297.4 | 298.1 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 949.7 | 949.7 | 949.7 Mbytes
    Step          Temp          E_vdwl         E_coul         E_long         E_mol          PotEng         KinEng         TotEng         Press     
-         0   301.14145      62827.999      1923891.1     -2621963.4      5723.0328     -629521.34      114006.66     -515514.69      146.83069    
-        10   238.42112      61213.987      1912518.7     -2622127.9      5486.2795     -642909.01      90261.884     -552647.12     -1621.0856    
-        20   251.28663      58256.601      1911115.8     -2622031.5      5247.8574     -647411.26      95132.532     -552278.73     -1973.876     
-        30   251.6732       56893.247      1912439       -2622098.1      5524.762      -647241.13      95278.884     -551962.24     -1984.3354    
-        40   251.54357      57617.916      1911624.1     -2622036.2      6002.943      -646791.19      95229.805     -551561.38     -1746.1255    
+         0   301.14145      62827.999      1923891.1     -2621963.4      5723.0328     -629521.34      114006.66     -515514.69      146.6871     
+        10   238.42112      61213.981      1912518.7     -2622127.9      5486.2846     -642909         90261.886     -552647.12     -1621.0761    
+        20   251.28664      58256.599      1911115.8     -2622031.5      5247.8615     -647411.26      95132.538     -552278.73     -1975.3349    
+        30   251.67325      56893.249      1912439       -2622098.1      5524.7796     -647241.11      95278.9       -551962.21     -1984.3276    
+        40   251.54358      57617.924      1911624.1     -2622036.2      6002.9382     -646791.19      95229.81      -551561.38     -1746.5675    
 SHAKE stats (type/ave/delta/count) on step 50
 Bond:  HT-OT      0.9572    1.67805e-06   123916
 Angle: HT-OT-HT   104.52    0.000179047    61958
-ILVES stats (type/ave/delta/count) on step 50 (up to 6 Newton iterations)
-Bond:  C-CP1       1.49      0.000119253       13
-Bond:  C-CT1       1.49      0.000131412      264
-Bond:  C-CT2       1.49      3.00759e-05       26
-Bond:  C-N         1.3       3.19694e-05       13
-Bond:  C-NC2       1.365     2.30605e-05       33
-Bond:  C-NH1       1.345     6.26287e-05      290
-Bond:  C-O         1.23      5.74038e-05      303
-Bond:  CA-CA       1.375     1.63589e-05      165
-Bond:  CA-CAI      1.375     2.31884e-08        6
-Bond:  CA-CT2      1.49      1.45285e-05       27
+ILVES stats (type/ave/delta/count) on step 50 (up to 2 Newton iterations)
+Bond:  C-CP1       1.49      1.9814e-08        13
+Bond:  C-CT1       1.49      3.83554e-08      264
+Bond:  C-CT2       1.49      2.95049e-08       26
+Bond:  C-N         1.3       2.46864e-08       13
+Bond:  C-NC2       1.365     4.23641e-08       33
+Bond:  C-NH1       1.345     7.29345e-08      290
+Bond:  C-O         1.23      8.77538e-08      303
+Bond:  CA-CA       1.375     4.35365e-08      165
+Bond:  CA-CAI      1.375     2.31885e-08        6
+Bond:  CA-CT2      1.49      5.32889e-08       27
 Bond:  CA-CY       1.365     1.22301e-08        3
-Bond:  CA-HP       1.08      1.2822e-05       133
-Bond:  CA-NY       1.37      7.51481e-09        3
-Bond:  CA-OH1      1.411     2.49558e-08       11
+Bond:  CA-HP       1.08      4.12567e-07      133
+Bond:  CA-NY       1.37      7.51477e-09        3
+Bond:  CA-OH1      1.411     2.49607e-08       11
 Bond:  CAI-CPT     1.36      2.88924e-08        6
-Bond:  CAI-HP      1.08      3.76863e-07        6
+Bond:  CAI-HP      1.08      3.76865e-07        6
 Bond:  CC-CT1      1.522     0                  1
-Bond:  CC-CT2      1.522     2.71073e-05       43
-Bond:  CC-CT2A     1.522     1.72135e-08       17
-Bond:  CC-NH2      1.36      1.30209e-05       34
-Bond:  CC-O        1.23      1.21831e-05       34
+Bond:  CC-CT2      1.522     8.1341e-08        43
+Bond:  CC-CT2A     1.522     1.72133e-08       17
+Bond:  CC-NH2      1.36      1.88586e-08       34
+Bond:  CC-O        1.23      6.48572e-08       34
 Bond:  CC-OC       1.26      5.68667e-08       54
-Bond:  CP1-CP2     1.527     1.2075e-05        13
-Bond:  CP1-HB1     1.08      1.3836e-05        13
-Bond:  CP1-N       1.434     4.02186e-05       13
-Bond:  CP2-CP2     1.537     4.01906e-06       13
-Bond:  CP2-CP3     1.537     3.83454e-08       13
-Bond:  CP2-HA2     1.111     9.34667e-06       52
+Bond:  CP1-CP2     1.527     1.63467e-08       13
+Bond:  CP1-HB1     1.08      2.41513e-07       13
+Bond:  CP1-N       1.434     1.45146e-08       13
+Bond:  CP2-CP2     1.537     5.38797e-08       13
+Bond:  CP2-CP3     1.537     3.83458e-08       13
+Bond:  CP2-HA2     1.111     4.24072e-07       52
 Bond:  CP3-HA2     1.111     3.70997e-07       26
-Bond:  CP3-N       1.455     2.40592e-05       13
-Bond:  CPH1-CPH1   1.36      8.12729e-06        7
-Bond:  CPH1-CT2    1.5       8.65977e-06        7
-Bond:  CPH1-HR3    1.083     2.81728e-06        7
-Bond:  CPH1-NR1    1.38      4.55133e-06        7
-Bond:  CPH1-NR2    1.38      1.11053e-05        7
+Bond:  CP3-N       1.455     2.36096e-08       13
+Bond:  CPH1-CPH1   1.36      2.47488e-08        7
+Bond:  CPH1-CT2    1.5       1.44379e-08        7
+Bond:  CPH1-HR3    1.083     5.69605e-07        7
+Bond:  CPH1-NR1    1.38      1.37076e-08        7
+Bond:  CPH1-NR2    1.38      4.1633e-08         7
 Bond:  CPH2-HR1    1.09      1.51117e-07        7
-Bond:  CPH2-NR1    1.36      3.975e-08          7
-Bond:  CPH2-NR2    1.32      4.11927e-08        7
-Bond:  CPT-CPT     1.385     4.75068e-09        3
-Bond:  CPT-CY      1.43      3.09218e-09        3
-Bond:  CPT-NY      1.37      1.33079e-08        3
-Bond:  CT1-CT1     1.5       1.95076e-05       62
-Bond:  CT1-CT2     1.538     4.1679e-05       200
-Bond:  CT1-CT2A    1.538     3.14438e-08       26
-Bond:  CT1-CT3     1.538     2.16109e-05      164
-Bond:  CT1-HA1     1.111     5.50821e-06       91
-Bond:  CT1-HB1     1.08      2.30639e-05      265
-Bond:  CT1-NH1     1.43      9.01924e-05      264
+Bond:  CPH2-NR1    1.36      3.97501e-08        7
+Bond:  CPH2-NR2    1.32      4.11922e-08        7
+Bond:  CPT-CPT     1.385     4.75076e-09        3
+Bond:  CPT-CY      1.43      3.09204e-09        3
+Bond:  CPT-NY      1.37      1.3308e-08         3
+Bond:  CT1-CT1     1.5       3.4779e-08        62
+Bond:  CT1-CT2     1.538     3.44412e-08      200
+Bond:  CT1-CT2A    1.538     3.14435e-08       26
+Bond:  CT1-CT3     1.538     4.31566e-08      164
+Bond:  CT1-HA1     1.111     5.5289e-07        91
+Bond:  CT1-HB1     1.08      5.9601e-07       265
+Bond:  CT1-NH1     1.43      4.79955e-08      264
 Bond:  CT1-NH3     1.48      0                  1
-Bond:  CT1-OH1     1.42      7.7512e-06        24
-Bond:  CT2-CT2     1.53      1.80859e-05       78
-Bond:  CT2-CT2A    1.53      5.99295e-08        9
-Bond:  CT2-CT3     1.528     3.37296e-08       11
-Bond:  CT2-CY      1.492     6.44365e-09        3
-Bond:  CT2-HA2     1.111     1.41964e-05      516
-Bond:  CT2-HB2     1.08      6.55367e-07       52
-Bond:  CT2-NC2     1.49      5.30639e-06       11
-Bond:  CT2-NH1     1.43      3.79391e-06       26
-Bond:  CT2-NH3     1.48      1.30806e-08       11
-Bond:  CT2-OH1     1.42      7.56891e-08       16
-Bond:  CT2-S       1.818     2.94961e-08       22
-Bond:  CT2A-HA2    1.111     4.42975e-07       52
-Bond:  CT3-HA3     1.111     7.00363e-06      555
+Bond:  CT1-OH1     1.42      2.17155e-08       24
+Bond:  CT2-CT2     1.53      5.38961e-08       78
+Bond:  CT2-CT2A    1.53      5.99296e-08        9
+Bond:  CT2-CT3     1.528     3.3729e-08        11
+Bond:  CT2-CY      1.492     6.43917e-09        3
+Bond:  CT2-HA2     1.111     5.46926e-07      516
+Bond:  CT2-HB2     1.08      3.87991e-07       52
+Bond:  CT2-NC2     1.49      1.98896e-08       11
+Bond:  CT2-NH1     1.43      9.71637e-08       26
+Bond:  CT2-NH3     1.48      1.30807e-08       11
+Bond:  CT2-OH1     1.42      7.56886e-08       16
+Bond:  CT2-S       1.818     2.94933e-08       22
+Bond:  CT2A-HA2    1.111     4.42956e-07       52
+Bond:  CT3-HA3     1.111     5.47507e-07      555
 Bond:  CT3-S       1.816     1.64772e-08       10
-Bond:  H-NH1       0.997     6.86054e-05      290
-Bond:  H-NH2       1         1.3637e-06        68
-Bond:  H-NR1       1         1.93574e-07        7
-Bond:  H-NY        0.976     3.78482e-07        3
-Bond:  H-OH1       0.96      4.93302e-07       51
-Bond:  HC-NC2      1         1.19312e-05       55
-Bond:  HC-NH3      1.04      3.46528e-07       36
+Bond:  H-NH1       0.997     6.67626e-07      290
+Bond:  H-NH2       1         5.24366e-07       68
+Bond:  H-NR1       1         1.93452e-07        7
+Bond:  H-NY        0.976     3.78491e-07        3
+Bond:  H-OH1       0.96      3.39049e-07       51
+Bond:  HC-NC2      1         6.92648e-07       55
+Bond:  HC-NH3      1.04      3.46563e-07       36
 Bond:  HS-S        1.325     1.75991e-07       12
-        50   255.17044      59311.064      1908586.9     -2622084.8      6446.121      -647740.74      96602.872     -551137.87     -1479.8582    
-Loop time of 18.171 on 4 procs for 50 steps with 190531 atoms
+        50   255.17044      59311.071      1908586.9     -2622084.8      6446.164      -647740.7       96602.871     -551137.82     -1478.3289    
+Loop time of 66.47 on 1 procs for 50 steps with 190531 atoms
 
-Performance: 0.238 ns/day, 100.950 hours/ns, 2.752 timesteps/s, 524.273 katom-step/s
-99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 0.065 ns/day, 369.278 hours/ns, 0.752 timesteps/s, 143.321 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 14.088     | 14.229     | 14.467     |   4.0 | 78.30
-Bond    | 0.0062977  | 0.010167   | 0.012055   |   2.3 |  0.06
-Kspace  | 0.85596    | 1.0881     | 1.2316     |  14.3 |  5.99
-Neigh   | 1.8859     | 1.8862     | 1.8866     |   0.0 | 10.38
-Comm    | 0.071426   | 0.079248   | 0.08554    |   1.8 |  0.44
-Output  | 0.00071728 | 0.00075667 | 0.00079536 |   0.0 |  0.00
-Modify  | 0.85113    | 0.85204    | 0.8526     |   0.1 |  4.69
-Other   |            | 0.02576    |            |       |  0.14
+Pair    | 56.208     | 56.208     | 56.208     |   0.0 | 84.56
+Bond    | 0.04038    | 0.04038    | 0.04038    |   0.0 |  0.06
+Kspace  | 2.4025     | 2.4025     | 2.4025     |   0.0 |  3.61
+Neigh   | 6.7337     | 6.7337     | 6.7337     |   0.0 | 10.13
+Comm    | 0.055448   | 0.055448   | 0.055448   |   0.0 |  0.08
+Output  | 0.0025121  | 0.0025121  | 0.0025121  |   0.0 |  0.00
+Modify  | 0.99606    | 0.99606    | 0.99606    |   0.0 |  1.50
+Other   |            | 0.0319     |            |       |  0.05
 
-Nlocal:        47632.8 ave       47768 max       47519 min
-Histogram: 1 0 1 0 0 1 0 0 0 1
-Nghost:          89456 ave       89631 max       89347 min
-Histogram: 2 0 0 0 1 0 0 0 0 1
-Neighs:    2.79158e+07 ave 2.80725e+07 max 2.77771e+07 min
-Histogram: 1 0 0 1 0 1 0 0 0 1
+Nlocal:         190531 ave      190531 max      190531 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:         190712 ave      190712 max      190712 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.11663e+08 ave 1.11663e+08 max 1.11663e+08 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 1.1166334e+08
-Ave neighs/atom = 586.06388
+Ave neighs/atom = 586.06387
 Ave special neighs/atom = 2.2169306
 Neighbor list builds = 3
 Dangerous builds = 0
-Total wall time: 0:00:19
+Total wall time: 0:01:11

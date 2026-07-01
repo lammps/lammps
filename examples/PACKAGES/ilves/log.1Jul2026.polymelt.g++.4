@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2025-gb77e3ac82a)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2152-g107b880cf8-modified)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # Long-chain bead polymer melt with rigid bonds constrained by fix ilves.
@@ -16,7 +16,7 @@ boundary        p p p
 read_data       data.polymelt
 Reading data file ...
   orthogonal box = (0.28588703 0.28588703 0.28588703) to (39.104113 39.104113 39.104113)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   reading atoms ...
   51894 atoms
   reading velocities ...
@@ -24,7 +24,7 @@ Reading data file ...
   scanning bonds ...
   1 = max bonds/atom
   orthogonal box = (0.28588703 0.28588703 0.28588703) to (39.104113 39.104113 39.104113)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   reading bonds ...
   51889 bonds
 Finding 1-2 1-3 1-4 neighbors ...
@@ -34,8 +34,8 @@ Finding 1-2 1-3 1-4 neighbors ...
      2 = max # of 1-3 neighbors
      4 = max # of 1-4 neighbors
      6 = max # of special neighbors
-  special bonds CPU = 0.004 seconds
-  read_data CPU = 0.184 seconds
+  special bonds CPU = 0.013 seconds
+  read_data CPU = 0.194 seconds
 
 # bonded beads do not interact through the pair potential (the bond/constraint
 # sets their separation); all other pairs use a standard 12-6 LJ
@@ -47,7 +47,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      2 = max # of 1-3 neighbors
      4 = max # of 1-4 neighbors
      6 = max # of special neighbors
-  special bonds CPU = 0.003 seconds
+  special bonds CPU = 0.011 seconds
 pair_style      lj/cut 2.5
 pair_coeff      1 1 1.0 1.0
 
@@ -66,6 +66,9 @@ fix             1 all nvt temp 1.0 1.0 0.5
 timestep        0.005
 thermo          100
 thermo_style    custom step temp epair etotal press density
+
+# dump           viz all image 100 myimage-*.png mol type bond atom type #                                  size 800 800 view 80 10 zoom 1.4641 box yes 0.025 #                                  shiny 0.2  fsaa yes ssao yes 453983 0.6
+# dump_modify    viz pad 6 boxcolor steelblue backcolor black backcolor2 white adiam 1 0.75 #                color map1 0.243 0.298 0.078 color map2 0.780 0.867 0.529 color map3 0.729 0.525 0.361 #                color map4 0.275 0.953 0.243 color map5 0.992 0.349 0.145 #                amap 1 5 sa 1.0 5 map1 map2 map3 map4 map5
 
 run             500
 
@@ -102,42 +105,42 @@ Neighbor list info ...
 Fix ilves: constraining 51889 bond(s) and 0 angle(s)
 ILVES stats (type/ave/delta/count) on step 0 (up to 0 Newton iterations)
 Bond:   1   0.969998  7.21532e-07    51889
-Per MPI rank memory allocation (min/avg/max) = 16.59 | 16.59 | 16.6 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 49.88 | 49.88 | 49.88 Mbytes
    Step          Temp          E_pair         TotEng         Press         Density    
-         0   1.0013092     -4.8723643     -3.8710358      0.39189483     0.88717664   
-       100   1.0044682     -4.876891      -3.8724034     -0.02420777     0.88717664   
-       200   0.994138      -4.87474       -3.8805828      0.0067104858   0.88717664   
-       300   0.98858513    -4.8742253     -3.8856211      0.0013975659   0.88717664   
-       400   0.99759724    -4.8741123     -3.8764958      0.016320345    0.88717664   
-ILVES stats (type/ave/delta/count) on step 500 (up to 8 Newton iterations)
-Bond:   1   0.97      0.000139437    51889
-       500   1.0048415     -4.8727561     -3.8678953      0.0053731283   0.88717664   
-Loop time of 5.82134 on 4 procs for 500 steps with 51894 atoms
+         0   1.0013092     -4.8723643     -3.8710358      0.39330905     0.88717664   
+       100   1.0044699     -4.8768891     -3.8723998     -0.024192101    0.88717664   
+       200   0.9941371     -4.8747417     -3.8805855      0.0067099201   0.88717664   
+       300   0.98858839    -4.8742169     -3.8856094      0.0013958262   0.88717664   
+       400   0.99766134    -4.8741672     -3.8764866      0.01616944     0.88717664   
+ILVES stats (type/ave/delta/count) on step 500 (up to 1 Newton iterations)
+Bond:   1   0.97      9.63359e-06    51889
+       500   1.0050036     -4.8729312     -3.8679083      0.0019464694   0.88717664   
+Loop time of 16.2537 on 1 procs for 500 steps with 51894 atoms
 
-Performance: 37104.888 tau/day, 85.891 timesteps/s, 4.457 Matom-step/s
-99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 13289.303 tau/day, 30.762 timesteps/s, 1.596 Matom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.6797     | 2.7056     | 2.7212     |   1.0 | 46.48
-Bond    | 0.00023234 | 0.00024562 | 0.0002763  |   0.0 |  0.00
-Neigh   | 0.68399    | 0.6855     | 0.68672    |   0.1 | 11.78
-Comm    | 0.10663    | 0.12232    | 0.14813    |   4.8 |  2.10
-Output  | 0.0004316  | 0.00044344 | 0.00047608 |   0.0 |  0.01
-Modify  | 2.2603     | 2.261      | 2.2621     |   0.0 | 38.84
-Other   |            | 0.04616    |            |       |  0.79
+Pair    | 10.501     | 10.501     | 10.501     |   0.0 | 64.61
+Bond    | 0.00027262 | 0.00027262 | 0.00027262 |   0.0 |  0.00
+Neigh   | 3.0073     | 3.0073     | 3.0073     |   0.0 | 18.50
+Comm    | 0.084985   | 0.084985   | 0.084985   |   0.0 |  0.52
+Output  | 0.0015378  | 0.0015378  | 0.0015378  |   0.0 |  0.01
+Modify  | 2.5913     | 2.5913     | 2.5913     |   0.0 | 15.94
+Other   |            | 0.06759    |            |       |  0.42
 
-Nlocal:        12973.5 ave       12996 max       12933 min
-Histogram: 1 0 0 0 0 1 0 0 0 2
-Nghost:        12704.5 ave       12739 max       12635 min
-Histogram: 1 0 0 0 0 0 0 1 1 1
-Neighs:         633506 ave      640163 max      629982 min
-Histogram: 2 0 0 1 0 0 0 0 0 1
+Nlocal:          51894 ave       51894 max       51894 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          28003 ave       28003 max       28003 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.53412e+06 ave 2.53412e+06 max 2.53412e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 2534023
-Ave neighs/atom = 48.830751
+Total # of neighbors = 2534122
+Ave neighs/atom = 48.832659
 Ave special neighs/atom = 5.9988438
 Neighbor list builds = 43
 Dangerous builds = 0
-Total wall time: 0:00:06
+Total wall time: 0:00:16

@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2025-gb77e3ac82a)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2152-g107b880cf8-modified)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # Coarse-grain polymer chains with near-linear backbone angles.
@@ -37,7 +37,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      4 = max # of 1-4 neighbors
      6 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.008 seconds
+  read_data CPU = 0.007 seconds
 
 pair_coeff 1 1 1.0 1.0
 pair_coeff 2 2 1.2 1.5
@@ -76,7 +76,7 @@ Your simulation uses code contributions which should be cited:
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
-WARNING: Fix ilves treating near-linear angle type(s) 1 2 with linearangle mode skip (src/RIGID/fix_ilves.cpp:371)
+WARNING: Fix ilves treating near-linear angle type(s) 1 2 with linearangle mode skip (src/RIGID/fix_ilves.cpp:372)
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -90,13 +90,13 @@ Neighbor list info ...
       stencil: half/bin/3d
       bin: standard
 Fix ilves: replacing 768 bond and 0 angle constraint(s) with harmonic restraints for minimization
-Per MPI rank memory allocation (min/avg/max) = 9.253 | 9.253 | 9.253 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 9.264 | 9.264 | 9.264 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
          0   2.3724673      4.898926       571.36771      2.5379575      573.90567    
        100   2.3724673      4.8159763     -5.6487418      2.5379575     -3.1107844    
-Loop time of 0.762732 on 1 procs for 100 steps with 896 atoms
+Loop time of 0.732858 on 1 procs for 100 steps with 896 atoms
 
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = max iterations
@@ -110,13 +110,13 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.72831    | 0.72831    | 0.72831    |   0.0 | 95.49
-Bond    | 0.011884   | 0.011884   | 0.011884   |   0.0 |  1.56
+Pair    | 0.69701    | 0.69701    | 0.69701    |   0.0 | 95.11
+Bond    | 0.012166   | 0.012166   | 0.012166   |   0.0 |  1.66
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0066298  | 0.0066298  | 0.0066298  |   0.0 |  0.87
-Output  | 1.9297e-05 | 1.9297e-05 | 1.9297e-05 |   0.0 |  0.00
-Modify  | 0.011873   | 0.011873   | 0.011873   |   0.0 |  1.56
-Other   |            | 0.004016   |            |       |  0.53
+Comm    | 0.0067671  | 0.0067671  | 0.0067671  |   0.0 |  0.92
+Output  | 1.8305e-05 | 1.8305e-05 | 1.8305e-05 |   0.0 |  0.00
+Modify  | 0.01226    | 0.01226    | 0.01226    |   0.0 |  1.67
+Other   |            | 0.00464    |            |       |  0.63
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -138,57 +138,57 @@ reset_timestep 0
 
 run             1000
 Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
-WARNING: Fix ilves treating near-linear angle type(s) 1 2 with linearangle mode skip (src/RIGID/fix_ilves.cpp:371)
+WARNING: Fix ilves treating near-linear angle type(s) 1 2 with linearangle mode skip (src/RIGID/fix_ilves.cpp:372)
 Fix ilves: constraining 768 bond(s) and 0 angle(s)
 ILVES stats (type/ave/delta/count) on step 0 (up to 0 Newton iterations)
 Bond:   1   1         7.72093e-07      448
 Bond:   2   1.2       9.70099e-07      320
-Per MPI rank memory allocation (min/avg/max) = 8.128 | 8.128 | 8.128 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.139 | 8.139 | 8.139 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
-         0   2.3578221      5.1665265     -5.6487418      2.5222907     -3.1264511    
-       100   1.8444073      5.5927326     -5.4603414      1.973063      -3.4872784    
-       200   1.7253457      4.6405145     -5.7051648      1.8456963     -3.8594685    
-       300   1.5319015      4.5486239     -5.802753       1.6387585     -4.1639945    
-       400   1.4209414      4.2312177     -5.8606847      1.5200584     -4.3406263    
-ILVES stats (type/ave/delta/count) on step 500 (up to 14 Newton iterations)
-Bond:   1   0.999999  0.000112575      448
-Bond:   2   1.2       9.5873e-05       320
-       500   1.4848276      3.884796      -5.9720595      1.5884009     -4.3836586    
-       600   1.4618572      4.1731474     -5.88325        1.5638282     -4.3194218    
-       700   1.4958144      4.1630602     -5.8211241      1.6001541     -4.22097      
-       800   1.5514607      3.7466076     -5.8496573      1.659682      -4.1899753    
-       900   1.5005349      4.1274992     -5.852378       1.605204      -4.247174     
-ILVES stats (type/ave/delta/count) on step 1000 (up to 14 Newton iterations)
-Bond:   1   1         0.000146826      448
-Bond:   2   1.2       4.85029e-05      320
-      1000   1.5137839      3.741735      -5.9312967      1.6193771     -4.3119196    
-Loop time of 1.15304 on 1 procs for 1000 steps with 896 atoms
+         0   2.3578221      5.1575096     -5.6487418      2.5222907     -3.1264511    
+       100   1.844466       5.5789932     -5.460242       1.9731257     -3.4871163    
+       200   1.7253923      4.640637      -5.705033       1.8457461     -3.8592869    
+       300   1.5323622      4.5457117     -5.8031182      1.6392513     -4.1638669    
+       400   1.4214111      4.2246836     -5.8610796      1.5205608     -4.3405188    
+ILVES stats (type/ave/delta/count) on step 500 (up to 1 Newton iterations)
+Bond:   1   1         4.07516e-06      448
+Bond:   2   1.2       5.78041e-07      320
+       500   1.4846814      3.8908472     -5.971791       1.5882446     -4.3835464    
+       600   1.4539385      4.2330821     -5.8756756      1.5553572     -4.3203184    
+       700   1.4998172      4.0455589     -5.8235757      1.6044362     -4.2191396    
+       800   1.5683245      4.1361296     -5.8759357      1.6777222     -4.1982135    
+       900   1.4909475      3.964944      -5.8651907      1.5949478     -4.2702429    
+ILVES stats (type/ave/delta/count) on step 1000 (up to 1 Newton iterations)
+Bond:   1   1         2.60847e-06      448
+Bond:   2   1.2       4.09428e-07      320
+      1000   1.492304       4.0133993     -5.9426061      1.5963989     -4.3462072    
+Loop time of 0.92531 on 1 procs for 1000 steps with 896 atoms
 
-Performance: 374661.445 tau/day, 867.272 timesteps/s, 777.076 katom-step/s
-99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 466870.440 tau/day, 1080.719 timesteps/s, 968.324 katom-step/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.68421    | 0.68421    | 0.68421    |   0.0 | 59.34
-Bond    | 0.013953   | 0.013953   | 0.013953   |   0.0 |  1.21
-Neigh   | 0.16886    | 0.16886    | 0.16886    |   0.0 | 14.64
-Comm    | 0.010979   | 0.010979   | 0.010979   |   0.0 |  0.95
-Output  | 0.00012763 | 0.00012763 | 0.00012763 |   0.0 |  0.01
-Modify  | 0.27253    | 0.27253    | 0.27253    |   0.0 | 23.64
-Other   |            | 0.002387   |            |       |  0.21
+Pair    | 0.66236    | 0.66236    | 0.66236    |   0.0 | 71.58
+Bond    | 0.014182   | 0.014182   | 0.014182   |   0.0 |  1.53
+Neigh   | 0.16764    | 0.16764    | 0.16764    |   0.0 | 18.12
+Comm    | 0.011103   | 0.011103   | 0.011103   |   0.0 |  1.20
+Output  | 0.00010174 | 0.00010174 | 0.00010174 |   0.0 |  0.01
+Modify  | 0.067439   | 0.067439   | 0.067439   |   0.0 |  7.29
+Other   |            | 0.002487   |            |       |  0.27
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           4121 ave        4121 max        4121 min
+Nghost:           4106 ave        4106 max        4106 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:          94529 ave       94529 max       94529 min
+Neighs:          94455 ave       94455 max       94455 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 94529
-Ave neighs/atom = 105.50112
+Total # of neighbors = 94455
+Ave neighs/atom = 105.41853
 Ave special neighs/atom = 4.2857143
-Neighbor list builds = 84
+Neighbor list builds = 83
 Dangerous builds = 0
 
 

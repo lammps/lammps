@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2025-gb77e3ac82a)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2152-g107b880cf8-modified)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # fix ilves example: a fluid of rigid diatomic molecules (LJ units)
@@ -27,7 +27,7 @@ Read molecule template dimer:
 create_atoms    0 random 400 54321 box mol dimer 98765 overlap 0.9 maxtry 100
 Created 800 atoms
   using lattice units in orthogonal box = (0 0 0) to (18 18 18)
-  create_atoms CPU = 0.007 seconds
+  create_atoms CPU = 0.008 seconds
 
 mass            1 1.0
 pair_style      lj/cut 2.5
@@ -86,7 +86,7 @@ Neighbor list info ...
 Fix ilves: constraining 400 bond(s) and 0 angle(s)
 ILVES stats (type/ave/delta/count) on step 0 (up to 0 Newton iterations)
 Bond:   1   1         5.44009e-15      400
-Per MPI rank memory allocation (min/avg/max) = 5.572 | 5.572 | 5.572 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 5.575 | 5.575 | 5.575 Mbytes
    Step          Temp          E_pair         TotEng         Press     
          0   1.005676      -0.44054575     0.81466366     0.23458256   
        250   1.3009087     -0.81576841     0.80792831     0.058522508  
@@ -105,21 +105,21 @@ Bond:   1   1         1.12739e-06      400
 ILVES stats (type/ave/delta/count) on step 2000 (up to 1 Newton iterations)
 Bond:   1   1         6.04501e-07      400
       2000   1.3857866     -0.92971304     0.79992187     0.043510177  
-Loop time of 0.19715 on 1 procs for 2000 steps with 800 atoms
+Loop time of 0.187494 on 1 procs for 2000 steps with 800 atoms
 
-Performance: 4382458.714 tau/day, 10144.580 timesteps/s, 8.116 Matom-step/s
-99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 4608139.596 tau/day, 10666.990 timesteps/s, 8.534 Matom-step/s
+99.3% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.056101   | 0.056101   | 0.056101   |   0.0 | 28.46
-Bond    | 7.5089e-05 | 7.5089e-05 | 7.5089e-05 |   0.0 |  0.04
-Neigh   | 0.08111    | 0.08111    | 0.08111    |   0.0 | 41.14
-Comm    | 0.0081528  | 0.0081528  | 0.0081528  |   0.0 |  4.14
-Output  | 8.6203e-05 | 8.6203e-05 | 8.6203e-05 |   0.0 |  0.04
-Modify  | 0.048649   | 0.048649   | 0.048649   |   0.0 | 24.68
-Other   |            | 0.002976   |            |       |  1.51
+Pair    | 0.049214   | 0.049214   | 0.049214   |   0.0 | 26.25
+Bond    | 8.193e-05  | 8.193e-05  | 8.193e-05  |   0.0 |  0.04
+Neigh   | 0.079671   | 0.079671   | 0.079671   |   0.0 | 42.49
+Comm    | 0.0084092  | 0.0084092  | 0.0084092  |   0.0 |  4.49
+Output  | 9.0663e-05 | 9.0663e-05 | 9.0663e-05 |   0.0 |  0.05
+Modify  | 0.046735   | 0.046735   | 0.046735   |   0.0 | 24.93
+Other   |            | 0.003292   |            |       |  1.76
 
 Nlocal:            800 ave         800 max         800 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

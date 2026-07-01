@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2025-gb77e3ac82a)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2152-g107b880cf8-modified)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # Solvated 5-mer peptide -- RATTLE constraint solver, for comparison
@@ -47,7 +47,7 @@ Finding 1-2 1-3 1-4 neighbors ...
     14 = max # of 1-4 neighbors
     18 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.011 seconds
+  read_data CPU = 0.010 seconds
 
 neighbor        2.0 bin
 neigh_modify    delay 5
@@ -80,7 +80,7 @@ PPPM initialization ...
   stencil order = 5
   estimated absolute RMS force accuracy = 0.022820853
   estimated relative force accuracy = 6.872432e-05
-  using double precision KISS FFT
+  using double precision FFTW3
   3d grid and FFT values/proc = 10648 3375
 Generated 91 of 91 mixed pair_coeff terms from arithmetic mixing rule
 Neighbor list info ...
@@ -110,7 +110,7 @@ TotEng   =     -5237.4663 KinEng   =      1134.9102 Temp     =       282.0984
 PotEng   =     -6372.3765 E_bond   =        16.5572 E_angle  =        36.3726 
 E_dihed  =        15.5190 E_impro  =         1.9426 E_vdwl   =       692.8945 
 E_coul   =     26772.2647 E_long   =    -33907.9271 Press    =      -838.2525
------------- Step             50 ----- CPU =    0.4065729 (sec) -------------
+------------ Step             50 ----- CPU =    0.4194995 (sec) -------------
 TotEng   =     -5246.5292 KinEng   =      1136.6816 Temp     =       282.5387 
 PotEng   =     -6383.2108 E_bond   =        12.1867 E_angle  =        31.6583 
 E_dihed  =        18.7913 E_impro  =         2.3544 E_vdwl   =       657.5255 
@@ -124,35 +124,35 @@ Bond:   12   1.08      1.73169e-07        9
 Bond:   14   0.96      0                  1
 Bond:   18   0.9572    9.7855e-06      1280
 Angle:  31   104.52    0.000557719      640
------------- Step            100 ----- CPU =    0.8225105 (sec) -------------
+------------ Step            100 ----- CPU =    0.8464213 (sec) -------------
 TotEng   =     -5272.7607 KinEng   =      1075.1521 Temp     =       267.2447 
 PotEng   =     -6347.9128 E_bond   =        14.3718 E_angle  =        43.0992 
 E_dihed  =        15.1951 E_impro  =         2.2813 E_vdwl   =       707.9183 
 E_coul   =     26775.8677 E_long   =    -33906.6461 Press    =      1246.4252
------------- Step            150 ----- CPU =     1.243438 (sec) -------------
-TotEng   =     -5314.0745 KinEng   =      1093.4375 Temp     =       271.7898 
-PotEng   =     -6407.5120 E_bond   =        17.2887 E_angle  =        32.4899 
+------------ Step            150 ----- CPU =     1.293458 (sec) -------------
+TotEng   =     -5314.0744 KinEng   =      1093.4375 Temp     =       271.7898 
+PotEng   =     -6407.5119 E_bond   =        17.2887 E_angle  =        32.4899 
 E_dihed  =        15.0256 E_impro  =         1.6171 E_vdwl   =       738.3839 
-E_coul   =     26695.5535 E_long   =    -33907.8706 Press    =      1474.9398
+E_coul   =     26695.5535 E_long   =    -33907.8706 Press    =      1474.9399
 RATTLE stats (type/ave/delta/count) on step 200
 Bond:    4   1.111     1.07375e-07        9
-Bond:    6   0.997     9.17728e-08        6
+Bond:    6   0.997     9.17727e-08        6
 Bond:    8   1.08      3.24314e-08        7
-Bond:   10   1.111     1.44502e-07        8
+Bond:   10   1.111     1.44501e-07        8
 Bond:   12   1.08      1.15293e-07        9
 Bond:   14   0.96      0                  1
 Bond:   18   0.9572    1.56115e-06     1280
 Angle:  31   104.52    0.000141428      640
------------- Step            200 ----- CPU =     1.662066 (sec) -------------
+------------ Step            200 ----- CPU =     1.725318 (sec) -------------
 TotEng   =     -5333.8364 KinEng   =      1100.8748 Temp     =       273.6384 
 PotEng   =     -6434.7112 E_bond   =        17.9474 E_angle  =        32.9631 
 E_dihed  =        16.7686 E_impro  =         2.6018 E_vdwl   =       686.9021 
-E_coul   =     26710.6305 E_long   =    -33902.5248 Press    =       549.3331
------------- Step            250 ----- CPU =     2.093959 (sec) -------------
-TotEng   =     -5319.5814 KinEng   =      1062.3018 Temp     =       264.0506 
+E_coul   =     26710.6305 E_long   =    -33902.5248 Press    =       549.3332
+------------ Step            250 ----- CPU =     2.175014 (sec) -------------
+TotEng   =     -5319.5814 KinEng   =      1062.3018 Temp     =       264.0505 
 PotEng   =     -6381.8832 E_bond   =        14.6145 E_angle  =        39.8713 
 E_dihed  =        19.0277 E_impro  =         2.9459 E_vdwl   =       752.0832 
-E_coul   =     26697.2554 E_long   =    -33907.6812 Press    =      1612.4216
+E_coul   =     26697.2554 E_long   =    -33907.6812 Press    =      1612.4218
 RATTLE stats (type/ave/delta/count) on step 300
 Bond:    4   1.111     1.0576e-06         9
 Bond:    6   0.997     1.06999e-06        6
@@ -160,29 +160,29 @@ Bond:    8   1.08      6.43914e-07        7
 Bond:   10   1.111     1.55651e-06        8
 Bond:   12   1.08      9.43682e-07        9
 Bond:   14   0.96      0                  1
-Bond:   18   0.9572    6.85197e-06     1280
+Bond:   18   0.9572    6.85198e-06     1280
 Angle:  31   104.52    0.000405427      640
------------- Step            300 ----- CPU =     2.510958 (sec) -------------
-TotEng   =     -5275.8053 KinEng   =      1157.5445 Temp     =       287.7245 
-PotEng   =     -6433.3498 E_bond   =        14.1507 E_angle  =        38.3748 
-E_dihed  =        18.3102 E_impro  =         1.9022 E_vdwl   =       704.0040 
-E_coul   =     26698.3270 E_long   =    -33908.4187 Press    =      1366.1458
-Loop time of 2.51097 on 1 procs for 300 steps with 2004 atoms
+------------ Step            300 ----- CPU =     2.607027 (sec) -------------
+TotEng   =     -5275.8052 KinEng   =      1157.5446 Temp     =       287.7246 
+PotEng   =     -6433.3499 E_bond   =        14.1507 E_angle  =        38.3748 
+E_dihed  =        18.3102 E_impro  =         1.9022 E_vdwl   =       704.0039 
+E_coul   =     26698.3270 E_long   =    -33908.4187 Press    =      1366.1451
+Loop time of 2.60704 on 1 procs for 300 steps with 2004 atoms
 
-Performance: 20.645 ns/day, 1.162 hours/ns, 119.476 timesteps/s, 239.429 katom-step/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 19.885 ns/day, 1.207 hours/ns, 115.073 timesteps/s, 230.606 katom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.0366     | 2.0366     | 2.0366     |   0.0 | 81.11
-Bond    | 0.0037908  | 0.0037908  | 0.0037908  |   0.0 |  0.15
-Kspace  | 0.15716    | 0.15716    | 0.15716    |   0.0 |  6.26
-Neigh   | 0.26151    | 0.26151    | 0.26151    |   0.0 | 10.41
-Comm    | 0.0092241  | 0.0092241  | 0.0092241  |   0.0 |  0.37
-Output  | 0.00012389 | 0.00012389 | 0.00012389 |   0.0 |  0.00
-Modify  | 0.04099    | 0.04099    | 0.04099    |   0.0 |  1.63
-Other   |            | 0.001556   |            |       |  0.06
+Pair    | 2.1489     | 2.1489     | 2.1489     |   0.0 | 82.43
+Bond    | 0.0042236  | 0.0042236  | 0.0042236  |   0.0 |  0.16
+Kspace  | 0.13091    | 0.13091    | 0.13091    |   0.0 |  5.02
+Neigh   | 0.26602    | 0.26602    | 0.26602    |   0.0 | 10.20
+Comm    | 0.010299   | 0.010299   | 0.010299   |   0.0 |  0.40
+Output  | 0.00015409 | 0.00015409 | 0.00015409 |   0.0 |  0.01
+Modify  | 0.04472    | 0.04472    | 0.04472    |   0.0 |  1.72
+Other   |            | 0.001843   |            |       |  0.07
 
 Nlocal:           2004 ave        2004 max        2004 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

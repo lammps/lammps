@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2025-gb77e3ac82a)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2152-g107b880cf8-modified)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # COVID main protease (SARS-CoV-2 Mpro) -- CHARMM36, converted GROMACS->PSF(ParmEd)
@@ -46,8 +46,8 @@ Finding 1-2 1-3 1-4 neighbors ...
      9 = max # of 1-3 neighbors
     19 = max # of 1-4 neighbors
     21 = max # of special neighbors
-  special bonds CPU = 0.037 seconds
-  read_data CPU = 0.564 seconds
+  special bonds CPU = 0.048 seconds
+  read_data CPU = 0.585 seconds
 pair_style      lj/charmm/coul/long 10.0 12.0
 pair_modify     mix arithmetic
 bond_style      harmonic
@@ -822,7 +822,7 @@ Finding SHAKE clusters ...
        0 = # of size 3 clusters
        0 = # of size 4 clusters
    61958 = # of frozen angles
-  find clusters CPU = 0.032 seconds
+  find clusters CPU = 0.041 seconds
 fix             cstr protein ilves 1.0e-4 100 50 b C-CP1 C-CT1 C-CT2 C-N C-NC2 C-NH1 C-O                     CA-CA CA-CAI CA-CT2 CA-CY CA-HP CA-NY CA-OH1 CAI-CPT CAI-HP CC-CT1 CC-CT2                     CC-CT2A CC-NH2 CC-O CC-OC CP1-CP2 CP1-HB1 CP1-N CP2-CP2 CP2-CP3 CP2-HA2                     CP3-HA2 CP3-N CPH1-CPH1 CPH1-CT2 CPH1-HR3 CPH1-NR1 CPH1-NR2 CPH2-HR1                     CPH2-NR1 CPH2-NR2 CPT-CPT CPT-CY CPT-NY CT1-CT1 CT1-CT2 CT1-CT2A CT1-CT3                     CT1-HA1 CT1-HB1 CT1-NH1 CT1-NH3 CT1-OH1 CT2-CT2 CT2-CT2A CT2-CT3 CT2-CY                     CT2-HA2 CT2-HB2 CT2-NC2 CT2-NH1 CT2-NH3 CT2-OH1 CT2-S CT2A-HA2 CT3-HA3                     CT3-S H-NH1 H-NH2 H-NR1 H-NY H-OH1 HC-NC2 HC-NH3 HS-S HT-OT
 
 
@@ -870,7 +870,7 @@ PPPM initialization ...
   stencil order = 5
   estimated absolute RMS force accuracy = 0.037957404
   estimated relative force accuracy = 0.00011430759
-  using double precision KISS FFT
+  using double precision FFTW3
   3d grid and FFT values/proc = 358543 279936
 Generated 858 of 861 mixed pair_coeff terms from arithmetic mixing rule
 Neighbor list info ...
@@ -962,7 +962,7 @@ Bond:  H-OH1       0.959777  0.0195908         51
 Bond:  HC-NC2      1.00053   0.0174536         55
 Bond:  HC-NH3      1.04036   0.0184224         36
 Bond:  HS-S        1.3266    0.0172747         12
-Per MPI rank memory allocation (min/avg/max) = 949.6 | 949.6 | 949.6 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 949.7 | 949.7 | 949.7 Mbytes
    Step          Temp          E_vdwl         E_coul         E_long         E_mol          PotEng         KinEng         TotEng         Press     
          0   301.14145      62827.999      1923891.1     -2621963.4      5723.0328     -629521.34      114006.66     -515514.69      146.6871     
         10   238.42112      61213.981      1912518.7     -2622127.9      5486.2846     -642909         90261.886     -552647.12     -1621.0761    
@@ -974,23 +974,23 @@ Bond:  HT-OT      0.9572    1.67805e-06   123916
 Angle: HT-OT-HT   104.52    0.000179047    61958
 ILVES stats (type/ave/delta/count) on step 50 (up to 2 Newton iterations)
 Bond:  C-CP1       1.49      1.9814e-08        13
-Bond:  C-CT1       1.49      3.83553e-08      264
+Bond:  C-CT1       1.49      3.83554e-08      264
 Bond:  C-CT2       1.49      2.95049e-08       26
 Bond:  C-N         1.3       2.46864e-08       13
-Bond:  C-NC2       1.365     4.2364e-08        33
+Bond:  C-NC2       1.365     4.23641e-08       33
 Bond:  C-NH1       1.345     7.29345e-08      290
-Bond:  C-O         1.23      8.77539e-08      303
-Bond:  CA-CA       1.375     4.35364e-08      165
+Bond:  C-O         1.23      8.77538e-08      303
+Bond:  CA-CA       1.375     4.35365e-08      165
 Bond:  CA-CAI      1.375     2.31885e-08        6
 Bond:  CA-CT2      1.49      5.32889e-08       27
 Bond:  CA-CY       1.365     1.22301e-08        3
 Bond:  CA-HP       1.08      4.12567e-07      133
-Bond:  CA-NY       1.37      7.51476e-09        3
+Bond:  CA-NY       1.37      7.51477e-09        3
 Bond:  CA-OH1      1.411     2.49607e-08       11
 Bond:  CAI-CPT     1.36      2.88924e-08        6
 Bond:  CAI-HP      1.08      3.76865e-07        6
 Bond:  CC-CT1      1.522     0                  1
-Bond:  CC-CT2      1.522     8.13409e-08       43
+Bond:  CC-CT2      1.522     8.1341e-08        43
 Bond:  CC-CT2A     1.522     1.72133e-08       17
 Bond:  CC-NH2      1.36      1.88586e-08       34
 Bond:  CC-O        1.23      6.48572e-08       34
@@ -1006,31 +1006,31 @@ Bond:  CP3-N       1.455     2.36096e-08       13
 Bond:  CPH1-CPH1   1.36      2.47488e-08        7
 Bond:  CPH1-CT2    1.5       1.44379e-08        7
 Bond:  CPH1-HR3    1.083     5.69605e-07        7
-Bond:  CPH1-NR1    1.38      1.37075e-08        7
+Bond:  CPH1-NR1    1.38      1.37076e-08        7
 Bond:  CPH1-NR2    1.38      4.1633e-08         7
 Bond:  CPH2-HR1    1.09      1.51117e-07        7
 Bond:  CPH2-NR1    1.36      3.97501e-08        7
 Bond:  CPH2-NR2    1.32      4.11922e-08        7
-Bond:  CPT-CPT     1.385     4.75078e-09        3
-Bond:  CPT-CY      1.43      3.09196e-09        3
+Bond:  CPT-CPT     1.385     4.75076e-09        3
+Bond:  CPT-CY      1.43      3.09204e-09        3
 Bond:  CPT-NY      1.37      1.3308e-08         3
 Bond:  CT1-CT1     1.5       3.4779e-08        62
-Bond:  CT1-CT2     1.538     3.44411e-08      200
-Bond:  CT1-CT2A    1.538     3.14436e-08       26
+Bond:  CT1-CT2     1.538     3.44412e-08      200
+Bond:  CT1-CT2A    1.538     3.14435e-08       26
 Bond:  CT1-CT3     1.538     4.31566e-08      164
 Bond:  CT1-HA1     1.111     5.5289e-07        91
 Bond:  CT1-HB1     1.08      5.9601e-07       265
 Bond:  CT1-NH1     1.43      4.79955e-08      264
 Bond:  CT1-NH3     1.48      0                  1
-Bond:  CT1-OH1     1.42      2.17156e-08       24
+Bond:  CT1-OH1     1.42      2.17155e-08       24
 Bond:  CT2-CT2     1.53      5.38961e-08       78
 Bond:  CT2-CT2A    1.53      5.99296e-08        9
 Bond:  CT2-CT3     1.528     3.3729e-08        11
-Bond:  CT2-CY      1.492     6.43919e-09        3
+Bond:  CT2-CY      1.492     6.43917e-09        3
 Bond:  CT2-HA2     1.111     5.46926e-07      516
 Bond:  CT2-HB2     1.08      3.87991e-07       52
 Bond:  CT2-NC2     1.49      1.98896e-08       11
-Bond:  CT2-NH1     1.43      9.71638e-08       26
+Bond:  CT2-NH1     1.43      9.71637e-08       26
 Bond:  CT2-NH3     1.48      1.30807e-08       11
 Bond:  CT2-OH1     1.42      7.56886e-08       16
 Bond:  CT2-S       1.818     2.94933e-08       22
@@ -1046,22 +1046,22 @@ Bond:  HC-NC2      1         6.92648e-07       55
 Bond:  HC-NH3      1.04      3.46563e-07       36
 Bond:  HS-S        1.325     1.75991e-07       12
         50   255.17044      59311.071      1908586.9     -2622084.8      6446.164      -647740.7       96602.871     -551137.82     -1478.3289    
-Loop time of 63.442 on 1 procs for 50 steps with 190531 atoms
+Loop time of 66.5202 on 1 procs for 50 steps with 190531 atoms
 
-Performance: 0.068 ns/day, 352.456 hours/ns, 0.788 timesteps/s, 150.162 katom-step/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.065 ns/day, 369.557 hours/ns, 0.752 timesteps/s, 143.213 katom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 53.306     | 53.306     | 53.306     |   0.0 | 84.02
-Bond    | 0.039197   | 0.039197   | 0.039197   |   0.0 |  0.06
-Kspace  | 2.714      | 2.714      | 2.714      |   0.0 |  4.28
-Neigh   | 6.3562     | 6.3562     | 6.3562     |   0.0 | 10.02
-Comm    | 0.052226   | 0.052226   | 0.052226   |   0.0 |  0.08
-Output  | 0.0024631  | 0.0024631  | 0.0024631  |   0.0 |  0.00
-Modify  | 0.94303    | 0.94303    | 0.94303    |   0.0 |  1.49
-Other   |            | 0.02875    |            |       |  0.05
+Pair    | 56.234     | 56.234     | 56.234     |   0.0 | 84.54
+Bond    | 0.03807    | 0.03807    | 0.03807    |   0.0 |  0.06
+Kspace  | 2.4079     | 2.4079     | 2.4079     |   0.0 |  3.62
+Neigh   | 6.729      | 6.729      | 6.729      |   0.0 | 10.12
+Comm    | 0.055846   | 0.055846   | 0.055846   |   0.0 |  0.08
+Output  | 0.0025358  | 0.0025358  | 0.0025358  |   0.0 |  0.00
+Modify  | 1.0214     | 1.0214     | 1.0214     |   0.0 |  1.54
+Other   |            | 0.03172    |            |       |  0.05
 
 Nlocal:         190531 ave      190531 max      190531 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1075,4 +1075,4 @@ Ave neighs/atom = 586.06387
 Ave special neighs/atom = 2.2169306
 Neighbor list builds = 3
 Dangerous builds = 0
-Total wall time: 0:01:08
+Total wall time: 0:01:11

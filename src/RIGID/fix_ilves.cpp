@@ -992,6 +992,8 @@ void FixIlves::build_constraint_list()
 
   clist_a.clear();
   clist_b.clear();
+  clist_node_a.clear();
+  clist_node_b.clear();
   clist_d.clear();
   clist_btype.clear();
   clist_vertex.clear();
@@ -1010,13 +1012,22 @@ void FixIlves::build_constraint_list()
           error->one(FLERR,
                      "Fix ilves bond atom missing on this processor; increase the "
                      "communication cutoff with comm_modify cutoff");
+        // GEOMETRY index: the nearest periodic image, so the raw bond vector in
+        // the solver is correct at any box size (no minimum-image restriction).
         j = domain->closest_image(i, j);
         // with newton_bond off the bond is stored on both atoms; keep one copy
         if (!newton_bond && (tag[i] > tag[j])) continue;
         if (!(mask[j] & groupbit)) continue;
         if (!bond_selected(i, j, btype)) continue;
+        // NODE id: the canonical owner of the (possibly ghost) geometry atom, so
+        // an atom and its periodic image share one node and a wrapped bond stays
+        // a single graph edge.  atom i is local, hence already its own owner.  A
+        // genuinely off-rank partner has no local index, so map() returns its
+        // ghost -- the intended cross-rank block-Jacobi halo node.
         clist_a.push_back(i);
         clist_b.push_back(j);
+        clist_node_a.push_back(i);
+        clist_node_b.push_back(atom->map(atom->tag[j]));
         clist_d.push_back(bond_distance[btype]);
         clist_btype.push_back(btype);
         clist_vertex.push_back(-1);    // bonds have no angle vertex
@@ -1049,6 +1060,11 @@ void FixIlves::build_constraint_list()
         }
         clist_a.push_back(a);
         clist_b.push_back(c);
+        // canonical node ids of the two outer atoms (owner of each geometry
+        // image), so the A-C virtual bond joins the same graph nodes as its two
+        // flanking bonds even when the angle spans a periodic boundary.
+        clist_node_a.push_back(atom->map(atom->tag[a]));
+        clist_node_b.push_back(atom->map(atom->tag[c]));
         clist_d.push_back(angle_distance[atype]);
         clist_btype.push_back(-atype);    // negative marks an A-C angle constraint
         clist_vertex.push_back(i);        // center atom, for reporting the angle
@@ -1080,7 +1096,8 @@ void FixIlves::build_constraint_list()
   ilves_solver = nullptr;
   if (nconstraints > 0)
     ilves_solver = new ILVES::Ilves(lmp, nconstraints, clist_a.data(), clist_b.data(),
-                                    clist_d.data(), invmass.data());
+                                    clist_node_a.data(), clist_node_b.data(), clist_d.data(),
+                                    invmass.data());
 }
 
 /* ----------------------------------------------------------------------
@@ -1253,15 +1270,24 @@ int FixIlves::find_bond_type(int i, int j)
 
   if (!num_bond) return 0;
 
-  if (i < n) {
-    const tagint tj = tag[j];
-    for (int m = 0; m < num_bond[i]; ++m)
-      if (bond_atom[i][m] == tj) return abs(bond_type[i][m]);
+  const tagint ti = tag[i];
+  const tagint tj = tag[j];
+
+  // the bond joining i and j is stored (newton_bond on) at only one endpoint's
+  // LOCAL copy; look it up at the canonical (owner) index of each atom so a
+  // partner reached as a periodic ghost still resolves a bond stored at its
+  // owner.  atom->map(tag) is the owner's local index, or a ghost only when the
+  // atom is genuinely off-rank.
+  const int ic = atom->map(ti);
+  const int jc = atom->map(tj);
+
+  if ((ic >= 0) && (ic < n)) {
+    for (int m = 0; m < num_bond[ic]; ++m)
+      if (bond_atom[ic][m] == tj) return abs(bond_type[ic][m]);
   }
-  if (j < n) {
-    const tagint ti = tag[i];
-    for (int m = 0; m < num_bond[j]; ++m)
-      if (bond_atom[j][m] == ti) return abs(bond_type[j][m]);
+  if ((jc >= 0) && (jc < n)) {
+    for (int m = 0; m < num_bond[jc]; ++m)
+      if (bond_atom[jc][m] == ti) return abs(bond_type[jc][m]);
   }
   return 0;
 }
@@ -1270,7 +1296,7 @@ int FixIlves::find_bond_type(int i, int j)
    decide whether angle m of (local center) atom i is constrained.  it is when
    its type is selected, all three atoms are in the group, both flanking bonds
    are themselves selected (constrained), and the A-C distance is known.  fills
-   the (local/ghost, closest-image) outer-atom indices a, c and the angle type.
+   the closest-image (geometry) outer-atom indices a, c and the angle type.
 ------------------------------------------------------------------------- */
 
 int FixIlves::angle_selected(int i, int m, int &a, int &c, int &atype)
@@ -1288,6 +1314,9 @@ int FixIlves::angle_selected(int i, int m, int &a, int &c, int &atype)
   const int a0 = atom->map(angle_atom1[i][m]);
   const int c0 = atom->map(angle_atom3[i][m]);
   if ((a0 < 0) || (c0 < 0)) return 0;
+  // GEOMETRY indices: nearest periodic image of the two outer atoms, so the A-C
+  // bond vector is a correct raw subtraction at any box size.  The caller records
+  // the canonical node ids separately for graph connectivity.
   a = domain->closest_image(i, a0);
   c = domain->closest_image(i, c0);
 

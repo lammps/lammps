@@ -29,10 +29,11 @@ namespace LAMMPS_NS {
 namespace ILVES {
 
 Ilves::Ilves(LAMMPS *const _lmp, const int nbonds, const int *const catom1, const int *const catom2,
-             const double *const cdist, const double *const invmass) :
+             const int *const cnode1, const int *const cnode2, const double *const cdist,
+             const double *const invmass) :
     lmp(_lmp)
 {
-  mol = std::unique_ptr<Molecule>(new Molecule(nbonds, catom1, catom2, cdist, invmass));
+  mol = std::unique_ptr<Molecule>(new Molecule(nbonds, catom1, catom2, cnode1, cnode2, cdist, invmass));
 
   // reference bond vectors x_ab and predicted bond vectors xprime_ab; both are
   // needed to assemble the exact-Newton Jacobian (which uses r != s)
@@ -78,9 +79,11 @@ void Ilves::step(double **const dx)
 /* ----------------------------------------------------------------------
    Compute the right-hand side g(x) (the bond-length violations) into the solver
    rhs.  Returns the largest relative (squared) bond-length violation.  The bond
-   vectors use raw differences: the partner index already refers to the closest
-   periodic image (Domain::closest_image), so no minimum-image correction is
-   needed here.
+   vectors use raw differences of the GEOMETRY atoms (bonds.atom1/atom2): those
+   are the nearest periodic image (Domain::closest_image), so the subtraction is
+   already the minimum-image vector and is correct at any box size.  Graph
+   connectivity uses the separate node ids (bonds.node1/node2), so a wrapped
+   bond is still a single edge.
 ------------------------------------------------------------------------- */
 
 double Ilves::make_rhs(double **const x, double **const xprime, const bool compute_x_ab)
@@ -216,14 +219,19 @@ void Ilves::make_weights()
     const int row = solver->grows[i];
     const int col = solver->gcols[i];
 
-    const int arow1 = mol->bonds.atom1[row];
-    const int arow2 = mol->bonds.atom2[row];
+    // the shared atom of two coupled constraints is detected with the canonical
+    // node ids, not the geometry indices, so an atom shared through a periodic
+    // image (owner in one bond, ghost image in the other) is still recognized.
+    // invmass is the same for a node and its ghost, so indexing it by node id is
+    // consistent with the geometry-index use in make_rhs/accumulate_increment.
+    const int arow1 = mol->bonds.node1[row];
+    const int arow2 = mol->bonds.node2[row];
 
     if (solver->is_fillin[i]) {
       lhs_weights[i] = 0;
     } else if (row != col) {
-      const int acol1 = mol->bonds.atom1[col];
-      const int acol2 = mol->bonds.atom2[col];
+      const int acol1 = mol->bonds.node1[col];
+      const int acol2 = mol->bonds.node2[col];
 
       const int common = ((arow1 == acol1) || (arow1 == acol2)) ? arow1 : arow2;
 

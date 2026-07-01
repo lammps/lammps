@@ -49,10 +49,21 @@ public:
         int num;       // The number of bonds in the molecule.
         Graph graph;   // The bond graph of the molecule.
 
-        // GROMACS atom indices of the two atoms of each bond. Example:
-        // Bond 0 connects atom1[0] and atom2[0].
+        // GEOMETRY indices of the two atoms of each bond: the nearest periodic
+        // image (local or ghost) whose coordinates give the correct bond vector
+        // by raw subtraction at any box size.  Used for positions, increments,
+        // and the virial.  Example: bond 0 joins atom1[0] and atom2[0].
         std::vector<int> atom1;
         std::vector<int> atom2;
+
+        // NODE (canonical owner) indices of the same two atoms: an atom and its
+        // periodic ghost image share one node id, so a bond that wraps a
+        // periodic boundary stays a single edge and the constraint graph does
+        // not fragment.  Used to build the graph and to detect the shared atom
+        // when assembling the Jacobian (see Ilves::make_weights).  node1[k]
+        // pairs with atom1[k] (same physical atom), node2[k] with atom2[k].
+        std::vector<int> node1;
+        std::vector<int> node2;
 
         // The bond length squared of each bond.
         std::vector<double> sigma2;
@@ -69,15 +80,20 @@ public:
      * from a LAMMPS-built constraint list.
      *
      * @param nbonds Number of constraints (bonds).
-     * @param catom1 catom1[k]/catom2[k] are the indices (into the position /
-     * force / invmass arrays) of the two atoms joined by constraint k.
+     * @param catom1 catom1[k]/catom2[k] are the GEOMETRY indices (nearest
+     * periodic image, into the position / force / invmass arrays) of the two
+     * atoms joined by constraint k.
      * @param catom2 See catom1.
+     * @param cnode1 cnode1[k]/cnode2[k] are the NODE (canonical owner) indices
+     * of the same two atoms, used only for graph connectivity and shared-atom
+     * detection; cnode1[k] is the owner of catom1[k], cnode2[k] of catom2[k].
+     * @param cnode2 See cnode1.
      * @param cdist cdist[k] is the target length of constraint k.
      * @param invmass A pointer to the array of inverse mass of each atom.
      * The Molecule keeps a pointer to this array, so it must be kept alive.
      */
-    Molecule(int nbonds, const int *catom1, const int *catom2, const double *cdist,
-             const double *invmass);
+    Molecule(int nbonds, const int *catom1, const int *catom2, const int *cnode1,
+             const int *cnode2, const double *cdist, const double *invmass);
 
     /**
      * Renumber the data of the Bonds structure given a permutation.

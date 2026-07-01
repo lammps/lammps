@@ -33,6 +33,8 @@ namespace ILVES {
 Molecule::Molecule(const int nbonds,
                    const int *const catom1,
                    const int *const catom2,
+                   const int *const cnode1,
+                   const int *const cnode2,
                    const double *const cdist,
                    const double *const _invmass) {
 
@@ -47,6 +49,8 @@ Molecule::Molecule(const int nbonds,
 
     bonds.atom1.resize(bonds.num);
     bonds.atom2.resize(bonds.num);
+    bonds.node1.resize(bonds.num);
+    bonds.node2.resize(bonds.num);
 
     std::vector<int> latom1(bonds.num);
     std::vector<int> latom2(bonds.num);
@@ -67,22 +71,29 @@ Molecule::Molecule(const int nbonds,
         // Separate the bond lengths into two arrays to be SIMD friendly
         // and precompute sigma2.
         for (int bond = 0; bond < bonds.num; ++bond) {
-            // Atom indices (into the position / force / invmass arrays).
+            // Geometry indices (into the position / force / invmass arrays):
+            // the nearest periodic image, used for the bond vectors.
             const int a = catom1[bond];
             const int b = catom2[bond];
 
             bonds.atom1[bond] = a;
             bonds.atom2[bond] = b;
 
+            // Node (canonical owner) indices of the same two atoms: these are
+            // what the graph is built from, so an atom and its ghost image are
+            // one node and a periodically wrapped bond stays a single edge.
+            bonds.node1[bond] = cnode1[bond];
+            bonds.node2[bond] = cnode2[bond];
+
             bonds.sigma2[bond] = MathSpecial::square(cdist[bond]);
             bonds.invsigma2[bond] = 1.0 / bonds.sigma2[bond];
 
-            // The atom index is also the key used to build the contiguous
-            // local numbering of the constraint atoms.  No domain-decomposition
-            // remapping is needed: in the single-rank port these are already
-            // local atom indices.
-            const int la = a;
-            const int lb = b;
+            // Build the contiguous local numbering of the constraint atoms from
+            // the NODE ids, so the graph connectivity is by owner identity (not
+            // by periodic image); a wrapped bond therefore does not split into
+            // an atom and its ghost.
+            const int la = cnode1[bond];
+            const int lb = cnode2[bond];
 
             latom1[bond] = la;
             latom2[bond] = lb;
@@ -281,6 +292,8 @@ void Molecule::renumber_bonds(const std::vector<int> &perm) {
     // Copy old vectors.
     new_bonds.atom1 = bonds.atom1;
     new_bonds.atom2 = bonds.atom2;
+    new_bonds.node1 = bonds.node1;
+    new_bonds.node2 = bonds.node2;
 
     new_bonds.sigma2 = bonds.sigma2;
     new_bonds.invsigma2 = bonds.invsigma2;
@@ -289,6 +302,8 @@ void Molecule::renumber_bonds(const std::vector<int> &perm) {
     for (int bond = 0; bond < bonds.num; bond++) {
         bonds.atom1[bond] = new_bonds.atom1[perm[bond]];
         bonds.atom2[bond] = new_bonds.atom2[perm[bond]];
+        bonds.node1[bond] = new_bonds.node1[perm[bond]];
+        bonds.node2[bond] = new_bonds.node2[perm[bond]];
 
         bonds.sigma2[bond] = new_bonds.sigma2[perm[bond]];
         bonds.invsigma2[bond] = new_bonds.invsigma2[perm[bond]];
@@ -299,6 +314,7 @@ double Molecule::memory_usage() const
 {
     double bytes = bonds.graph.memory_usage();
     bytes += (double) (bonds.atom1.size() + bonds.atom2.size()) * sizeof(int);
+    bytes += (double) (bonds.node1.size() + bonds.node2.size()) * sizeof(int);
     bytes += (double) (bonds.sigma2.size() + bonds.invsigma2.size()) * sizeof(double);
     return bytes;
 }

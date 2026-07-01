@@ -60,8 +60,8 @@ using BondVecs = std::array<VecDouble, DIM>;
 
 class Ilves {
  public:
-  Ilves(LAMMPS *lmp, int nbonds, const int *catom1, const int *catom2, const double *cdist,
-        const double *invmass);
+  Ilves(LAMMPS *lmp, int nbonds, const int *catom1, const int *catom2, const int *cnode1,
+        const int *cnode2, const double *cdist, const double *invmass);
 
   ~Ilves() = default;
 

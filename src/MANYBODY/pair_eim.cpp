@@ -85,8 +85,8 @@ PairEIM::~PairEIM()
 
   deallocate_setfl();
 
-  delete [] negativity;
-  delete [] q0;
+  delete[] negativity;
+  delete[] q0;
   memory->destroy(cutforcesq);
   memory->destroy(Fij);
   memory->destroy(Gij);
@@ -551,32 +551,33 @@ void PairEIM::read_file(char *filename)
 void PairEIM::deallocate_setfl()
 {
   if (!setfl) return;
-  delete [] setfl->ielement;
-  delete [] setfl->mass;
-  delete [] setfl->negativity;
-  delete [] setfl->ra;
-  delete [] setfl->ri;
-  delete [] setfl->Ec;
-  delete [] setfl->q0;
-  delete [] setfl->rcutphiA;
-  delete [] setfl->rcutphiR;
-  delete [] setfl->Eb;
-  delete [] setfl->r0;
-  delete [] setfl->alpha;
-  delete [] setfl->beta;
-  delete [] setfl->rcutq;
-  delete [] setfl->Asigma;
-  delete [] setfl->rq;
-  delete [] setfl->rcutsigma;
-  delete [] setfl->Ac;
-  delete [] setfl->zeta;
-  delete [] setfl->rs;
-  delete [] setfl->tp;
+  delete[] setfl->ielement;
+  delete[] setfl->mass;
+  delete[] setfl->negativity;
+  delete[] setfl->ra;
+  delete[] setfl->ri;
+  delete[] setfl->Ec;
+  delete[] setfl->q0;
+  delete[] setfl->rcutphiA;
+  delete[] setfl->rcutphiR;
+  delete[] setfl->Eb;
+  delete[] setfl->r0;
+  delete[] setfl->alpha;
+  delete[] setfl->beta;
+  delete[] setfl->rcutq;
+  delete[] setfl->Asigma;
+  delete[] setfl->rq;
+  delete[] setfl->rcutsigma;
+  delete[] setfl->Ac;
+  delete[] setfl->zeta;
+  delete[] setfl->rs;
+  delete[] setfl->tp;
   memory->destroy(setfl->cuts);
   memory->destroy(setfl->Fij);
   memory->destroy(setfl->Gij);
   memory->destroy(setfl->phiij);
   delete setfl;
+  setfl = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -590,8 +591,8 @@ void PairEIM::file2array()
   int irow,icol;
   int ntypes = atom->ntypes;
 
-  delete [] negativity;
-  delete [] q0;
+  delete[] negativity;
+  delete[] q0;
   memory->destroy(cutforcesq);
   negativity = new double[ntypes+1];
   q0 = new double[ntypes+1];

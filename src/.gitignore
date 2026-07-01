@@ -1971,6 +1971,8 @@
 /pair_vashishta*.h
 /pair_lj_pirani.cpp
 /pair_lj_pirani.h
+/pair_airebo_bc.cpp
+/pair_airebo_bc.h
 /pair_bondval.cpp
 /pair_bondval.h
 /pair_bondval_vec.cpp

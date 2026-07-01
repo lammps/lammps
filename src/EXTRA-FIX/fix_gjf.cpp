@@ -40,6 +40,9 @@ using namespace FixConst;
 enum { NOBIAS, BIAS };
 enum { CONSTANT, EQUAL, ATOM };
 
+// size of the Marsaglia RNG state vector (see RanMars::get_state())
+static constexpr int PRNGSIZE = 98 + 2 + 3;
+
 static const char cite_gjf[] =
     "GJ methods: https://doi.org/10.1080/00268976.2019.1662506\n\n"
     "@Article{gronbech-jensen_complete_2020,\n"
@@ -122,6 +125,8 @@ FixGJF::FixGJF(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   global_freq = 1;
   nevery = 1;
+  restart_global = 1;
+  restart_peratom = 1;
 
   if (utils::strmatch(arg[3], "^v_")) {
     tstr = utils::strdup(arg[3] + 2);
@@ -199,6 +204,7 @@ FixGJF::FixGJF(LAMMPS *lmp, int narg, char **arg) :
 
   FixGJF::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // initialize lv to onsite velocity
   int nlocal = atom->nlocal;
@@ -691,4 +697,99 @@ int FixGJF::unpack_exchange(int nlocal, double *buf)
   lv[nlocal][1] = buf[n++];
   lv[nlocal][2] = buf[n++];
   return n;
+}
+
+/* ----------------------------------------------------------------------
+   pack the half-step velocity into the per-atom restart data.  In vhalf
+   mode lv carries the on-site velocity needed to continue the trajectory
+   (atom->v only stores the half-step velocity used for output), so it must
+   be checkpointed for a restart to reproduce the original run.
+------------------------------------------------------------------------- */
+
+int FixGJF::pack_restart(int i, double *buf)
+{
+  // pack buf[0] this way because other fixes unpack it
+  buf[0] = 4;
+  buf[1] = lv[i][0];
+  buf[2] = lv[i][1];
+  buf[3] = lv[i][2];
+  return 4;
+}
+
+/* ----------------------------------------------------------------------
+   unpack the half-step velocity from the restart data
+------------------------------------------------------------------------- */
+
+void FixGJF::unpack_restart(int nlocal, int nth)
+{
+  double **extra = atom->extra;
+
+  // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
+
+  int m = 0;
+  for (int i = 0; i < nth; i++) m += static_cast<int>(extra[nlocal][m]);
+  m++;
+
+  lv[nlocal][0] = extra[nlocal][m++];
+  lv[nlocal][1] = extra[nlocal][m++];
+  lv[nlocal][2] = extra[nlocal][m++];
+
+  // lv now holds a valid on-site velocity from the restart, so the first
+  // post-restart step must use it (see initial_integrate())
+  lv_allocated = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixGJF::maxsize_restart()
+{
+  return 4;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixGJF::size_restart(int /*nlocal*/)
+{
+  return 4;
+}
+
+/* ----------------------------------------------------------------------
+   pack the per-processor RNG state into the restart file so that a run
+   continued from a restart reproduces the original stochastic trajectory
+------------------------------------------------------------------------- */
+
+void FixGJF::write_restart(FILE *fp)
+{
+  int nsize = PRNGSIZE * comm->nprocs + 1;    // pRNG state per proc + nprocs
+  auto *list = new double[nsize];
+
+  if (comm->me == 0) list[0] = comm->nprocs;
+
+  double state[PRNGSIZE];
+  random->get_state(state);
+  MPI_Gather(state, PRNGSIZE, MPI_DOUBLE, list + 1, PRNGSIZE, MPI_DOUBLE, 0, world);
+
+  if (comm->me == 0) {
+    int size = nsize * sizeof(double);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(list, sizeof(double), nsize, fp);
+  }
+  delete[] list;
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restore the RNG state
+------------------------------------------------------------------------- */
+
+void FixGJF::restart(char *buf)
+{
+  auto *list = (double *) buf;
+
+  int nprocs = (int) list[0];
+  if (nprocs != comm->nprocs) {
+    if (comm->me == 0)
+      error->warning(FLERR, "Different number of procs. Cannot restore RNG state.");
+  } else
+    random->set_state(list + 1 + comm->me * PRNGSIZE);
 }

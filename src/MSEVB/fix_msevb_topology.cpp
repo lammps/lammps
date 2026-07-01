@@ -1312,6 +1312,59 @@ broadcast:
 }
 
 /* ----------------------------------------------------------------------
+   Census the reference (state 0) for its per-species diagonal offset.
+
+   Reuses the reactive-site matches that detect_reactive_sites() already
+   produced with the superimpose matcher: each site is a reactive complex whose
+   reference arrangement is its reaction's pre_mol.  Distinct physical complexes
+   are identified by their glove (per the "one fragment = one donor complex"
+   rule): two sites belong to the same complex if their gloves share any atom.
+   Each distinct complex contributes species_offset[pre_mol] once.
+
+   This is only used to seed reference_offset for the initial reference; after
+   that reference_offset is advanced incrementally on each commit, so the census
+   is never re-run mid-trajectory (and thus cannot fluctuate with the cutoff).
+---------------------------------------------------------------------- */
+
+double FixMSEVB::compute_reference_offset()
+{
+  if (nsites == 0 || species_offset.empty()) return 0.0;
+
+  const int GN = glove_nmax;
+  double total = 0.0;
+
+  // Representative site index for each distinct complex counted so far.
+  std::vector<int> reps;
+  reps.reserve(nsites);
+
+  for (int s = 0; s < nsites; s++) {
+    const tagint *sg = glove_flat + (size_t) s * GN;
+
+    // Same complex as an already-counted site if their gloves share an atom.
+    bool duplicate = false;
+    for (int r : reps) {
+      const tagint *rg = glove_flat + (size_t) r * GN;
+      for (int a = 0; a < GN && !duplicate; a++) {
+        if (sg[a] == 0) continue;
+        for (int b = 0; b < GN; b++)
+          if (rg[b] != 0 && rg[b] == sg[a]) {
+            duplicate = true;
+            break;
+          }
+      }
+      if (duplicate) break;
+    }
+    if (duplicate) continue;
+
+    reps.push_back(s);
+    auto it = species_offset.find(rxndefs[sites[s].rxn_idx].pre_mol_id);
+    if (it != species_offset.end()) total += it->second;
+  }
+
+  return total;
+}
+
+/* ----------------------------------------------------------------------
    Apply per-partition state changes: types, charges, bonds, angles,
    then rebuild special bonds via Special::build().
 ---------------------------------------------------------------------- */

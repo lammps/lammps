@@ -986,9 +986,21 @@ void FixMSEVB::build_hamiltonian()
 {
   const int ns = nstates;
 
+  // Seed the reference (state 0) per-species offset once, from a census of the
+  // initial reference.  Thereafter reference_offset is advanced only on commit
+  // (do_permanent_transfer), so it stays constant between reactions.
+  if (!reference_offset_valid) {
+    reference_offset = compute_reference_offset();
+    reference_offset_valid = 1;
+  }
+
   for (int i = 0; i < ns * ns; i++) hamiltonian[i] = 0.0;
 
   for (int i = 0; i < ns; i++) {
+    // Per-species diagonal offset: reference_offset counts the species present
+    // in the reference; the per-state term below adds offset(post)-offset(pre)
+    // for each fragment this state flips relative to the reference, so the total
+    // equals sum of offset(species) over the fragments present in state i.
     double offset = 0.0;
     if (i > 0 && (i - 1) < nsites) {
       const int sk = i - 1;
@@ -1001,7 +1013,7 @@ void FixMSEVB::build_hamiltonian()
           offset += rxndefs[chain_rxn_flat[sk * max_shells + d]].energy_offset;
       }
     }
-    hamiltonian[i * ns + i] = epot[i] + offset;
+    hamiltonian[i * ns + i] = epot[i] + reference_offset + offset;
   }
 }
 

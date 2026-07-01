@@ -16,9 +16,11 @@ molecule post4  post4.mol
 
 fix evb all msevb         &
   coupling geometry/gaussian lambda 0.7998 zeta 16  &
+  species post2 offset 0.843  &
+  species post3 offset -0.843 &
   reaction pre1 post1 react.map 1.9 taper 1.7 &
-  reaction pre2 post2 react.map 1.9 taper 1.7 offset 0.843  &
-  reaction pre3 post3 react.map 1.9 taper 1.7 offset -0.843 &
+  reaction pre2 post2 react.map 1.9 taper 1.7 &
+  reaction pre3 post3 react.map 1.9 taper 1.7 &
   reaction pre4 post4 react.map 1.9 taper 1.7 &
   shells 1         &
   file msevb.json every 1

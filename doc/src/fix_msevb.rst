@@ -39,8 +39,10 @@ Syntax
        zero or more per-reaction keywords may follow in any order:
          *coupling* style params = per-reaction coupling override (same syntax as global *coupling*)
          *taper* T = distance at which coupling begins to taper to zero (distance units)
-         *offset* E = energy offset added to this state's diagonal Hamiltonian element (energy units)
          *shells* N = maximum shell depth for this reaction (default: inherits global *shells*)
+     *species* values = mol-ID *offset* E
+       mol-ID = molecule template ID naming a reactive-complex species
+       E = absolute diagonal energy offset for every fragment of that species (energy units)
      *taper* T = global default taper start distance (distance units)
      *shells* value = N
        N = global default for maximum shell depth (default: 1)
@@ -76,8 +78,9 @@ Examples
    molecule post2 post2.mol
    fix evb all msevb &
      coupling geometry/gaussian lambda 0.8 zeta 16 &
+     species post2 offset 0.843 &
      reaction pre1 post1 react.map 1.9 taper 1.7 &
-     reaction pre2 post2 react.map 1.9 taper 1.7 offset 0.843 &
+     reaction pre2 post2 react.map 1.9 taper 1.7 &
      shells 1 file msevb.json
    fix_modify evb energy yes
 
@@ -170,9 +173,30 @@ Hamiltonian:
 where :math:`M` is the total number of EVB states (reference plus all
 reactive states detected at this step), :math:`E_i` is the total potential
 energy of state :math:`i` evaluated using that state's topology, and
-:math:`\epsilon_i` is a user-specified constant energy offset (*offset*
-keyword).  The off-diagonal coupling elements :math:`C_{i,j}` are
+:math:`\epsilon_i` is the sum of the per-species diagonal offsets of the
+reactive-complex fragments present in state :math:`i` (see the *species*
+keyword below).  The off-diagonal coupling elements :math:`C_{i,j}` are
 described in the Coupling section below.
+
+Each reactive-complex species, identified by its molecule template ID, may be
+given an absolute energy offset with ``species <mol-ID> offset <E>``.  A
+species without an entry contributes zero.  The diagonal offset
+:math:`\epsilon_i` of state :math:`i` is then the sum of these per-species
+offsets over the reactive-complex fragments present in that state, counted once
+per fragment.  This treats every state identically: the reference (state 0)
+receives the offsets of the species it currently contains, exactly as the
+daughter states do, so the absolute energy of a given chemical arrangement is
+independent of which state happens to be the reference.  This matters when a
+permanent transfer changes the reference: because the offset travels with the
+species rather than being pinned to the reference, the total energy is
+continuous across the reaction and energy is conserved.  A fragment's species is
+identified by the same template-matching used for reaction detection, and the
+reference contribution is held fixed between reactions (updated only when a
+reaction commits), so it does not fluctuate as molecules cross the reaction
+cutoff. The constant energy offset for a given molecular fragment is necessary 
+in ensuring all reactions operate on a potential energy surface of relatively 
+equal magnitude, as the internal energy of a molecule is arbitrary from a 
+classical mechanics perspective.
 
 Diagonalizing :math:`\hat{\mathcal{H}}` yields eigenvalues
 :math:`\{\lambda_0, \ldots, \lambda_{M-1}\}` and eigenvectors
@@ -212,7 +236,7 @@ global coupling is given, every *reaction* block must provide its own.
 Coupling styles are named by the quantity they depend on (*energy* or
 *geometry*) followed by their functional form, rather than by reference.
 
-Per-reaction keywords (*coupling*, *taper*, *offset*, *shells*) may appear
+Per-reaction keywords (*coupling*, *taper*, *shells*) may appear
 in any order after the four required *reaction* arguments.
 
 *energy/gaussian* (default)

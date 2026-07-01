@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "error_stats.h"
+
 #include "fmt/format.h"
 #include <cmath>
 #include <iostream>

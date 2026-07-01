@@ -1643,7 +1643,7 @@ void Neighbor::init_topology()
   // set flags that determine which topology neighbor classes to use
   // these settings could change from run to run, depending on fixes defined
   // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
-  // SHAKE sets bonds and angles negative
+  // SHAKE and ILVES set bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
   // partial_flag sets bonds to 0
   // delete_bonds sets all interactions negative
@@ -1654,7 +1654,8 @@ void Neighbor::init_topology()
   int improper_off = 0;
 
   for (const auto &ifix : modify->get_fix_list()) {
-    if (utils::strmatch(ifix->style, "^shake") || utils::strmatch(ifix->style, "^rattle"))
+    if (utils::strmatch(ifix->style, "^shake") || utils::strmatch(ifix->style, "^rattle") ||
+        utils::strmatch(ifix->style, "^ilves"))
       bond_off = angle_off = 1;
     if (utils::strmatch(ifix->style, "gcmc"))
       bond_off = angle_off = dihedral_off = improper_off = 1;

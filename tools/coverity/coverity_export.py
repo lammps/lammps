@@ -316,6 +316,7 @@ def cmd_defects(args):
 # ================================================================== traces
 def read_defect_index(source, id_field):
     data = json.loads(open(source, encoding="utf-8").read())
+    grid_project_id = data.get("project_id") if isinstance(data, dict) else None
     if isinstance(data, dict) and isinstance(data.get("defects"), list):
         rows = data["defects"]
     elif (isinstance(data, dict) and isinstance(data.get("resultSet"), dict)
@@ -345,7 +346,8 @@ def read_defect_index(source, id_field):
                 di_of[cid] = str(di)
                 break
         name_of[cid] = row.get("displayFile") or row.get("filePath") or ""
-    return {"cids": cids, "file_of": file_of, "di_of": di_of, "name_of": name_of}
+    return {"cids": cids, "file_of": file_of, "di_of": di_of, "name_of": name_of,
+            "project_id": grid_project_id}
 
 
 def cids_from_string(text):
@@ -438,6 +440,11 @@ def cmd_traces(args):
         if tok not in args.url_template:
             sys.exit(f"--url-template must contain {tok}.")
     index = read_defect_index(args.cids_from, args.id_field)
+    project_id = args.project_id or index.get("project_id")
+    if not project_id:
+        sys.exit("No projectId: pass --project-id, or use a --cids-from grid "
+                 "export produced by the 'defects' subcommand (it records "
+                 "project_id). The projectId is shown in the View Defects URL.")
     cids = cids_from_string(args.cids) if args.cids else index["cids"]
     if args.limit:
         cids = cids[:args.limit]
@@ -457,7 +464,7 @@ def cmd_traces(args):
         payload = None if args.refresh else load_valid_cache(raw_path, fiid, cid)
         status = "cached"
         if payload is None:
-            url = fill_trace_url(args.url_template, args.project_id, fiid, di, cid)
+            url = fill_trace_url(args.url_template, project_id, fiid, di, cid)
             payload = http_json(session, url, timeout=args.timeout,
                                 retries=args.retries)
             got = str(payload.get("fileInstanceId", ""))
@@ -601,7 +608,10 @@ def main(argv=None):
     t.add_argument("--url-template", default=DEFAULT_TRACE_URL,
                    help="source.json URL; needs {fileInstanceId} and "
                         "{defectInstanceId} (also {projectId}{mergedDefectId}).")
-    t.add_argument("--project-id", default="16404")
+    t.add_argument("--project-id", default=None,
+                   help="projectId for the source.json URL. Defaults to the "
+                        "'project_id' recorded in the --cids-from grid export; "
+                        "pass explicitly to override or if the grid lacks it.")
     t.add_argument("--id-field", default="cid")
     t.add_argument("--output-dir", default="defect_traces")
     t.add_argument("-o", "--output", default="traces.json")

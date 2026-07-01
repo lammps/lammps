@@ -208,6 +208,7 @@ void FixSurface::extract_from_stlfile(char *filename, int stype, int smol,
   double **stltris;
   int ntris_old = ntris;
   int ntris_new = stl->read_file(filename,stltris);
+  if (ntris_new < 0) error->one(FLERR, "Failed to read STL file {}", filename);
   ntris += ntris_new;
 
   tris = (Tri *) memory->srealloc(tris,ntris*sizeof(Tri),"surface:tris");

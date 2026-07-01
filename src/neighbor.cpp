@@ -784,6 +784,19 @@ void Neighbor::init_styles()
 }
 
 /* ----------------------------------------------------------------------
+   base class has no KOKKOS neighbor lists; reaching this means a KOKKOS
+   neighbor list was requested without the KOKKOS package, which cannot happen
+   (a KOKKOS request implies the neighbor object is a NeighborKokkos, whose
+   override assigns lists[i]).  Fail loudly rather than leave lists[i] unset.
+------------------------------------------------------------------------- */
+
+void Neighbor::create_kokkos_list(int /*i*/)
+{
+  error->all(FLERR, "Internal error: KOKKOS neighbor list requested without "
+             "the KOKKOS package");
+}
+
+/* ----------------------------------------------------------------------
    create and initialize NPair classes
 ------------------------------------------------------------------------- */
 

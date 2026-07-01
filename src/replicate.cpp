@@ -963,8 +963,12 @@ void Replicate::replicate_by_bbox(int nx, int ny, int nz,
 void Replicate::newtag(tagint atom0tag, tagint &tag2bond) {
   double del;
   int repshift,rep2bond[3];
-  int atom0 = old_map.find(atom0tag)->second;
-  int atom2bond = old_map.find(tag2bond)->second;
+  auto it0 = old_map.find(atom0tag);
+  auto it2 = old_map.find(tag2bond);
+  if ((it0 == old_map.end()) || (it2 == old_map.end()))
+    error->one(FLERR,"Replicate: bond/angle/dihedral/improper references a non-existent atom");
+  int atom0 = it0->second;
+  int atom2bond = it2->second;
   for (int i = 0; i < 3; i++) {
     del = fabs(old_x[atom0][i] - old_x[atom2bond][i]);
     if (del > old_prd_half[i]) {

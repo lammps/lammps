@@ -3452,7 +3452,10 @@ void PPPMDisp::adjust_gewald_6()
   // start loop
 
   for (int i = 0; i <  LARGE; i++) {
-    dx = f_6() / derivf_6();
+    double dfx = derivf_6();
+    if (dfx == 0.0 || dfx != dfx) break;    // flat/invalid derivative
+    dx = f_6() / dfx;
+    while (g_ewald_6 - dx <= 0.0) dx *= 0.5;   // damp the step so g_ewald_6 stays > 0
     g_ewald_6 -= dx; //update g_ewald_6
     if (fabs(f_6()) < SMALL) return;
   }

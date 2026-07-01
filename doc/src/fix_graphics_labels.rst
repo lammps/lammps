@@ -68,7 +68,7 @@ Syntax
         x, y, z  = position where the center of the colormap label is located in the visualization
         any of x, y, or z can be a variable (see below)
 
-        keyword = *fontcolor* or *framecolor* or *backcolor* or *transcolor* or *size* or *horizontal* or *vertical*
+        keyword = *fontcolor* or *framecolor* or *backcolor* or *transcolor* or *size* or *length* or *tics* or *map* or *horizontal* or *vertical*
           *fontcolor* arg = select color for text: *white* (default) or *black* or *r/g/b*
              *white* = uses white
              *black* = uses black
@@ -94,6 +94,8 @@ Syntax
              *r/g/b* = provide three integers in the range 0 to 255
           *size* value = set the size of the characters (default 24), can be a variable (see below)
           *length* value = approximate minimal length of the colorscale label
+          *tics* value = number of tics drawn between the colors of the colorscale label
+          *map* value = which colormap of the dump to represent: *atom* (default) or *grid* or *bond*
           *horizontal* = create horizontal text label
           *vertical* = create vertical text label
 
@@ -108,6 +110,7 @@ Examples
    fix info all graphics/labels 1000 text "Step: $(step)  Angle: ${rot}" 5.0 -1.0 -2.0 size 32
    fix obj all graphics/labels 200 colorscale viz "Atom Velocity" 20.0 6.5 13.0 size 32 length 1000 &
                                      transcolor none framecolor white backcolor darkgray tics 12
+   fix bnd all graphics/labels 200 colorscale viz "Bond Strain" 20.0 6.5 -13.0 map bond size 32 length 1000
 
 Description
 """""""""""
@@ -227,8 +230,8 @@ are required arguments.  Optional keyword / value pairs may be added:
   creating a vertical text label instead.
 
 The *colorscale* keyword will create a colormap legend indicating the
-mapping of values to the color of atoms in the :doc:`dump image
-<dump_image>` instance with the given dump-ID and adds it to the
+mapping of values to colors in the :doc:`dump image <dump_image>`
+instance with the given dump-ID and adds it to the
 visualization centered around the provided position in a similar fashion
 as with the *image* or *text* keywords.  The requirements for the text
 argument are the same as in the :doc:`fix print <fix_print>` command: it
@@ -274,6 +277,18 @@ may be added:
   The *tics* value determines how many "tics" or lines separating the
   colors are drawn.  This can simplify determining which value a
   specific color corresponds to.
+
+  .. versionadded:: TBD
+
+  The *map* value selects which of the colormaps of the :doc:`dump image
+  <dump_image>` instance the legend represents.  A dump image has separate
+  colormaps for coloring atoms (set with :doc:`dump_modify amap
+  <dump_image>`), grid cells (*gmap*), and bonds (*bmap*).  The *atom*
+  setting (the default) selects the atom colormap, *grid* the grid cell
+  colormap, and *bond* the bond colormap.  If the selected colormap is not
+  actually used to color anything in the corresponding dump image, a
+  warning is printed and the legend will show that colormap's (unused)
+  default range.
 
   There are four color settings: *fontcolor* or *framecolor* or
   *backcolor* or *transcolor*\ .  The color can be specified for all of

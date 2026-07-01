@@ -358,6 +358,7 @@ blockiness
 blocksize
 blocky
 blueviolet
+bmap
 bn
 bni
 bnumeric
@@ -608,6 +609,7 @@ collisional
 colname
 colorbar
 colormap
+colormaps
 colorscale
 Columic
 colvars
@@ -923,6 +925,7 @@ dmi
 dname
 dnf
 DNi
+dnote
 Dobnikar
 Dobson
 docenv
@@ -1822,6 +1825,7 @@ iter
 iteratively
 iters
 Ith
+Itokawa
 Itsets
 itype
 itypeN
@@ -2288,6 +2292,7 @@ makelist
 makepkg
 Makse
 Malavasi
+Malerba
 Malfreyt
 malloc
 Malolepsza
@@ -2959,6 +2964,7 @@ Oleinik
 Olfason
 olivedrab
 Ollila
+Olsson
 Olvera
 omegaDD
 omegax
@@ -3067,6 +3073,7 @@ Parrinello
 Partay
 Particuology
 Pascuet
+Pasianot
 Pasquier
 pastewka
 Pastewka
@@ -4020,6 +4027,7 @@ templating
 Templeton
 Tencer
 Tequil
+Terentyev
 ters
 tersoff
 Tersoff
@@ -4426,6 +4434,7 @@ vzi
 vzz
 Waals
 Wadley
+Wallenius
 wallstyle
 walltime
 Waltham

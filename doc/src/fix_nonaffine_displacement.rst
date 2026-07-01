@@ -87,7 +87,8 @@ Data accessed before this occurs will simply be zeroed.
 
 This formulation of D2min is intensive in the sense that it is normalized by the number
 of neighbors that contribute to it. Alternatively, this factor can be removed using
-the *intensive/d2min* option to alternatively calculate an extensive quantity.
+the *intensive/d2min* option to calculate a quantity extensive in the number of
+neighbors.
 
 For particles with low coordination numbers, calculations of :math:`D^2_\mathrm{min}`
 may not be accurate. An optional minimum coordination number can be defined using

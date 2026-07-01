@@ -28,6 +28,20 @@ add_library(GTest::GMock ALIAS gmock)
 add_library(GTest::GTestMain ALIAS gtest_main)
 add_library(GTest::GMockMain ALIAS gmock_main)
 
+# download and build libyaml if not available globally
+find_package(YAML)
+if(NOT YAML_FOUND)
+  set(YAML_URL "https://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz" CACHE STRING "URL for libyaml tarball")
+  set(YAML_SHA256 "c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4" CACHE STRING "SHA256 checksum of libyaml tarball")
+  mark_as_advanced(YAML_URL)
+  mark_as_advanced(YAML_SHA256)
+
+  # download and build a local copy of libyaml
+  include(ExternalCMakeProject)
+  ExternalCMakeProject(libyaml ${YAML_URL} ${YAML_SHA256} yaml . CMakeLists.libyaml)
+  add_library(Yaml::Yaml ALIAS yaml)
+endif()
+
 option(SKIP_DEATH_TESTS "Do not run 'death tests' to reduce false positives in valgrind" OFF)
 mark_as_advanced(SKIP_DEATH_TESTS)
 if(SKIP_DEATH_TESTS)
@@ -101,13 +115,4 @@ add_subdirectory(cplusplus)
 add_subdirectory(fortran)
 add_subdirectory(python)
 add_subdirectory(force-styles)
-
-# clang-format support for test sources
-
-find_package(ClangFormat 8.0)
-
-if(ClangFormat_FOUND)
-  add_custom_target(format-tests
-    COMMAND ${ClangFormat_EXECUTABLE} --verbose -i -style=file */*.cpp */*.h
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-endif()
+add_subdirectory(granular)

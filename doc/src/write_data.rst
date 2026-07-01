@@ -179,6 +179,24 @@ in the input script after reading the data file, by specifying
 additional :doc:`pair_coeff <pair_coeff>` commands for any desired I,J
 pairs.
 
+.. note::
+
+   Before the data file is written, LAMMPS migrates atoms to their owning
+   subdomains, which deletes any atoms that lie outside of non-periodic
+   boundaries.  If this changes the total number of atoms, the
+   :doc:`thermo_modify lost <thermo_modify>` setting determines what happens:
+   with the default *error* setting LAMMPS aborts and does not write the
+   file; with *warn* or *ignore* the stored atom count is reset to the actual
+   number of atoms so that a self-consistent data file is written (with a
+   warning printed for *warn*).
+
+.. versionchanged:: TBD
+
+Previously, with the *warn* or *ignore* lost-atoms setting, the atom count in
+the data file header could disagree with the number of atoms actually written
+(a corrupted data file).  The count is now reset so the written file is always
+self-consistent.
+
 ----------
 
 Restrictions

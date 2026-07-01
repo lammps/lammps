@@ -38,6 +38,8 @@ class FixPressLangevin : public Fix {
   void end_of_step() override;
   void reset_dt() override;
   int modify_param(int, char **) override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
  protected:
   int dimension;

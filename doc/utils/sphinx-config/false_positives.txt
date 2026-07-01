@@ -282,6 +282,7 @@ Batra
 Bayly
 bb
 bbox
+bc
 bcc
 bcolor
 bdiam
@@ -358,6 +359,7 @@ blockiness
 blocksize
 blocky
 blueviolet
+bmap
 bn
 bni
 bnumeric
@@ -500,6 +502,7 @@ Ceil
 cekk
 centerline
 CentOS
+centric
 centro
 centroid
 Centroid
@@ -608,6 +611,7 @@ collisional
 colname
 colorbar
 colormap
+colormaps
 colorscale
 Columic
 colvars
@@ -923,6 +927,7 @@ dmi
 dname
 dnf
 DNi
+dnote
 Dobnikar
 Dobson
 docenv
@@ -1363,6 +1368,7 @@ ftol
 fuer
 fugacity
 Fu
+fullerene
 Fumi
 func
 funcs
@@ -1499,6 +1505,7 @@ granregion
 GRANSURF
 gransurf
 graphene
+graphitic
 Gravelle
 Greathouse
 Greengard
@@ -1822,6 +1829,7 @@ iter
 iteratively
 iters
 Ith
+Itokawa
 Itsets
 itype
 itypeN
@@ -2288,6 +2296,7 @@ makelist
 makepkg
 Makse
 Malavasi
+Malerba
 Malfreyt
 malloc
 Malolepsza
@@ -2959,6 +2968,7 @@ Oleinik
 Olfason
 olivedrab
 Ollila
+Olsson
 Olvera
 omegaDD
 omegax
@@ -3067,6 +3077,7 @@ Parrinello
 Partay
 Particuology
 Pascuet
+Pasianot
 Pasquier
 pastewka
 Pastewka
@@ -4020,6 +4031,7 @@ templating
 Templeton
 Tencer
 Tequil
+Terentyev
 ters
 tersoff
 Tersoff
@@ -4426,6 +4438,7 @@ vzi
 vzz
 Waals
 Wadley
+Wallenius
 wallstyle
 walltime
 Waltham

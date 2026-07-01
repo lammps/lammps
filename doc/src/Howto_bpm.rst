@@ -80,8 +80,17 @@ BPM bond styles. Finally, this data can be output using a :doc:`dump local <dump
 command. As one may output many columns from the same compute, the
 :doc:`dump modify <dump_modify>` *colname* option may be used to provide
 more helpful column names. An example of this procedure is found in
-/examples/bpm/pour/. External software, such as OVITO, can read these dump
+``/examples/bpm/pour/``. External software, such as OVITO, can read these dump
 files to render bond data.
+
+.. versionadded:: TBD
+
+The :doc:`compute bond/local <compute_bond_local>` property can also be
+visualized using :doc:`dump image <dump_image>` to color bonds by
+property using a color map.  The ``/examples/GRAPHICS/in.bpm.fracture``
+example file shows how such a visualization can be constructed.
+
+ .. image:: img/bpm-fracture.png
 
 ----------
 

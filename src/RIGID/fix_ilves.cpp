@@ -311,6 +311,9 @@ int FixIlves::setmask()
 
 void FixIlves::init()
 {
+  if (modify->get_fix_by_style("^ilves").size() > 1)
+    error->all(FLERR,"More than one fix ilves instance");
+
   if (!force->bond)
     error->all(FLERR, Error::NOLASTLINE,
                "Fix ilves requires a bond style to define equilibrium bond lengths");

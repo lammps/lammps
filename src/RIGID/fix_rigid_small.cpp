@@ -1200,6 +1200,7 @@ void FixRigidSmall::set_xv()
 {
   int xbox,ybox,zbox;
   double x0, x1, x2, massone;
+  double xy,xz,yz;
   double ione[3],exone[3],eyone[3],ezone[3],vr[6],p[3][3];
   double fc[3], v_rot[3], acc_centr[3], *langone ;
 

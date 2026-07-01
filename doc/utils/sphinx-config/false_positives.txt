@@ -74,6 +74,7 @@ alabel
 alain
 Alain
 Alamos
+Alastruey
 alat
 Albe
 alchemical
@@ -295,6 +296,7 @@ Belak
 Bellott
 bem
 benchmarking
+Benede
 Bennet
 Berardi
 Beraun
@@ -1024,6 +1026,7 @@ ebook
 ebt
 ec
 Ec
+Echenique
 Echeverri
 eco
 ecoul
@@ -1362,6 +1365,7 @@ Freitas
 Frenkel
 frictionless
 Friedrichs
+Frutos
 fs
 fsaa
 fsh
@@ -1387,6 +1391,7 @@ fz
 Gabor
 Gahler
 gainsboro
+Galano
 Galindo
 Galvin
 gamA
@@ -1729,6 +1734,7 @@ ilmenau
 Ilmenau
 ilo
 ilp
+ilves
 Ilya
 im
 Im
@@ -2471,6 +2477,7 @@ mie
 Mie
 Mij
 Mikami
+Mikkelsens
 Milano
 Militzer
 Minary
@@ -2549,6 +2556,7 @@ Monticelli
 Mora
 Morawietz
 Morefoo
+Moreto
 Morfill
 Mori
 Moriguchi
@@ -3459,6 +3467,7 @@ RDideal
 rdx
 reacter
 Readline
+Redeclare
 README
 real_t
 realtime
@@ -3561,6 +3570,7 @@ Rinaldi
 Rino
 RiRj
 Risi
+Risueno
 Rix
 Riy
 Rizzi
@@ -3779,6 +3789,7 @@ SHM
 shockvel
 shrinkexceed
 Shugaev
+Shur
 si
 SiC
 Siegmund
@@ -3845,6 +3856,7 @@ snav
 Snodin
 Sodani
 Soderlind
+Sola
 Solaris
 Solida
 solv
@@ -4390,6 +4402,7 @@ vhi
 vibrational
 Vij
 Vikas
+Villellas
 virial
 Virial
 virialmode

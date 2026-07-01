@@ -253,18 +253,18 @@ central atom bonded to at most three others, or two bonds and an angle)
 and the code is optimized for this use case by minimizing communication
 and solving the constraints for each cluster independently.
 
-*Fix ilves* instead avoids the limitation and can, for example, handle
-chains of constrained bonds, but that requires a different kind of
-constraint solver which needs more communication and more iterations
-compared to running serially.
+Using *fix ilves* instead of *fix shake* avoids the small cluster
+limitation and can, for example, handle chains of constrained bonds, but
+that requires a different kind of constraint solver -- one that needs
+communication between MPI ranks and, in parallel, more iterations and
+thus is not as efficient.
 
-If you have a system which has both cases, e.g. a peptide with a
+If you have a system that has both cases, e.g. a peptide with a
 constrained backbone and a rigid water solvent, you can consider
 using both fixes at the same time. That is, use *fix ilves* for
 the peptide and *fix shake* for the water.
 
 ------------
-
 
 Restart, fix_modify, output, run start/stop, minimize info
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -357,7 +357,7 @@ dynamics constant and is scaled by the same factor for minimization.
 .. _Lopez-Villellas2025:
 
 **(Lopez-Villellas)** L. Lopez-Villellas, C. C. K. Mikkelsen,
-J. J. Galano-Frutos, S. Marco-Sola, J. Alastruey-Bende, P. Ibanez,
+J. J. Galano-Frutos, S. Marco-Sola, J. Alastruey-Benede, P. Ibanez,
 P. Echenique, M. Moreto, M. C. De Rosa, and P. Garcia-Risueno, "ILVES:
 Accurate and Efficient Bond Length and Angle Constraints in Molecular
 Dynamics", J. Chem. Theory Comput. 21, 8711-8719 (2025),

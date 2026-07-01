@@ -26,11 +26,11 @@
 
 #include <list>
 #include <map>
+#include <memory_resource>
 #include <tuple>
 #include <vector>
 
 #include "ilves_graph.h"
-#include "ilves_mempool.h"
 
 /**
  * A sparse direct solver for a structurally symmetric matrix.  The matrix is
@@ -162,20 +162,25 @@ private:
         // True if edge i is a fillin.
         std::vector<bool> is_fillin;
 
-        // Memory pools backing the per-row scratch lists and the active-row lists.
-        GrowingMemPool matrix_mem_pool;
-        GrowingMemPool active_rows_mem_pool;
+        // Monotonic (append-only) arenas backing the per-row scratch lists and
+        // the active-row lists: the symbolic phase only ever grows these lists
+        // and frees them all at once, so a bump allocator with a no-op
+        // deallocate is the right fit.  std::pmr::monotonic_buffer_resource is
+        // the standard C++17 equivalent of the ported GROMACS growing pool.
+        // Declared before the containers below so it outlives them.
+        std::pmr::monotonic_buffer_resource matrix_mem_pool;
+        std::pmr::monotonic_buffer_resource active_rows_mem_pool;
 
         // One list per row.  init_matrix holds the working adjacency (and is
         // used as scratch by the elimination); final_matrix accumulates the
         // finalized adjacency before it is copied to the global fillin matrix.
-        std::vector<std::list<MatrixEntry, GrowingAllocator<MatrixEntry>>> init_matrix;
-        std::vector<std::list<MatrixEntry, GrowingAllocator<MatrixEntry>>> final_matrix;
+        std::vector<std::pmr::list<MatrixEntry>> init_matrix;
+        std::vector<std::pmr::list<MatrixEntry>> final_matrix;
 
         // Active rows bucketed by degree (key = degree, value = list of rows),
         // with an iterator per row into its bucket for fast removal.
-        std::map<int, std::list<int, GrowingAllocator<int>>> active_rows;
-        std::vector<std::list<int, GrowingAllocator<int>>::iterator> active_rows_ptrs;
+        std::map<int, std::pmr::list<int>> active_rows;
+        std::vector<std::pmr::list<int>::iterator> active_rows_ptrs;
 
         /**
          * Move row ROW between degree buckets after its degree changed from

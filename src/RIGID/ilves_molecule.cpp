@@ -30,22 +30,22 @@
 namespace LAMMPS_NS {
 namespace ILVES {
 
-Molecule::Molecule(const int nbonds,
-                   const int *const catom1,
-                   const int *const catom2,
-                   const int *const cnode1,
-                   const int *const cnode2,
-                   const double *const cdist,
-                   const double *const _invmass) {
+Molecule::Molecule(const std::vector<int> &catom1,
+                   const std::vector<int> &catom2,
+                   const std::vector<int> &cnode1,
+                   const std::vector<int> &cnode2,
+                   const std::vector<double> &cdist,
+                   const std::vector<double> &invmass) {
 
-    atoms.invmass = _invmass;
+    // borrowed: the caller owns the inverse-mass vector and keeps it alive.
+    atoms.invmass = invmass.data();
 
     // Construction-only scratch, not retained after the constructor.
     int natoms = 0;
     Graph atom_graph;
 
     // The number of local (rank) constraints.
-    bonds.num = nbonds;
+    bonds.num = (int) catom1.size();
 
     bonds.atom1.resize(bonds.num);
     bonds.atom2.resize(bonds.num);

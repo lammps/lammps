@@ -26,12 +26,12 @@
 #include <functional>
 #include <iterator>
 #include <map>
+#include <memory_resource>
 #include <tuple>
 #include <utility>
 #include <vector>
 
 #include "ilves_graph.h"
-#include "ilves_mempool.h"
 
 namespace LAMMPS_NS {
 namespace ILVES {
@@ -169,8 +169,11 @@ SparseDirectSolver::FillMatrixGenerator::FillMatrixGenerator(const Graph &matrix
     : matrix(matrix),
       perm(matrix.num_nodes()),
       iperm(matrix.num_nodes()),
-      matrix_mem_pool(matrix.num_edges() * 2),
-      active_rows_mem_pool(matrix.num_nodes()) {
+      // size the initial arena buffer for the expected number of list nodes
+      // (value + the two list-node link pointers), matching the up-front
+      // reservation the ported growing pool used; the arena grows if needed.
+      matrix_mem_pool(matrix.num_edges() * 2 * (sizeof(MatrixEntry) + 2 * sizeof(void *))),
+      active_rows_mem_pool(matrix.num_nodes() * (sizeof(int) + 2 * sizeof(void *))) {
 
     fillin_matrix.nnodes = matrix.num_nodes();
     fillin_matrix.xadj.resize(matrix.num_nodes() + 1);
@@ -210,7 +213,7 @@ void SparseDirectSolver::FillMatrixGenerator::init_matrices() {
 
     // Copy the matrix into the per-row scratch lists.
     for (int row = 0; row < nnodes; ++row) {
-        GrowingAllocator<MatrixEntry> row_allocator(&matrix_mem_pool);
+        std::pmr::polymorphic_allocator<MatrixEntry> row_allocator(&matrix_mem_pool);
 
         init_matrix.emplace_back(row_allocator);
         final_matrix.emplace_back(row_allocator);
@@ -241,7 +244,7 @@ void SparseDirectSolver::FillMatrixGenerator::init_active_rows() {
             deg_list_it = active_rows
                               .emplace(std::piecewise_construct,
                                        std::forward_as_tuple(rowdeg),
-                                       std::forward_as_tuple(GrowingAllocator<int>(&active_rows_mem_pool)))
+                                       std::forward_as_tuple(std::pmr::polymorphic_allocator<int>(&active_rows_mem_pool)))
                               .first;
         }
         deg_list_it->second.push_front(row);
@@ -347,7 +350,7 @@ void SparseDirectSolver::FillMatrixGenerator::update_active_row(const int row, c
             new_deg_list_it = active_rows
                                   .emplace(std::piecewise_construct,
                                            std::forward_as_tuple(new_deg),
-                                           std::forward_as_tuple(GrowingAllocator<int>(&active_rows_mem_pool)))
+                                           std::forward_as_tuple(std::pmr::polymorphic_allocator<int>(&active_rows_mem_pool)))
                                   .first;
         }
         new_deg_list_it->second.splice(new_deg_list_it->second.end(),

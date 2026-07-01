@@ -79,7 +79,7 @@ public:
      * Constructs a Molecule that can be used by the ILVES constraint solver,
      * from a LAMMPS-built constraint list.
      *
-     * @param nbonds Number of constraints (bonds).
+     * The number of constraints is catom1.size().
      * @param catom1 catom1[k]/catom2[k] are the GEOMETRY indices (nearest
      * periodic image, into the position / force / invmass arrays) of the two
      * atoms joined by constraint k.
@@ -89,11 +89,13 @@ public:
      * detection; cnode1[k] is the owner of catom1[k], cnode2[k] of catom2[k].
      * @param cnode2 See cnode1.
      * @param cdist cdist[k] is the target length of constraint k.
-     * @param invmass A pointer to the array of inverse mass of each atom.
-     * The Molecule keeps a pointer to this array, so it must be kept alive.
+     * @param invmass The inverse mass of each atom.  The Molecule keeps a
+     * pointer into this vector, so it must be kept alive (and not reallocated)
+     * for the Molecule's lifetime.
      */
-    Molecule(int nbonds, const int *catom1, const int *catom2, const int *cnode1,
-             const int *cnode2, const double *cdist, const double *invmass);
+    Molecule(const std::vector<int> &catom1, const std::vector<int> &catom2,
+             const std::vector<int> &cnode1, const std::vector<int> &cnode2,
+             const std::vector<double> &cdist, const std::vector<double> &invmass);
 
     /**
      * Renumber the data of the Bonds structure given a permutation.

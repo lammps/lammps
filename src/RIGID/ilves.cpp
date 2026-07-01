@@ -28,12 +28,12 @@
 namespace LAMMPS_NS {
 namespace ILVES {
 
-Ilves::Ilves(LAMMPS *const _lmp, const int nbonds, const int *const catom1, const int *const catom2,
-             const int *const cnode1, const int *const cnode2, const double *const cdist,
-             const double *const invmass) :
+Ilves::Ilves(LAMMPS *const _lmp, const std::vector<int> &catom1, const std::vector<int> &catom2,
+             const std::vector<int> &cnode1, const std::vector<int> &cnode2,
+             const std::vector<double> &cdist, const std::vector<double> &invmass) :
     lmp(_lmp)
 {
-  mol = std::unique_ptr<Molecule>(new Molecule(nbonds, catom1, catom2, cnode1, cnode2, cdist, invmass));
+  mol = std::unique_ptr<Molecule>(new Molecule(catom1, catom2, cnode1, cnode2, cdist, invmass));
 
   // reference bond vectors x_ab and predicted bond vectors xprime_ab; both are
   // needed to assemble the exact-Newton Jacobian (which uses r != s)

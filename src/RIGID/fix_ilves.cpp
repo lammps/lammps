@@ -1095,9 +1095,8 @@ void FixIlves::build_constraint_list()
   delete ilves_solver;
   ilves_solver = nullptr;
   if (nconstraints > 0)
-    ilves_solver = new ILVES::Ilves(lmp, nconstraints, clist_a.data(), clist_b.data(),
-                                    clist_node_a.data(), clist_node_b.data(), clist_d.data(),
-                                    invmass.data());
+    ilves_solver = new ILVES::Ilves(lmp, clist_a, clist_b, clist_node_a, clist_node_b, clist_d,
+                                    invmass);
 }
 
 /* ----------------------------------------------------------------------

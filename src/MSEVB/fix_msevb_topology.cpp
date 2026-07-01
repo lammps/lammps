@@ -1523,7 +1523,12 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H, int
       if (rxn.pre_to_post[i] >= 0) post_to_pre[rxn.pre_to_post[i]] = i;
   }
 
-  if (atom->nangles > 0 && rxn.post_mol && rxn.post_mol->nangles > 0) {
+  // NOTE: the guard must NOT require post_mol->nangles > 0.  Step (a) below
+  // zeroes stale angle counts on the reactive atoms; if a product template has
+  // zero angles (e.g. reacting to a species with none) but the reference does
+  // not, skipping this block would leave the reference's angles on the daughter
+  // atoms and corrupt its energy.  The add-loop is a no-op when nangles == 0.
+  if (atom->nangles > 0 && rxn.post_mol) {
     int *num_angle_arr = atom->num_angle;
     int **angle_type_arr = atom->angle_type;
     tagint **angle_atom1_arr = atom->angle_atom1;
@@ -1578,7 +1583,10 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H, int
   // glove atoms.  Same pattern as angles: zero counts, walk post_mol list,
   // filter by storage atom (atom2 in LAMMPS Molecule dihedral convention),
   // map through post_to_pre -> glove to real tags.
-  if (force->dihedral && rxn.post_mol && rxn.post_mol->ndihedrals > 0) {
+  // See the angle note above: the guard must not require post_mol->ndihedrals
+  // > 0, or a product with no dihedrals would leave the reference's dihedrals
+  // (e.g. O-C-O-H torsions) on the daughter atoms and inflate its energy.
+  if (force->dihedral && rxn.post_mol) {
     int *num_dihedral_arr = atom->num_dihedral;
     int **dihedral_type_arr = atom->dihedral_type;
     tagint **dihedral_atom1_arr = atom->dihedral_atom1;
@@ -1633,7 +1641,10 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H, int
 
   // Step 4.6: Rebuild impropers from the post-template for all non-edge
   // glove atoms.  Same pattern as dihedrals: impropers are stored on atom2.
-  if (force->improper && rxn.post_mol && rxn.post_mol->nimpropers > 0) {
+  // See the angle note above: the guard must not require post_mol->nimpropers
+  // > 0, or a product with no impropers would leave the reference's impropers on
+  // the daughter atoms and inflate its energy.
+  if (force->improper && rxn.post_mol) {
     int *num_improper_arr = atom->num_improper;
     int **improper_type_arr = atom->improper_type;
     tagint **improper_atom1_arr = atom->improper_atom1;

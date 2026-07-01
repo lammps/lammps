@@ -367,6 +367,7 @@ class FixMSEVB : public Fix {
   // Template-reaction helpers called from init().
   void parse_template_mapfile(ReactionDef &rd);
   void compute_topology_diff(ReactionDef &rd);
+  void check_reaction_topology_limits(const ReactionDef &rd);
 
   // ---- Kokkos sync hooks (no-ops in base class, overridden in /kk) ------
   virtual void sync_before_force_compute();

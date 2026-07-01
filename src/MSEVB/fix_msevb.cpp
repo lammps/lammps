@@ -679,6 +679,10 @@ void FixMSEVB::init()
     // Compute bond/type topology diff
     compute_topology_diff(rd);
 
+    // Warn if the post-reaction template would exceed the per-atom topology
+    // capacities allocated at read_data time (extra/*/per/atom).
+    check_reaction_topology_limits(rd);
+
     rd.glove_n = rd.pre_mol->natoms;
     glove_nmax = MAX(glove_nmax, rd.glove_n);
   }
@@ -900,6 +904,55 @@ void FixMSEVB::compute_topology_diff(ReactionDef &rd)
       if (pre_bt != post_bt && post_bt > 0) rd.bond_retypes.push_back({i, ni, post_bt});
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   Warn if a reaction's post-reaction template needs more bonds/angles/
+   dihedrals/impropers/special neighbors per atom than the system was
+   allocated to hold.
+
+   The per-atom topology capacities (atom->bond_per_atom, angle_per_atom,
+   dihedral_per_atom, improper_per_atom and atom->maxspecial) are fixed when
+   read_data runs, optionally enlarged with the extra/<kind>/per/atom keywords.
+   fix msevb cannot grow these arrays, so a reaction that raises an atom's
+   connectivity beyond them will overflow per-atom storage when it fires.
+
+   The check is based on the templates alone.  Because a matched atom may carry
+   additional topology outside the template, the post-template maxima are a
+   lower bound on the real post-reaction counts: a failing check guarantees an
+   overflow, while a clean check does not guarantee its absence.  Hence a
+   warning rather than a hard error.
+------------------------------------------------------------------------- */
+
+void FixMSEVB::check_reaction_topology_limits(const ReactionDef &rd)
+{
+  // per-atom capacities are global, so emit the warning from one rank only
+  if (universe->me != 0) return;
+
+  const Molecule *pre = rd.pre_mol;
+  const Molecule *post = rd.post_mol;
+
+  auto check = [&](const char *kind, int pre_n, int post_n, int cap, const char *flag) {
+    if (post_n <= cap) return;
+    error->warning(
+        FLERR,
+        fmt::format("Fix msevb: reaction '{}' -> '{}' needs up to {} {}/atom "
+                    "(pre-reaction template: {}/atom), but the system is allocated for only "
+                    "{} {}/atom; this reaction may overflow per-atom storage when it fires. "
+                    "Increase the capacity with '{}' on the read_data command",
+                    rd.pre_mol_id, rd.post_mol_id, post_n, kind, pre_n, cap, kind, flag));
+  };
+
+  check("bonds", pre->bond_per_atom, post->bond_per_atom, atom->bond_per_atom,
+        "extra/bond/per/atom");
+  check("angles", pre->angle_per_atom, post->angle_per_atom, atom->angle_per_atom,
+        "extra/angle/per/atom");
+  check("dihedrals", pre->dihedral_per_atom, post->dihedral_per_atom, atom->dihedral_per_atom,
+        "extra/dihedral/per/atom");
+  check("impropers", pre->improper_per_atom, post->improper_per_atom, atom->improper_per_atom,
+        "extra/improper/per/atom");
+  check("special neighbors", pre->maxspecial, post->maxspecial, atom->maxspecial,
+        "extra/special/per/atom");
 }
 
 /* ---------------------------------------------------------------------- */

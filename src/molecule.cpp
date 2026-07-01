@@ -49,18 +49,17 @@ static constexpr double SINERTIA = 0.4;    // moment of inertia prefactor for sp
 
 Molecule::Molecule(LAMMPS *lmp) :
     Pointers(lmp), id(nullptr), x(nullptr), type(nullptr), molecule(nullptr), q(nullptr),
-    radius(nullptr), rmass(nullptr), mu(nullptr),
-    lines(nullptr), tris(nullptr),
-    molline(nullptr), typeline(nullptr), moltri(nullptr), typetri(nullptr),
-    num_bond(nullptr), bond_type(nullptr),
-    bond_atom(nullptr), num_angle(nullptr), angle_type(nullptr), angle_atom1(nullptr),
-    angle_atom2(nullptr), angle_atom3(nullptr), num_dihedral(nullptr), dihedral_type(nullptr),
-    dihedral_atom1(nullptr), dihedral_atom2(nullptr), dihedral_atom3(nullptr),
-    dihedral_atom4(nullptr), num_improper(nullptr), improper_type(nullptr), improper_atom1(nullptr),
-    improper_atom2(nullptr), improper_atom3(nullptr), improper_atom4(nullptr), nspecial(nullptr),
-    special(nullptr), shake_flag(nullptr), shake_atom(nullptr), shake_type(nullptr),
-    avec_body(nullptr), ibodyparams(nullptr), dbodyparams(nullptr), fragmentmask(nullptr),
-    dx(nullptr), dxcom(nullptr), dxbody(nullptr), quat_external(nullptr), count(nullptr)
+    radius(nullptr), rmass(nullptr), mu(nullptr), molline(nullptr), typeline(nullptr),
+    lines(nullptr), moltri(nullptr), typetri(nullptr), tris(nullptr), num_bond(nullptr),
+    bond_type(nullptr), bond_atom(nullptr), num_angle(nullptr), angle_type(nullptr),
+    angle_atom1(nullptr), angle_atom2(nullptr), angle_atom3(nullptr), num_dihedral(nullptr),
+    dihedral_type(nullptr), dihedral_atom1(nullptr), dihedral_atom2(nullptr),
+    dihedral_atom3(nullptr), dihedral_atom4(nullptr), num_improper(nullptr), improper_type(nullptr),
+    improper_atom1(nullptr), improper_atom2(nullptr), improper_atom3(nullptr),
+    improper_atom4(nullptr), nspecial(nullptr), special(nullptr), shake_flag(nullptr),
+    shake_atom(nullptr), shake_type(nullptr), avec_body(nullptr), ibodyparams(nullptr),
+    dbodyparams(nullptr), fragmentmask(nullptr), dx(nullptr), dxcom(nullptr), dxbody(nullptr),
+    quat_external(nullptr), count(nullptr)
 {
   // parse args until reach unknown arg (next file)
 
@@ -2544,13 +2543,15 @@ void Molecule::read(int flag)
   }
 
   // error checks
-
   if (!has_atoms && !has_lines && !has_tris)
-    error->all(FLERR, fileiarg, "Required \"atoms\" or \"lines\" or \"tris\" header keyword not found in molecule file");
-  if (has_atoms && natoms < 1) error->all(FLERR, fileiarg, "No atoms or invalid atom count in molecule file");
-  if (has_lines && nlines < 1) error->all(FLERR, fileiarg, "No lines or invalid line count in molecule file");
-  if (has_tris && ntris < 1) error->all(FLERR, fileiarg, "No tris or invalid tri count in molecule file");
-
+    error->all(FLERR, fileiarg,
+        R"(Required "atoms" or "lines" or "tris" header keyword not found in molecule file)");
+  if (has_atoms && natoms < 1)
+    error->all(FLERR, fileiarg, "No atoms or invalid atom count in molecule file");
+  if (has_lines && nlines < 1)
+    error->all(FLERR, fileiarg, "No lines or invalid line count in molecule file");
+  if (has_tris && ntris < 1)
+    error->all(FLERR, fileiarg, "No tris or invalid tri count in molecule file");
   if (natoms < 0) error->all(FLERR, fileiarg, "Invalid atom count in molecule file");
   if (nlines < 0) error->all(FLERR, fileiarg, "Invalid line count in molecule file");
   if (ntris < 0) error->all(FLERR, fileiarg, "Invalid triangle count in molecule file");

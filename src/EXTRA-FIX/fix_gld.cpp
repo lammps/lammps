@@ -677,6 +677,10 @@ void FixGLD::init_s_gld()
 #endif
         icoeff += 1;
       }
+    } else {
+      // zero s_gld for atoms outside the group so it is never left
+      // uninitialised (e.g. when packed into a restart file)
+      for (int k = 0; k < 3*prony_terms; k++) s_gld[i][k] = 0.0;
     }
   }
 }

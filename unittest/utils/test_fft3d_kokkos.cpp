@@ -533,6 +533,10 @@ TEST_F(FFT3DKokkosTest, KnownAnswer_Kokkos_Sine)
     }
 
     EXPECT_TRUE(valid) << "Sine wave test failed";
+
+    // free the FFT created by create_serial_fft() (TearDown does not delete it)
+    delete static_cast<FFT3dKokkos<DeviceType> *>(fft);
+    fft = nullptr;
 }
 
 // =============================================================================

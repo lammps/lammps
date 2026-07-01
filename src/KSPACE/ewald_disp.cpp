@@ -181,7 +181,13 @@ void EwaldDisp::init()
           t = TERM_DIPOLE;
           break;
         case 6:
-          if (ewald_mix == Pair::GEOMETRIC) t = TERM_DISP_GEOM;
+          // honor kspace_modify mix/disp (base-class mixflag): 1 = force geometric,
+          // 2 = none, 0 = follow the pair style's rule.  ewald/disp has no eigenvalue
+          // splitting (the "none" path of pppm/disp), so mix/disp none is rejected.
+          if (mixflag == 2)
+            error->all(FLERR,"kspace_modify mix/disp none is not supported by "
+                             "kspace_style ewald/disp");
+          if (mixflag == 1 || ewald_mix == Pair::GEOMETRIC) t = TERM_DISP_GEOM;
           else if (ewald_mix == Pair::ARITHMETIC) t = TERM_DISP_ARITH;
           else error->all(FLERR,"Unsupported mixing rule in kspace_style ewald/disp");
           break;
@@ -366,14 +372,18 @@ double EwaldDisp::rms(int km, double prd, bigint natoms,
     sqrt(1.0/(MY_PI*km*natoms)) *
     exp(-MY_PI*MY_PI*km*km/(g2*prd*prd));
 
-  // Lennard-Jones
+  // Lennard-Jones reciprocal-space RMS force error (uses the dispersion
+  // splitting parameter g_ewald_6).  Kolafa-Perram / Deserno-Holm analysis
+  // extended to r^-6: with the large-h asymptotic of the dispersion influence
+  // coefficient B(h) ~ 24 g^5 exp(-h^2/(4g^2))/h^2 and h_max = 2 pi km/prd,
+  //   dF_recip ~ (b2 g^6 / sqrt(N V)) sqrt(prd/(2 pi km)) exp(-pi^2 km^2/(g^2 prd^2)).
 
-  double g7 = g2*g2*g2*g_ewald;
+  double g2_6 = g_ewald_6*g_ewald_6;
+  double g6 = g2_6*g2_6*g2_6;
 
-  value += 4.0*b2*g7/3.0 *
-    sqrt(1.0/(MY_PI*natoms)) *
-    (exp(-MY_PI*MY_PI*km*km/(g2*prd*prd)) *
-    (MY_PI*km/(g_ewald*prd) + 1));
+  value += b2*g6/sqrt((double)natoms*volume) *
+    sqrt(prd/(2.0*MY_PI*km)) *
+    exp(-MY_PI*MY_PI*km*km/(g2_6*prd*prd));
 
   // dipole
 
@@ -511,6 +521,7 @@ void EwaldDisp::deallocate()
 void EwaldDisp::coeffs()
 {
   const double eta2 = 0.25/(g_ewald*g_ewald);
+  const double eta2_6 = 0.25/(g_ewald_6*g_ewald_6);    // dispersion uses its own g_ewald_6
   int ne = 0, nv = 0;                          // running indices into kenergy/kvirial
 
   for (int k = 0; k < kcount; k++) {
@@ -531,11 +542,13 @@ void EwaldDisp::coeffs()
       kvirial[nv++] = -c2*h[2]*h[1];
     }
     if (termflag[TERM_DISP_GEOM] || termflag[TERM_DISP_ARITH]) {   // -Bij/r^6 coeffs
-      const double b1 = sqrt(bk2);                      // minus sign folded
+      const double bk2_6 = h2*eta2_6;                   // dispersion split width (g_ewald_6)
+      const double expb2_6 = exp(-bk2_6);
+      const double b1 = sqrt(bk2_6);                    // minus sign folded
       const double h1 = sqrt(h2);                       // into constants
       const double ce = MY_PIS*erfc(b1);
-      const double c1 = -h1*h2*(ce + (0.5/bk2 - 1.0)*expb2/b1);
-      const double c2 = 3.0*h1*(ce - expb2/b1);
+      const double c1 = -h1*h2*(ce + (0.5/bk2_6 - 1.0)*expb2_6/b1);
+      const double c2 = 3.0*h1*(ce - expb2_6/b1);
       kenergy[ne++] = c1;
       kvirial[nv++] = c1 - c2*h[0]*h[0];                // lammps convention
       kvirial[nv++] = c1 - c2*h[1]*h[1];                // instead of voigt
@@ -645,6 +658,7 @@ void EwaldDisp::init_coeff_sums()
 void EwaldDisp::init_self()
 {
   double g1 = g_ewald, g2 = g1*g1, g3 = g1*g2;
+  double g3_6 = g_ewald_6*g_ewald_6*g_ewald_6;    // dispersion uses its own g_ewald_6
   const double qscale = force->qqrd2e * scale;
 
   memset(energy_self, 0, EWALD_NTERMS*sizeof(double));  // self energy
@@ -656,17 +670,17 @@ void EwaldDisp::init_self()
   }
   if (termflag[TERM_DISP_GEOM]) {                       // geometric 1/r^6
     virial_self[TERM_DISP_GEOM] =
-      MY_PI*MY_PIS*g3/(6.0*volume)*coeff_sum[1].x*coeff_sum[1].x;
+      MY_PI*MY_PIS*g3_6/(6.0*volume)*coeff_sum[1].x*coeff_sum[1].x;
     energy_self[TERM_DISP_GEOM] =
-      -coeff_sum[1].x2*g3*g3/12.0+virial_self[TERM_DISP_GEOM];
+      -coeff_sum[1].x2*g3_6*g3_6/12.0+virial_self[TERM_DISP_GEOM];
   }
   if (termflag[TERM_DISP_ARITH]) {                      // arithmetic 1/r^6
     virial_self[TERM_DISP_ARITH] =
-      MY_PI*MY_PIS*g3/(48.0*volume)*(coeff_sum[2].x*coeff_sum[8].x+
+      MY_PI*MY_PIS*g3_6/(48.0*volume)*(coeff_sum[2].x*coeff_sum[8].x+
         coeff_sum[3].x*coeff_sum[7].x+coeff_sum[4].x*coeff_sum[6].x+
         0.5*coeff_sum[5].x*coeff_sum[5].x);
     energy_self[TERM_DISP_ARITH] =
-      -coeff_sum[2].x2*g3*g3/3.0+virial_self[TERM_DISP_ARITH];
+      -coeff_sum[2].x2*g3_6*g3_6/3.0+virial_self[TERM_DISP_ARITH];
   }
   if (termflag[TERM_DIPOLE]) {                          // dipole
     virial_self[TERM_DIPOLE] = 0;
@@ -682,6 +696,7 @@ void EwaldDisp::init_self_peratom()
   if (!(vflag_atom || eflag_atom)) return;
 
   double g1 = g_ewald, g2 = g1*g1, g3 = g1*g2;
+  double g3_6 = g_ewald_6*g_ewald_6*g_ewald_6;    // dispersion uses its own g_ewald_6
   const double qscale = force->qqrd2e * scale;
   const int nlocal = atom->nlocal;
 
@@ -700,8 +715,8 @@ void EwaldDisp::init_self_peratom()
   }
   if (termflag[TERM_DISP_GEOM]) {                       // geometric 1/r^6
     const int *type = atom->type;
-    const double ce = -g3*g3/12.0;
-    const double cv = MY_PI*MY_PIS*g3/(6.0*volume);
+    const double ce = -g3_6*g3_6/12.0;
+    const double cv = MY_PI*MY_PIS*g3_6/(6.0*volume);
     for (int i = 0; i < nlocal; i++) {
       const double b = B[type[i]];
       virial_self_peratom[i][TERM_DISP_GEOM] = cv*b*coeff_sum[1].x;
@@ -711,8 +726,8 @@ void EwaldDisp::init_self_peratom()
   }
   if (termflag[TERM_DISP_ARITH]) {                      // arithmetic 1/r^6
     const int *type = atom->type;
-    const double ce = -g3*g3/3.0;
-    const double cv = 0.5*MY_PI*MY_PIS*g3/(48.0*volume);
+    const double ce = -g3_6*g3_6/3.0;
+    const double cv = 0.5*MY_PI*MY_PIS*g3_6/(48.0*volume);
     for (int i = 0; i < nlocal; i++) {
       const double *bi = B + 7*type[i];
       for (int k = 2; k < 9; k++)
@@ -1501,10 +1516,18 @@ double EwaldDisp::NewtonSolve(double x, double Rc,
   double dx;
 
   for (int i = 0; i < maxit; i++) {
-    dx = f(x,Rc,natoms,vol,b2) / derivf(x,Rc,natoms,vol,b2);
-    x = x - dx;
+    double dfx = derivf(x,Rc,natoms,vol,b2);
+    if (dfx == 0.0 || dfx != dfx) // flat/invalid derivative
+      return -1;
+    dx = f(x,Rc,natoms,vol,b2) / dfx;
+    // Damped (backtracking) Newton: the error estimate is monotonic in g with a
+    // unique positive root, but a raw Newton step can overshoot to g <= 0 at
+    // large cutoffs (where f is flat near the initial guess) and abort.  Halve
+    // the step until it keeps x positive so the solver converges robustly.
+    while (x - dx <= 0.0) dx *= 0.5;
+    x = x - dx; //Update x
     if (fabs(dx) < tol) return x;
-    if (x < 0 || x != x) // solver failed
+    if (x != x) // solver failed
       return -1;
   }
   return -1;
@@ -1529,8 +1552,14 @@ double EwaldDisp::f(double x, double Rc, bigint natoms, double vol, double b2)
       sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) *
       exp(-rg2)) - accuracy;
   } else if (termflag[TERM_DISP_GEOM] || termflag[TERM_DISP_ARITH]) {  // LJ
-    f = (4.0*MY_PI*b2*powint(x,4)/vol/sqrt((double)natoms)*erfc(a) *
-      (6.0*powint(a,-5) + 6.0*powint(a,-3) + 3.0/a + a) - accuracy);
+    // Kolafa-Perram real-space RMS force error for r^-6, extended by
+    // Isele-Holder et al. (J. Chem. Phys. 137, 174107 (2012), Eq. 20).  The
+    // published Eq. 20 has a dimensional typo in the denominator (sqrt(N) V Rc);
+    // the correct form is sqrt(N V Rc), which makes the estimate dimensionally
+    // consistent and match measured bulk errors to ~Kolafa-Perram accuracy.
+    double a2 = a*a;
+    f = (b2*sqrt(MY_PI)*powint(x,5)/sqrt(vol*Rc*(double)natoms) *
+      (6.0/(a2*a2*a2) + 6.0/(a2*a2) + 3.0/a2 + 1.0) * exp(-a2) - accuracy);
   }
 
   return f;

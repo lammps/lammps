@@ -457,6 +457,7 @@ accelerated styles exist.
 * :doc:`vector <fix_vector>` - accumulate a global vector every *N* timesteps
 * :doc:`viscosity <fix_viscosity>` - Mueller-Plathe momentum exchange for viscosity calculation
 * :doc:`viscous <fix_viscous>` - viscous damping for granular simulations
+* :doc:`viscous/nonlinear <fix_viscous_nonlinear>` - nonlinear (Schiller-Naumann) viscous drag for granular simulations
 * :doc:`viscous/sphere <fix_viscous_sphere>` - viscous damping on angular velocity for granular simulations
 * :doc:`wall/body/polygon <fix_wall_body_polygon>` - time integration for body particles of style :doc:`rounded/polygon <Howto_body>`
 * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>` - time integration for body particles of style :doc:`rounded/polyhedron <Howto_body>`

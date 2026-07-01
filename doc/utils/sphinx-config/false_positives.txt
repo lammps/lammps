@@ -282,6 +282,7 @@ Batra
 Bayly
 bb
 bbox
+bc
 bcc
 bcolor
 bdiam
@@ -501,6 +502,7 @@ Ceil
 cekk
 centerline
 CentOS
+centric
 centro
 centroid
 Centroid
@@ -598,6 +600,7 @@ Coeff
 CoefficientN
 coeffs
 Coeffs
+Coetzee
 COH
 cohesionless
 Coker
@@ -705,6 +708,7 @@ cstring
 cstyle
 csvr
 ctest
+CTest
 ctilde
 ctip
 ctrl
@@ -918,6 +922,7 @@ dll
 dlm
 dlopen
 dm
+dmt
 dmax
 Dmax
 dmg
@@ -1352,6 +1357,7 @@ Frauenheim
 Fraunhofer
 frcmod
 fread
+freefall
 Freitas
 Frenkel
 frictionless
@@ -1366,6 +1372,7 @@ ftol
 fuer
 fugacity
 Fu
+fullerene
 Fumi
 func
 funcs
@@ -1381,6 +1388,7 @@ Gabor
 Gahler
 gainsboro
 Galindo
+Galvin
 gamA
 gammaA
 gammaFactor
@@ -1393,6 +1401,7 @@ ganzenmueller
 Ganzenmuller
 Gao
 Gapsys
+Garg
 Gathert
 Gaus
 gauss
@@ -1502,6 +1511,7 @@ granregion
 GRANSURF
 gransurf
 graphene
+graphitic
 Gravelle
 Greathouse
 Greengard
@@ -1975,6 +1985,7 @@ Khersonskii
 Khrapak
 Khvostov
 Ki
+Kikkawa
 Kikugawa
 kim
 kinetostats
@@ -2292,6 +2303,7 @@ makelist
 makepkg
 Makse
 Malavasi
+Malerba
 Malfreyt
 malloc
 Malolepsza
@@ -2441,6 +2453,7 @@ Metin
 meV
 Mezei
 mgpt
+MFiX
 MGPT
 mgptfast
 mh
@@ -2508,6 +2521,7 @@ modularity
 moduli
 mofff
 MOFFF
+Mohajeri
 Mohd
 Mohles
 mol
@@ -2537,6 +2551,7 @@ Morawietz
 Morefoo
 Morfill
 Mori
+Moriguchi
 Moritz
 Moriya
 morris
@@ -2639,6 +2654,7 @@ na
 nabla
 Nagaosa
 Nakano
+Nakata
 nall
 namedtuple
 namespace
@@ -2674,7 +2690,9 @@ natoms
 Natoms
 Natomtype
 Nattempt
+naumann
 navajowhite
+Naumann
 Navier
 nb
 Nbin
@@ -2964,6 +2982,7 @@ Oleinik
 Olfason
 olivedrab
 Ollila
+Olsson
 Olvera
 omegaDD
 omegax
@@ -2984,6 +3003,7 @@ onlysalt
 ons
 Onufriev
 OO
+Ooi
 Oord
 opencl
 openfile
@@ -3047,6 +3067,7 @@ palevioletred
 Panagiotopoulos
 Pande
 Pandit
+Pannala
 Papaconstantopoulos
 papayawhip
 paquay
@@ -3072,6 +3093,7 @@ Parrinello
 Partay
 Particuology
 Pascuet
+Pasianot
 Pasquier
 pastewka
 Pastewka
@@ -3300,6 +3322,7 @@ ptol
 ptr
 PTX
 pu
+pulloff
 purdue
 Purohit
 pushstore
@@ -3506,6 +3529,7 @@ rfile
 rflag
 rg
 Rg
+Reynolds
 Rhaphson
 Rhe
 rheo
@@ -3645,6 +3669,7 @@ Sano
 Santangelo
 Sanyal
 Sanz
+Saomoto
 Sarath
 sawteeth
 sc
@@ -3662,6 +3687,8 @@ Schaik
 Scheffler
 Scheid
 Schilfgarde
+schiller
+Schiller
 Schimansky
 Schiotz
 Schlitter
@@ -3670,6 +3697,7 @@ Schmid
 Schmitz
 Schnieders
 Schoen
+Schott
 Schotte
 Schratt
 Schulten
@@ -4026,6 +4054,7 @@ templating
 Templeton
 Tencer
 Tequil
+Terentyev
 ters
 tersoff
 Tersoff
@@ -4413,6 +4442,7 @@ Vu
 Vuilleumier
 Vulpe
 vv
+VVUQ
 vx
 Vx
 vxcm
@@ -4432,6 +4462,7 @@ vzi
 vzz
 Waals
 Wadley
+Wallenius
 wallstyle
 walltime
 Waltham

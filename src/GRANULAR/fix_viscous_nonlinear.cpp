@@ -27,12 +27,12 @@ using namespace FixConst;
 using namespace MathConst;
 
 /* ----------------------------------------------------------------------
-   Nonlinear (Schiller-Naumann) gas drag on finite-size spherical particles:
+   Nonlinear (Schiller-Naumann) fluid drag on finite-size spherical particles:
 
-     F = -1/2 C_d rho_g (pi r^2) |v_rel| v_rel,   v_rel = v_particle - v_gas
-     C_d = 24/Re (1 + 0.15 Re^0.687),   Re = rho_g |v_rel| (2 r) / mu_g
+     F = -1/2 C_d rho_f (pi r^2) |v_rel| v_rel,   v_rel = v_particle - v_fluid
+     C_d = 24/Re (1 + 0.15 Re^0.687),   Re = rho_f |v_rel| (2 r) / mu_f
 
-   In the low-Reynolds limit this reduces to Stokes drag 6 pi mu_g r v_rel.
+   In the low-Reynolds limit this reduces to Stokes drag 6 pi mu_f r v_rel.
 ------------------------------------------------------------------------- */
 
 FixViscousNonlinear::FixViscousNonlinear(LAMMPS *lmp, int narg, char **arg) :
@@ -42,22 +42,22 @@ FixViscousNonlinear::FixViscousNonlinear(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 5) error->all(FLERR, "Illegal fix viscous/nonlinear command");
 
-  rho_gas = utils::numeric(FLERR, arg[3], false, lmp);
-  mu_gas = utils::numeric(FLERR, arg[4], false, lmp);
-  if (rho_gas <= 0.0 || mu_gas <= 0.0)
-    error->all(FLERR, "Fix viscous/nonlinear gas density and viscosity must be > 0");
+  rho_fluid = utils::numeric(FLERR, arg[3], false, lmp);
+  mu_fluid = utils::numeric(FLERR, arg[4], false, lmp);
+  if (rho_fluid <= 0.0 || mu_fluid <= 0.0)
+    error->all(FLERR, "Fix viscous/nonlinear fluid density and viscosity must be > 0");
 
-  v_gas[0] = v_gas[1] = v_gas[2] = 0.0;
+  v_fluid[0] = v_fluid[1] = v_fluid[2] = 0.0;
 
   // optional args
 
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "velocity") == 0) {
-      if (iarg + 4 > narg) error->all(FLERR, "Illegal fix viscous/nonlinear command");
-      v_gas[0] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      v_gas[1] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-      v_gas[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix viscous/nonlinear velocity", error);
+      v_fluid[0] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      v_fluid[1] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      v_fluid[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
     } else
       error->all(FLERR, "Illegal fix viscous/nonlinear command");
@@ -124,7 +124,7 @@ void FixViscousNonlinear::min_setup(int vflag)
 
 void FixViscousNonlinear::post_force(int /*vflag*/)
 {
-  // apply Schiller-Naumann drag relative to the (uniform) gas velocity
+  // apply Schiller-Naumann drag relative to the (uniform) fluid velocity
 
   double **v = atom->v;
   double **f = atom->f;
@@ -136,18 +136,18 @@ void FixViscousNonlinear::post_force(int /*vflag*/)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      vrel[0] = v[i][0] - v_gas[0];
-      vrel[1] = v[i][1] - v_gas[1];
-      vrel[2] = v[i][2] - v_gas[2];
+      vrel[0] = v[i][0] - v_fluid[0];
+      vrel[1] = v[i][1] - v_fluid[1];
+      vrel[2] = v[i][2] - v_fluid[2];
       const double vmag = sqrt(vrel[0] * vrel[0] + vrel[1] * vrel[1] + vrel[2] * vrel[2]);
       if (vmag == 0.0) continue;
 
       const double r = radius[i];
-      const double re = rho_gas * vmag * (2.0 * r) / mu_gas;
+      const double re = rho_fluid * vmag * (2.0 * r) / mu_fluid;
       const double cd = (24.0 / re) * (1.0 + 0.15 * pow(re, 0.687));
 
       // F = -1/2 Cd rho_g (pi r^2) |v_rel| v_rel
-      const double pref = 0.5 * cd * rho_gas * MY_PI * r * r * vmag;
+      const double pref = 0.5 * cd * rho_fluid * MY_PI * r * r * vmag;
       f[i][0] -= pref * vrel[0];
       f[i][1] -= pref * vrel[1];
       f[i][2] -= pref * vrel[2];

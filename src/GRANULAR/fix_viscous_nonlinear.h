@@ -37,7 +37,7 @@ class FixViscousNonlinear : public Fix {
   void min_post_force(int) override;
 
  protected:
-  double rho_gas, mu_gas, v_gas[3];
+  double rho_fluid, mu_fluid, v_fluid[3];
   int ilevel_respa;
 };
 

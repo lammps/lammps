@@ -8,12 +8,12 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID viscous/nonlinear rho_gas mu_gas keyword values ...
+   fix ID group-ID viscous/nonlinear rho_fluid mu_fluid keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * viscous/nonlinear = style name of this fix command
-* rho_gas = mass density of the surrounding fluid (mass/volume units)
-* mu_gas = dynamic viscosity of the surrounding fluid (pressure\*time units)
+* rho_fluid = mass density of the surrounding fluid (mass/volume units)
+* mu_fluid = dynamic viscosity of the surrounding fluid (pressure\*time units)
 * zero or more keyword/value pairs may be appended
 
   .. parsed-literal::
@@ -48,26 +48,27 @@ The drag force on particle *i* is
 
 .. math::
 
-   \vec{F}_i = -\frac{1}{2}\, C_d\, \rho_g\, \pi r_i^2\, |\vec{v}_{rel}|\, \vec{v}_{rel}
+   \vec{F}_i = -\frac{1}{2}\, C_d\, \rho_f\, \pi r_i^2\, |\vec{v}_{rel}|\, \vec{v}_{rel}
 
-where :math:`r_i` is the particle radius, :math:`\rho_g` is the fluid
-mass density, :math:`\vec{v}_{rel} = \vec{v}_i - \vec{v}_{gas}` is the
+where :math:`r_i` is the particle radius, :math:`\rho_f` is the fluid
+mass density, :math:`\vec{v}_{rel} = \vec{v}_i - \vec{v}_f` is the
 particle velocity relative to the fluid, and the drag coefficient
 :math:`C_d` follows the Schiller-Naumann correlation
 
 .. math::
 
    C_d = \frac{24}{Re}\left(1 + 0.15\, Re^{0.687}\right), \qquad
-   Re = \frac{\rho_g\, |\vec{v}_{rel}|\, (2 r_i)}{\mu_g}
+   Re = \frac{\rho_f\, |\vec{v}_{rel}|\, (2 r_i)}{\mu_f}
 
 with :math:`Re` the particle Reynolds number based on the diameter
-:math:`2 r_i`.  In the low-Reynolds-number limit
+:math:`2 r_i`, the fluid density :math:`\rho_f`, and the dynamic viscosity
+of the fluid :math:`\mu_f`.  In the low-Reynolds-number limit
 (:math:`Re \rightarrow 0`) the correlation reduces to
 :math:`C_d = 24/Re` and the force becomes the Stokes drag
-:math:`\vec{F}_i = -6 \pi \mu_g r_i \vec{v}_{rel}`.
+:math:`\vec{F}_i = -6 \pi \mu_f r_i \vec{v}_{rel}`.
 
 By default the fluid is at rest.  The optional *velocity* keyword sets a
-uniform fluid velocity :math:`\vec{v}_{gas}`, so the drag is computed
+uniform fluid velocity :math:`\vec{v}_f`, so the drag is computed
 from the particle velocity relative to the moving fluid.  This fix only
 applies a drag force; buoyancy and gravity (if desired) must be added
 separately, e.g. with :doc:`fix gravity <fix_gravity>`.

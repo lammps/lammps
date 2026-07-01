@@ -84,12 +84,16 @@ number of Newton iterations per step, and the frequency of statistics output
 (0 turns it off).
 
 Then one or more groups of selectors (``b``, ``a``, ``t``, ``m`` lists) pick
-which bonds and angles get constrained.  A bond is constrained when **both** of
-its atoms are in the fix group AND at least one of the selectors matches:
+which bonds and angles get constrained.  This selection is **identical** to
+:doc:`fix shake <fix_shake>`.  A bond is constrained when **both** of its atoms
+are in the fix group AND at least one of the selectors matches:
 
 * the bond type is in the *b* list, or
-* either atom type is in the *t* list, or
-* either atom mass is within 0.1 mass units of any value in the *m* list.
+* either atom type is in the *t* list (i.e. all bonds connected to an atom of a
+  listed type are constrained), or
+* either atom mass is within a fudge factor of MASSDELTA (0.1 mass units,
+  defined in ``src/RIGID/fix_ilves.cpp``) of a value in the *m* list (i.e. all
+  bonds connected to an atom of a listed mass are constrained).
 
 The types may be given as type labels *only* if there is no atom, bond,
 or angle type label named *b*, *a*, *t*, or *m* defined in the

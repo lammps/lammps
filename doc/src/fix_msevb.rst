@@ -193,9 +193,9 @@ continuous across the reaction and energy is conserved.  A fragment's species is
 identified by the same template-matching used for reaction detection, and the
 reference contribution is held fixed between reactions (updated only when a
 reaction commits), so it does not fluctuate as molecules cross the reaction
-cutoff. The constant energy offset for a given molecular fragment is necessary 
-in ensuring all reactions operate on a potential energy surface of relatively 
-equal magnitude, as the internal energy of a molecule is arbitrary from a 
+cutoff. The constant energy offset for a given molecular fragment is necessary
+in ensuring all reactions operate on a potential energy surface of relatively
+equal magnitude, as the internal energy of a molecule is arbitrary from a
 classical mechanics perspective.
 
 Diagonalizing :math:`\hat{\mathcal{H}}` yields eigenvalues

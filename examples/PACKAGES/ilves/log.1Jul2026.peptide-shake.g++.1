@@ -47,7 +47,7 @@ Finding 1-2 1-3 1-4 neighbors ...
     14 = max # of 1-4 neighbors
     18 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.012 seconds
+  read_data CPU = 0.011 seconds
 
 neighbor        2.0 bin
 neigh_modify    delay 5
@@ -110,7 +110,7 @@ TotEng   =     -5237.4580 KinEng   =      1134.9186 Temp     =       282.1005
 PotEng   =     -6372.3765 E_bond   =        16.5572 E_angle  =        36.3726 
 E_dihed  =        15.5190 E_impro  =         1.9426 E_vdwl   =       692.8945 
 E_coul   =     26772.2647 E_long   =    -33907.9271 Press    =      -837.0111
------------- Step             50 ----- CPU =    0.4152319 (sec) -------------
+------------ Step             50 ----- CPU =    0.4149708 (sec) -------------
 TotEng   =     -5247.5537 KinEng   =      1132.4000 Temp     =       281.4745 
 PotEng   =     -6379.9537 E_bond   =        12.2118 E_angle  =        31.7365 
 E_dihed  =        18.8145 E_impro  =         2.3611 E_vdwl   =       658.1785 
@@ -124,12 +124,12 @@ Bond:   12   1.08      2.67996e-07        9
 Bond:   14   0.96      0                  1
 Bond:   18   0.957201  5.3796e-06      1280
 Angle:  31   104.52    0.000502278      640
------------- Step            100 ----- CPU =    0.8380906 (sec) -------------
+------------ Step            100 ----- CPU =    0.8388361 (sec) -------------
 TotEng   =     -5257.9979 KinEng   =      1078.0552 Temp     =       267.9663 
 PotEng   =     -6336.0532 E_bond   =        14.4829 E_angle  =        43.4429 
 E_dihed  =        15.2569 E_impro  =         2.3160 E_vdwl   =       708.3273 
 E_coul   =     26786.6829 E_long   =    -33906.5621 Press    =      -648.6817
------------- Step            150 ----- CPU =     1.274295 (sec) -------------
+------------ Step            150 ----- CPU =     1.294964 (sec) -------------
 TotEng   =     -5287.2798 KinEng   =      1098.6027 Temp     =       273.0737 
 PotEng   =     -6385.8825 E_bond   =        17.4925 E_angle  =        32.8594 
 E_dihed  =        15.1624 E_impro  =         1.6522 E_vdwl   =       736.9676 
@@ -143,12 +143,12 @@ Bond:   12   1.08      1.98861e-07        9
 Bond:   14   0.96      0                  1
 Bond:   18   0.957201  3.59631e-06     1280
 Angle:  31   104.52    0.000388324      640
------------- Step            200 ----- CPU =     1.688658 (sec) -------------
+------------ Step            200 ----- CPU =     1.741364 (sec) -------------
 TotEng   =     -5308.4469 KinEng   =      1100.4878 Temp     =       273.5422 
 PotEng   =     -6408.9346 E_bond   =        18.2714 E_angle  =        33.3040 
 E_dihed  =        16.8151 E_impro  =         2.6051 E_vdwl   =       686.3219 
 E_coul   =     26736.1320 E_long   =    -33902.3841 Press    =     -1470.3472
------------- Step            250 ----- CPU =     2.128975 (sec) -------------
+------------ Step            250 ----- CPU =     2.203037 (sec) -------------
 TotEng   =     -5294.1562 KinEng   =      1071.0934 Temp     =       266.2358 
 PotEng   =     -6365.2496 E_bond   =        14.2013 E_angle  =        39.1995 
 E_dihed  =        19.4583 E_impro  =         3.1406 E_vdwl   =       753.4711 
@@ -162,27 +162,27 @@ Bond:   12   1.08      2.10662e-06        9
 Bond:   14   0.96      0                  1
 Bond:   18   0.957202  7.7167e-06      1280
 Angle:  31   104.52    0.000806198      640
------------- Step            300 ----- CPU =      2.56797 (sec) -------------
+------------ Step            300 ----- CPU =     2.635259 (sec) -------------
 TotEng   =     -5251.3634 KinEng   =      1123.7660 Temp     =       279.3284 
 PotEng   =     -6375.1294 E_bond   =        14.2208 E_angle  =        38.4294 
 E_dihed  =        18.1660 E_impro  =         2.3732 E_vdwl   =       715.3636 
 E_coul   =     26745.3993 E_long   =    -33909.0817 Press    =      -471.3012
-Loop time of 2.56799 on 1 procs for 300 steps with 2004 atoms
+Loop time of 2.63528 on 1 procs for 300 steps with 2004 atoms
 
-Performance: 20.187 ns/day, 1.189 hours/ns, 116.823 timesteps/s, 234.113 katom-step/s
-99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 19.672 ns/day, 1.220 hours/ns, 113.840 timesteps/s, 228.135 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.116      | 2.116      | 2.116      |   0.0 | 82.40
-Bond    | 0.0039277  | 0.0039277  | 0.0039277  |   0.0 |  0.15
-Kspace  | 0.12913    | 0.12913    | 0.12913    |   0.0 |  5.03
-Neigh   | 0.27932    | 0.27932    | 0.27932    |   0.0 | 10.88
-Comm    | 0.0095801  | 0.0095801  | 0.0095801  |   0.0 |  0.37
-Output  | 0.00015948 | 0.00015948 | 0.00015948 |   0.0 |  0.01
-Modify  | 0.028285   | 0.028285   | 0.028285   |   0.0 |  1.10
-Other   |            | 0.001589   |            |       |  0.06
+Pair    | 2.1584     | 2.1584     | 2.1584     |   0.0 | 81.90
+Bond    | 0.0067598  | 0.0067598  | 0.0067598  |   0.0 |  0.26
+Kspace  | 0.13936    | 0.13936    | 0.13936    |   0.0 |  5.29
+Neigh   | 0.27654    | 0.27654    | 0.27654    |   0.0 | 10.49
+Comm    | 0.01566    | 0.01566    | 0.01566    |   0.0 |  0.59
+Output  | 0.00020104 | 0.00020104 | 0.00020104 |   0.0 |  0.01
+Modify  | 0.035639   | 0.035639   | 0.035639   |   0.0 |  1.35
+Other   |            | 0.002741   |            |       |  0.10
 
 Nlocal:           2004 ave        2004 max        2004 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

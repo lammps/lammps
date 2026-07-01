@@ -46,8 +46,8 @@ Finding 1-2 1-3 1-4 neighbors ...
      9 = max # of 1-3 neighbors
     19 = max # of 1-4 neighbors
     21 = max # of special neighbors
-  special bonds CPU = 0.048 seconds
-  read_data CPU = 0.585 seconds
+  special bonds CPU = 0.046 seconds
+  read_data CPU = 0.586 seconds
 pair_style      lj/charmm/coul/long 10.0 12.0
 pair_modify     mix arithmetic
 bond_style      harmonic
@@ -822,7 +822,7 @@ Finding SHAKE clusters ...
        0 = # of size 3 clusters
        0 = # of size 4 clusters
    61958 = # of frozen angles
-  find clusters CPU = 0.041 seconds
+  find clusters CPU = 0.033 seconds
 fix             cstr protein ilves 1.0e-4 100 50 b C-CP1 C-CT1 C-CT2 C-N C-NC2 C-NH1 C-O                     CA-CA CA-CAI CA-CT2 CA-CY CA-HP CA-NY CA-OH1 CAI-CPT CAI-HP CC-CT1 CC-CT2                     CC-CT2A CC-NH2 CC-O CC-OC CP1-CP2 CP1-HB1 CP1-N CP2-CP2 CP2-CP3 CP2-HA2                     CP3-HA2 CP3-N CPH1-CPH1 CPH1-CT2 CPH1-HR3 CPH1-NR1 CPH1-NR2 CPH2-HR1                     CPH2-NR1 CPH2-NR2 CPT-CPT CPT-CY CPT-NY CT1-CT1 CT1-CT2 CT1-CT2A CT1-CT3                     CT1-HA1 CT1-HB1 CT1-NH1 CT1-NH3 CT1-OH1 CT2-CT2 CT2-CT2A CT2-CT3 CT2-CY                     CT2-HA2 CT2-HB2 CT2-NC2 CT2-NH1 CT2-NH3 CT2-OH1 CT2-S CT2A-HA2 CT3-HA3                     CT3-S H-NH1 H-NH2 H-NR1 H-NY H-OH1 HC-NC2 HC-NH3 HS-S HT-OT
 
 
@@ -1046,22 +1046,22 @@ Bond:  HC-NC2      1         6.92648e-07       55
 Bond:  HC-NH3      1.04      3.46563e-07       36
 Bond:  HS-S        1.325     1.75991e-07       12
         50   255.17044      59311.071      1908586.9     -2622084.8      6446.164      -647740.7       96602.871     -551137.82     -1478.3289    
-Loop time of 66.5202 on 1 procs for 50 steps with 190531 atoms
+Loop time of 66.7428 on 1 procs for 50 steps with 190531 atoms
 
-Performance: 0.065 ns/day, 369.557 hours/ns, 0.752 timesteps/s, 143.213 katom-step/s
-99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.065 ns/day, 370.793 hours/ns, 0.749 timesteps/s, 142.735 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 56.234     | 56.234     | 56.234     |   0.0 | 84.54
-Bond    | 0.03807    | 0.03807    | 0.03807    |   0.0 |  0.06
-Kspace  | 2.4079     | 2.4079     | 2.4079     |   0.0 |  3.62
-Neigh   | 6.729      | 6.729      | 6.729      |   0.0 | 10.12
-Comm    | 0.055846   | 0.055846   | 0.055846   |   0.0 |  0.08
-Output  | 0.0025358  | 0.0025358  | 0.0025358  |   0.0 |  0.00
-Modify  | 1.0214     | 1.0214     | 1.0214     |   0.0 |  1.54
-Other   |            | 0.03172    |            |       |  0.05
+Pair    | 56.346     | 56.346     | 56.346     |   0.0 | 84.42
+Bond    | 0.042819   | 0.042819   | 0.042819   |   0.0 |  0.06
+Kspace  | 2.4099     | 2.4099     | 2.4099     |   0.0 |  3.61
+Neigh   | 6.8336     | 6.8336     | 6.8336     |   0.0 | 10.24
+Comm    | 0.058203   | 0.058203   | 0.058203   |   0.0 |  0.09
+Output  | 0.0024821  | 0.0024821  | 0.0024821  |   0.0 |  0.00
+Modify  | 1.0181     | 1.0181     | 1.0181     |   0.0 |  1.53
+Other   |            | 0.03201    |            |       |  0.05
 
 Nlocal:         190531 ave      190531 max      190531 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

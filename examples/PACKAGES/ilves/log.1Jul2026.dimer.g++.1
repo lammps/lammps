@@ -27,7 +27,7 @@ Read molecule template dimer:
 create_atoms    0 random 400 54321 box mol dimer 98765 overlap 0.9 maxtry 100
 Created 800 atoms
   using lattice units in orthogonal box = (0 0 0) to (18 18 18)
-  create_atoms CPU = 0.008 seconds
+  create_atoms CPU = 0.007 seconds
 
 mass            1 1.0
 pair_style      lj/cut 2.5
@@ -105,21 +105,21 @@ Bond:   1   1         1.12739e-06      400
 ILVES stats (type/ave/delta/count) on step 2000 (up to 1 Newton iterations)
 Bond:   1   1         6.04501e-07      400
       2000   1.3857866     -0.92971304     0.79992187     0.043510177  
-Loop time of 0.187494 on 1 procs for 2000 steps with 800 atoms
+Loop time of 0.186463 on 1 procs for 2000 steps with 800 atoms
 
-Performance: 4608139.596 tau/day, 10666.990 timesteps/s, 8.534 Matom-step/s
-99.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 4633616.262 tau/day, 10725.964 timesteps/s, 8.581 Matom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.049214   | 0.049214   | 0.049214   |   0.0 | 26.25
-Bond    | 8.193e-05  | 8.193e-05  | 8.193e-05  |   0.0 |  0.04
-Neigh   | 0.079671   | 0.079671   | 0.079671   |   0.0 | 42.49
-Comm    | 0.0084092  | 0.0084092  | 0.0084092  |   0.0 |  4.49
-Output  | 9.0663e-05 | 9.0663e-05 | 9.0663e-05 |   0.0 |  0.05
-Modify  | 0.046735   | 0.046735   | 0.046735   |   0.0 | 24.93
-Other   |            | 0.003292   |            |       |  1.76
+Pair    | 0.048165   | 0.048165   | 0.048165   |   0.0 | 25.83
+Bond    | 6.7678e-05 | 6.7678e-05 | 6.7678e-05 |   0.0 |  0.04
+Neigh   | 0.079063   | 0.079063   | 0.079063   |   0.0 | 42.40
+Comm    | 0.0082839  | 0.0082839  | 0.0082839  |   0.0 |  4.44
+Output  | 7.9041e-05 | 7.9041e-05 | 7.9041e-05 |   0.0 |  0.04
+Modify  | 0.047605   | 0.047605   | 0.047605   |   0.0 | 25.53
+Other   |            | 0.0032     |            |       |  1.72
 
 Nlocal:            800 ave         800 max         800 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

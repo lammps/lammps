@@ -17,7 +17,7 @@ kspace_style    pppm 1e-4
 read_data       data.rhodo
 Reading data file ...
   orthogonal box = (-27.5 -38.5 -36.3646) to (27.5 38.5 36.3615)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading atoms ...
   32000 atoms
   reading velocities ...
@@ -31,7 +31,7 @@ Reading data file ...
   scanning impropers ...
   2 = max impropers/atom
   orthogonal box = (-27.5 -38.5 -36.3646) to (27.5 38.5 36.3615)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading bonds ...
   27723 bonds
   reading angles ...
@@ -47,8 +47,8 @@ Finding 1-2 1-3 1-4 neighbors ...
     12 = max # of 1-3 neighbors
     24 = max # of 1-4 neighbors
     26 = max # of special neighbors
-  special bonds CPU = 0.010 seconds
-  read_data CPU = 0.239 seconds
+  special bonds CPU = 0.005 seconds
+  read_data CPU = 0.225 seconds
 
 fix             1 all shake 0.0001 100 50 m 1.0 a 232
 Finding SHAKE clusters ...
@@ -56,7 +56,7 @@ Finding SHAKE clusters ...
     3633 = # of size 3 clusters
      747 = # of size 4 clusters
     4233 = # of frozen angles
-  find clusters CPU = 0.007 seconds
+  find clusters CPU = 0.002 seconds
 fix             2 all npt temp 300.0 300.0 100.0                 z 0.0 0.0 1000.0 mtk no pchain 0 tchain 1
 
 special_bonds   charmm
@@ -74,7 +74,7 @@ PPPM initialization ...
   estimated absolute RMS force accuracy = 0.035547797
   estimated relative force accuracy = 0.00010705113
   using double precision FFTW3
-  3d grid and FFT values/proc = 41070 25600
+  3d grid and FFT values/proc = 13230 6400
 Generated 2278 of 2278 mixed pair_coeff terms from arithmetic mixing rule
 Neighbor list info ...
   update: every = 1 steps, delay = 5 steps, check = yes
@@ -124,7 +124,7 @@ Bond:   109   1.01301   0                  1
 Bond:   110   1.32501   0.000100997        6
 Bond:   112   0.957197  0.000272687     8466
 Angle:  232   104.52    0.0237494       4233
-Per MPI rank memory allocation (min/avg/max) = 140 | 140 | 140 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 49.25 | 49.35 | 49.64 Mbytes
 ------------ Step              0 ----- CPU =            0 (sec) -------------
 TotEng   =    -25356.2057 KinEng   =     21444.8313 Temp     =       299.0397 
 PotEng   =    -46801.0370 E_bond   =      2537.9940 E_angle  =     10921.3742 
@@ -167,7 +167,7 @@ Bond:   109   1.013     0                  1
 Bond:   110   1.325     6.12242e-06        6
 Bond:   112   0.957203  9.8039e-06      8466
 Angle:  232   104.52    0.00111657      4233
------------- Step             50 ----- CPU =     7.359064 (sec) -------------
+------------ Step             50 ----- CPU =     1.961338 (sec) -------------
 TotEng   =    -25330.0307 KinEng   =     21501.0009 Temp     =       299.8229 
 PotEng   =    -46831.0316 E_bond   =      2471.7035 E_angle  =     10836.5102 
 E_dihed  =      5239.6319 E_impro  =       227.1218 E_vdwl   =     -1993.2873 
@@ -209,9 +209,9 @@ Bond:   109   1.013     0                  1
 Bond:   110   1.325     8.61031e-06        6
 Bond:   112   0.957204  1.11849e-05     8466
 Angle:  232   104.52    0.00124187      4233
------------- Step            100 ----- CPU =     15.02459 (sec) -------------
+------------ Step            100 ----- CPU =     4.028997 (sec) -------------
 TotEng   =    -25290.7364 KinEng   =     21591.9089 Temp     =       301.0906 
-PotEng   =    -46882.6454 E_bond   =      2567.9807 E_angle  =     10781.9571 
+PotEng   =    -46882.6453 E_bond   =      2567.9807 E_angle  =     10781.9571 
 E_dihed  =      5198.7492 E_impro  =       216.7864 E_vdwl   =     -1902.6616 
 E_coul   =    206659.5159 E_long   =   -270404.9730 Press    =         6.7352 
 Volume   =    308134.2286
@@ -251,11 +251,11 @@ Bond:   109   1.013     0                  1
 Bond:   110   1.32502   3.13232e-05        6
 Bond:   112   0.957213  3.91465e-05     8466
 Angle:  232   104.52    0.00450257      4233
------------- Step            150 ----- CPU =     22.55256 (sec) -------------
-TotEng   =    -25258.0797 KinEng   =     21529.6599 Temp     =       300.2226 
-PotEng   =    -46787.7395 E_bond   =      2556.3466 E_angle  =     10852.7810 
-E_dihed  =      5265.2305 E_impro  =       203.0691 E_vdwl   =     -2066.1358 
-E_coul   =    206797.4448 E_long   =   -270396.4758 Press    =       251.4724 
+------------ Step            150 ----- CPU =     6.078899 (sec) -------------
+TotEng   =    -25258.0773 KinEng   =     21529.6599 Temp     =       300.2226 
+PotEng   =    -46787.7372 E_bond   =      2556.3466 E_angle  =     10852.7811 
+E_dihed  =      5265.2305 E_impro  =       203.0691 E_vdwl   =     -2066.1359 
+E_coul   =    206797.4471 E_long   =   -270396.4758 Press    =       251.4752 
 Volume   =    308515.2404
 SHAKE stats (type/ave/delta/count) on step 200
 Bond:    12   1.08001   2.47549e-05      252
@@ -286,46 +286,46 @@ Bond:   102   0.997014  2.32676e-05      327
 Bond:   103   1.00001   2.27978e-05       54
 Bond:   104   1.00001   2.08827e-05       12
 Bond:   105   0.976011  1.72943e-05        5
-Bond:   106   0.960008  2.19668e-05       60
+Bond:   106   0.960008  2.19669e-05       60
 Bond:   107   1.00001   2.19345e-05       35
 Bond:   108   1.04001   2.44497e-05       33
 Bond:   109   1.013     0                  1
 Bond:   110   1.32501   1.35404e-05        6
 Bond:   112   0.957208  2.46833e-05     8466
 Angle:  232   104.52    0.00291607      4233
------------- Step            200 ----- CPU =     30.30041 (sec) -------------
-TotEng   =    -25078.8459 KinEng   =     21571.3619 Temp     =       300.8041 
-PotEng   =    -46650.2078 E_bond   =      2488.6956 E_angle  =     11073.4385 
-E_dihed  =      5221.7536 E_impro  =       232.8552 E_vdwl   =     -2167.7425 
-E_coul   =    206902.9156 E_long   =   -270402.1240 Press    =        20.6708 
-Volume   =    308997.5613
-Loop time of 30.3004 on 1 procs for 200 steps with 32000 atoms
+------------ Step            200 ----- CPU =     8.253375 (sec) -------------
+TotEng   =    -25078.8510 KinEng   =     21571.3620 Temp     =       300.8041 
+PotEng   =    -46650.2130 E_bond   =      2488.6957 E_angle  =     11073.4386 
+E_dihed  =      5221.7536 E_impro  =       232.8552 E_vdwl   =     -2167.7422 
+E_coul   =    206902.9100 E_long   =   -270402.1239 Press    =        20.6655 
+Volume   =    308997.5614
+Loop time of 8.2534 on 4 procs for 200 steps with 32000 atoms
 
-Performance: 1.141 ns/day, 21.042 hours/ns, 6.601 timesteps/s, 211.218 katom-step/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 4.187 ns/day, 5.732 hours/ns, 24.232 timesteps/s, 775.438 katom-step/s
+99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 23.515     | 23.515     | 23.515     |   0.0 | 77.61
-Bond    | 0.76913    | 0.76913    | 0.76913    |   0.0 |  2.54
-Kspace  | 1.3006     | 1.3006     | 1.3006     |   0.0 |  4.29
-Neigh   | 4.0449     | 4.0449     | 4.0449     |   0.0 | 13.35
-Comm    | 0.048622   | 0.048622   | 0.048622   |   0.0 |  0.16
-Output  | 0.00040728 | 0.00040728 | 0.00040728 |   0.0 |  0.00
-Modify  | 0.60765    | 0.60765    | 0.60765    |   0.0 |  2.01
-Other   |            | 0.01444    |            |       |  0.05
+Pair    | 6.0225     | 6.1138     | 6.3262     |   5.0 | 74.08
+Bond    | 0.18617    | 0.19453    | 0.20888    |   2.0 |  2.36
+Kspace  | 0.37543    | 0.5881     | 0.67237    |  16.1 |  7.13
+Neigh   | 1.0753     | 1.0754     | 1.0755     |   0.0 | 13.03
+Comm    | 0.062278   | 0.062704   | 0.063168   |   0.1 |  0.76
+Output  | 0.00021106 | 0.00021382 | 0.00021929 |   0.0 |  0.00
+Modify  | 0.20516    | 0.20584    | 0.2066     |   0.1 |  2.49
+Other   |            | 0.01281    |            |       |  0.16
 
-Nlocal:          32000 ave       32000 max       32000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:          47775 ave       47775 max       47775 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    1.19959e+07 ave 1.19959e+07 max 1.19959e+07 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           8000 ave        8117 max        7943 min
+Histogram: 1 2 0 0 0 0 0 0 0 1
+Nghost:        22667.5 ave       22702 max       22634 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+Neighs:    2.99899e+06 ave 3.07019e+06 max 2.96583e+06 min
+Histogram: 2 1 0 0 0 0 0 0 0 1
 
-Total # of neighbors = 11995943
-Ave neighs/atom = 374.87322
+Total # of neighbors = 11995942
+Ave neighs/atom = 374.87319
 Ave special neighs/atom = 7.431875
 Neighbor list builds = 22
 Dangerous builds = 0
-Total wall time: 0:00:30
+Total wall time: 0:00:08

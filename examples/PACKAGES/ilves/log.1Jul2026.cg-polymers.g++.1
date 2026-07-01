@@ -37,7 +37,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      4 = max # of 1-4 neighbors
      6 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.007 seconds
+  read_data CPU = 0.009 seconds
 
 pair_coeff 1 1 1.0 1.0
 pair_coeff 2 2 1.2 1.5
@@ -94,9 +94,9 @@ Per MPI rank memory allocation (min/avg/max) = 9.264 | 9.264 | 9.264 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
          0   2.3724673      4.898926       571.36771      2.5379575      573.90567    
        100   2.3724673      4.8159763     -5.6487418      2.5379575     -3.1107844    
-Loop time of 0.732858 on 1 procs for 100 steps with 896 atoms
+Loop time of 0.707921 on 1 procs for 100 steps with 896 atoms
 
-99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = max iterations
@@ -110,13 +110,13 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.69701    | 0.69701    | 0.69701    |   0.0 | 95.11
-Bond    | 0.012166   | 0.012166   | 0.012166   |   0.0 |  1.66
+Pair    | 0.67364    | 0.67364    | 0.67364    |   0.0 | 95.16
+Bond    | 0.011747   | 0.011747   | 0.011747   |   0.0 |  1.66
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0067671  | 0.0067671  | 0.0067671  |   0.0 |  0.92
-Output  | 1.8305e-05 | 1.8305e-05 | 1.8305e-05 |   0.0 |  0.00
-Modify  | 0.01226    | 0.01226    | 0.01226    |   0.0 |  1.67
-Other   |            | 0.00464    |            |       |  0.63
+Comm    | 0.0065757  | 0.0065757  | 0.0065757  |   0.0 |  0.93
+Output  | 1.4247e-05 | 1.4247e-05 | 1.4247e-05 |   0.0 |  0.00
+Modify  | 0.011523   | 0.011523   | 0.011523   |   0.0 |  1.63
+Other   |            | 0.004418   |            |       |  0.62
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -162,21 +162,21 @@ ILVES stats (type/ave/delta/count) on step 1000 (up to 1 Newton iterations)
 Bond:   1   1         2.60847e-06      448
 Bond:   2   1.2       4.09428e-07      320
       1000   1.492304       4.0133993     -5.9426061      1.5963989     -4.3462072    
-Loop time of 0.92531 on 1 procs for 1000 steps with 896 atoms
+Loop time of 0.9219 on 1 procs for 1000 steps with 896 atoms
 
-Performance: 466870.440 tau/day, 1080.719 timesteps/s, 968.324 katom-step/s
-99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 468597.419 tau/day, 1084.716 timesteps/s, 971.906 katom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.66236    | 0.66236    | 0.66236    |   0.0 | 71.58
-Bond    | 0.014182   | 0.014182   | 0.014182   |   0.0 |  1.53
-Neigh   | 0.16764    | 0.16764    | 0.16764    |   0.0 | 18.12
-Comm    | 0.011103   | 0.011103   | 0.011103   |   0.0 |  1.20
-Output  | 0.00010174 | 0.00010174 | 0.00010174 |   0.0 |  0.01
-Modify  | 0.067439   | 0.067439   | 0.067439   |   0.0 |  7.29
-Other   |            | 0.002487   |            |       |  0.27
+Pair    | 0.65768    | 0.65768    | 0.65768    |   0.0 | 71.34
+Bond    | 0.014175   | 0.014175   | 0.014175   |   0.0 |  1.54
+Neigh   | 0.16968    | 0.16968    | 0.16968    |   0.0 | 18.41
+Comm    | 0.011204   | 0.011204   | 0.011204   |   0.0 |  1.22
+Output  | 0.00010473 | 0.00010473 | 0.00010473 |   0.0 |  0.01
+Modify  | 0.066603   | 0.066603   | 0.066603   |   0.0 |  7.22
+Other   |            | 0.002448   |            |       |  0.27
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

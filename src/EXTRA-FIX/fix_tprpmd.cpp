@@ -56,7 +56,7 @@ FixTPRPMD::FixTPRPMD(LAMMPS *lmp, int narg, char **arg) :
     tagrecv(nullptr), bufsend(nullptr), bufrecv(nullptr), bufbeads(nullptr), bufsorted(nullptr),
     bufsortedall(nullptr), tagsendall(nullptr),
     tagrecvall(nullptr), bufsendall(nullptr), bufrecvall(nullptr), counts(nullptr),
-    displacements(nullptr), lam(nullptr), M_x2xp(nullptr), M_xp2x(nullptr), modeindex(nullptr), tau_k(nullptr), _omega_k(nullptr), Lan_s(nullptr),
+    displacements(nullptr), rootworld(MPI_COMM_NULL), lam(nullptr), M_x2xp(nullptr), M_xp2x(nullptr), modeindex(nullptr), tau_k(nullptr), _omega_k(nullptr), Lan_s(nullptr),
     Lan_c(nullptr), xc(nullptr), xcall(nullptr),
     x_unwrap(nullptr), id_pe(nullptr), id_press(nullptr), c_pe(nullptr), c_press(nullptr),
     eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr), eta_mass(nullptr), Ne_dot(nullptr),
@@ -307,6 +307,7 @@ FixTPRPMD::~FixTPRPMD()
   delete[] plansend;
   delete[] planrecv;
   delete[] modeindex;
+  memory->sfree(lam);
   memory->destroy(xcall);
   if (cmode == SINGLE_PROC) {
     memory->destroy(bufsorted);
@@ -346,6 +347,7 @@ FixTPRPMD::~FixTPRPMD()
       delete [] Ne_mass;
     }
   }
+  if (rootworld != MPI_COMM_NULL) MPI_Comm_free(&rootworld);
   delete[] dedn_name;
 }
 
@@ -1054,7 +1056,6 @@ void FixTPRPMD::nhc_mu_integrate()
     }
 
     double eta_dot_k = eta_dot[0], eta_dot_ave = 0;
-    MPI_Barrier(universe->uworld);
     MPI_Allreduce(&eta_dot_k, &eta_dot_ave, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
 
     if (method == TPRPMD && np != 1) {
@@ -1062,8 +1063,6 @@ void FixTPRPMD::nhc_mu_integrate()
     } else {
       eta_dot_ave *= inverse_np;
     }
-    MPI_Barrier(universe->uworld);
-    MPI_Bcast(&eta_dot_ave, 1, MPI_DOUBLE, 0, universe->uworld);
 
     *Ne_dot *= exp(-ncfac * dthalf * eta_dot_ave);
 

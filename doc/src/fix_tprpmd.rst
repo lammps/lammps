@@ -3,7 +3,7 @@
 fix tprpmd command
 ==================
 
-.. versionadded:: 15Jun2026
+.. versionadded:: TBD
 
 Syntax
 """"""

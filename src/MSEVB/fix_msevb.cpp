@@ -1620,27 +1620,55 @@ void FixMSEVB::write_msevb_json(bigint timestep, int max_state, double max_amp)
   rec["nsites_parallel"] = nsites_parallel;
   rec["nsites_serial"] = nsites_serial;
 
+  // Helper: build the transfer chain (one link per depth) of site `si`.
+  auto build_chain = [&](int si) {
+    json chain = json::array();
+    for (int d = 0; d < sites[si].chain_len; d++) {
+      json link;
+      link["X"] = chain_X_flat[si * max_shells + d];
+      link["H"] = chain_H_flat[si * max_shells + d];
+      link["Y"] = chain_Y_flat[si * max_shells + d];
+      link["reaction"] = chain_rxn_flat[si * max_shells + d];
+      chain.push_back(link);
+    }
+    return chain;
+  };
+
   // Reactive states detected this step (one entry per site).
   json states = json::array();
   for (int k = 0; k < nsites; k++) {
     const ReactiveSite &s = sites[k];
+    const bool is_product = s.n_components > 0;
     json st;
     st["index"] = k + 1;
     st["tag_X"] = s.tag_X;    // 0 means no bond-breaking partner
     st["tag_H"] = s.tag_H;
     st["tag_Y"] = s.tag_Y;
     st["parent_state"] = s.parent_state;
-    st["kind"] = (k < nsites_parallel) ? "parallel" : "serial";
-    json chain = json::array();
-    for (int d = 0; d < s.chain_len; d++) {
-      json link;
-      link["X"] = chain_X_flat[k * max_shells + d];
-      link["H"] = chain_H_flat[k * max_shells + d];
-      link["Y"] = chain_Y_flat[k * max_shells + d];
-      link["reaction"] = chain_rxn_flat[k * max_shells + d];
-      chain.push_back(link);
+    // Product (combination) states apply several disjoint transfer chains at
+    // once; mark them so they are distinguishable from single-transfer states,
+    // and expose their constituent component states (whose own entries carry
+    // the full per-chain data).  For a single-transfer state, "chain" holds its
+    // own transfer chain as before.
+    if (is_product) {
+      st["kind"] = "product";
+      st["n_components"] = s.n_components;
+      json comps = json::array();
+      json chain = json::array();    // concatenation of all component chains
+      for (int ci = 0; ci < s.n_components; ci++) {
+        const int comp = s.components[ci];
+        json cj;
+        cj["state"] = comp + 1;
+        cj["chain"] = build_chain(comp);
+        comps.push_back(cj);
+        for (const auto &link : cj["chain"]) chain.push_back(link);
+      }
+      st["components"] = comps;
+      st["chain"] = chain;
+    } else {
+      st["kind"] = (k < nsites_parallel) ? "parallel" : "serial";
+      st["chain"] = build_chain(k);
     }
-    st["chain"] = chain;
     states.push_back(st);
   }
   rec["states"] = states;

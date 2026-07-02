@@ -633,21 +633,27 @@ void FixMSEVB::detect_reactive_sites()
       for (int k = 0; k < SORT_STRIDE; k++) tmpl_all[(j + 1) * TSTRIDE + k] = tmp_e[k];
     }
 
-    // ---- Pick sites: unique Y acceptors, sorted by distance ---------
+    // ---- Pick sites: unique (donor H, acceptor Y) transfers, sorted by
+    // distance.  A state is defined by which proton moves to which acceptor, so
+    // the identity of a transfer is the (tag_H, tag_Y) pair -- NOT tag_Y alone.
+    // Deduping on tag_Y only would collapse distinct states in which several
+    // donors hand a proton to the same acceptor (e.g. two waters donating to
+    // one hydroxide, or a bicarbonate proton and a water proton both targeting
+    // the same OH), keeping just the closest and dropping the rest.
     grow_sites(MAX(total_tmpl, 1));
     nsites = 0;
     for (int i = 0; i < total_tmpl; i++) {
       int b = i * TSTRIDE;
       tagint tY = static_cast<tagint>(tmpl_all[b + 3]);
+      tagint tH = static_cast<tagint>(tmpl_all[b + 1]);
       int dup = 0;
       for (int k = 0; k < nsites; k++)
-        if (sites[k].tag_Y == tY) {
+        if (sites[k].tag_Y == tY && sites[k].tag_H == tH) {
           dup = 1;
           break;
         }
       if (dup) continue;
 
-      tagint tH = static_cast<tagint>(tmpl_all[b + 1]);
       tagint tX = static_cast<tagint>(tmpl_all[b + 2]);
       double rsq = tmpl_all[b + 0];
       int ri = static_cast<int>(tmpl_all[b + 4]);
@@ -682,16 +688,17 @@ void FixMSEVB::detect_reactive_sites()
     if (max_shells > 1 && nsites > 1) {
       for (size_t ri = 0; ri < rxndefs.size(); ri++) {
         if (rxndefs[ri].shells <= 1) continue;
-        int n_distinct_donors = 0;
-        static const int MAX_DONORS = 64;
-        tagint donor_X[MAX_DONORS];
-        const tagint *donor_glove[MAX_DONORS];
+        // Count distinct donor molecules among this reaction's shell-1 sites.
+        // Grown without bound so the count is exact regardless of how many
+        // donors are present.
+        std::vector<tagint> donor_X;
+        std::vector<const tagint *> donor_glove;
         for (int s = 0; s < nsites; s++) {
           if (sites[s].rxn_idx != (int) ri || sites[s].shell != 1) continue;
           tagint tX = sites[s].tag_X;
           const tagint *sg = glove_flat + s * GN;
           int same_mol = 0;
-          for (int d = 0; d < n_distinct_donors && d < MAX_DONORS && !same_mol; d++) {
+          for (size_t d = 0; d < donor_X.size() && !same_mol; d++) {
             if (donor_X[d] == tX) {
               same_mol = 1;
               break;
@@ -704,13 +711,11 @@ void FixMSEVB::detect_reactive_sites()
               if (sg[gi] == donor_X[d]) same_mol = 1;
           }
           if (!same_mol) {
-            if (n_distinct_donors < MAX_DONORS) {
-              donor_X[n_distinct_donors] = tX;
-              donor_glove[n_distinct_donors] = sg;
-            }
-            n_distinct_donors++;
+            donor_X.push_back(tX);
+            donor_glove.push_back(sg);
           }
         }
+        int n_distinct_donors = (int) donor_X.size();
         if (n_distinct_donors > 1) {
           if (!enumerate_product_states) {
             error->one(FLERR,
@@ -901,10 +906,13 @@ void FixMSEVB::detect_reactive_sites()
               double rsq = dx * dx + dy * dy + dz * dz;
               if (rsq >= crxn.cutoff_sq) continue;
 
-              // Skip duplicate Y within this shell.
+              // Skip duplicate (donor H, acceptor Y) transfers within this
+              // shell.  As in the shell-1 selection, the transfer identity is
+              // the (H, Y) pair, so distinct donors to the same acceptor are
+              // kept as separate states.
               int dup = 0;
               for (int k = prev_nsites; k < nsites; k++)
-                if (sites[k].tag_Y == j_tag) {
+                if (sites[k].tag_Y == j_tag && sites[k].tag_H == bp_tag) {
                   dup = 1;
                   break;
                 }
@@ -1058,9 +1066,14 @@ void FixMSEVB::detect_reactive_sites()
         for (int i = 0; i < total_new; i++) {
           int b = i * SFIELD;
           tagint tY = (tagint) recvbuf[b + 3];
+          tagint tH = (tagint) recvbuf[b + 1];
+          // Dedup on the (donor H, acceptor Y) transfer identity, matching the
+          // shell-1 selection: distinct donors to the same acceptor are distinct
+          // states.  (Keying on tag_Y alone would re-collapse them here in
+          // multi-rank runs, undoing the shell-1/within-rank dedup fix.)
           int dup = 0;
           for (int k = prev_nsites; k < nsites; k++)
-            if (sites[k].tag_Y == tY) {
+            if (sites[k].tag_Y == tY && sites[k].tag_H == tH) {
               dup = 1;
               break;
             }
@@ -1116,33 +1129,33 @@ void FixMSEVB::detect_reactive_sites()
     // Compatibility: the atom sets of the two chains must be fully
     // disjoint — no shared H, X, or Y tag across any depth of either chain.
     if (enumerate_product_states) {
+      // Two chains may be combined only if they modify DISJOINT sets of atoms.
+      // The atoms a chain modifies are the non-edge glove atoms at every depth
+      // (types, charges, bonds and angles are rewritten there; edge atoms are
+      // matched but left untouched).  Comparing only tag_H/X/Y would miss shared
+      // spectator atoms that both reactions rewrite, which would let a product
+      // state be built whose two transfers clobber the same atom and corrupt its
+      // topology and diagonal energy.
+      auto modified_tags = [&](int site) {
+        std::vector<tagint> tags;
+        const int clen = sites[site].chain_len;
+        for (int d = 0; d < clen; d++) {
+          const ReactionDef &rx = rxndefs[chain_rxn_flat[site * max_shells + d]];
+          const tagint *g = chain_glove_flat + (site * max_shells + d) * glove_nmax;
+          for (int pi = 0; pi < rx.glove_n; pi++) {
+            if (rx.is_edge[pi]) continue;
+            if (g[pi] != 0) tags.push_back(g[pi]);
+          }
+        }
+        return tags;
+      };
       const int n_tip = nsites;
       for (int a = 0; a < n_tip; a++) {
         if (sites[a].n_components != 0) continue;
-        const int clen_a = sites[a].chain_len;
-        std::vector<tagint> tags_a;
-        tags_a.reserve(clen_a * 3);
-        for (int d = 0; d < clen_a; d++) {
-          tagint h = chain_H_flat[a * max_shells + d];
-          tagint x = chain_X_flat[a * max_shells + d];
-          tagint y = chain_Y_flat[a * max_shells + d];
-          if (h) tags_a.push_back(h);
-          if (x) tags_a.push_back(x);
-          if (y) tags_a.push_back(y);
-        }
+        std::vector<tagint> tags_a = modified_tags(a);
         for (int b = a + 1; b < n_tip; b++) {
           if (sites[b].n_components != 0) continue;
-          const int clen_b = sites[b].chain_len;
-          std::vector<tagint> tags_b;
-          tags_b.reserve(clen_b * 3);
-          for (int d = 0; d < clen_b; d++) {
-            tagint h = chain_H_flat[b * max_shells + d];
-            tagint x = chain_X_flat[b * max_shells + d];
-            tagint y = chain_Y_flat[b * max_shells + d];
-            if (h) tags_b.push_back(h);
-            if (x) tags_b.push_back(x);
-            if (y) tags_b.push_back(y);
-          }
+          std::vector<tagint> tags_b = modified_tags(b);
           bool overlap = false;
           for (tagint ta : tags_a) {
             for (tagint tb : tags_b) {

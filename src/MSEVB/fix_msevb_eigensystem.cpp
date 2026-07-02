@@ -305,7 +305,12 @@ void FixMSEVB::compute_excess_states()
         for (int d = 0; d < sites[b_sk].chain_len; d++)
           offset += rxndefs[chain_rxn_flat[b_sk * max_shells + d]].energy_offset;
       }
-      hamiltonian[b_state * ns + b_state] = b_eng + offset;
+      // Serial-state diagonals are written here, overwriting build_hamiltonian's
+      // value, so they must include the same reference per-species offset that
+      // build_hamiltonian applies to every diagonal (otherwise serial states
+      // are shifted relative to parallel ones and results depend on partition
+      // count).
+      hamiltonian[b_state * ns + b_state] = b_eng + reference_offset + offset;
 
       // Store excess forces in compact buffer (replaces dH_all diagonal)
       sync_forces_to_host();
@@ -659,7 +664,12 @@ void FixMSEVB::compute_excess_energies()
         for (int d = 0; d < sites[b_sk].chain_len; d++)
           offset += rxndefs[chain_rxn_flat[b_sk * max_shells + d]].energy_offset;
       }
-      hamiltonian[b_state * ns + b_state] = b_eng + offset;
+      // Serial-state diagonals are written here, overwriting build_hamiltonian's
+      // value, so they must include the same reference per-species offset that
+      // build_hamiltonian applies to every diagonal (otherwise serial states
+      // are shifted relative to parallel ones and results depend on partition
+      // count).
+      hamiltonian[b_state * ns + b_state] = b_eng + reference_offset + offset;
     }
 
     // 8. Compute coupling (scalar only — no dH needed)

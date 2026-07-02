@@ -1129,44 +1129,17 @@ void FixMSEVB::detect_reactive_sites()
     // Compatibility: the atom sets of the two chains must be fully
     // disjoint — no shared H, X, or Y tag across any depth of either chain.
     if (enumerate_product_states) {
-      // Two chains may be combined only if they modify DISJOINT sets of atoms.
-      // The atoms a chain modifies are the non-edge glove atoms at every depth
-      // (types, charges, bonds and angles are rewritten there; edge atoms are
-      // matched but left untouched).  Comparing only tag_H/X/Y would miss shared
-      // spectator atoms that both reactions rewrite, which would let a product
-      // state be built whose two transfers clobber the same atom and corrupt its
-      // topology and diagonal energy.
-      auto modified_tags = [&](int site) {
-        std::vector<tagint> tags;
-        const int clen = sites[site].chain_len;
-        for (int d = 0; d < clen; d++) {
-          const ReactionDef &rx = rxndefs[chain_rxn_flat[site * max_shells + d]];
-          const tagint *g = chain_glove_flat + (site * max_shells + d) * glove_nmax;
-          for (int pi = 0; pi < rx.glove_n; pi++) {
-            if (rx.is_edge[pi]) continue;
-            if (g[pi] != 0) tags.push_back(g[pi]);
-          }
-        }
-        return tags;
-      };
+      // Two chains may be combined only if they modify DISJOINT atom sets (see
+      // chain_atom_set()/chains_disjoint()): comparing only tag_H/X/Y would miss
+      // shared spectator atoms that both reactions rewrite, which would let a
+      // product state be built whose two transfers clobber the same atom and
+      // corrupt its topology and diagonal energy.
       const int n_tip = nsites;
       for (int a = 0; a < n_tip; a++) {
         if (sites[a].n_components != 0) continue;
-        std::vector<tagint> tags_a = modified_tags(a);
         for (int b = a + 1; b < n_tip; b++) {
           if (sites[b].n_components != 0) continue;
-          std::vector<tagint> tags_b = modified_tags(b);
-          bool overlap = false;
-          for (tagint ta : tags_a) {
-            for (tagint tb : tags_b) {
-              if (ta == tb) {
-                overlap = true;
-                break;
-              }
-            }
-            if (overlap) break;
-          }
-          if (overlap) continue;
+          if (!chains_disjoint(a, b)) continue;
           grow_sites(nsites + 1);
           tagint aH = chain_H_flat[a * max_shells + 0];
           tagint aX = chain_X_flat[a * max_shells + 0];
@@ -1338,6 +1311,43 @@ broadcast:
    that reference_offset is advanced incrementally on each commit, so the census
    is never re-run mid-trajectory (and thus cannot fluctuate with the cutoff).
 ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Atom-set of a reactive site's transfer chain: the real atom tags the chain
+   modifies, i.e. the non-edge glove atoms at every chain depth.  Edge atoms are
+   matched by the template but not rewritten, so they are excluded.  This is the
+   Chain::atom_set() primitive used for product-state (and future multi-site)
+   compatibility decisions.
+---------------------------------------------------------------------- */
+
+std::vector<tagint> FixMSEVB::chain_atom_set(int site) const
+{
+  std::vector<tagint> tags;
+  const int clen = sites[site].chain_len;
+  for (int d = 0; d < clen; d++) {
+    const ReactionDef &rx = rxndefs[chain_rxn_flat[site * max_shells + d]];
+    const tagint *g = chain_glove_flat + (size_t) (site * max_shells + d) * glove_nmax;
+    for (int pi = 0; pi < rx.glove_n; pi++) {
+      if (rx.is_edge[pi]) continue;
+      if (g[pi] != 0) tags.push_back(g[pi]);
+    }
+  }
+  return tags;
+}
+
+/* ---------------------------------------------------------------------- */
+
+bool FixMSEVB::chains_disjoint(int site_a, int site_b) const
+{
+  const std::vector<tagint> ta = chain_atom_set(site_a);
+  const std::vector<tagint> tb = chain_atom_set(site_b);
+  for (tagint x : ta)
+    for (tagint y : tb)
+      if (x == y) return false;
+  return true;
+}
+
+/* ---------------------------------------------------------------------- */
 
 double FixMSEVB::compute_reference_offset()
 {

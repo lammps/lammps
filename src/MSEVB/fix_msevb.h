@@ -389,6 +389,16 @@ class FixMSEVB : public Fix {
   void compute_topology_diff(ReactionDef &rd);
   void check_reaction_topology_limits(const ReactionDef &rd);
 
+  // ---- Reactive-site atom-set primitives ------------------------------
+  // The set of real atom tags that a site's transfer chain *modifies*: the
+  // non-edge glove atoms across every chain depth (edge atoms are matched but
+  // left untouched).  This is the atom_set() of the Chain abstraction — the
+  // basis for deciding whether two chains can coexist in one (product) state.
+  std::vector<tagint> chain_atom_set(int site) const;
+  // True iff two sites' chains modify disjoint atom sets (i.e. they may be
+  // combined into a product state without clobbering each other's atoms).
+  bool chains_disjoint(int site_a, int site_b) const;
+
   // ---- Kokkos sync hooks (no-ops in base class, overridden in /kk) ------
   virtual void sync_before_force_compute();
   virtual void modified_after_force_compute();

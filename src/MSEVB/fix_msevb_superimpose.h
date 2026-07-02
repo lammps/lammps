@@ -41,6 +41,30 @@ struct RefTopo {
   tagint maxtag;                 // maximum valid tag index
 };
 
+// TopologyView: read-only view of the system topology as the matcher sees it,
+// keyed by global atom tag, with a three-tier priority for each query:
+//   1. a VirtualTopo overlay (post-transfer / multi-shell state), if it has an
+//      entry for the tag,
+//   2. otherwise the live local atom (atom->type / atom->special),
+//   3. otherwise a RefTopo snapshot (ghost / off-rank atoms in multi-rank runs).
+// This formalizes the accessor msevb_superimpose used inline, so the same view
+// can back other topology queries and, eventually, a shared matcher.  Either
+// overlay may be null, in which case that tier is skipped.
+struct TopologyView {
+  LAMMPS *lmp;
+  const VirtualTopo *vtopo;
+  const RefTopo *ref;
+
+  TopologyView(LAMMPS *lmp_in, const VirtualTopo *vtopo_in = nullptr,
+               const RefTopo *ref_in = nullptr) :
+      lmp(lmp_in), vtopo(vtopo_in), ref(ref_in) {}
+
+  // Atom type of the atom with global tag r (0 if unknown).
+  int type(tagint r) const;
+  // 1-2 bonded neighbor tags of the atom with global tag r (empty if unknown).
+  std::vector<tagint> neighbors12(tagint r) const;
+};
+
 // msevb_superimpose: attempt to match molecule template mol onto the real
 // system starting from the seed pair (tag_H → ibonding, tag_Y → jbonding).
 //

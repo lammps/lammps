@@ -15,6 +15,47 @@
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
+   TopologyView: three-tier (vtopo override > local atom > ref snapshot)
+   read access to atom type and 1-2 neighbor tags, keyed by global tag.
+---------------------------------------------------------------------- */
+
+int TopologyView::type(tagint r) const
+{
+  if (vtopo) {
+    auto it = vtopo->type_override.find(r);
+    if (it != vtopo->type_override.end()) return it->second;
+  }
+  Atom *atom = lmp->atom;
+  int local_r = atom->map(r);
+  if (local_r >= 0 && local_r < atom->nlocal) return atom->type[local_r];
+  if (ref && r >= 0 && r <= ref->maxtag) return ref->type[r];
+  return 0;
+}
+
+std::vector<tagint> TopologyView::neighbors12(tagint r) const
+{
+  if (vtopo) {
+    auto vit = vtopo->bond_override.find(r);
+    if (vit != vtopo->bond_override.end()) return vit->second;
+  }
+  Atom *atom = lmp->atom;
+  int local_r = atom->map(r);
+  if (local_r >= 0 && local_r < atom->nlocal) {
+    int ns = atom->nspecial[local_r][0];
+    std::vector<tagint> tags(ns);
+    for (int s = 0; s < ns; s++) tags[s] = atom->special[local_r][s];
+    return tags;
+  }
+  if (ref && r >= 0 && r <= ref->maxtag) {
+    int nb = ref->nspecial_flat[r * 3 + 0];
+    std::vector<tagint> tags(nb);
+    for (int b = 0; b < nb; b++) tags[b] = ref->special_flat[(tagint) r * ref->maxspecial + b];
+    return tags;
+  }
+  return {};
+}
+
+/* ----------------------------------------------------------------------
    msevb_superimpose
 
    Molecule arrays use 0-based atom indexing (0 .. natoms-1):
@@ -48,13 +89,10 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol, const int *is_edge
   assigned.insert(tag_H);
   assigned.insert(tag_Y);
 
-  Atom *atom = lmp->atom;
-  int *atype = atom->type;
-  int **nspecial = atom->nspecial;
-  tagint **special = atom->special;
-  const int nlocal = atom->nlocal;
+  // Three-tier topology accessor: vtopo override > local atom > ref snapshot.
+  TopologyView view(lmp, vtopo, ref);
 
-  // --- Helpers -----------------------------------------------------------
+  // --- Helpers (template side: operate on mol, glove, is_edge) -----------
 
   // Number of 1-2 template neighbors of template atom i (0-based).
   auto tmpl_nn = [&](int i) {
@@ -74,52 +112,11 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol, const int *is_edge
     return false;
   };
 
-  // Get type of real atom with global tag r.
-  // Priority: vtopo override > local atom->type > ref snapshot.
-  auto real_type = [&](tagint r) -> int {
-    if (vtopo) {
-      auto it = vtopo->type_override.find(r);
-      if (it != vtopo->type_override.end()) return it->second;
-    }
-    int local_r = atom->map(r);
-    if (local_r >= 0 && local_r < nlocal) return atype[local_r];
-    // Fall back to ref snapshot for ghost/off-rank atoms.
-    if (ref && r >= 0 && r <= ref->maxtag) return ref->type[r];
-    return 0;
-  };
-
-  // Get the bond-partner tag list for real atom with global tag r.
-  // Priority: vtopo override > local atom->special > ref snapshot.
-  // Returns an empty vector if no data is available.
-  auto get_bond_tags = [&](tagint r) -> std::vector<tagint> {
-    // vtopo override takes priority.
-    if (vtopo) {
-      auto vit = vtopo->bond_override.find(r);
-      if (vit != vtopo->bond_override.end()) return vit->second;
-    }
-    // Local atom: use LAMMPS special list.
-    int local_r = atom->map(r);
-    if (local_r >= 0 && local_r < nlocal) {
-      int ns = nspecial[local_r][0];
-      std::vector<tagint> tags(ns);
-      for (int s = 0; s < ns; s++) tags[s] = special[local_r][s];
-      return tags;
-    }
-    // Ghost / off-rank: use reference special list (symmetric 1-2 neighbors).
-    if (ref && r >= 0 && r <= ref->maxtag) {
-      int nb = ref->nspecial_flat[r * 3 + 0];    // count of 1-2 bonded neighbors
-      std::vector<tagint> tags(nb);
-      for (int b = 0; b < nb; b++) tags[b] = ref->special_flat[(tagint) r * ref->maxspecial + b];
-      return tags;
-    }
-    return {};
-  };
-
   // True if assigning glove[tneigh] = r is consistent with the current glove:
   // every already-assigned template neighbor k of tneigh must appear in
   // the bond-partner list of r.
   auto compatible = [&](int tneigh, tagint r) -> bool {
-    std::vector<tagint> nbrs = get_bond_tags(r);
+    std::vector<tagint> nbrs = view.neighbors12(r);
     if (nbrs.empty()) return false;    // can't verify; fail safely
 
     for (int j = 0; j < tmpl_nn(tneigh); j++) {
@@ -152,7 +149,7 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol, const int *is_edge
     const tagint pion_tag = glove[pion];
 
     // Get bond-partner tags for this pioneer's real atom.
-    std::vector<tagint> pion_nbrs = get_bond_tags(pion_tag);
+    std::vector<tagint> pion_nbrs = view.neighbors12(pion_tag);
     if (pion_nbrs.empty()) return false;    // no connectivity data available for this pioneer
 
     // For each unassigned non-edge template neighbor of this pioneer:
@@ -171,7 +168,7 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol, const int *is_edge
       tagint candidate = 0;
 
       for (tagint r : pion_nbrs) {
-        int rt = real_type(r);
+        int rt = view.type(r);
         if (rt != ttype) continue;
         if (assigned.count(r)) continue;
         if (!compatible(tneigh, r)) continue;

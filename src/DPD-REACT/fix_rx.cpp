@@ -67,13 +67,14 @@ double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0;
 /* ---------------------------------------------------------------------- */
 
 FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), mol2param(nullptr), nreactions(0),
-  params(nullptr), Arr(nullptr), nArr(nullptr), Ea(nullptr), tempExp(nullptr),
-  stoich(nullptr), stoichReactants(nullptr), stoichProducts(nullptr), kR(nullptr),
-  pairDPDE(nullptr), dpdThetaLocal(nullptr), sumWeights(nullptr), sparseKinetics_nu(nullptr),
-  sparseKinetics_nuk(nullptr), sparseKinetics_inu(nullptr), sparseKinetics_isIntegralReaction(nullptr),
-  id_fix_species(nullptr),
-  id_fix_species_old(nullptr), fix_species(nullptr), fix_species_old(nullptr)
+    Fix(lmp, narg, arg), list(nullptr), mol2param(nullptr), nreactions(0), params(nullptr),
+    Arr(nullptr), nArr(nullptr), Ea(nullptr), tempExp(nullptr), stoich(nullptr),
+    stoichReactants(nullptr), stoichProducts(nullptr), kR(nullptr), pairDPDE(nullptr),
+    dpdThetaLocal(nullptr), sumWeights(nullptr), sparseKinetics_nu(nullptr),
+    sparseKinetics_nuk(nullptr), sparseKinetics_inu(nullptr),
+    sparseKinetics_isIntegralReaction(nullptr), diagnosticCounterPerODE{},
+    id_fix_species(nullptr), id_fix_species_old(nullptr), fix_species(nullptr),
+    fix_species_old(nullptr)
 {
   if (narg < 7 || narg > 12) error->all(FLERR,"Illegal fix rx command");
   nevery = 1;

@@ -107,8 +107,10 @@ template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
 
 /* ---------------------------------------------------------------------- */
 
-Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp),
-pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
+Neighbor::Neighbor(LAMMPS *lmp) :
+    Pointers(lmp), bboxlo(nullptr), bboxhi(nullptr), bondlist(nullptr), anglelist(nullptr),
+    dihedrallist(nullptr), improperlist(nullptr), corners(nullptr), pairclass(nullptr),
+    pairnames(nullptr), pairmasks(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

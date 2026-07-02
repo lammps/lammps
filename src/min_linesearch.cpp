@@ -51,7 +51,7 @@ static constexpr double EPS_QUAD = 1.0e-28;
 
 /* ---------------------------------------------------------------------- */
 
-MinLineSearch::MinLineSearch(LAMMPS *lmp) : Min(lmp)
+MinLineSearch::MinLineSearch(LAMMPS *lmp) : Min(lmp), x0(nullptr), g(nullptr), h(nullptr)
 {
   searchflag = 1;
   gextra = hextra = nullptr;

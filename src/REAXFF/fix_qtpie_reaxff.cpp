@@ -68,7 +68,9 @@ static const char cite_fix_qtpie_reax[] =
 /* ---------------------------------------------------------------------- */
 
 FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), matvecs(0), pertype_option(nullptr), gauss_file(nullptr)
+    Fix(lmp, narg, arg), matvecs(0), list(nullptr), efield(nullptr), ilist(nullptr),
+    numneigh(nullptr), firstneigh(nullptr), chi(nullptr), eta(nullptr), gamma(nullptr),
+    pertype_option(nullptr), gauss_file(nullptr), gauss_exp(nullptr)
 {
   // this fix returns a global scalar (the number of iterations)
   scalar_flag = 1;

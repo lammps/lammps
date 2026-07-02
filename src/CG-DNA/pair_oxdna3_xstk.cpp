@@ -45,7 +45,22 @@ using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
 
-PairOxdna3Xstk::PairOxdna3Xstk(LAMMPS *lmp) : Pair(lmp)
+PairOxdna3Xstk::PairOxdna3Xstk(LAMMPS *lmp) :
+    Pair(lmp), k_xst(nullptr), cut_xst_0_33(nullptr), cut_xst_c_33(nullptr),
+    cut_xst_lo_33(nullptr), cut_xst_hi_33(nullptr), cut_xst_lc_33(nullptr), cut_xst_hc_33(nullptr),
+    cutsq_xst_hc_33(nullptr), cut_xst_0_55(nullptr), cut_xst_c_55(nullptr), cut_xst_lo_55(nullptr),
+    cut_xst_hi_55(nullptr), cut_xst_lc_55(nullptr), cut_xst_hc_55(nullptr),
+    cutsq_xst_hc_55(nullptr), b_xst_lo(nullptr), b_xst_hi(nullptr), a_xst1(nullptr),
+    theta_xst1_0(nullptr), dtheta_xst1_ast(nullptr), b_xst1(nullptr), dtheta_xst1_c(nullptr),
+    a_xst2(nullptr), theta_xst2_0(nullptr), dtheta_xst2_ast(nullptr), b_xst2(nullptr),
+    dtheta_xst2_c(nullptr), a_xst3(nullptr), theta_xst3_0(nullptr), dtheta_xst3_ast(nullptr),
+    b_xst3(nullptr), dtheta_xst3_c(nullptr), a_xst4_33(nullptr), theta_xst4_0_33(nullptr),
+    dtheta_xst4_ast_33(nullptr), b_xst4_33(nullptr), dtheta_xst4_c_33(nullptr), a_xst4_55(nullptr),
+    theta_xst4_0_55(nullptr), dtheta_xst4_ast_55(nullptr), b_xst4_55(nullptr),
+    dtheta_xst4_c_55(nullptr), a_xst7(nullptr), theta_xst7_0_33(nullptr), theta_xst7_0_55(nullptr),
+    dtheta_xst7_ast(nullptr), b_xst7(nullptr), dtheta_xst7_c(nullptr), a_xst8(nullptr),
+    theta_xst8_0_33(nullptr), theta_xst8_0_55(nullptr), dtheta_xst8_ast(nullptr), b_xst8(nullptr),
+    dtheta_xst8_c(nullptr), nxyz_xtrct(nullptr), fix_lrf(nullptr)
 {
   single_enable = 0;
   writedata = 0;

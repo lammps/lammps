@@ -37,7 +37,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBornCoulDSF::PairBornCoulDSF(LAMMPS *lmp) : Pair(lmp)
+PairBornCoulDSF::PairBornCoulDSF(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), a(nullptr), rho(nullptr), sigma(nullptr),
+    c(nullptr), d(nullptr), rhoinv(nullptr), born1(nullptr), born2(nullptr), born3(nullptr),
+    offset(nullptr)
 {
   writedata = 1;
   single_enable = 0;

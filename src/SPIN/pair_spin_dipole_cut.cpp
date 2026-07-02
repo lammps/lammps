@@ -41,7 +41,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) : PairSpin(lmp)
+PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) :
+    PairSpin(lmp), sigma(nullptr), cut_spin_long(nullptr)
 {
   spinflag = 1;
 

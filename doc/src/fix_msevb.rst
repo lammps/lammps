@@ -69,7 +69,7 @@ Examples
    molecule pre  pre_h3o.mol
    molecule post post_h3o.mol
    fix evb all msevb &
-     reaction pre post react.map 2.5 taper 2.0 shells 3 coupling a 0.6 b 0.25 &
+     reaction pre post react.map 2.5 taper 2.0 shells 3 coupling a 0.8 b 0.15 &
      file msevb.json every 1
    fix_modify evb energy yes
 

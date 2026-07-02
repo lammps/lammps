@@ -15,7 +15,6 @@
 #define TEST_CONFIG_H
 
 #include <set>
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -127,12 +126,10 @@ public:
     [[nodiscard]] std::string tags_line() const
     {
         if (tags.size() > 0) {
-            std::stringstream line;
-            line << tags[0];
-            for (size_t i = 1; i < tags.size(); i++) {
-                line << " " << tags[i];
-            }
-            return line.str();
+            std::string line = tags[0];
+            for (std::size_t i = 1; i < tags.size(); i++)
+                line += " " + tags[i];
+            return line;
         }
         return "generated";
     }

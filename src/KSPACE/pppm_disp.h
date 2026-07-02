@@ -248,6 +248,11 @@ class PPPMDisp : public KSpace {
   virtual void compute_gf_6();
   void compute_sf_coeff_6();
 
+  // triclinic (non-orthogonal box) support, ik differentiation only
+  void setup_triclinic();
+  void compute_gf_triclinic();
+  void compute_gf_6_triclinic();
+
   virtual void particle_map(double, double, double, double, int **, int, int, int, int, int, int,
                             int, int);
   virtual void particle_map_c(double, double, double, double, int **, int, int, int, int, int, int,

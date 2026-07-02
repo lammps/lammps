@@ -44,6 +44,15 @@
 #endif
 #endif
 
+// vendor runtime headers for the GPU device probe below
+#if defined(KOKKOS_ENABLE_CUDA)
+#include <cuda_runtime.h>
+#elif defined(KOKKOS_ENABLE_HIP)
+#include <hip/hip_runtime.h>
+#elif defined(KOKKOS_ENABLE_SYCL)
+#include <sycl/sycl.hpp>
+#endif
+
 using namespace LAMMPS_NS;
 
 static const char cite_kokkos_package[] =
@@ -59,6 +68,40 @@ static const char cite_kokkos_package[] =
 
 int KokkosLMP::is_finalized = 0;
 int KokkosLMP::init_ngpus = 0;
+
+/* ----------------------------------------------------------------------
+   probe at runtime whether a compatible GPU device is present and usable
+   without initializing the KOKKOS package (which would abort for a GPU
+   backend when no device is available).  The vendor runtime device-count
+   queries return an error code instead of aborting, so this is safe to
+   call before deciding to enable the KOKKOS package, e.g. for skipping
+   tests gracefully.  Returns false for host-only KOKKOS builds.
+   This mirrors lmp_has_compatible_gpu_device() of the GPU package and is
+   wrapped by Info::has_kokkos_gpu_device().
+------------------------------------------------------------------------- */
+
+bool lmp_has_compatible_kokkos_gpu()
+{
+#if defined(KOKKOS_ENABLE_CUDA)
+  int ndev = 0;
+  if (cudaGetDeviceCount(&ndev) != cudaSuccess) return false;
+  return ndev > 0;
+#elif defined(KOKKOS_ENABLE_HIP)
+  int ndev = 0;
+  if (hipGetDeviceCount(&ndev) != hipSuccess) return false;
+  return ndev > 0;
+#elif defined(KOKKOS_ENABLE_SYCL)
+  try {
+    return !sycl::device::get_devices(sycl::info::device_type::gpu).empty();
+  } catch (...) {
+    return false;
+  }
+#else
+  // host-only KOKKOS build (Serial/OpenMP/Pthreads) or a GPU backend
+  // without a runtime device probe (e.g. OpenMPTarget)
+  return false;
+#endif
+}
 
 /* ---------------------------------------------------------------------- */
 

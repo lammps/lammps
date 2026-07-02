@@ -117,6 +117,7 @@ accelerated styles exist.
 * :doc:`agni <pair_agni>` - AGNI machine-learning potential
 * :doc:`aip/water/2dm <pair_aip_water_2dm>` - anisotropic interfacial potential for water in 2d geometries
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
+* :doc:`airebo/bc <pair_airebo>` - AIREBO with bond-centric P_CC (Hur and Stuart)
 * :doc:`airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
 * :doc:`amoeba <pair_amoeba>` -
 * :doc:`atm <pair_atm>` - Axilrod-Teller-Muto potential

@@ -587,9 +587,8 @@ void PairReaxFFKokkos<DeviceType>::Deallocate_Lookup_Tables()
   ntypes = atom->ntypes;
 
   for (i = 0; i <= ntypes; ++i) {
-    if (map[i] == -1) continue;
     for (j = i; j <= ntypes; ++j) {
-      if (map[j] == -1) continue;
+      if ((map[i] == -1) || (map[j] == -1)) continue;
       if (LR[i][j].n) {
         sfree(LR[i][j].y);
         sfree(LR[i][j].H);
@@ -599,9 +598,14 @@ void PairReaxFFKokkos<DeviceType>::Deallocate_Lookup_Tables()
         sfree(LR[i][j].CEclmb);
       }
     }
+    // LR[i] is allocated for every type in Init_Lookup_Tables(), so it must be
+    // freed unconditionally -- the map[] check only guards the inner per-pair
+    // spline arrays, which exist only for mapped type pairs. Skipping the row
+    // free for unmapped types (e.g. i == 0) leaked those rows.
     sfree(LR[i]);
   }
   sfree(LR);
+  LR = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

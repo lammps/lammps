@@ -2,7 +2,8 @@
 lammps_version: 17 Feb 2022
 date_generated: Fri Mar 18 22:17:36 2022
 epsilon: 1e-12
-skip_tests: kokkos_omp
+skip_tests: kokkos_omp kokkos_serial kokkos_gpu
+
 prerequisites: ! |
   atom full
   pair zbl

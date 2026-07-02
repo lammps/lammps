@@ -43,6 +43,7 @@ class PairAIREBO : public Pair {
   int variant;
   int ljflag, torflag;    // 0/1 if LJ/Morse,torsion terms included
   int morseflag;          // 1 if Morse instead of LJ for non-bonded
+  int bcflag;             // 1 for the bond-centric (AIREBO-BC) P_CC variant
 
   double cutlj;                     // user-specified LJ cutoff
   double sigcut, sigwid, sigmin;    // corresponding cutoff function
@@ -93,6 +94,14 @@ class PairAIREBO : public Pair {
   double piHHdfdy[5][5][11], piHHdfdz[5][5][11];
   double Tf[5][5][10], Tdfdx[5][5][10], Tdfdy[5][5][10], Tdfdz[5][5][10];
 
+  // bond-centric P_CC (AIREBO-BC), used only when bcflag is set.  Stored on a
+  // half-integer grid in doubled-coordinate index space (mC = 2*N_C, mH = 2*N_H).
+  double pCCdom_bc[2][2];     // clamping domain in physical N
+  double pCC_bc[6][6][16];    // bicubic patch coeffs (doubled coordinate)
+  double PCCf_bc[7][7];       // knot values at the half-integer grid
+  double PCCdfdx_bc[7][7];    // d/d(2*N_C) at knots (zero)
+  double PCCdfdy_bc[7][7];    // d/d(2*N_H) at knots (zero)
+
   void REBO_neigh();
   void FREBO(int);
   void FLJ(int);
@@ -103,10 +112,56 @@ class PairAIREBO : public Pair {
 
   double gSpline(double, double, int, double *, double *);
   double PijSpline(double, double, int, int, double *);
+
+  // ----------------------------------------------------------------------
+  // Bond-order P term evaluation.
+  //
+  // bondorder() and bondorderLJ() evaluate the P_ij correction through this
+  // wrapper rather than calling PijSpline() directly.  Stock (atom-centric)
+  // AIREBO forwards the i-side coordination numbers to PijSpline() (the
+  // "other"-side counts are ignored).  The bond-centric variant (AIREBO-BC,
+  // Hur & Stuart, J. Chem. Phys. 137, 054102 (2012); selected by bcflag)
+  // instead evaluates P_CC at the bond-averaged coordination numbers
+  // Nbar^t = 1/2 (N_ij^t + N_ji^t), reflecting both sides of the bond.
+  //   thisC/thisH : coordination numbers on the side whose P is evaluated
+  //   othC/othH   : coordination numbers on the opposite side of the bond
+  // ----------------------------------------------------------------------
+  double Pij_eval(double thisC, double thisH, double othC, double othH,
+                  int typei, int typej, double dN2[2])
+  {
+    if (bcflag && typei == 0 && typej == 0)
+      return PijSpline(0.5 * (thisC + othC), 0.5 * (thisH + othH), typei, typej, dN2);
+    return PijSpline(thisC, thisH, typei, typej, dN2);
+  }
+
+  // whether the i-j bond uses a bond-averaged P (bond-centric C-C only); gates
+  // the cross-side P force below.  False for stock atom-centric P.
+  bool Pij_bond_averaged(int itype, int jtype) { return bcflag && itype == 0 && jtype == 0; }
+
+  // ----------------------------------------------------------------------
+  // Bond-centric P cross force.
+  //
+  // When Pij_eval() forms a bond-averaged P (bcflag), the P term depends on
+  // the coordination on BOTH sides of the i-j bond and enters both pij and
+  // pji.  The atom-centric P-coordination forces in bondorder() and
+  // bondorderLJ() then miss two pieces -- the pji term acting on i's neighbors
+  // and the pij term acting on j's neighbors -- which this helper adds.  For
+  // stock atom-centric P, Pij_bond_averaged() is false and the helper is a
+  // no-op, leaving AIREBO/REBO/AIREBO-M results bit-for-bit unchanged.
+  // ----------------------------------------------------------------------
+  void bondorder_Pij_cross(int i, int j, int itype, int jtype, double VA, double tmppij,
+                           double tmppji, const double dN2PIJ[2], const double dN2PJI[2],
+                           double **f);
+
   double piRCSpline(double, double, double, int, int, double *);
   double TijSpline(double, double, double, double *);
 
   void read_file(char *);
+
+  // read the bond-centric P_CC knots appended after the standard AIREBO data
+  // (bcflag only; a no-op otherwise).  Called from read_file() on rank 0 with
+  // the reader positioned just past the Tij section.
+  void read_file_extra(class PotentialFileReader &);
 
   double Spbicubic(double, double, double *, double *);
   double Sptricubic(double, double, double, double *, double *);

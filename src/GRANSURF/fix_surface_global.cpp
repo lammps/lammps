@@ -4302,7 +4302,7 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> *composite_surfs)
 
       if (contact_surfs[n].external == UNCONNECTED) {
 
-        if (flag < -3 && connect3d[j].external_edge[which1] == UNCONNECTED && connect3d[j].external_edge[which2] == UNCONNECTED) {
+        if (flag < -3 && which1 >= 0 && which2 >= 0 && connect3d[j].external_edge[which1] == UNCONNECTED && connect3d[j].external_edge[which2] == UNCONNECTED) {
           // if a corner with 2 unconnected edges, just use distance
           max_dist_uc = MAX(max_dist_uc, rmag);
         } else {
@@ -4405,7 +4405,7 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> *composite_surfs)
         pt2 = tris[j].p3;
         which1 = 0;
         which2 = 1;
-      } else if (flag == -6) {
+      } else {    // flag == -6 (overlap classification is bounded to -1..-6)
         pt = tris[j].p3;
         pt1 = tris[j].p1;
         pt2 = tris[j].p2;

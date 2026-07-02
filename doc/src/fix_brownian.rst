@@ -243,9 +243,13 @@ to the *x*\ -- *y* plane in a 3D simulation. Only compatible with
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files
-<restart>`.  No global or per-atom quantities are stored by this fix for
-access by various :doc:`output commands <Howto_output>`.
+.. versionchanged:: TBD
+
+This fix writes the state of its random number generator to :doc:`binary
+restart files <restart>`, so that a simulation continued from a restart
+reproduces the same stochastic trajectory (provided the number of MPI
+processes is unchanged).  No global or per-atom quantities are stored by
+this fix for access by various :doc:`output commands <Howto_output>`.
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during

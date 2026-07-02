@@ -267,6 +267,8 @@ or not.  Its default value is 1.0e-5.
 
 The *pppm/dipole* style invokes a particle-particle particle-mesh solver
 for dipole-dipole interactions, following the method of :ref:`(Cerda) <Cerda2008>`.
+When charges are present in the system, charge-charge and charge-dipole
+interactions are also computed.
 
 The *pppm/dipole/spin* style invokes a particle-particle particle-mesh solver
 for magnetic dipole-dipole interactions between magnetic spins.
@@ -568,10 +570,25 @@ Note that the long-range electrostatic solvers in LAMMPS assume conducting
 metal (tinfoil) boundary conditions for both charge and dipole
 interactions. Vacuum boundary conditions are not currently supported.
 
-The *ewald/disp*, *ewald*, *esp*, *pppm*, and *msm* styles support
-non-orthogonal (triclinic symmetry) simulation boxes. However,
+The *ewald/disp*, *ewald*, *esp*, *pppm*, *pppm/disp*, and *msm* styles
+support non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
+
+.. versionchanged:: TBD
+
+Triclinic (non-orthogonal) box support was added to the *pppm/disp*
+style and its *pppm/disp/tip4p*, *pppm/disp/omp*, and
+*pppm/disp/tip4p/omp* variants.  It requires *ik* differentiation (the
+default; the :doc:`kspace_modify <kspace_modify>` *diff ad* option is not
+supported together with a triclinic box).  The :doc:`kspace_modify
+<kspace_modify>` *slab* correction is supported for a triclinic box only
+in the EW3DC *volfactor* form and only with an *xy* tilt (xz = yz = 0, so
+the slab normal remains the z axis); *slab nozforce* and *slab ew2d* are
+not available for a triclinic box.  For the *tip4p* variants the slab
+correction is not (yet) available together with a triclinic box, and (as
+for all TIP4P styles) the communication cutoff must be large enough to
+reconstruct the M-site, see the :doc:`TIP4P howto <Howto_tip4p>`.
 
 Most of the base kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the :doc:`Build

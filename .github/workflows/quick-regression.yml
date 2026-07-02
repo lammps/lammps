@@ -23,7 +23,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
         show-progress: false
@@ -97,7 +97,7 @@ jobs:
         tar -cvf quick-regression-test-${{ matrix.idx }}.tar run-${{ matrix.idx }}.log progress-${{ matrix.idx }}.yaml output-${{ matrix.idx }}.xml
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: quick-regression-test-artifact-${{ matrix.idx }}
         path: quick-regression-test-${{ matrix.idx }}.tar
@@ -107,7 +107,7 @@ jobs:
     needs: build
     steps:
       - name: Merge Artifacts
-        uses: actions/upload-artifact/merge@v4
+        uses: actions/upload-artifact/merge@v7
         with:
           name: merged-quick-regresssion-artifact
           pattern: quick-regression-test-artifact-*

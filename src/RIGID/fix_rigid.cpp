@@ -1362,21 +1362,21 @@ void FixRigid::set_xv()
       MathExtra::cross3( omega[ibody], x[i], v_rot) ;
       MathExtra::cross3( omega[ibody], v_rot, acc_centr) ;
       if(langflag) {
-	fc[0] = massone * ((fcm[ibody][0]-langone[0])/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-	fc[1] = massone * ((fcm[ibody][1]-langone[1])/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
-	if (domain->dimension == 2) fc[2] = 0.0;
-	else fc[2] = massone * ((fcm[ibody][2]-langone[2])/masstotal[ibody] /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        fc[0] = massone * ((fcm[ibody][0]-langone[0])/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
+        fc[1] = massone * ((fcm[ibody][1]-langone[1])/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        if (domain->dimension == 2) fc[2] = 0.0;
+        else fc[2] = massone * ((fcm[ibody][2]-langone[2])/masstotal[ibody] /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       } else {
-	fc[0] = massone * (fcm[ibody][0]/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-	fc[1] = massone * (fcm[ibody][1]/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
-	if (domain->dimension == 2) fc[2] = 0.0;
-	else fc[2] = massone * (fcm[ibody][2]/masstotal[ibody] /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        fc[0] = massone * (fcm[ibody][0]/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
+        fc[1] = massone * (fcm[ibody][1]/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        if (domain->dimension == 2) fc[2] = 0.0;
+        else fc[2] = massone * (fcm[ibody][2]/masstotal[ibody] /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       }
 
       if (id_gravity) {
-	fc[0] -= gvec[0]*massone;
-	fc[1] -= gvec[1]*massone;
-	fc[2] -= gvec[2]*massone;
+        fc[0] -= gvec[0]*massone;
+        fc[1] -= gvec[1]*massone;
+        fc[2] -= gvec[2]*massone;
       }
 
       vr[0] = 0.5*x[i][0]*fc[0];
@@ -1545,21 +1545,21 @@ void FixRigid::set_v()
       MathExtra::cross3( omega[ibody], delta, v_rot) ;
       MathExtra::cross3( omega[ibody], v_rot, acc_centr) ;
       if(langflag) {
-	fc[0] = massone*((fcm[ibody][0]-langone[0])/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-	fc[1] = massone*((fcm[ibody][1]-langone[1])/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
-	if (domain->dimension == 2) fc[2] = 0.0;
-	else fc[2] = massone*((fcm[ibody][2]-langone[2])/masstotal[ibody] /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        fc[0] = massone*((fcm[ibody][0]-langone[0])/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
+        fc[1] = massone*((fcm[ibody][1]-langone[1])/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        if (domain->dimension == 2) fc[2] = 0.0;
+        else fc[2] = massone*((fcm[ibody][2]-langone[2])/masstotal[ibody] /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       } else {
-	fc[0] = massone*(fcm[ibody][0]/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-	fc[1] = massone*(fcm[ibody][1]/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
-	if (domain->dimension == 2) fc[2] = 0.0;
-	else fc[2] = massone*(fcm[ibody][2]/masstotal[ibody] /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        fc[0] = massone*(fcm[ibody][0]/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
+        fc[1] = massone*(fcm[ibody][1]/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        if (domain->dimension == 2) fc[2] = 0.0;
+        else fc[2] = massone*(fcm[ibody][2]/masstotal[ibody] /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       }
 
       if (id_gravity) {
-	fc[0] -= gvec[0]*massone;
-	fc[1] -= gvec[1]*massone;
-	fc[2] -= gvec[2]*massone;
+        fc[0] -= gvec[0]*massone;
+        fc[1] -= gvec[1]*massone;
+        fc[2] -= gvec[2]*massone;
       }
 
       vr[0] = 0.5*delta[0]*fc[0];
@@ -1572,17 +1572,17 @@ void FixRigid::set_v()
       v_tally(1,&i,1.0,vr);
 
       if (id_gravity) {
-	x0 = delta[0] + xcm[ibody][0];
-	x1 = delta[1] + xcm[ibody][1];
-	x2 = delta[2] + xcm[ibody][2];
-	vr[0] = 0.5*x0*gvec[0]*massone;
-	vr[1] = 0.5*x1*gvec[1]*massone;
-	vr[2] = 0.5*x2*gvec[2]*massone;
-	vr[3] = 0.5*x0*gvec[1]*massone;
-	vr[4] = 0.5*x0*gvec[2]*massone;
-	vr[5] = 0.5*x1*gvec[2]*massone;
+        x0 = delta[0] + xcm[ibody][0];
+        x1 = delta[1] + xcm[ibody][1];
+        x2 = delta[2] + xcm[ibody][2];
+        vr[0] = 0.5*x0*gvec[0]*massone;
+        vr[1] = 0.5*x1*gvec[1]*massone;
+        vr[2] = 0.5*x2*gvec[2]*massone;
+        vr[3] = 0.5*x0*gvec[1]*massone;
+        vr[4] = 0.5*x0*gvec[2]*massone;
+        vr[5] = 0.5*x1*gvec[2]*massone;
 
-	v_tally(1,&i,1.0,vr);
+        v_tally(1,&i,1.0,vr);
       }
     }
   }

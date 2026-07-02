@@ -1258,21 +1258,21 @@ void FixRigidSmall::set_xv()
       MathExtra::cross3( b->omega, x[i], v_rot) ;
       MathExtra::cross3( b->omega, v_rot, acc_centr) ;
       if(langflag) {
-	fc[0] = massone * ((b->fcm[0]-langone[0])/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-	fc[1] = massone * ((b->fcm[1]-langone[1])/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
-	if (domain->dimension == 2) fc[2] = 0.0;
-	else fc[2] = massone * ((b->fcm[2]-langone[2])/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        fc[0] = massone * ((b->fcm[0]-langone[0])/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
+        fc[1] = massone * ((b->fcm[1]-langone[1])/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        if (domain->dimension == 2) fc[2] = 0.0;
+        else fc[2] = massone * ((b->fcm[2]-langone[2])/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       } else {
-	fc[0] = massone * (b->fcm[0]/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-	fc[1] = massone * (b->fcm[1]/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
-	if (domain->dimension == 2) fc[2] = 0.0;
-	else fc[2] = massone * (b->fcm[2]/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        fc[0] = massone * (b->fcm[0]/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
+        fc[1] = massone * (b->fcm[1]/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        if (domain->dimension == 2) fc[2] = 0.0;
+        else fc[2] = massone * (b->fcm[2]/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       }
 
       if (id_gravity) {
-	fc[0] -= gvec[0]*massone;
-	fc[1] -= gvec[1]*massone;
-	fc[2] -= gvec[2]*massone;
+        fc[0] -= gvec[0]*massone;
+        fc[1] -= gvec[1]*massone;
+        fc[2] -= gvec[2]*massone;
       }
 
       vr[0] = 0.5*x[i][0]*fc[0];
@@ -1453,21 +1453,21 @@ void FixRigidSmall::set_v()
       MathExtra::cross3( b->omega, delta, v_rot) ;
       MathExtra::cross3( b->omega, v_rot, acc_centr) ;
       if(langflag) {
-	fc[0] = massone * ((b->fcm[0]-langone[0])/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-	fc[1] = massone * ((b->fcm[1]-langone[1])/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
-	if (domain->dimension == 2) fc[2] = 0.0;
-	else fc[2] = massone * ((b->fcm[2]-langone[2])/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        fc[0] = massone * ((b->fcm[0]-langone[0])/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
+        fc[1] = massone * ((b->fcm[1]-langone[1])/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        if (domain->dimension == 2) fc[2] = 0.0;
+        else fc[2] = massone * ((b->fcm[2]-langone[2])/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       } else {
-	fc[0] = massone * (b->fcm[0]/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-	fc[1] = massone * (b->fcm[1]/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
-	if (domain->dimension == 2) fc[2] = 0.0;
-	else fc[2] = massone * (b->fcm[2]/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        fc[0] = massone * (b->fcm[0]/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
+        fc[1] = massone * (b->fcm[1]/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        if (domain->dimension == 2) fc[2] = 0.0;
+        else fc[2] = massone * (b->fcm[2]/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       }
 
       if (id_gravity) {
-	fc[0] -= gvec[0]*massone;
-	fc[1] -= gvec[1]*massone;
-	fc[2] -= gvec[2]*massone;
+        fc[0] -= gvec[0]*massone;
+        fc[1] -= gvec[1]*massone;
+        fc[2] -= gvec[2]*massone;
       }
 
       vr[0] = 0.5*delta[0]*fc[0];
@@ -1482,19 +1482,19 @@ void FixRigidSmall::set_v()
       v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
 
       if (id_gravity) {
-	x0 = delta[0] + b->xcm[0];
-	x1 = delta[1] + b->xcm[1];
-	x2 = delta[2] + b->xcm[2];
-	vr[0] = 0.5*x0*gvec[0]*massone;
-	vr[1] = 0.5*x1*gvec[1]*massone;
-	vr[2] = 0.5*x2*gvec[2]*massone;
-	vr[3] = 0.5*x0*gvec[1]*massone;
-	vr[4] = 0.5*x0*gvec[2]*massone;
-	vr[5] = 0.5*x1*gvec[2]*massone;
+        x0 = delta[0] + b->xcm[0];
+        x1 = delta[1] + b->xcm[1];
+        x2 = delta[2] + b->xcm[2];
+        vr[0] = 0.5*x0*gvec[0]*massone;
+        vr[1] = 0.5*x1*gvec[1]*massone;
+        vr[2] = 0.5*x2*gvec[2]*massone;
+        vr[3] = 0.5*x0*gvec[1]*massone;
+        vr[4] = 0.5*x0*gvec[2]*massone;
+        vr[5] = 0.5*x1*gvec[2]*massone;
 
-	double rlist[1][3] = {{x0, x1, x2}};
-	double flist[1][3] = {{0.5*gvec[0]*massone, 0.5*gvec[1]*massone, 0.5*gvec[2]*massone}};
-	v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
+        double rlist[1][3] = {{x0, x1, x2}};
+        double flist[1][3] = {{0.5*gvec[0]*massone, 0.5*gvec[1]*massone, 0.5*gvec[2]*massone}};
+        v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
       }
     }
   }

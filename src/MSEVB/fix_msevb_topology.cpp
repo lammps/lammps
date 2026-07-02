@@ -36,6 +36,8 @@
 
 #include <algorithm>
 #include <cstring>
+#include <functional>
+#include <map>
 
 using namespace LAMMPS_NS;
 
@@ -674,10 +676,16 @@ void FixMSEVB::detect_reactive_sites()
 
     delete[] tmpl_all;
 
-    // ---- Multi-shell guard ------------------------------------------
-    // Without product_states: error if any multi-shell reaction sees more
-    // than one distinct donor molecule (unsupported combination).
-    // With product_states: allow it but emit a one-time warning.
+    // ---- Multi-shell + multi-site notice ----------------------------
+    // A multi-shell reaction acting on several distinct donor molecules is
+    // allowed: each donor's chain is detected independently and enters the
+    // Hamiltonian as its own state, and product-state combination is now gated
+    // by an exact atom-set disjointness test (chains_disjoint()), so disjoint
+    // chains combine safely and overlapping ones are simply not combined.  We
+    // therefore no longer error on this combination.  We do emit a one-time
+    // note when product_states is enabled, because combining multi-shell chains
+    // into product states has not yet been validated against a reference
+    // implementation.
     //
     // "Distinct donor molecule" is determined by glove membership: two shell-1
     // sites belong to the same donor molecule if one site's tag_X appears in
@@ -685,7 +693,8 @@ void FixMSEVB::detect_reactive_sites()
     // donatable atoms on different heavy atoms (e.g. imidazolium has two N-H
     // bonds, giving different tag_X values that still belong to the same
     // molecule), while still catching genuinely separate donor molecules.
-    if (max_shells > 1 && nsites > 1) {
+    if (max_shells > 1 && nsites > 1 && enumerate_product_states &&
+        !product_states_multishell_warning) {
       for (size_t ri = 0; ri < rxndefs.size(); ri++) {
         if (rxndefs[ri].shells <= 1) continue;
         // Count distinct donor molecules among this reaction's shell-1 sites.
@@ -716,23 +725,16 @@ void FixMSEVB::detect_reactive_sites()
           }
         }
         int n_distinct_donors = (int) donor_X.size();
-        if (n_distinct_donors > 1) {
-          if (!enumerate_product_states) {
-            error->one(FLERR,
-                       fmt::format("Fix msevb: reaction {} has shells={} but {} distinct "
-                                   "donor molecules (multi-shell + multi-site not supported; "
-                                   "add product_states keyword to use this combination)",
-                                   ri, rxndefs[ri].shells, n_distinct_donors));
-          } else if (!product_states_multishell_warning && universe->me == 0) {
-            utils::logmesg(lmp,
-                           fmt::format("WARNING: Fix msevb: reaction {} has shells={} and "
-                                       "{} distinct donor molecules.  Combining multi-shell "
-                                       "chains with product_states is experimental and has "
-                                       "not been validated against a reference implementation."
-                                       "  Proceed with caution.\n",
-                                       ri, rxndefs[ri].shells, n_distinct_donors));
-            product_states_multishell_warning = true;
-          }
+        if (n_distinct_donors > 1 && universe->me == 0) {
+          utils::logmesg(lmp,
+                         fmt::format("WARNING: Fix msevb: reaction {} has shells={} and "
+                                     "{} distinct donor molecules.  Combining multi-shell "
+                                     "chains with product_states is experimental and has "
+                                     "not been validated against a reference implementation."
+                                     "  Proceed with caution.\n",
+                                     ri, rxndefs[ri].shells, n_distinct_donors));
+          product_states_multishell_warning = true;
+          break;    // one notice is enough
         }
       }
     }
@@ -1129,40 +1131,63 @@ void FixMSEVB::detect_reactive_sites()
     // Compatibility: the atom sets of the two chains must be fully
     // disjoint — no shared H, X, or Y tag across any depth of either chain.
     if (enumerate_product_states) {
-      // Two chains may be combined only if they modify DISJOINT atom sets (see
-      // chain_atom_set()/chains_disjoint()): comparing only tag_H/X/Y would miss
-      // shared spectator atoms that both reactions rewrite, which would let a
-      // product state be built whose two transfers clobber the same atom and
-      // corrupt its topology and diagonal energy.
+      // Enumerate every set of >=2 chain-tip sites whose atom sets are pairwise
+      // disjoint (chains_disjoint) and turn each into a product state that
+      // applies all of those chains simultaneously.  Two sites of the same
+      // reactive complex overlap, so at most one per complex is ever chosen;
+      // sites of different complexes are disjoint and combine.  This yields the
+      // full n-way product space (the Cartesian product across complexes, minus
+      // overlapping combinations), with the order emerging from the data rather
+      // than a fixed keyword.  Order is capped only by MAX_COMPONENTS (storage).
       const int n_tip = nsites;
-      for (int a = 0; a < n_tip; a++) {
-        if (sites[a].n_components != 0) continue;
-        for (int b = a + 1; b < n_tip; b++) {
-          if (sites[b].n_components != 0) continue;
-          if (!chains_disjoint(a, b)) continue;
-          grow_sites(nsites + 1);
-          tagint aH = chain_H_flat[a * max_shells + 0];
-          tagint aX = chain_X_flat[a * max_shells + 0];
-          tagint aY = chain_Y_flat[a * max_shells + 0];
-          init_site(nsites, aH, aX, aY, 0.0);
-          chain_rxn_flat[nsites * max_shells + 0] = chain_rxn_flat[a * max_shells + 0];
-          ReactiveSite &ps = sites[nsites];
-          ps.rxn_idx = sites[a].rxn_idx;
-          ps.shell = sites[a].shell;
-          ps.chain_len = sites[a].chain_len;
-          ps.n_components = 2;
-          ps.components[0] = a;
-          ps.components[1] = b;
-          for (int c = 2; c < MAX_COMPONENTS; c++) ps.components[c] = -1;
-          if (GN > 0) {
-            memcpy(glove_flat + nsites * GN, glove_flat + a * GN, GN * sizeof(tagint));
-            memcpy(chain_glove_flat + nsites * max_shells * glove_nmax,
-                   chain_glove_flat + a * max_shells * glove_nmax, glove_nmax * sizeof(tagint));
-          }
-          nsites++;
+
+      // Collect the disjoint combinations first: creating the product sites
+      // below may reallocate the flat arrays that chains_disjoint() reads.
+      std::vector<std::vector<int>> combos;
+      std::vector<int> cur;
+      std::function<void(int)> enumerate = [&](int start) {
+        for (int j = start; j < n_tip; j++) {
+          if (sites[j].n_components != 0) continue;
+          bool ok = true;
+          for (int c : cur)
+            if (!chains_disjoint(c, j)) {
+              ok = false;
+              break;
+            }
+          if (!ok) continue;
+          cur.push_back(j);
+          if ((int) cur.size() >= 2) combos.push_back(cur);
+          if ((int) cur.size() < MAX_COMPONENTS) enumerate(j + 1);
+          cur.pop_back();
         }
+      };
+      enumerate(0);
+
+      for (const auto &combo : combos) {
+        const int a = combo[0];
+        grow_sites(nsites + 1);
+        init_site(nsites, chain_H_flat[a * max_shells + 0], chain_X_flat[a * max_shells + 0],
+                  chain_Y_flat[a * max_shells + 0], 0.0);
+        chain_rxn_flat[nsites * max_shells + 0] = chain_rxn_flat[a * max_shells + 0];
+        ReactiveSite &ps = sites[nsites];
+        ps.rxn_idx = sites[a].rxn_idx;
+        ps.shell = sites[a].shell;
+        ps.chain_len = sites[a].chain_len;
+        ps.n_components = (int) combo.size();
+        for (int ci = 0; ci < (int) combo.size(); ci++) ps.components[ci] = combo[ci];
+        for (int c = (int) combo.size(); c < MAX_COMPONENTS; c++) ps.components[c] = -1;
+        if (GN > 0) {
+          memcpy(glove_flat + nsites * GN, glove_flat + a * GN, GN * sizeof(tagint));
+          memcpy(chain_glove_flat + nsites * max_shells * glove_nmax,
+                 chain_glove_flat + a * max_shells * glove_nmax, glove_nmax * sizeof(tagint));
+        }
+        nsites++;
       }
     }
+
+    // Prune to the max_states budget (ranked by collective shells, then
+    // distance) before the sites are broadcast.
+    prune_states_to_max();
 
   }    // end ipartition == 0
 
@@ -1295,6 +1320,10 @@ broadcast:
     sites[k].idx_X = atom->map(sites[k].tag_X);
     sites[k].idx_Y = atom->map(sites[k].tag_Y);
   }
+
+  // Resolve product-state coupling neighbours (needs the finalized, broadcast
+  // sites[]; deterministic, so every partition computes the same result).
+  build_product_neighbors();
 }
 
 /* ----------------------------------------------------------------------
@@ -1345,6 +1374,165 @@ bool FixMSEVB::chains_disjoint(int site_a, int site_b) const
     for (tagint y : tb)
       if (x == y) return false;
   return true;
+}
+
+/* ----------------------------------------------------------------------
+   Ranking keys used to prune to max_states: collective shell depth (sum of the
+   chain lengths of a state's components; a single-site state has one component
+   = itself) and aggregate transfer distance (sum of the components' seed
+   distances).  Lower of each is kept preferentially.
+---------------------------------------------------------------------- */
+
+int FixMSEVB::site_collective_shells(int site) const
+{
+  const ReactiveSite &s = sites[site];
+  if (s.n_components == 0) return s.chain_len;
+  int tot = 0;
+  for (int ci = 0; ci < s.n_components; ci++) tot += sites[s.components[ci]].chain_len;
+  return tot;
+}
+
+double FixMSEVB::site_aggregate_dist(int site) const
+{
+  const ReactiveSite &s = sites[site];
+  if (s.n_components == 0) return s.dist_sq;
+  double tot = 0.0;
+  for (int ci = 0; ci < s.n_components; ci++) tot += sites[s.components[ci]].dist_sq;
+  return tot;
+}
+
+/* ----------------------------------------------------------------------
+   For each product state, resolve neighbor_state[j] = the state index of the
+   configuration obtained by removing component j (the state that differs from
+   this product by exactly component j's transfer).  Runs on every partition
+   after sites[] is finalized and broadcast, so the coupling routines can place
+   an n-way product's off-diagonals onto its (n-1)-component neighbours.
+
+   Config key = the sorted set of component-site indices: {i} for a single
+   (state i+1), {i,j,...} for a product.  Removing one component of a 2-way
+   product leaves a single; of a 3-way leaves a 2-way; etc.  Every such subset
+   is itself an enumerated state, so the lookup always resolves (the pruning
+   ordering keeps the kept set closed under component removal).
+---------------------------------------------------------------------- */
+
+void FixMSEVB::build_product_neighbors()
+{
+  // Map each state's canonical component-set to its site index.
+  std::map<std::vector<int>, int> config_to_site;
+  for (int k = 0; k < nsites; k++) {
+    std::vector<int> key;
+    if (sites[k].n_components == 0) {
+      key.push_back(k);
+    } else {
+      for (int ci = 0; ci < sites[k].n_components; ci++) key.push_back(sites[k].components[ci]);
+      std::sort(key.begin(), key.end());
+    }
+    config_to_site[key] = k;
+  }
+
+  for (int k = 0; k < nsites; k++) {
+    ReactiveSite &s = sites[k];
+    if (s.n_components == 0) continue;
+    for (int j = 0; j < s.n_components; j++) {
+      std::vector<int> key;
+      for (int ci = 0; ci < s.n_components; ci++)
+        if (ci != j) key.push_back(s.components[ci]);
+      std::sort(key.begin(), key.end());
+      auto it = config_to_site.find(key);
+      s.neighbor_state[j] = (it != config_to_site.end()) ? it->second + 1 : 0;
+    }
+    for (int j = s.n_components; j < MAX_COMPONENTS; j++) s.neighbor_state[j] = 0;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Prune the reactive states to at most max_states-1 (reserving one slot for
+   the reference), keeping the lowest collective shell depth first and, within
+   a tier, the smallest aggregate distance.  Survivors are re-indexed in that
+   ranked order (so the most important states occupy the parallel partitions).
+
+   The ranking is closed under removing a component or shortening a chain: a
+   product's collective depth is strictly greater than any of its components',
+   and a chain state's is strictly greater than its parent's, so every kept
+   state's coupling neighbours (which have strictly smaller depth) are kept too.
+   Runs on partition 0 only, before the sites are broadcast.
+---------------------------------------------------------------------- */
+
+void FixMSEVB::prune_states_to_max()
+{
+  if (max_states <= 0 || nsites + 1 <= max_states) return;
+  const int keep = max_states - 1;    // reactive states (reference is state 0)
+  const int GN = glove_nmax;
+  const int ms = max_shells;
+
+  // Rank all sites by (collective shells, aggregate distance, index).
+  std::vector<int> order(nsites);
+  for (int i = 0; i < nsites; i++) order[i] = i;
+  std::stable_sort(order.begin(), order.end(), [&](int a, int b) {
+    const int ca = site_collective_shells(a), cb = site_collective_shells(b);
+    if (ca != cb) return ca < cb;
+    const double da = site_aggregate_dist(a), db = site_aggregate_dist(b);
+    if (da != db) return da < db;
+    return a < b;
+  });
+
+  std::vector<int> old2new(nsites, -1);
+  for (int n = 0; n < keep; n++) old2new[order[n]] = n;
+
+  // Rebuild the kept sites (and their chain/glove data) in ranked order,
+  // remapping component and parent references through old2new.
+  std::vector<ReactiveSite> new_sites(keep);
+  std::vector<tagint> nH((size_t) keep * ms), nX((size_t) keep * ms), nY((size_t) keep * ms);
+  std::vector<int> nR((size_t) keep * ms);
+  std::vector<tagint> ng((size_t) keep * MAX(GN, 1));
+  std::vector<tagint> ncg((size_t) keep * ms * MAX(glove_nmax, 1));
+
+  for (int n = 0; n < keep; n++) {
+    const int old = order[n];
+    ReactiveSite s = sites[old];
+    for (int ci = 0; ci < s.n_components; ci++) {
+      int nc = old2new[s.components[ci]];
+      s.components[ci] = (nc >= 0) ? nc : 0;
+    }
+    if (s.parent_state > 0) {
+      int np = old2new[s.parent_state - 1];
+      s.parent_state = (np >= 0) ? np + 1 : 0;
+    }
+    new_sites[n] = s;
+    for (int d = 0; d < ms; d++) {
+      nH[(size_t) n * ms + d] = chain_H_flat[(size_t) old * ms + d];
+      nX[(size_t) n * ms + d] = chain_X_flat[(size_t) old * ms + d];
+      nY[(size_t) n * ms + d] = chain_Y_flat[(size_t) old * ms + d];
+      nR[(size_t) n * ms + d] = chain_rxn_flat[(size_t) old * ms + d];
+    }
+    if (GN > 0) {
+      for (int g = 0; g < GN; g++) ng[(size_t) n * GN + g] = glove_flat[(size_t) old * GN + g];
+      for (int d = 0; d < ms; d++)
+        for (int g = 0; g < GN; g++)
+          ncg[((size_t) n * ms + d) * glove_nmax + g] =
+              chain_glove_flat[((size_t) old * ms + d) * glove_nmax + g];
+    }
+  }
+
+  // Copy back into the live arrays.
+  for (int n = 0; n < keep; n++) {
+    sites[n] = new_sites[n];
+    for (int d = 0; d < ms; d++) {
+      chain_H_flat[(size_t) n * ms + d] = nH[(size_t) n * ms + d];
+      chain_X_flat[(size_t) n * ms + d] = nX[(size_t) n * ms + d];
+      chain_Y_flat[(size_t) n * ms + d] = nY[(size_t) n * ms + d];
+      chain_rxn_flat[(size_t) n * ms + d] = nR[(size_t) n * ms + d];
+    }
+    if (GN > 0) {
+      for (int g = 0; g < GN; g++) glove_flat[(size_t) n * GN + g] = ng[(size_t) n * GN + g];
+      for (int d = 0; d < ms; d++)
+        for (int g = 0; g < GN; g++)
+          chain_glove_flat[((size_t) n * ms + d) * glove_nmax + g] =
+              ncg[((size_t) n * ms + d) * glove_nmax + g];
+    }
+  }
+
+  nsites = keep;
 }
 
 /* ---------------------------------------------------------------------- */

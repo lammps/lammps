@@ -48,7 +48,10 @@ Syntax
        N = global default for maximum shell depth (default: 1)
      *fermi_dirac* value = T
        T = electronic temperature for Fermi-Dirac occupancy smearing (temperature units)
-     *product_states* = enumerate product states for multi-site reactions (no value)
+     *product_states* = enumerate product (combination) states for multi-site reactions (no value)
+     *max_states* value = N
+       N = maximum total EVB states (reference + reactive) evaluated per step
+           (default: 0 = unlimited)
      *scf_topology* value = *yes* or *no*
        re-evaluate EVB after each permanent transfer until convergence (default: no)
      *scf_max_iter* value = N
@@ -329,6 +332,34 @@ direct donor-acceptor pairs within *cutoff* are reactive.  At depth N,
 the code searches for chains of length up to N by traversing the bonded
 neighbors of each detected reactive site recursively.  Each additional
 shell can dramatically increase the number of EVB states.
+
+----------
+
+Multi-site reactions and product states
+'''''''''''''''''''''''''''''''''''''''
+
+When several independent reactive complexes are present at once (e.g. more
+than one hydronium in water), each is detected as its own set of reactive
+states.  With the *product_states* keyword the fix additionally builds
+**product (combination) states** in which two or more of these complexes
+react simultaneously.  Two chains may be combined only if the atoms they
+modify are disjoint, so a product state never applies two transfers to the
+same atom.  The enumeration is fully general: it forms every disjoint
+combination of any order, and the maximum order emerges from the data (the
+number of mutually independent complexes) rather than a fixed keyword.  A
+product state couples, through the usual single-reaction-difference off
+diagonal, to each state obtained by removing one of its component transfers.
+
+Because the number of product states grows as the product of the per-complex
+state counts, it can become large.  The *max_states* keyword bounds the total
+number of states evaluated per step.  When the enumerated set exceeds this
+budget, states are pruned keeping the smallest *collective shell depth* first
+(the sum of the shell depths of a state's component chains), and, within the
+same depth, the smallest total transfer distance.  This ordering keeps the
+low-lying, physically dominant states and, because a state's coupling
+neighbors always have a strictly smaller collective depth, leaves the retained
+Hamiltonian self-consistent (no product state ever references a pruned
+neighbor).
 
 ----------
 

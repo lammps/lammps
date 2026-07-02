@@ -56,8 +56,9 @@ struct TopologyView {
   const RefTopo *ref;
 
   TopologyView(LAMMPS *lmp_in, const VirtualTopo *vtopo_in = nullptr,
-               const RefTopo *ref_in = nullptr) :
-      lmp(lmp_in), vtopo(vtopo_in), ref(ref_in) {}
+               const RefTopo *ref_in = nullptr) : lmp(lmp_in), vtopo(vtopo_in), ref(ref_in)
+  {
+  }
 
   // Atom type of the atom with global tag r (0 if unknown).
   int type(tagint r) const;

@@ -140,6 +140,12 @@ class FixMSEVB : public Fix {
     int chain_len;
     int n_components;                  // 0 = single-site; >0 = product state
     int components[MAX_COMPONENTS];    // indices into sites[] for each component
+    // For a product state, neighbor_state[j] is the STATE index (site+1, or 0
+    // for the reference) of the configuration obtained by removing component j
+    // -- i.e. the state that differs from this one by exactly component j's
+    // transfer.  Used to place the off-diagonal coupling of an n-way product
+    // onto its (n-1)-component neighbours.  Recomputed locally each step.
+    int neighbor_state[MAX_COMPONENTS];
   };
 
   // ---- Partition / communicator ---------------------------------------
@@ -398,6 +404,25 @@ class FixMSEVB : public Fix {
   // True iff two sites' chains modify disjoint atom sets (i.e. they may be
   // combined into a product state without clobbering each other's atoms).
   bool chains_disjoint(int site_a, int site_b) const;
+  // After sites[] (incl. product states) is finalized and broadcast, fill each
+  // product state's neighbor_state[] by mapping its (n-1)-component subsets to
+  // their state indices, so the coupling routines can reach them.
+  void build_product_neighbors();
+  // Collective shell depth (sum of component chain lengths) and aggregate
+  // transfer distance of a site -- the (primary, secondary) ranking keys used
+  // to prune to max_states.
+  int site_collective_shells(int site) const;
+  double site_aggregate_dist(int site) const;
+  // Prune sites[] (on partition 0, before broadcast) to keep at most
+  // max_states-1 reactive states, ranked by (collective shells, aggregate
+  // distance) ascending, and re-index the survivors.  The ranking is closed
+  // under component/parent removal, so kept products keep their neighbours.
+  void prune_states_to_max();
+
+  // Maximum total EVB states (reference + reactive) evaluated per step.
+  // 0 = unlimited.  When exceeded, states are pruned keeping the lowest
+  // collective shell depth first, then the smallest aggregate distance.
+  int max_states;
 
   // ---- Kokkos sync hooks (no-ops in base class, overridden in /kk) ------
   virtual void sync_before_force_compute();

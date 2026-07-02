@@ -87,7 +87,8 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
     temp_compute(nullptr), press_compute(nullptr), enumerate_product_states(0),
     fermi_dirac_enabled(0), fd_temperature(0.0), fd_RT(0.0), max_shells(1), file_flag(false),
     file_every(0), fpout(nullptr), json_init(0), reactive_group_bit(0), scf_topology(false),
-    scf_max_iter(10), min_terminate(false), reference_offset(0.0), reference_offset_valid(0)
+    scf_max_iter(10), min_terminate(false), reference_offset(0.0), reference_offset_valid(0),
+    max_states(0)
 {
   force_reneighbor = 1;
 
@@ -295,6 +296,11 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "product_states") == 0) {
       enumerate_product_states = 1;
       iarg += 1;
+    } else if (strcmp(arg[iarg], "max_states") == 0) {
+      if (iarg + 1 >= narg) error->universe_all(FLERR, "Fix msevb: missing value for max_states");
+      max_states = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (max_states < 0) error->universe_all(FLERR, "Fix msevb: max_states must be >= 0");
+      iarg += 2;
     } else if (strcmp(arg[iarg], "shells") == 0) {
       if (iarg + 1 >= narg) error->universe_all(FLERR, "Fix msevb: missing value for shells");
       max_shells = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
@@ -314,7 +320,8 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
       // Optional 'every N': also write a record every N steps (in addition to
       // the records written whenever a reaction occurs).
       if (iarg < narg && strcmp(arg[iarg], "every") == 0) {
-        if (iarg + 1 >= narg) error->universe_all(FLERR, "Fix msevb: file 'every' requires a value");
+        if (iarg + 1 >= narg)
+          error->universe_all(FLERR, "Fix msevb: file 'every' requires a value");
         file_every = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
         if (file_every < 1) error->universe_all(FLERR, "Fix msevb: file 'every' must be >= 1");
         iarg += 2;
@@ -323,8 +330,9 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
       if (ipartition == 0 && comm->me == 0) {
         fpout = fopen(file_name.c_str(), "w");
         if (!fpout)
-          error->one(FLERR, fmt::format("Fix msevb: cannot open file '{}': {}", file_name,
-                                        utils::getsyserror()));
+          error->one(
+              FLERR,
+              fmt::format("Fix msevb: cannot open file '{}': {}", file_name, utils::getsyserror()));
         utils::print(fpout,
                      "{\n"
                      "  \"application\": \"LAMMPS\",\n"
@@ -395,14 +403,15 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
     if (rd.coupling_type == COUPLING_RAITERI2011 &&
         (rd.coupling_lambda == 0.0 || rd.coupling_zeta == 0.0))
       error->universe_all(
-          FLERR, fmt::format("Fix msevb: reaction {} geometry/gaussian requires lambda and zeta", r));
+          FLERR,
+          fmt::format("Fix msevb: reaction {} geometry/gaussian requires lambda and zeta", r));
     else if (rd.coupling_type == COUPLING_VUILLEUMIER1998 && rd.coupling_v12 == 0.0)
       error->universe_all(FLERR,
                           fmt::format("Fix msevb: reaction {} geometry/exp requires v12", r));
     else if (rd.coupling_type == COUPLING_GRIMME2015 &&
              (rd.coupling_a == 0.0 || rd.coupling_b == 0.0))
-      error->universe_all(FLERR,
-                          fmt::format("Fix msevb: reaction {} energy/gaussian requires a and b", r));
+      error->universe_all(
+          FLERR, fmt::format("Fix msevb: reaction {} energy/gaussian requires a and b", r));
   }
 
   if (fermi_dirac_enabled) {
@@ -999,9 +1008,7 @@ void FixMSEVB::check_reaction_topology_limits(const ReactionDef &rd)
 /* ---------------------------------------------------------------------- */
 
 void FixMSEVB::init_list(int /*id*/, NeighList *ptr)
-{
-  list = ptr;
-}
+{ list = ptr; }
 
 /* ---------------------------------------------------------------------- */
 

@@ -468,7 +468,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
     random = new RanMars(lmp,seed + comm->me);
     maxlang = nlocal_body + nghost_body;
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
-    for(i = 0; i < maxlang; i++) langextra[i][0] = 0, langextra[i][1] = 0, langextra[i][2] = 0, langextra[i][3] = 0, langextra[i][4] = 0, langextra[i][5] = 0;
+    for(i = 0; i < maxlang; i++) langextra[i][0] = 0, langextra[i][1] = 0, langextra[i][2] = 0,
+                                   langextra[i][3] = 0, langextra[i][4] = 0, langextra[i][5] = 0;
   }
 
   // mass vector for granular pair styles
@@ -1253,12 +1254,12 @@ void FixRigidSmall::set_xv()
     // assume per-atom contribution is due to constraint force on that atom
 
     if (evflag) {
-      langone = langextra[atom2body[i]] ;
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       MathExtra::cross3( b->omega, x[i], v_rot) ;
       MathExtra::cross3( b->omega, v_rot, acc_centr) ;
       if(langflag) {
+        langone = langextra[atom2body[i]] ;
         fc[0] = massone * ((b->fcm[0]-langone[0])/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
         fc[1] = massone * ((b->fcm[1]-langone[1])/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
         if (domain->dimension == 2) fc[2] = 0.0;
@@ -1448,12 +1449,12 @@ void FixRigidSmall::set_v()
     // assume per-atom contribution is due to constraint force on that atom
 
     if (evflag) {
-      langone = langextra[atom2body[i]] ;
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       MathExtra::cross3( b->omega, delta, v_rot) ;
       MathExtra::cross3( b->omega, v_rot, acc_centr) ;
       if(langflag) {
+        langone = langextra[atom2body[i]] ;
         fc[0] = massone * ((b->fcm[0]-langone[0])/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
         fc[1] = massone * ((b->fcm[1]-langone[1])/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
         if (domain->dimension == 2) fc[2] = 0.0;

@@ -1357,12 +1357,12 @@ void FixRigid::set_xv()
     // assume per-atom contribution is due to constraint force on that atom
 
     if (evflag) {
-      langone = langextra[ibody];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       MathExtra::cross3( omega[ibody], x[i], v_rot) ;
       MathExtra::cross3( omega[ibody], v_rot, acc_centr) ;
       if(langflag) {
+        langone = langextra[ibody];
         fc[0] = massone * ((fcm[ibody][0]-langone[0])/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
         fc[1] = massone * ((fcm[ibody][1]-langone[1])/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
         if (domain->dimension == 2) fc[2] = 0.0;
@@ -1540,12 +1540,12 @@ void FixRigid::set_v()
     // assume per-atom contribution is due to constraint force on that atom
 
     if (evflag) {
-      langone = langextra[ibody];
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
       MathExtra::cross3( omega[ibody], delta, v_rot) ;
       MathExtra::cross3( omega[ibody], v_rot, acc_centr) ;
       if(langflag) {
+        langone = langextra[ibody];
         fc[0] = massone*((fcm[ibody][0]-langone[0])/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
         fc[1] = massone*((fcm[ibody][1]-langone[1])/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
         if (domain->dimension == 2) fc[2] = 0.0;

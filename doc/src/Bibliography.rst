@@ -1215,6 +1215,9 @@ Bibliography
 **(Rohart)**
    Rohart and Thiaville, Physical Review B, 88(18), 184422. (2013).
 
+**(Rojano)**
+   A Rojano, R J Hunt, J-P Crocombette and S T Murphy, J. Phys.: Condens. Matter, 36, 335901 (2024)
+
 **(Rosenberger)**
    Rosenberger, Sanyal, Shell and van der Vegt,  Journal of Chemical Physics, 2019, 151 (4), 044111.
 

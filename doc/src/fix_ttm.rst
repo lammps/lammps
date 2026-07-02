@@ -15,6 +15,9 @@ fix ttm/mod command
 fix ttm/thermal command
 =======================
 
+fix ttm/cascade command
+=======================
+
 Syntax
 """"""
 
@@ -25,9 +28,9 @@ Syntax
    fix ID group-ID ttm/thermal seed properties_file Nx Ny Nz keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *ttm* or *ttm/grid* or *ttm/mod* or *ttm/thermal*
+* style = *ttm* or *ttm/grid* or *ttm/mod* or *ttm/thermal* or *ttm/cascade*
 * seed = random number seed to use for white noise (positive integer)
-* remaining arguments for fix ttm or fix ttm/grid
+* remaining arguments for fix ttm, fix ttm/grid, or fix ttm/cascade
 
   .. parsed-literal::
 
@@ -77,6 +80,16 @@ Syntax
        *source* value = source
          source = volumetric heating term applied to electrons (energy/(time\*volume) units)
 
+* fix ttm/cascade supports additional keywords: *cutoff*, *offset*, *cetab*, *ketab*
+
+  .. parsed-literal::
+       *cutoff*
+       *offset* value = offset
+         offset = time offset during which electron-phonon coupling is disabled (time units)
+       *cetab* value = cetab.dat table file with electronic specific heat as a function of electronic temperature
+       *ketab* value = ketab.dat table file with electronic thermal conductivity as a function of electronic temperature
+
+
 Examples
 """"""""
 
@@ -86,6 +99,7 @@ Examples
    fix 3 all ttm/grid 123456 1.0 1.0 1.0 1.0 1.0 5.0 5 5 5 infile Te.in
    fix 4 all ttm/mod 34277 parameters.txt 5 5 5 infile T_init outfile 10 T_out
    fix 5 all ttm/thermal 11111 properties.in 10 10 10 source 0.1 infile temps.in outfile 10 temps.out
+   fix 6 all ttm/cascade 123456 1.0 1.0 1.0 1.0 1.0 5.0 5 5 5 infile Te.in cutoff cetab cetab.dat ketab ketab.dat
 
 Example input scripts using these commands can be found in examples/ttm.
 
@@ -107,8 +121,8 @@ Matter papers: :ref:`(Duffy) <Duffy>` and :ref:`(Rutherford)
 a primary knock-on atom (PKA) was initialized with a high velocity to
 simulate a radiation event.
 
-The description in this subsection applies to all 4 fix styles:
-*ttm*, *ttm/grid*, *ttm/mod*, and *ttm/thermal*.
+The description in this subsection applies to all 5 fix styles:
+*ttm*, *ttm/grid*, *ttm/mod*, *ttm/thermal*, and *ttm/cascade*.
 
 Fix *ttm/grid* distributes the regular grid across processors consistent
 with the subdomains of atoms owned by each processor, but is otherwise
@@ -129,6 +143,16 @@ Fix *ttm/thermal* allows for electronic properties to be assigned
 independently to each TTM grid point and supports external heat sources
 to the electronic subsystem. More details on fix *ttm/thermal* are
 given below.
+
+.. versionadded:: TBD
+
+Fix *ttm/cascade* allows for two additional schemes for the treatment of
+electron-ion interactions during the early stages of radiation damage
+cascades. Additionally, it allows variations of the electronic specific
+heat and electronic thermal conductivity with the local electronic
+temperature. This fix distributes the regular grid across processors in
+a manner consistent with the implementation in *ttm/grid*. More details
+on fix *ttm/cascade* are given below.
 
 Heat transfer between the electronic and atomic subsystems is carried
 out via an inhomogeneous Langevin thermostat.  Only atoms in the fix
@@ -170,17 +194,20 @@ where :math:`C_e` is the specific heat, :math:`\rho_e` is the density,
 respectively, :math:`g_p` is the coupling constant for the electron-ion
 interaction, and :math:`g_s` is the electron stopping coupling
 parameter.  :math:`C_e`, :math:`\rho_e`, and :math:`\kappa_e` are
-specified as parameters to the fix *ttm* or *ttm/grid*.  The other
-quantities are derived.  The form of the heat diffusion equation used
-here is almost the same as that in equation 6 of :ref:`(Duffy) <Duffy>`,
-with the exception that the electronic density is explicitly
-represented, rather than being part of the specific heat parameter.
+specified as parameters to the fix *ttm*, *ttm/grid*, or *ttm/cascade*.
+The other quantities are derived.  The form of the heat diffusion
+equation used here is almost the same as that in equation 6 of
+:ref:`(Duffy) <Duffy>`, with the exception that the electronic density
+is explicitly represented, rather than being part of the specific heat
+parameter.
 
-Currently, the TTM fixes assume that none of the user-supplied
-parameters will vary with temperature. Note that :ref:`(Duffy) <Duffy>`
-used a tanh() functional form for the temperature dependence of the
-electronic specific heat, but ignored temperature dependencies of any of
-the other parameters.  See more discussion below for fix *ttm/mod*.
+Currently, only *ttm/cascade* allows the :math:`C_e` and 
+:math:`\kappa_e` to vary with temperature, while the other TTM fixes
+assume that none of the user-supplied parameters will vary with
+temperature. Note that :ref:`(Duffy) <Duffy>` used a tanh() functional
+form for the temperature dependence of the electronic specific heat,
+but ignored temperature dependencies of any of the other parameters. See
+more discussion below for fix *ttm/mod* and fix *ttm/cascade*.
 
 .. note::
 
@@ -262,13 +289,13 @@ units setting in use, grid size and the current timestep.
 
 .. note::
 
-  The fix ttm/grid command does not support the *outfile* keyword.
-  Instead you can use the :doc:`dump grid <dump>` command to output
-  the electronic temperature on the distributed grid to a dump file or
-  the :doc:`restart <restart>` command which creates a file specific
-  to this fix which the :doc:`read restart <read_restart>` command
-  reads.  The file has the same format as the file the *infile* option
-  reads.
+  The fix ttm/grid and fix ttm/cascade commands do not support the 
+  *outfile* keyword. Instead you can use the :doc:`dump grid <dump>`
+  command to output the electronic temperature on the distributed 
+  grid to a dump file or the :doc:`restart <restart>` command which
+  creates a file specific to the fix which the 
+  :doc:`read restart <read_restart>` command reads. The file has the
+  same format as the file the *infile* option reads.
 
 For the fix ttm, fix ttm/mod, and fix ttm/thermal commands, the
 corresponding atomic temperature for atoms in each grid cell can be
@@ -276,9 +303,9 @@ computed and output by the :doc:`fix ave/chunk <fix_ave_chunk>` command
 using the :doc:`compute chunk/atom <compute_chunk_atom>` command to
 create a 3d array of chunks consistent with the grid used by this fix.
 
-For the fix ttm/grid command the same thing can be done using the
-:doc:`fix ave/grid <fix_ave_grid>` command and its per-grid values can
-be output via the :doc:`dump grid <dump>` command.
+For the fix ttm/grid and fix ttm/cascade commands, the same thing can be
+done using the :doc:`fix ave/grid <fix_ave_grid>` command and its 
+per-grid values can be output via the :doc:`dump grid <dump>` command.
 
 ----------
 
@@ -447,13 +474,98 @@ all properties set or *ttm/thermal* will exit with an error.
 
 ----------
 
+**Additional details for fix ttm/cascade**
+
+Fix *ttm/cascade* enables two additional treatments of the electron-ion
+interactions to address the energy exchange between fast-moving atoms
+and electrons through the Langevin force applied to atoms in the MD
+system:
+
+.. math::
+
+   F_{Langevin} = - \gamma_i v_i + \sqrt{ \frac{6 k_B T_e \gamma_p}{\Delta t} }\tilde{R},
+
+where
+
+.. math::
+
+  \gamma_i =
+  \begin{cases}
+  \gamma_{p} + \gamma_s & \text{for } v_i > v_0, \\
+  \gamma_{p} & \text{for } v_i \leq v_0 .
+  \end{cases}
+
+In the other TTM fixes, all atoms are coupled to the electronic system
+regardless of their velocity or simulation time. To prevent 
+double-counting of energy transfer that occurs when fast-moving PKAs are
+simultaneously coupled to both electronic stopping and electron-ion
+friction coefficients, Fix *ttm/cascade* implements two different
+treatments of the electron-ion interactions 
+(see :ref:`(Rojano) <Rojano>`). 
+
+The *cutoff* keyword disables electron-ion interactions for fast-moving
+particles with velocities above the electronic stopping critical
+velocity, :math:`v_0`. Effectively, this sets :math:`\gamma_{p} = 0` in
+the :math:`F_{Langevin}` term, while these particles transfer energy to
+the electronic subsystem via electronic stopping.
+
+The *offset* keyword specifies an offset time (thermalization time)
+value during which electron-ion interactions are disabled for all
+particles. During this time, only electronic stopping can facilitate
+energy transfer to the electronic subsystem.
+
+.. note::
+
+  In the *cutoff* scheme, because particles with velocities above the
+  critical velocity :math:`v_0` are decoupled from the Langevin force,
+  their kinetic energy should be excluded when measuring the local
+  atomic temperature of each grid cell.
+
+Fix *ttm/cascade* also accounts for variations of :math:`C_e` and
+:math:`\kappa_e` with the electronic temperature. 
+
+The *cetab* keyword specifies a table file with :math:`C_e` as a
+function of the electronic temperature.
+
+The *ketab* keyword specifies a table file with :math:`\kappa_e` as a
+function of the electronic temperature.
+
+The temperature ranges and properties are read from the
+table file. Lines starting with *#* and empty lines are ignored. The
+first column is the temperature for which the property on that line
+applies. The temperatures must be sorted from the lowest to the highest.
+The second column is :math:`C_e` or :math:`\kappa_e` depending on the
+keyword used. :math:`C_e` or :math:`\kappa_e` must be specified in the
+same units as the parameters for fix *ttm*. The parameters for
+intermediate temperatures are calculated with linear interpolation
+between the 2 nearest points.
+
+For example:
+
+.. parsed-literal::
+
+   # This is a comment
+   # Electronic thermal conductivity
+   #   T (K)         kappa_e (eV/(picoseconds*Angstroms*Kelvin))  # units metal
+       299.999993    4.993207259200001e-02
+       350.000001    5.878068235206918e-02
+       399.999991    6.771749817802455e-02
+
+If a grid point would have an electronic temperature below or above the
+lowest or highest temperature given in the table file, the interpolation
+will employ the lowest or highest value, respectively. When the cetab or
+ketab keywords are used, the specified fixed parameters are overwritten.
+
+----------
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The fix ttm, fix ttm/mod, and fix ttm/thermal commands write the state
 of the electronic subsystem and the energy exchange between the subsystems
-to :doc:`binary restart files <restart>`.  The fix ttm/grid command does
-not yet support writing of its distributed grid to a restart file.
+to :doc:`binary restart files <restart>`.  The fix ttm/grid and 
+fix ttm/cascade commands do not yet support writing of their distributed
+grids to a restart file.
 
 See the :doc:`read_restart <read_restart>` command for info on how to
 re-specify a fix in an input script that reads a restart file, so that
@@ -461,14 +573,14 @@ the operation of the fix continues in an uninterrupted fashion.  Note
 that the restart script must define the same size grid as the original
 script.
 
-The fix ttm/grid command also outputs an auxiliary file each time a
-restart file is written, with the electron temperatures for each grid
-cell.  The format of this file is the same as that read by the
-*infile* option explained above.  The filename is the same as the
-restart filename with ".ttm" appended.  This auxiliary file can be
-read in for a restarted run by using the *infile* option for the fix
-ttm/grid command, following the :doc:`read_restart <read_restart>`
-command.
+The fix ttm/grid and fix ttm/cascade commands also output an auxiliary
+file each time a restart file is written, with the electron 
+temperatures for each grid cell.  The format of this file is the same
+as that read by the *infile* option explained above.  The filename is
+the same as the restart filename with ".ttm" appended.  This auxiliary
+file can be read in for a restarted run by using the *infile* option
+for the fix ttm/grid and fix ttm/cascade commands, following the
+:doc:`read_restart <read_restart>` command.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to
 these fixes.
@@ -488,13 +600,13 @@ electronic subsystem energies reported at the end of the timestep.
 
 The vector values calculated are "extensive".
 
-The fix ttm/grid command also outputs a per-grid vector which stores
-the electron temperature for each grid cell in temperature :doc:`units
-<units>`. which can be accessed by various :doc:`output commands
-<Howto_output>`.  The length of the vector (distributed across all
-processors) is Nx * Ny * Nz.  For access by other commands, the name
-of the single grid produced by fix ttm/grid is "grid".  The name of
-its per-grid data is "data".
+The fix ttm/grid and fix ttm/cascade commands also output a per-grid
+vector which stores the electron temperature for each grid cell in
+temperature :doc:`units <units>`. which can be accessed by various
+:doc:`output commands <Howto_output>`.  The length of the vector
+(distributed across all processors) is Nx * Ny * Nz.  For access by
+other commands, the name of the single grid produced by fix ttm/grid is
+"grid".  The name of its per-grid data is "data".
 
 No parameter of the fixes can be used with the *start/stop* keywords
 of the :doc:`run <run>` command.  The fixes are not invoked during
@@ -559,3 +671,8 @@ Plasma Phys., 53, 129-139 (2013).
 .. _Baer:
 
 **(Baer)** B Baer and D G Walker, J. Mol. Model, 31, 220 (2025)
+
+.. _Rojano:
+
+**(Rojano)** A Rojano, R J Hunt, J-P Crocombette and S T Murphy, 
+J. Phys.: Condens. Matter, 36, 335901 (2024)

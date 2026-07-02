@@ -1346,7 +1346,10 @@ void PPPM::adjust_gewald()
   double dx;
 
   for (int i = 0; i < LARGE; i++) {
-    dx = newton_raphson_f() / derivf();
+    double dfx = derivf();
+    if (dfx == 0.0 || dfx != dfx) break;    // flat/invalid derivative
+    dx = newton_raphson_f() / dfx;
+    while (g_ewald - dx <= 0.0) dx *= 0.5;   // damp the step so g_ewald stays > 0
     g_ewald -= dx;
     if (fabs(newton_raphson_f()) < SMALL) return;
   }

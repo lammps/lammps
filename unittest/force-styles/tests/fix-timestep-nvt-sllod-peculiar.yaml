@@ -14,6 +14,7 @@ post_commands: ! |
   fix all all deform 0 xy erate/rescale ${gamma} xz erate/rescale ${gamma} yz erate/rescale ${gamma} x trate $(-v_gamma/2) y trate ${gamma} z trate $(-v_gamma/2) remap none
   fix test all nvt/sllod temp 50.0 ${t_target} 1.0 kick no psllod no peculiar yes integrator reversible
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 232.0239489750045
 global_vector: ! |-

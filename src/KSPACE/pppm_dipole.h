@@ -67,12 +67,19 @@ class PPPMDipole : public PPPM {
   FFT_SCALAR ***v3y_brick_dipole, ***v4y_brick_dipole, ***v5y_brick_dipole;
   FFT_SCALAR ***v0z_brick_dipole, ***v1z_brick_dipole, ***v2z_brick_dipole;
   FFT_SCALAR ***v3z_brick_dipole, ***v4z_brick_dipole, ***v5z_brick_dipole;
-  FFT_SCALAR *work3, *work4;
+  FFT_SCALAR *work3, *work4, *work5, *work6;
   FFT_SCALAR *densityx_fft_dipole, *densityy_fft_dipole, *densityz_fft_dipole;
+
+  // separate Green's functions for the three interaction channels
+  // greensfn (inherited) holds the dipole-dipole term; the two below
+  // hold the charge-charge and charge-dipole (cross) terms
+
+  double *greensfn_qq;     // charge-charge   influence function, p = 1
+  double *greensfn_qmu;    // charge-dipole   influence function, p = 2
 
   class Grid3d *gc_dipole;
 
-  int only_dipole_flag;
+  int has_charges;
   double musum, musqsum, mu2;
 
   double find_gewald_dipole(double, double, bigint, double, double);

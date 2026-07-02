@@ -280,7 +280,10 @@ mixing rule, this will speed-up the simulations but introduces some
 error in the force computations, as shown in :ref:`(Wennberg) <Wennberg>`.
 With *none*, it is assumed that no mixing rule is
 applicable. Splitting of the dispersion coefficients will be performed
-as described in :ref:`(Isele-Holder) <Isele-Holder1>`.
+as described in :ref:`(Isele-Holder) <Isele-Holder1>`.  The *none*
+splitting is only available with the PPPM dispersion solver; with
+*ewald/disp* the *none* value is rejected, while *pair* (the default)
+and *geom* are honored.
 
 This splitting can be influenced with the *splittol* keywords.  Only
 the eigenvalues that are larger than tol compared to the largest

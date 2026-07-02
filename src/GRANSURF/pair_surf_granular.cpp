@@ -76,14 +76,14 @@ static inline int EQUAL3(double *pt1, double *pt2) {
 
 /* ---------------------------------------------------------------------- */
 
-PairSurfGranular::PairSurfGranular(LAMMPS *lmp) : PairGranular(lmp)
+PairSurfGranular::PairSurfGranular(LAMMPS *lmp) :
+    PairGranular(lmp), endpts(nullptr), corners(nullptr), avecline(nullptr), avectri(nullptr),
+    fsl(nullptr), connect2d(nullptr), connect3d(nullptr), tcp(nullptr), atom2connect(nullptr)
 {
   single_enable = 0;
 
   emax = 0;
-  endpts = nullptr;
   cmax = 0;
-  corners = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
+NBin::NBin(LAMMPS *lmp) : Pointers(lmp), bboxlo(nullptr), bboxhi(nullptr), cutcollectionsq(nullptr)
 {
   last_bin = -1;
   mbins = maxbin = maxatom = 0;

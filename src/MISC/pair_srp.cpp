@@ -71,7 +71,7 @@ int srp_instance = 0;
  set size of pair comms in constructor
  ---------------------------------------------------------------------- */
 
-PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
+PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), cut(nullptr), a0(nullptr), srp(nullptr)
 {
   writedata = 1;
   single_enable = 0;

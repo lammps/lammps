@@ -28,7 +28,7 @@ static constexpr int EXTRA = 1000;
 
 /* ---------------------------------------------------------------------- */
 
-AngleHybrid::AngleHybrid(LAMMPS *lmp) : Angle(lmp)
+AngleHybrid::AngleHybrid(LAMMPS *lmp) : Angle(lmp), styles(nullptr), keywords(nullptr), map(nullptr)
 {
   writedata = 0;
   nstyles = 0;

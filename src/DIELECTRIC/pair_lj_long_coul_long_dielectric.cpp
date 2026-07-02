@@ -38,7 +38,8 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *_lmp) : PairLJLongCoulLong(_lmp)
+PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *_lmp) :
+    PairLJLongCoulLong(_lmp), avec(nullptr)
 {
   respa_enable = 0;
   cut_respa = nullptr;

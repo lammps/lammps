@@ -53,7 +53,7 @@ static const char cite_fix_acks2_reax[] =
 /* ---------------------------------------------------------------------- */
 
 FixACKS2ReaxFF::FixACKS2ReaxFF(LAMMPS *lmp, int narg, char **arg) :
-  FixQEqReaxFF(lmp, narg, arg)
+    FixQEqReaxFF(lmp, narg, arg), bcut_acks2(nullptr)
 {
   bcut = nullptr;
 

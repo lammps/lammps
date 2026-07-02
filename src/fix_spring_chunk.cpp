@@ -35,8 +35,8 @@ static constexpr double SMALL = 1.0e-10;
 /* ---------------------------------------------------------------------- */
 
 FixSpringChunk::FixSpringChunk(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  idchunk(nullptr), idcom(nullptr), com0(nullptr), fcom(nullptr)
+    Fix(lmp, narg, arg), idchunk(nullptr), idcom(nullptr), com0(nullptr), fcom(nullptr),
+    cchunk(nullptr), ccom(nullptr)
 {
   if (narg != 6) utils::missing_cmd_args(FLERR, "fix spring/chunk", error);
 

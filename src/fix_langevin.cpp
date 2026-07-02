@@ -48,8 +48,8 @@ static constexpr double EINERTIA = 0.2;    // moment of inertia prefactor for el
 /* ---------------------------------------------------------------------- */
 
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr),
-    tstr(nullptr), flangevin(nullptr), tforce(nullptr), franprev(nullptr), lv(nullptr),
+    Fix(lmp, narg, arg), gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), tstr(nullptr),
+    avec(nullptr), flangevin(nullptr), tforce(nullptr), franprev(nullptr), lv(nullptr),
     id_temp(nullptr), random(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix langevin", error);

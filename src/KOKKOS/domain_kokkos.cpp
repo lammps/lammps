@@ -570,6 +570,12 @@ void DomainKokkos::operator()(TagDomain_image_flip, const int &i) const {
 
 void DomainKokkos::lamda2x(int n)
 {
+  // callers that are not KOKKOS-aware (e.g. a non-KOKKOS kspace style in a
+  // triclinic run) expect the coordinates they read on the host to be updated
+  // in place. If the legacy host copy is current on entry, keep it current on
+  // exit; device-resident flows enter with a stale host copy and skip this.
+  const bool legacy_current = !atomKK->k_x.need_sync_legacy();
+
   atomKK->sync(Device,X_MASK);
   x = atomKK->k_x.view_device();
 
@@ -578,13 +584,15 @@ void DomainKokkos::lamda2x(int n)
   copymode = 0;
 
   atomKK->modified(Device,X_MASK);
+  if (legacy_current) atomKK->sync(Host,X_MASK);
 }
 
 void DomainKokkos::lamda2x(int n, int groupbit_in)
 {
+  const bool legacy_current = !atomKK->k_x.need_sync_legacy();
+
   atomKK->sync(Device,X_MASK);
   x = atomKK->k_x.view_device();
-  mask = atomKK->k_mask.view_device();
   mask = atomKK->k_mask.view_device();
   groupbit = groupbit_in;
 
@@ -593,6 +601,7 @@ void DomainKokkos::lamda2x(int n, int groupbit_in)
   copymode = 0;
 
   atomKK->modified(Device,X_MASK);
+  if (legacy_current) atomKK->sync(Host,X_MASK);
 }
 
 // NOLINTNEXTLINE
@@ -624,6 +633,10 @@ void DomainKokkos::operator()(TagDomain_lamda2x_group, const int &i) const {
 
 void DomainKokkos::x2lamda(int n)
 {
+  // see lamda2x() above: keep a current legacy host copy current for the
+  // benefit of callers that are not KOKKOS-aware
+  const bool legacy_current = !atomKK->k_x.need_sync_legacy();
+
   atomKK->sync(Device,X_MASK);
   x = atomKK->k_x.view_device();
 
@@ -632,10 +645,13 @@ void DomainKokkos::x2lamda(int n)
   copymode = 0;
 
   atomKK->modified(Device,X_MASK);
+  if (legacy_current) atomKK->sync(Host,X_MASK);
 }
 
 void DomainKokkos::x2lamda(int n, int groupbit_in)
 {
+  const bool legacy_current = !atomKK->k_x.need_sync_legacy();
+
   atomKK->sync(Device,X_MASK);
   x = atomKK->k_x.view_device();
   mask = atomKK->k_mask.view_device();
@@ -646,6 +662,7 @@ void DomainKokkos::x2lamda(int n, int groupbit_in)
   copymode = 0;
 
   atomKK->modified(Device,X_MASK);
+  if (legacy_current) atomKK->sync(Host,X_MASK);
 }
 
 // NOLINTNEXTLINE

@@ -1144,6 +1144,21 @@ struct TransformView {
     return (k_view.need_sync_host() || modified_device_legacy || modified_legacy_hostkk || modified_hostkk_legacy);
   }
 
+  // is the legacy host view stale, i.e. is one of the Kokkos views newer?
+  // (unlike need_sync_host() this ignores modified_legacy_hostkk, which means
+  // the legacy host view is the NEWER one). Under SINGLE_DEVICE device
+  // modifications are recorded via modify_hostkk(), so the hostkk term covers
+  // them; without NEED_TRANSFORM the legacy view aliases the Kokkos host
+  // mirror and staleness reduces to the DualView edge.
+
+  bool need_sync_legacy()
+  {
+    if constexpr (NEED_TRANSFORM)
+      return (modified_device_legacy || modified_hostkk_legacy);
+    else
+      return k_view.need_sync_host();
+  }
+
   bool need_sync_device_kk()
   {
     return k_view.need_sync_device();

@@ -267,6 +267,8 @@ or not.  Its default value is 1.0e-5.
 
 The *pppm/dipole* style invokes a particle-particle particle-mesh solver
 for dipole-dipole interactions, following the method of :ref:`(Cerda) <Cerda2008>`.
+When charges are present in the system, charge-charge and charge-dipole
+interactions are also computed.
 
 The *pppm/dipole/spin* style invokes a particle-particle particle-mesh solver
 for magnetic dipole-dipole interactions between magnetic spins.

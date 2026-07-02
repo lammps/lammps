@@ -5,7 +5,7 @@ epsilon: 5e-11
 skip_tests:
 prerequisites: ! |
   atom full
-  fix addtorque
+  fix addtorque/group
 pre_commands: ! ""
 post_commands: ! |
   variable xforce delete
@@ -13,8 +13,9 @@ post_commands: ! |
   variable zforce delete
   variable zforce equal 0.1*step/10.0
   fix move all nve
-  fix test solute addtorque v_xforce 0.0 v_zforce
+  fix test solute addtorque/group v_xforce 0.0 v_zforce
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 0.04019234486274616
 global_vector: ! |-

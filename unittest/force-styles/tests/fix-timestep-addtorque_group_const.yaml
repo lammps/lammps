@@ -5,12 +5,13 @@ epsilon: 7.5e-11
 skip_tests:
 prerequisites: ! |
   atom full
-  fix addtorque
+  fix addtorque/group
 pre_commands: ! ""
 post_commands: ! |
   fix move all nve
-  fix test solute addtorque 0.0 -0.1 0.1
+  fix test solute addtorque/group 0.0 -0.1 0.1
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 0.03956049051638787
 global_vector: ! |-

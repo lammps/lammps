@@ -427,52 +427,196 @@ something like the following (see ``mol-pair-zero.yaml``):
 
    [...]
 
-The following table describes the available keys and their purpose for
-testing pair styles:
+The following table describes the available keys and their purpose.  The
+``Tester`` column lists which test program(s) use each key.  ``all`` means
+every force-style tester (``test_pair_style``, ``test_bond_style``,
+``test_angle_style``, ``test_dihedral_style``, ``test_improper_style``, and
+``test_fix_timestep``), and ``bonded interaction tests`` means the
+``test_bond_style``, ``test_angle_style``, ``test_dihedral_style``, and
+``test_improper_style`` testers.  The ``Required`` column indicates whether
+a valid YAML file (for the listed tester) must contain the key (``yes``) or
+whether it may be omitted (``no``).  The reference generator always writes
+the required keys; the optional keys are either metadata added by hand
+(``skip_tests``, ``tags``) or reference data that is only emitted when the
+tested style actually provides it (e.g. ``global_scalar`` only for a fix
+with scalar output):
 
 .. list-table::
    :header-rows: 1
 
    * - Key:
+     - Tester:
+     - Required:
      - Description:
    * - lammps_version
+     - all
+     - yes
      - LAMMPS version used to last update the reference data
    * - date_generated
+     - all
+     - yes
      - date when the file was last updated
    * - epsilon
+     - all
+     - yes
      - base value for the relative precision required for tests to pass
+   * - skip_tests
+     - all
+     - no
+     - request to skip the indicated test fixtures (see table below)
+   * - tags
+     - all
+     - no
+     - used to classify tests and to adjust behavior of test fixtures (see table below)
    * - prerequisites
+     - all
+     - yes
      - list of style kind / style name pairs required to run the test
    * - pre_commands
+     - all
+     - yes
      - LAMMPS commands to be executed before the input template file is read
    * - post_commands
+     - all
+     - yes
      - LAMMPS commands to be executed right before the actual tests
    * - input_file
-     - LAMMPS input file template based on pair style zero
+     - all
+     - yes
+     - LAMMPS input file template
+   * - input_coeffs
+     - test_fix_timestep
+     - yes
+     - file with the force-field and group setup commands applied after the input template
+   * - natoms
+     - all
+     - yes
+     - number of atoms in the input file template
    * - pair_style
+     - test_pair_style
+     - yes
      - arguments to the pair_style command to be tested
    * - pair_coeff
+     - test_pair_style
+     - yes
      - list of pair_coeff arguments to set parameters for the input template
-   * - extract
-     - list of keywords supported by ``Pair::extract()`` and their dimension
-   * - natoms
-     - number of atoms in the input file template
    * - init_vdwl
+     - test_pair_style
+     - yes
      - non-Coulomb pair energy after "run 0"
    * - init_coul
+     - test_pair_style
+     - yes
      - Coulomb pair energy after "run 0"
-   * - init_stress
-     - stress tensor after "run 0"
-   * - init_forces
-     - forces on atoms after "run 0"
    * - run_vdwl
+     - test_pair_style
+     - yes
      - non-Coulomb pair energy after "run 4"
    * - run_coul
+     - test_pair_style
+     - yes
      - Coulomb pair energy after "run 4"
+   * - bond_style
+     - test_bond_style
+     - yes
+     - arguments to the bond_style command to be tested
+   * - bond_coeff
+     - test_bond_style
+     - yes
+     - list of bond_coeff arguments to set parameters
+   * - angle_style
+     - test_angle_style
+     - yes
+     - arguments to the angle_style command to be tested
+   * - angle_coeff
+     - test_angle_style
+     - yes
+     - list of angle_coeff arguments to set parameters
+   * - dihedral_style
+     - test_dihedral_style
+     - yes
+     - arguments to the dihedral_style command to be tested
+   * - dihedral_coeff
+     - test_dihedral_style
+     - yes
+     - list of dihedral_coeff arguments to set parameters
+   * - improper_style
+     - test_improper_style
+     - yes
+     - arguments to the improper_style command to be tested
+   * - improper_coeff
+     - test_improper_style
+     - yes
+     - list of improper_coeff arguments to set parameters
+   * - init_energy
+     - bonded interaction tests
+     - yes
+     - bonded interaction energy after "run 0"
+   * - run_energy
+     - bonded interaction tests
+     - yes
+     - bonded interaction energy after "run 4"
+   * - equilibrium
+     - test_bond_style
+     - yes
+     - equilibrium distance for each type
+   * - equilibrium
+     - test_angle_style
+     - yes
+     - equilibrium angle for each type
+   * - extract
+     - all but test_fix_timestep
+     - yes
+     - list of keywords supported by the style's ``extract()`` method and their dimension
+   * - init_stress
+     - all but test_fix_timestep
+     - yes
+     - stress tensor after "run 0"
+   * - init_forces
+     - all but test_fix_timestep
+     - yes
+     - forces on atoms after "run 0"
    * - run_stress
-     - stress tensor after "run 4"
+     - all
+     - no
+     - stress tensor after the run (omitted by ``test_fix_timestep`` when the fix has no virial contribution)
    * - run_forces
+     - all but test_fix_timestep
+     - yes
      - forces on atoms after "run 4"
+   * - run_pos
+     - test_fix_timestep
+     - yes
+     - per-atom positions after the run
+   * - run_vel
+     - test_fix_timestep
+     - yes
+     - per-atom velocities after the run
+   * - run_torque
+     - test_fix_timestep
+     - no
+     - per-atom torques after the run (only when the atom style stores torque)
+   * - global_scalar
+     - test_fix_timestep
+     - no
+     - the global scalar output of the tested fix, if any
+   * - global_vector
+     - test_fix_timestep
+     - no
+     - the global vector output of the tested fix, if any
+
+These reference files can be validated against the JSON schema file
+``tools/json/force-style-test-schema.json`` with the ``check-jsonschema``
+tool, which catches typos in keys, missing required keys, and values of the
+wrong type.  For example, to validate all of them at once:
+
+.. code-block:: sh
+
+   check-jsonschema --schemafile tools/json/force-style-test-schema.json \
+       unittest/force-styles/tests/*.yaml
+
+See the :ref:`JSON support files <json>` section of the :doc:`Tools`
+documentation for how to install ``check-jsonschema``.
 
 The test program will read all this data from the YAML file and then
 create a LAMMPS instance, apply the settings/commands from the YAML file
@@ -486,11 +630,144 @@ noise). Then it will restart from the previously generated restart and
 compare with the reference and also start from the data file.  A final
 check will use multi-cutoff r-RESPA (if supported by the pair style) at
 a 1:1 split and compare to the Verlet results.  These sets of tests are
-run with multiple test fixtures for accelerated styles (OPT, OPENMP,
-INTEL, KOKKOS (OpenMP only)) and for the latter three with 4 OpenMP
-threads enabled.  For these tests the relative error (epsilon) is lowered
-by a common factor due to the additional numerical noise, but the tests
-are still comparing to the same reference data.
+run with multiple test fixtures for accelerated styles: OPT, OPENMP and
+INTEL (the latter two with 4 OpenMP threads enabled), and three mutually
+exclusive KOKKOS fixtures selected by the active back end: the
+``kokkos_omp`` fixture requires the KOKKOS package compiled with the
+OpenMP back end and uses 4 OpenMP threads, while the ``kokkos_serial``
+fixture only runs when the Serial back end is the sole back end of the
+KOKKOS package (with any other back end enabled the host execution space
+would not be Serial, so this configuration must be tested with a separate
+build).  Both of these host fixtures skip when a GPU back end (CUDA, HIP,
+SYCL) is enabled, since the KOKKOS package then must run on the GPU.  The
+third fixture, ``kokkos_gpu``, is the complement: it runs only when a GPU
+back end is enabled (using ``-k on g 1``) and is skipped on host-only
+builds.  Because enabling the KOKKOS package with a GPU back end aborts
+when no usable device is present, this fixture first probes for a
+compatible GPU at runtime with ``Info::has_kokkos_gpu_device()`` (the
+KOKKOS package analog of ``Info::has_gpu_device()`` for the GPU package)
+and skips transparently when none is available, so the test suite can be
+run unchanged on machines without a GPU.  For these tests the relative error
+(epsilon) is lowered by a common factor due to the additional numerical
+noise, but the tests are still comparing to the same reference data.
+
+The KOKKOS fixtures also support the KOKKOS package compiled for reduced
+precision with ``-D KOKKOS_PREC=mixed`` (compute in single precision,
+accumulate in double precision) or ``-D KOKKOS_PREC=single``: the test
+tolerance is then relaxed by a large additional factor, similar to what
+is done for the mixed and single precision variants of the GPU package.
+Individual tests can be skipped for a given fixture by listing the
+fixture name in the ``skip_tests:`` field of the YAML file (e.g.
+``skip_tests: kokkos_omp kokkos_serial kokkos_gpu``).  A skip entry may
+also be qualified by the KOKKOS precision, e.g. ``kokkos_serial_single``
+or ``kokkos_omp_mixed``, which skips the test only for that combination
+of fixture and precision.  This is used for tests whose reference
+quantities cannot be meaningfully compared in reduced precision, for
+example global force totals that are the cancellation sum of large
+per-atom contributions in a charge-neutral system.
+
+The test fixture names accepted by ``skip_tests`` (each fixture runs the
+corresponding variant or check and self-skips when its package or back end
+is not available) are listed below.  Not every fixture exists for every
+style kind (e.g. ``gpu``, ``intel``, and ``opt`` are used by the pair-style
+tester, while ``numdiff`` is used by the bonded-style testers).
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 78
+
+   * - Fixture
+     - Description
+   * - plain
+     - the unmodified (base class) style, without a suffix
+   * - omp
+     - the ``/omp`` variant from the OPENMP package (run with 4 threads)
+   * - intel
+     - the ``/intel`` variant from the INTEL package
+   * - opt
+     - the ``/opt`` variant from the OPT package
+   * - gpu
+     - the ``/gpu`` variant from the GPU package
+   * - kokkos_serial
+     - the ``/kk`` variant from the KOKKOS package with a Serial-only build
+   * - kokkos_omp
+     - the ``/kk`` variant from the KOKKOS package with the OpenMP back end
+       (run with 4 threads)
+   * - kokkos_gpu
+     - the ``/kk`` variant from the KOKKOS package with a GPU back end
+   * - single
+     - consistency check of the style's ``single()`` method against ``compute()``
+   * - extract
+     - check of the style's ``extract()`` keywords (base style)
+   * - extract_omp
+     - check of the style's ``extract()`` keywords (``/omp`` variant)
+   * - numdiff
+     - check of the forces against a numerical derivative of the energy
+
+The ``kokkos_omp``, ``kokkos_serial``, and ``kokkos_gpu`` entries may be
+qualified with ``_single`` or ``_mixed`` (e.g. ``kokkos_gpu_single``), as
+noted above.
+
+The ``tags:`` field of a YAML file lists keywords that classify a test or
+request special handling from the test fixtures.  The fixtures query them
+with ``TestConfig::has_tag()`` so that style-specific behavior is selected by
+a descriptive tag instead of by hard-coded style names.  The recognized tags
+are:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Tag
+     - Purpose
+   * - gpu_no_mixed
+     - The GPU package variant of the style does not support mixed
+       precision GPU mode; the ``gpu`` fixture skips the test when the
+       GPU package was compiled for mixed precision.
+   * - gpu_no_single
+     - The GPU package variant of the style does not support single
+       precision GPU mode (e.g. ``born/coul/long/cs/gpu``); the ``gpu``
+       fixture skips the test when the GPU package was compiled for
+       single precision.
+   * - single_thread
+     - The style cannot run correctly with more than one thread in the
+       test (e.g.  ``dpd`` uses multiple per-thread pRNGs; ``snap`` and
+       ``pace`` due to their implementation), so the threaded fixtures
+       (``omp``, ``intel``, ``kokkos_omp``) run it with a single thread.
+   * - no_respa
+     - The ``fix_timestep`` tester does not exercise this style under
+       :doc:`run_style respa <run_style>`: rigid fixes need additional
+       work to test correctly with r-RESPA, ``fix nve/limit`` and ``fix
+       recenter`` do not support it, stochastic integrators and barostats
+       (``brownian``, ``gjf``, ``press/langevin``) draw their random
+       numbers differently under r-RESPA, and velocity-dependent forcing
+       fixes (``viscous``, ``accelerate/cos``) and the isokinetic ``nvk``
+       integrator follow a different trajectory under r-RESPA - in all of
+       these cases the verlet and r-RESPA runs cannot match.
+   * - no_reset_dt
+     - The ``fix_timestep`` tester does not exercise a timestep change
+       for this style.  The fix rejects a timestep reset (its
+       ``Fix::reset_dt()`` raises an error, e.g. :doc:`fix move
+       <fix_move>`), which would otherwise abort the test.
+   * - ellipsoid
+     - The test includes ellipsoids and thus requires :doc:`fix
+       nve/asphere <fix_nve_asphere>`.
+   * - spica_pair
+     - The test setup uses ``pair_style lj/spica`` instead of the
+       default ``pair_style zero`` (required by the ``spica`` angle
+       style).
+   * - slow
+     - The test runs significantly longer than others and ``ctest -LE
+       slow`` would skip it.
+   * - noWindows
+     - Indicates that this test must be skipped on Windows; use
+       ``ctest -LE noWindows``
+   * - unstable
+     - The test exhibits numerically unstable behavior on some
+       platforms, e.g. ARM64; Until a proper correction is found, tests
+       can be skipped with ``ctest -LE unstable``.
+   * - generated
+     - Indicates that a test input was regenerated. *Remove* after
+       confirming the correctness of the updated YAML file.
 
 Additional tests will check whether all listed extract keywords are
 supported and have the correct dimensionality and the final set of tests
@@ -926,8 +1203,9 @@ these added features.  If you are modifying some existing LAMMPS
 features, you may see failures for existing tests, if your modifications
 have some unexpected side effects or your changes render the existing
 test invalid.  If you are adding an accelerated version of an existing
-style, then only tests for INTEL, KOKKOS (with OpenMP only), OPENMP, and
-OPT will be run automatically.  Tests for the GPU package are time
+style, then only tests for INTEL, KOKKOS (with the OpenMP or Serial host
+back ends, depending on how the KOKKOS package was configured), OPENMP,
+and OPT will be run automatically.  Tests for the GPU package are time
 consuming and thus are only run *after* a merge, or when a special
 label, ``gpu_unit_tests`` is added to the pull request.  After the test
 has started, it is often best to remove the label since every PR

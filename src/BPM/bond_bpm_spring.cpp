@@ -655,3 +655,12 @@ void BondBPMSpring::unpack_forward_comm(int n, int first, double *buf)
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double BondBPMSpring::memory_usage()
+{
+  double bytes = BondBPM::memory_usage();
+  bytes += (double) nmax * sizeof(double);    // dvol0[nmax]
+  return bytes;
+}

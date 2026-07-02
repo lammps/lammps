@@ -1,18 +1,5 @@
 # -*- CMake -*- file for tests of classes computing or modifying forces
 
-find_package(YAML)
-if(NOT YAML_FOUND)
-  set(YAML_URL "https://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz" CACHE STRING "URL for libyaml tarball")
-  set(YAML_SHA256 "c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4" CACHE STRING "SHA256 checksum of libyaml tarball")
-  mark_as_advanced(YAML_URL)
-  mark_as_advanced(YAML_SHA256)
-
-  # download and build a local copy of libyaml
-  include(ExternalCMakeProject)
-  ExternalCMakeProject(libyaml ${YAML_URL} ${YAML_SHA256} yaml . CMakeLists.libyaml)
-  add_library(Yaml::Yaml ALIAS yaml)
-endif()
-
 function(extract_tags out yaml_file)
   file(STRINGS ${yaml_file} TAGS_LINE REGEX "^tags:")
   string(REPLACE "tags:" "" TAGS_LINE "${TAGS_LINE}")
@@ -33,14 +20,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 else()
   set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 endif()
-add_library(style_tests STATIC yaml_writer.cpp error_stats.cpp test_config_reader.cpp test_main.cpp)
+add_library(style_tests STATIC ../yaml_writer.cpp ../error_stats.cpp test_config_reader.cpp test_main.cpp)
 if(YAML_FOUND)
   target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
 else()
   # we always use static linkage with local compiled libyaml
   target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER} YAML_DECLARE_STATIC)
 endif()
-target_include_directories(style_tests PRIVATE ${LAMMPS_SOURCE_DIR})
+target_include_directories(style_tests PRIVATE "${LAMMPS_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(style_tests PUBLIC GTest::GMock Yaml::Yaml lammps)
 
 # propagate sanitizer options to test tools
@@ -51,15 +38,24 @@ endif()
 
 # unit test for error stats class
 add_executable(test_error_stats test_error_stats.cpp)
-target_include_directories(test_error_stats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LAMMPS_SOURCE_DIR})
+target_include_directories(test_error_stats PRIVATE "${CMAKE_CURRENT_SOURCE_DIR};${LAMMPS_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(test_error_stats PRIVATE GTest::GMockMain)
 add_test(NAME ErrorStats COMMAND test_error_stats)
 
 # pair style tester
 add_executable(test_pair_style test_pair_style.cpp)
 target_link_libraries(test_pair_style PRIVATE lammps style_tests)
+target_include_directories(test_pair_style PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 if(FFT_SINGLE)
   target_compile_definitions(test_pair_style PRIVATE -DFFT_SINGLE)
+endif()
+
+# self-contained tester for the PERI package pair styles (no YAML reference)
+if(PKG_PERI)
+  add_executable(test_pair_peri test_pair_peri.cpp)
+  target_include_directories(test_pair_peri PRIVATE ${LAMMPS_SOURCE_DIR})
+  target_link_libraries(test_pair_peri PRIVATE lammps GTest::GMock)
+  add_test(NAME PairPeri COMMAND test_pair_peri)
 endif()
 
 # prepare environment for testers
@@ -149,6 +145,7 @@ endforeach()
 
 # bond style tester
 add_executable(test_bond_style test_bond_style.cpp)
+target_include_directories(test_bond_style PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(test_bond_style PRIVATE lammps style_tests)
 
 file(GLOB BOND_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/bond-*.yaml)
@@ -167,6 +164,7 @@ endforeach()
 # angle style tester
 add_executable(test_angle_style test_angle_style.cpp)
 target_link_libraries(test_angle_style PRIVATE lammps style_tests)
+target_include_directories(test_angle_style PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 file(GLOB ANGLE_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/angle-*.yaml)
 foreach(TEST ${ANGLE_TESTS})
@@ -208,6 +206,7 @@ if(FFT_SINGLE)
   target_compile_definitions(test_fix_timestep PRIVATE -DFFT_SINGLE)
 endif()
 target_link_libraries(test_fix_timestep PRIVATE lammps style_tests)
+target_include_directories(test_fix_timestep PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 # tests for timestep related fixes (time integration, thermostat, force manipulation, constraints/restraints)
 file(GLOB FIX_TIMESTEP_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/fix-timestep-*.yaml)
@@ -226,6 +225,7 @@ endforeach()
 # dihedral style tester
 add_executable(test_dihedral_style test_dihedral_style.cpp)
 target_link_libraries(test_dihedral_style PRIVATE lammps style_tests)
+target_include_directories(test_dihedral_style PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 file(GLOB DIHEDRAL_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/dihedral-*.yaml)
 foreach(TEST ${DIHEDRAL_TESTS})
@@ -243,6 +243,7 @@ endforeach()
 # improper style tester
 add_executable(test_improper_style test_improper_style.cpp)
 target_link_libraries(test_improper_style PRIVATE lammps style_tests)
+target_include_directories(test_improper_style PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 file(GLOB IMPROPER_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/improper-*.yaml)
 foreach(TEST ${IMPROPER_TESTS})

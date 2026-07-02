@@ -49,20 +49,11 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-// large energy value used to signal overlap
-
-static constexpr double MAXENERGYSIGNAL = 1.0e100;
-
-// this must be lower than MAXENERGYSIGNAL
-// by a large amount, so that it is still
-// less than total energy when negative
-// energy contributions are added to MAXENERGYSIGNAL
-
-static constexpr double MAXENERGYTEST = 1.0e50;
-
 /* ---------------------------------------------------------------------- */
 
-FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), c_pe(nullptr), local_gas_list(nullptr), sublo(nullptr), subhi(nullptr),
+    random_universe(nullptr), random_world(nullptr), random_proc(nullptr)
 {
   if (narg != 11) utils::missing_cmd_args(FLERR, "fix gemc", error);
 
@@ -113,11 +104,11 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // unique to proc and world
 
-  random_proc = new RanPark(lmp,seed+3.0*(myworld+1)+7.0*(me+1));
+  random_proc = new RanPark(lmp,seed+3*(myworld+1)+7*(me+1));
 
   // unique to world, sync between procs
 
-  random_world = new RanPark(lmp,seed+13.0*(myworld+1));
+  random_world = new RanPark(lmp,seed+13*(myworld+1));
 
   // sync between universes
 
@@ -126,7 +117,7 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
 
   rfix.clear();
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) rfix.push_back(ifix);
 
   gemc_nmax = 0;
@@ -137,6 +128,9 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 FixGEMC::~FixGEMC()
 {
+  delete random_proc;
+  delete random_world;
+  delete random_universe;
   memory->destroy(local_gas_list);
   MPI_Comm_free(&comm_replica);
 }
@@ -168,7 +162,7 @@ void FixGEMC::init()
 
   nmoves = nvolume + nexchange + ntranslate + nrotate;
 
-  double d_nmoves = static_cast<double>(nmoves);
+  double d_nmoves    = nmoves;
   double p_exchange  = nexchange/d_nmoves;
   double p_volume    = nvolume/d_nmoves;
   double p_translate = ntranslate/d_nmoves;
@@ -325,7 +319,6 @@ void FixGEMC::pre_exchange()
   update_gas_atoms_list();
 
   energy_stored = energy_full();
-  int prev_step = 0;
 
    for (int i = 0; i < nmoves; i++) {
     imove = random_universe->uniform();

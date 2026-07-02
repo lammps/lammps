@@ -87,8 +87,8 @@ void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
   // be updated. this needs to be done in every step.
   for (i = 0; i < nall; i++) hneigh_thr[i].t = 0;
 
-  const int order1 = ewald_order&(1<<1);
-  const int order6 = ewald_order&(1<<6);
+  const int order1 = ewald_order & EWALD_COUL;
+  const int order6 = ewald_order & EWALD_DISP;
 
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
@@ -422,8 +422,8 @@ void PairLJLongTIP4PLongOMP::compute_middle()
 void PairLJLongTIP4PLongOMP::compute_outer(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
-  const int order1 = ewald_order&(1<<1);
-  const int order6 = ewald_order&(1<<6);
+  const int order1 = ewald_order & EWALD_COUL;
+  const int order6 = ewald_order & EWALD_DISP;
 
   const int nall = atom->nlocal + atom->nghost;
 
@@ -806,46 +806,48 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
         r2inv = 1.0/rsq;
         if (ORDER6) {                   // long-range lj
           if (!LJTABLE || rsq <= tabinnerdispsq) {
-            double rn = r2inv*r2inv*r2inv;
-            double x2 = g2*rsq, a2 = 1.0/x2;
-            x2 = a2*exp(-x2)*lj4i[jtype];
+            double r6inv = r2inv*r2inv*r2inv;
+            double r12inv = r6inv*r6inv;
+            double gr2 = g2*rsq, a2 = 1.0/gr2;
+            double expterm = a2*exp(-gr2)*lj4i[jtype];       // damped 1/r^6 reciprocal term
+            double g6term = g6*((a2+1.0)*a2+0.5)*expterm;
+            double g8term = g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*expterm*rsq;
             if (ni == 0) {
-              forcelj =
-                (rn*=rn)*lj1i[jtype]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
-              if (EFLAG)
-                evdwl = rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2;
+              forcelj = r12inv*lj1i[jtype]-g8term;
+              if (EFLAG) evdwl = r12inv*lj3i[jtype]-g6term;
             } else {                  // special case
-              double f = special_lj[ni], t = rn*(1.0-f);
-              forcelj = f*(rn *= rn)*lj1i[jtype]-
-                g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[jtype];
-              if (EFLAG)
-                evdwl = f*rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[jtype];
+              double factor = special_lj[ni], t = r6inv*(1.0-factor);
+              forcelj = factor*r12inv*lj1i[jtype]-g8term+t*lj2i[jtype];
+              if (EFLAG) evdwl = factor*r12inv*lj3i[jtype]-g6term+t*lj4i[jtype];
             }
           } else {                                        // table real space
-            union_int_float_t disp_t;
-            disp_t.f = rsq;
-            const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            const int disp_k = (rsq_lookup.i & ndispmask)>>ndispshiftbits;
             double f_disp = (rsq-rdisptable[disp_k])*drdisptable[disp_k];
-            double rn = r2inv*r2inv*r2inv;
+            double ftable_disp = fdisptable[disp_k]+f_disp*dfdisptable[disp_k];
+            double etable_disp = edisptable[disp_k]+f_disp*dedisptable[disp_k];
+            double r6inv = r2inv*r2inv*r2inv;
+            double r12inv = r6inv*r6inv;
             if (ni == 0) {
-              forcelj = (rn*=rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype];
-              if (EFLAG) evdwl = rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype];
+              forcelj = r12inv*lj1i[jtype]-ftable_disp*lj4i[jtype];
+              if (EFLAG) evdwl = r12inv*lj3i[jtype]-etable_disp*lj4i[jtype];
             } else {                  // special case
-              double f = special_lj[ni], t = rn*(1.0-f);
-              forcelj = f*(rn *= rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]+t*lj2i[jtype];
-              if (EFLAG) evdwl = f*rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype]+t*lj4i[jtype];
+              double factor = special_lj[ni], t = r6inv*(1.0-factor);
+              forcelj = factor*r12inv*lj1i[jtype]-ftable_disp*lj4i[jtype]+t*lj2i[jtype];
+              if (EFLAG) evdwl = factor*r12inv*lj3i[jtype]-etable_disp*lj4i[jtype]+t*lj4i[jtype];
             }
           }
         } else {                      // cut lj
-          double rn = r2inv*r2inv*r2inv;
+          double r6inv = r2inv*r2inv*r2inv;
           if (ni == 0) {
-            forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
-            if (EFLAG) evdwl = rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype];
+            forcelj = r6inv*(r6inv*lj1i[jtype]-lj2i[jtype]);
+            if (EFLAG) evdwl = r6inv*(r6inv*lj3i[jtype]-lj4i[jtype])-offseti[jtype];
           } else {                    // special case
-            double f = special_lj[ni];
-            forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
+            double factor = special_lj[ni];
+            forcelj = factor*r6inv*(r6inv*lj1i[jtype]-lj2i[jtype]);
             if (EFLAG)
-              evdwl = f * (rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype]);
+              evdwl = factor * (r6inv*(r6inv*lj3i[jtype]-lj4i[jtype])-offseti[jtype]);
           }
         }
 
@@ -1103,7 +1105,7 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
   const double cut_out_off_sq = cut_out_off*cut_out_off;
 
   int ni;
-  const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
+  const int order1 = (ewald_order | ~ewald_off) & EWALD_COUL;
   double qri;
 
   int i,j,ii,jj,jnum,itype,jtype;
@@ -1180,11 +1182,11 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
 
       if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq) {  // lj
         r2inv = 1.0/rsq;
-        double rn = r2inv*r2inv*r2inv;
-        if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
+        double r6inv = r2inv*r2inv*r2inv;
+        if (ni == 0) forcelj = r6inv*(r6inv*lj1i[jtype]-lj2i[jtype]);
         else {                  // special case
-          double f = special_lj[ni];
-          forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
+          double factor = special_lj[ni];
+          forcelj = factor*r6inv*(r6inv*lj1i[jtype]-lj2i[jtype]);
         }
 
         if (rsq > cut_out_on_sq) {                        // switching
@@ -1352,7 +1354,7 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
   const double qqrd2e = force->qqrd2e;
 
   const double cut_coulsqplus = (cut_coul+2.0*qdist)*(cut_coul+2.0*qdist);
-  const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
+  const int order1 = (ewald_order | ~ewald_off) & EWALD_COUL;
 
   const double cut_in_off = cut_respa[0];
   const double cut_in_on = cut_respa[1];
@@ -1434,11 +1436,11 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
 
       if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq) {  // lj
         r2inv = 1.0/rsq;
-        double rn = r2inv*r2inv*r2inv;
-        if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
+        double r6inv = r2inv*r2inv*r2inv;
+        if (ni == 0) forcelj = r6inv*(r6inv*lj1i[jtype]-lj2i[jtype]);
         else {                  // special case
-          double f = special_lj[ni];
-          forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
+          double factor = special_lj[ni];
+          forcelj = factor*r6inv*(r6inv*lj1i[jtype]-lj2i[jtype]);
         }
 
         if (rsq < cut_in_on_sq) {                                // switching
@@ -1713,48 +1715,51 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
         }
 
         r2inv = 1.0/rsq;
-        double rn = r2inv*r2inv*r2inv;
+        double r6inv = r2inv*r2inv*r2inv;
         if (respa_flag) respa_lj = ni == 0 ?                 // correct for respa
-                          frespa*rn*(rn*lj1i[jtype]-lj2i[jtype]) :
-                          frespa*rn*(rn*lj1i[jtype]-lj2i[jtype])*special_lj[ni];
+                          frespa*r6inv*(r6inv*lj1i[jtype]-lj2i[jtype]) :
+                          frespa*r6inv*(r6inv*lj1i[jtype]-lj2i[jtype])*special_lj[ni];
         if (ORDER6) {                                        // long-range form
           if (!ndisptablebits || rsq <= tabinnerdispsq) {
-            double x2 = g2*rsq, a2 = 1.0/x2;
-            x2 = a2*exp(-x2)*lj4i[jtype];
+            double r12inv = r6inv*r6inv;
+            double gr2 = g2*rsq, a2 = 1.0/gr2;
+            double expterm = a2*exp(-gr2)*lj4i[jtype];
+            double g6term = g6*((a2+1.0)*a2+0.5)*expterm;
+            double g8term = g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*expterm*rsq;
             if (ni == 0) {
-              forcelj =
-                (rn*=rn)*lj1i[jtype]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq-respa_lj;
-              if (EFLAG) evdwl = rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2;
+              forcelj = r12inv*lj1i[jtype]-g8term-respa_lj;
+              if (EFLAG) evdwl = r12inv*lj3i[jtype]-g6term;
             } else {                                        // correct for special
-              double f = special_lj[ni], t = rn*(1.0-f);
-              forcelj = f*(rn *= rn)*lj1i[jtype]-
-                g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[jtype]-respa_lj;
-              if (EFLAG)
-                evdwl = f*rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[jtype];
+              double factor = special_lj[ni], t = r6inv*(1.0-factor);
+              forcelj = factor*r12inv*lj1i[jtype]-g8term+t*lj2i[jtype]-respa_lj;
+              if (EFLAG) evdwl = factor*r12inv*lj3i[jtype]-g6term+t*lj4i[jtype];
             }
           } else {                        // table real space
-            union_int_float_t disp_t;
-            disp_t.f = rsq;
-            const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            const int disp_k = (rsq_lookup.i & ndispmask)>>ndispshiftbits;
             double f_disp = (rsq-rdisptable[disp_k])*drdisptable[disp_k];
+            double ftable_disp = fdisptable[disp_k]+f_disp*dfdisptable[disp_k];
+            double etable_disp = edisptable[disp_k]+f_disp*dedisptable[disp_k];
+            double r12inv = r6inv*r6inv;
             if (ni == 0) {
-              forcelj = (rn*=rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]-respa_lj;
-              if (EFLAG) evdwl = rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype];
+              forcelj = r12inv*lj1i[jtype]-ftable_disp*lj4i[jtype]-respa_lj;
+              if (EFLAG) evdwl = r12inv*lj3i[jtype]-etable_disp*lj4i[jtype];
             } else {                  // special case
-              double f = special_lj[ni], t = rn*(1.0-f);
-              forcelj = f*(rn *= rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]+t*lj2i[jtype]-respa_lj;
-              if (EFLAG) evdwl = f*rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype]+t*lj4i[jtype];
+              double factor = special_lj[ni], t = r6inv*(1.0-factor);
+              forcelj = factor*r12inv*lj1i[jtype]-ftable_disp*lj4i[jtype]+t*lj2i[jtype]-respa_lj;
+              if (EFLAG) evdwl = factor*r12inv*lj3i[jtype]-etable_disp*lj4i[jtype]+t*lj4i[jtype];
             }
           }
         } else {                                                // cut form
           if (ni == 0) {
-            forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype])-respa_lj;
-            if (EFLAG) evdwl = rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype];
+            forcelj = r6inv*(r6inv*lj1i[jtype]-lj2i[jtype])-respa_lj;
+            if (EFLAG) evdwl = r6inv*(r6inv*lj3i[jtype]-lj4i[jtype])-offseti[jtype];
           } else {                                        // correct for special
-            double f = special_lj[ni];
-            forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype])-respa_lj;
+            double factor = special_lj[ni];
+            forcelj = factor*r6inv*(r6inv*lj1i[jtype]-lj2i[jtype])-respa_lj;
             if (EFLAG)
-              evdwl = f*(rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype]);
+              evdwl = factor*(r6inv*(r6inv*lj3i[jtype]-lj4i[jtype])-offseti[jtype]);
           }
         }
 

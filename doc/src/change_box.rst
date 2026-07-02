@@ -140,6 +140,17 @@ new owning processors.
    All of these will typically lead to bad dynamics and/or generate error
    messages.
 
+.. versionchanged:: TBD
+
+Atoms that end up outside of non-periodic boundaries as a result of this
+command are now handled according to the :doc:`thermo_modify lost
+<thermo_modify>` setting, the same policy used to detect lost atoms during a
+run: with the default *error* setting the command stops with a "lost atoms"
+error, *warn* prints a warning and deletes the atoms, and *ignore* deletes
+them silently.  Previously such atoms were only reported with a warning and
+could be left in an inconsistent state (for example causing a subsequent
+:doc:`write_data <write_data>` command to write a corrupted data file).
+
 .. note::
 
    The simulation box size/shape can be changed by arbitrarily large

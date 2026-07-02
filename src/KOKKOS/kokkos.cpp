@@ -20,6 +20,8 @@
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neighbor_kokkos.h"
+#include "timer.h"
+#include "tune_kokkos.h"
 
 #include <cstring>
 #include <cctype>
@@ -40,6 +42,15 @@
 #endif
 #endif
 
+// vendor runtime headers for the GPU device probe below
+#if defined(KOKKOS_ENABLE_CUDA)
+#include <cuda_runtime.h>
+#elif defined(KOKKOS_ENABLE_HIP)
+#include <hip/hip_runtime.h>
+#elif defined(KOKKOS_ENABLE_SYCL)
+#include <sycl/sycl.hpp>
+#endif
+
 using namespace LAMMPS_NS;
 
 static const char cite_kokkos_package[] =
@@ -55,6 +66,40 @@ static const char cite_kokkos_package[] =
 
 int KokkosLMP::is_finalized = 0;
 int KokkosLMP::init_ngpus = 0;
+
+/* ----------------------------------------------------------------------
+   probe at runtime whether a compatible GPU device is present and usable
+   without initializing the KOKKOS package (which would abort for a GPU
+   backend when no device is available).  The vendor runtime device-count
+   queries return an error code instead of aborting, so this is safe to
+   call before deciding to enable the KOKKOS package, e.g. for skipping
+   tests gracefully.  Returns false for host-only KOKKOS builds.
+   This mirrors lmp_has_compatible_gpu_device() of the GPU package and is
+   wrapped by Info::has_kokkos_gpu_device().
+------------------------------------------------------------------------- */
+
+bool lmp_has_compatible_kokkos_gpu()
+{
+#if defined(KOKKOS_ENABLE_CUDA)
+  int ndev = 0;
+  if (cudaGetDeviceCount(&ndev) != cudaSuccess) return false;
+  return ndev > 0;
+#elif defined(KOKKOS_ENABLE_HIP)
+  int ndev = 0;
+  if (hipGetDeviceCount(&ndev) != hipSuccess) return false;
+  return ndev > 0;
+#elif defined(KOKKOS_ENABLE_SYCL)
+  try {
+    return !sycl::device::get_devices(sycl::info::device_type::gpu).empty();
+  } catch (...) {
+    return false;
+  }
+#else
+  // host-only KOKKOS build (Serial/OpenMP/Pthreads) or a GPU backend
+  // without a runtime device probe (e.g. OpenMPTarget)
+  return false;
+#endif
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -131,10 +176,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   pair_team_size_set = 0;
   nbin_atoms_per_bin_set = 0;
   nbin_atoms_per_bin = 16;
-  nbor_block_size = 128;
-  nbor_block_size_set = 0;
-  bond_block_size = 128;
-  bond_block_size_set = 0;
+  nbor_chunk_size = 128;
+  nbor_chunk_size_set = 0;
+  bond_chunk_size = 128;
+  bond_chunk_size_set = 0;
+  autotuning = 0;
+  perf_nsamples = 5;
+  perf_mode = 0;
+  perf_rel_tol = 0.2;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -640,16 +689,26 @@ void KokkosLMP::accelerator(int narg, char **arg)
       nbin_atoms_per_bin = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       nbin_atoms_per_bin_set = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"nbor/block/size") == 0) {
+    } else if (strcmp(arg[iarg],"nbor/chunk/size") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      nbor_block_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
-      nbor_block_size_set = 1;
+      nbor_chunk_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      nbor_chunk_size_set = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"bond/block/size") == 0) {
+    } else if (strcmp(arg[iarg],"bond/chunk/size") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      bond_block_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
-      bond_block_size_set = 1;
+      bond_chunk_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      bond_chunk_size_set = 1;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"auto/tuning") == 0) {
+      if (iarg+5 > narg) error->all(FLERR,"Illegal package kokkos command for auto/tuning");
+      autotuning = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      perf_nsamples = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
+      if (strcmp(arg[iarg+3], "max") == 0) perf_mode = 0;
+      else if (strcmp(arg[iarg+3], "ave") == 0) perf_mode = 1;
+      else if (strcmp(arg[iarg+3], "median") == 0) perf_mode = 2;
+      else error->all(FLERR,"Illegal package kokkos command for auto/tuning: must be 'max', 'ave', or 'median'");
+      perf_rel_tol = utils::numeric(FLERR, arg[iarg+4], false, lmp);
+      iarg += 5;
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
@@ -754,6 +813,13 @@ void KokkosLMP::accelerator(int narg, char **arg)
     }
   }
 
+  if (autotuning) {
+    utils::logmesg(lmp,"  autotuning is enabled: nevery = {} samples = {} mode = {}\n",
+      autotuning, perf_nsamples, (perf_mode == 0) ? "max" : (perf_mode == 1) ? "ave" : "median");
+  }
+
+#else  // LMP_KOKKOS_GPU not defined
+  if (autotuning) autotuning = 0;
 #endif
 
   // set newton flags
@@ -782,12 +848,6 @@ void KokkosLMP::newton_check()
       error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'threads/per/atom'");
     if (pair_team_size_set)
       error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'pair/team/size'");
-    if (nbin_atoms_per_bin_set)
-      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'nbin/atoms/per/bin'");
-    if (nbor_block_size_set)
-      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'nbor/block/size'");
-    if (bond_block_size_set)
-      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'bond/block/size'");
   }
 }
 

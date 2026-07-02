@@ -581,11 +581,22 @@ as broken in a simulation by removing them from the bond family
 
 A naive implementation would have us first loop over all bonds and
 compute :math:`s_{min}` in :ref:`(9) <peris0>`, then loop over all bonds
-again and break bonds with a stretch :math:`s > s0` as in
+again and break bonds with a stretch :math:`s > s_0` as in
 :ref:`(8) <perimu>`, and finally loop over all particles and compute forces
 for the next step of :ref:`Algorithm 1 <algvelverlet>`. For reasons of
-computational efficiency, we will utilize the values of :math:`s_0` from
-the *previous* timestep when deciding to break a bond.
+computational efficiency, we instead store the per-particle minimum stretch
+:math:`s_{min}` from the *previous* timestep and, when deciding whether to
+break a bond, form its critical stretch :math:`s_0 = s_{00} - \alpha\,
+s_{min}` from that bond's own :math:`s_{00}` and :math:`\alpha`.  This keeps
+the criterion correct when :math:`s_{00}` and :math:`\alpha` differ between
+atom-type pairs (for example, a deliberately weakened interface).
+
+.. versionchanged:: TBD
+
+Earlier versions stored a single per-particle critical stretch :math:`s_0`
+(the maximum of :math:`s_{00} - \alpha s` over a particle's bonds), which
+reproduces :ref:`(9) <peris0>` only when :math:`s_{00}` and :math:`\alpha`
+are identical for all atom-type pairs.
 
 .. note::
 

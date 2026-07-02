@@ -60,6 +60,7 @@ PairBondValVec::~PairBondValVec()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cut);
+    memory->destroy(r0);
     memory->destroy(alpha);
     memory->destroy(bvvsparam);
     memory->destroy(bvvv0);
@@ -71,7 +72,7 @@ PairBondValVec::~PairBondValVec()
 
 void PairBondValVec::compute(int eflag, int vflag)
 {
-  int i, j, m, ii, jj, inum, jnum, itype, jtype;
+  int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, evdwl;
   double rsq;
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -453,7 +454,7 @@ void PairBondValVec::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-int PairBondValVec::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairBondValVec::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, j, m;
 

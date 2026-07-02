@@ -29,6 +29,7 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
+#include "tune_kokkos.h"
 #include "update.h"
 
 #include <cmath>
@@ -43,6 +44,7 @@ template<class DeviceType>
 PairLJCutDipoleCutKokkos<DeviceType>::PairLJCutDipoleCutKokkos(LAMMPS *lmp) : PairLJCutDipoleCut(lmp)
 {
   respa_enable = 0;
+  tuner = nullptr;
 
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -65,6 +67,8 @@ PairLJCutDipoleCutKokkos<DeviceType>::~PairLJCutDipoleCutKokkos()
     memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
     memoryKK->destroy_kokkos(k_cut_coulsq,cut_coulsq);
   }
+
+  delete tuner;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -126,11 +130,13 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
-  int inum = list->inum;
+  inum = list->inum;
 
   // loop over neighbors of my atoms
 
   copymode = 1;
+
+  if (lmp->kokkos->autotuning && tuner) tuner->tuning_kernel_params();
 
   EV_FLOAT ev;
 
@@ -179,8 +185,20 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         if (newton_pair) Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<HALFTHREAD,1,0,true> >(0,inum),*this);
         else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<HALFTHREAD,0,0,true> >(0,inum),*this);
       } else if (neighflag == FULL) {
-        if (newton_pair) Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<FULL,1,0,true> >(0,inum),*this);
-        else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<FULL,0,0,true> >(0,inum),*this);
+        if (!tuner) {
+          if (newton_pair) Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<FULL,1,0,true> >(0,inum),*this);
+          else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairLJCutDipoleCutKernel<FULL,0,0,true> >(0,inum),*this);
+        } else {
+
+          const unsigned int team_size = lmp->kokkos->pair_team_size;
+          const unsigned int vectorsize = lmp->kokkos->threads_per_atom;
+          const unsigned int atoms_per_team = team_size/vectorsize;
+          const unsigned int num_teams = inum / atoms_per_team + (inum % atoms_per_team ? 1 : 0);
+
+          typename Kokkos::TeamPolicy<DeviceType, TagPairLJCutDipoleCutKernel<FULL,0,0,true>> team_policy(num_teams,atoms_per_team,vectorsize);
+          Kokkos::parallel_for("force", team_policy, *this);
+        }
+
       }
     }
   }
@@ -439,6 +457,238 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
   this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairLJCutDipoleCutKernel<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>(), ii, ev);
 }
 
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
+KOKKOS_INLINE_FUNCTION
+void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKernel<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>,
+    const typename Kokkos::TeamPolicy<DeviceType>::member_type &team) const
+{
+  EV_FLOAT ev;
+  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>(TagPairLJCutDipoleCutKernel<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>(), team, ev);
+}
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool STACKPARAMS>
+KOKKOS_INLINE_FUNCTION
+void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKernel<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>,
+    const typename Kokkos::TeamPolicy<DeviceType>::member_type &team, EV_FLOAT &ev) const
+{
+  //const int ii = team.league_rank(); // Get the team index
+  const int ii = team.league_rank() * team.team_size() + team.team_rank(); // Get the team index
+  if (ii >= inum) return;  // Guard against out-of-bounds
+
+  // The f and torque arrays are atomic for Half/Thread neighbor style
+  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_torque = torque;
+
+  const int i = d_ilist[ii];
+  const KK_FLOAT xtmp = x(i,0);
+  const KK_FLOAT ytmp = x(i,1);
+  const KK_FLOAT ztmp = x(i,2);
+  const KK_FLOAT mui = mu(i,3);
+  const int itype = type(i);
+  const KK_FLOAT qtmp = q[i];
+
+  const int jnum = d_numneigh[i];
+
+  KK_ACC_FLOAT fx_i = 0.0;
+  KK_ACC_FLOAT fy_i = 0.0;
+  KK_ACC_FLOAT fz_i = 0.0;
+  KK_ACC_FLOAT torquex_i = 0.0;
+  KK_ACC_FLOAT torquey_i = 0.0;
+  KK_ACC_FLOAT torquez_i = 0.0;
+
+  Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, jnum), [&](const int jj, KK_ACC_FLOAT& fx_acc, KK_ACC_FLOAT& fy_acc, KK_ACC_FLOAT& fz_acc,
+                     KK_ACC_FLOAT& tx_acc, KK_ACC_FLOAT& ty_acc, KK_ACC_FLOAT& tz_acc) {
+    int j = d_neighbors(i,jj);
+    const KK_FLOAT factor_lj = special_lj[sbmask(j)];
+    const KK_FLOAT factor_coul = special_coul[sbmask(j)];
+    j &= NEIGHMASK;
+
+    const KK_FLOAT delx = xtmp - x(j,0);
+    const KK_FLOAT dely = ytmp - x(j,1);
+    const KK_FLOAT delz = ztmp - x(j,2);
+    const int jtype = type(j);
+    const KK_FLOAT muj = mu(j,3);
+    const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+
+    KK_FLOAT cutsq_ij = STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype);
+
+    KK_FLOAT fx = 0;
+    KK_FLOAT fy = 0;
+    KK_FLOAT fz = 0;
+    KK_FLOAT tx = 0.0;
+    KK_FLOAT ty = 0.0;
+    KK_FLOAT tz = 0.0;
+
+    if (rsq < cutsq_ij) {
+      const KK_FLOAT r2inv = 1.0/rsq;
+      const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+      KK_FLOAT forcelj = 0;
+      KK_FLOAT evdwl = 0;
+      KK_FLOAT ecoul = 0;
+      KK_FLOAT forcecoulx = 0;
+      KK_FLOAT forcecouly = 0;
+      KK_FLOAT forcecoulz = 0;
+      KK_FLOAT tixcoul = 0;
+      KK_FLOAT tiycoul = 0;
+      KK_FLOAT tizcoul = 0;
+      KK_FLOAT tjxcoul = 0;
+      KK_FLOAT tjycoul = 0;
+      KK_FLOAT tjzcoul = 0;
+
+
+      // lj term
+
+      KK_FLOAT cut_ljsq_ij = STACKPARAMS?m_cut_ljsq[itype][jtype]:d_cut_ljsq(itype,jtype);
+      if (rsq < cut_ljsq_ij) {
+        forcelj = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
+                           (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
+        forcelj *= factor_lj*r2inv;
+        if (eflag_global) {
+          evdwl = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
+                          (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
+                          (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
+          evdwl *= factor_lj;
+          ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
+        }
+      } // cutsq_ljsq_ij
+
+      // coul term
+
+      KK_FLOAT cut_coulsq_ij = STACKPARAMS?m_cut_coulsq[itype][jtype]:d_cut_coulsq(itype,jtype);
+
+      if (rsq < cut_coulsq_ij) {
+
+        const KK_FLOAT r2inv = 1.0/rsq;
+        const KK_FLOAT rinv = sqrt(r2inv);
+        const KK_FLOAT qj = q[j];
+
+        KK_FLOAT r3inv = r2inv*rinv;
+
+        // charge-charge
+        if (qtmp != 0.0 && qj != 0.0) {
+          KK_FLOAT pre1 = qtmp*qj*r3inv;
+          forcecoulx += pre1*delx;
+          forcecouly += pre1*dely;
+          forcecoulz += pre1*delz;
+        }
+
+        // dipole-dipole
+
+        KK_FLOAT pdotp, pidotr, pjdotr;
+        KK_FLOAT r5inv = r3inv*r2inv;
+
+       if (mui > 0.0 && muj > 0.0) {
+
+          KK_FLOAT r7inv = r5inv*r2inv;
+
+          pdotp = mu(i,0)*mu(j,0) + mu(i,1)*mu(j,1) + mu(i,2)*mu(j,2);
+          pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
+          pjdotr = mu(j,0)*delx + mu(j,1)*dely + mu(j,2)*delz;
+
+          KK_FLOAT pre1 = 3.0*r5inv*pdotp - 15.0*r7inv*pidotr*pjdotr;
+          KK_FLOAT pre2 = 3.0*r5inv*pjdotr;
+          KK_FLOAT pre3 = 3.0*r5inv*pidotr;
+          KK_FLOAT pre4 = -1.0*r3inv;
+
+          forcecoulx += pre1*delx + pre2*mu(i,0) + pre3*mu(j,0);
+          forcecouly += pre1*dely + pre2*mu(i,1) + pre3*mu(j,1);
+          forcecoulz += pre1*delz + pre2*mu(i,2) + pre3*mu(j,2);
+
+          KK_FLOAT crossx = pre4 * (mu(i,1)*mu(j,2) - mu(i,2)*mu(j,1));
+          KK_FLOAT crossy = pre4 * (mu(i,2)*mu(j,0) - mu(i,0)*mu(j,2));
+          KK_FLOAT crossz = pre4 * (mu(i,0)*mu(j,1) - mu(i,1)*mu(j,0));
+
+          tixcoul += crossx + pre2 * (mu(i,1)*delz - mu(i,2)*dely);
+          tiycoul += crossy + pre2 * (mu(i,2)*delx - mu(i,0)*delz);
+          tizcoul += crossz + pre2 * (mu(i,0)*dely - mu(i,1)*delx);
+          tjxcoul += -crossx + pre3 * (mu(j,1)*delz - mu(j,2)*dely);
+          tjycoul += -crossy + pre3 * (mu(j,2)*delx - mu(j,0)*delz);
+          tjzcoul += -crossz + pre3 * (mu(j,0)*dely - mu(j,1)*delx);
+        }
+
+        // dipole-charge
+
+        if (mui > 0 && qj != 0) {
+          pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
+          KK_FLOAT pre1 = 3.0*qj*r5inv * pidotr;
+          KK_FLOAT pre2 = qj*r3inv;
+
+          forcecoulx += pre2*mu(i,0) - pre1*delx;
+          forcecouly += pre2*mu(i,1) - pre1*dely;
+          forcecoulz += pre2*mu(i,2) - pre1*delz;
+          tixcoul += pre2 * (mu(i,1)*delz - mu(i,2)*dely);
+          tiycoul += pre2 * (mu(i,2)*delx - mu(i,0)*delz);
+          tizcoul += pre2 * (mu(i,0)*dely - mu(i,1)*delx);
+        }
+
+        // charge-dipole
+
+        if (qtmp != 0 && muj > 0) {
+          pjdotr = mu(j,0)*delx + mu(j,1)*dely + mu(j,2)*delz;
+          KK_FLOAT pre1 = 3.0*qtmp*r5inv * pjdotr;
+          KK_FLOAT pre2 = qtmp*r3inv;
+
+          forcecoulx += pre1*delx - pre2*mu(j,0);
+          forcecouly += pre1*dely - pre2*mu(j,1);
+          forcecoulz += pre1*delz - pre2*mu(j,2);
+          tjxcoul += -pre2 * (mu(j,1)*delz - mu(j,2)*dely);
+          tjycoul += -pre2 * (mu(j,2)*delx - mu(j,0)*delz);
+          tjzcoul += -pre2 * (mu(j,0)*dely - mu(j,1)*delx);
+        }
+
+        KK_FLOAT fq = factor_coul*qqrd2e;
+        fx = fq*forcecoulx + delx*forcelj;
+        fy = fq*forcecouly + dely*forcelj;
+        fz = fq*forcecoulz + delz*forcelj;
+        tx = fq*tixcoul;
+        ty = fq*tiycoul;
+        tz = fq*tizcoul;
+
+        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+          a_f(j,0) -= fx;
+          a_f(j,1) -= fy;
+          a_f(j,2) -= fz;
+          a_torque(j,0) += fq*tjxcoul;
+          a_torque(j,1) += fq*tjycoul;
+          a_torque(j,2) += fq*tjzcoul;
+        }
+
+        if (EVFLAG && eflag_global) {
+          ecoul = qtmp*qj*rinv;
+          if (mu(i,3) > 0.0 && mu(j,3) > 0.0)
+            ecoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;
+          if (mu(i,3) > 0.0 && qj != 0.0)
+            ecoul += -qj*r3inv*pidotr;
+          if (mu(j,3) > 0.0 && qtmp != 0.0)
+            ecoul += qtmp*r3inv*pjdotr;
+          ecoul *= factor_coul*qqrd2e;
+          ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*ecoul;
+        }
+      } // cutsq_coulsq_ij
+
+      if (EVFLAG && (eflag_atom || vflag_either))
+        ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, ecoul+evdwl, fx, fy, fz, delx, dely, delz);
+
+      fx_acc += fx;
+      fy_acc += fy;
+      fz_acc += fz;
+      tx_acc += tx;
+      ty_acc += ty;
+      tz_acc += tz;
+
+    } // cutsq_ij
+  }, fx_i, fy_i, fz_i, torquex_i, torquey_i, torquez_i);
+
+  a_f(i,0) += fx_i;
+  a_f(i,1) += fy_i;
+  a_f(i,2) += fz_i;
+  a_torque(i,0) += torquex_i;
+  a_torque(i,1) += torquey_i;
+  a_torque(i,2) += torquez_i;
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -577,6 +827,14 @@ void PairLJCutDipoleCutKokkos<DeviceType>::init_style()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+
+  if (lmp->kokkos->autotuning > 0 && !tuner) {
+    if (!force->newton_pair)
+      tuner = new TuneKokkos(lmp, TuneKokkos::PAIR, lmp->kokkos->autotuning,
+        2, "pair-lj-cut-dipole-cut");
+    else
+      error->warning(FLERR,"Autotuner for lj/cut/dipole/cut/kk is disabled with 'newton on'");
+  }
 }
 
 /* ----------------------------------------------------------------------

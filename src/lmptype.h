@@ -320,7 +320,8 @@ struct multitype {
 
 #if defined(__INTEL_COMPILER) || (defined(__PGI) && !defined(__NVCOMPILER))
 #define _noalias restrict
-#elif defined(__GNUC__) || defined(__INTEL_LLVM_COMPILER) || defined(__NVCOMPILER)
+#elif defined(__GNUC__) || defined(__INTEL_LLVM_COMPILER) || defined(__NVCOMPILER) || \
+    defined(_MSC_VER)
 #define _noalias __restrict
 #else
 #define _noalias

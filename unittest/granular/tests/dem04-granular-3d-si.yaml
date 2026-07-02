@@ -1,0 +1,66 @@
+---
+lammps_version: 30 Mar 2026
+tags: granular
+date_generated: Fri May 29 16:39:30 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  pair granular
+pre_commands: ! |
+  units lj
+  dimension 3
+  boundary p f f
+  atom_style sphere
+  region box block -5.0 5.0 -1.0 1.0 -0.5 3.0 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 0.0 ${z0} units box
+  set group all diameter ${diam} density ${dens}
+  velocity all set ${u0} 0.0 0.0
+  comm_modify vel yes
+  neighbor 0.3 bin
+  timestep 2.0e-4
+post_commands: ! |
+  fix grav all gravity ${grav} vector 0.0 0.0 -1.0
+  fix integr all nve/sphere
+  fix zwall all wall/gran granular hooke ${knorm} ${en} tangential linear_history ${kt} ${gt} ${xmu} damping coeff_restitution zplane 0.0 NULL
+input_file:
+natoms: 1
+variables: ! |
+  diam 1.0
+  dens 1.0
+  knorm 1.0e4
+  en 0.9
+  kt 2857.0
+  gt 50.0
+  xmu 0.5
+  grav 1.0
+  u0 1.0
+  radius 0.5
+  z0 0.49994764
+pair_style: granular
+pair_coeff: ! |
+  * * hooke ${knorm} ${en} tangential linear_history ${kt} ${gt} ${xmu} damping coeff_restitution
+run_segments: ! |-
+  2000 2000 3000
+analytic_enable: yes
+analytic_model: slip_cessation
+analytic_tol: 0.005
+analytic_segment: 2
+run_pos: ! |2
+    0   1  3.6001999998805151e-01  0.0000000000000000e+00  4.9994764011743803e-01
+    1   1  6.5478363567795406e-01  0.0000000000000000e+00  4.9994764012498077e-01
+    2   1  1.0834423236247468e+00  0.0000000000000000e+00  4.9994764012239951e-01
+run_vel: ! |2
+    0   1  8.0005000138420557e-01  0.0000000000000000e+00 -2.5345589839426964e-09
+    1   1  7.1532076566893166e-01  0.0000000000000000e+00 -2.3253258400576456e-10
+    2   1  7.1428655875330471e-01  0.0000000000000000e+00 -2.4852012027712798e-11
+run_torque: ! |2
+    0   1  0.0000000000000000e+00  1.3089970949302940e-01  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  3.2116282128709091e-03  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  2.6202718039662139e-06  0.0000000000000000e+00
+run_omega: ! |2
+    0   1  0.0000000000000000e+00  9.9974999307899148e-01  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  1.4233961716553385e+00  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  1.4285672062334340e+00  0.0000000000000000e+00
+...

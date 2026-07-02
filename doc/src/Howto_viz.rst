@@ -223,16 +223,50 @@ the color is assigned to atom (or bond) types and uses a default map
 with six colors as follows:
 
 * type 1 = red
-* type 2 = green
+* type 2 = forestgreen
 * type 3 = blue
-* type 4 = yellow
+* type 4 = gold
 * type 5 = cyan
 * type 6 = magenta
+* type 7 = silver
+* type 8 = orange
+* type 9 = lime
+* type 10 = gray
+* type 11 = darkred
+* type 12 = darkgreen
+* type 13 = darkblue
+* type 14 = darkcyan
+* type 15 = darkmagenta
+* type 16 = darkgray
 
-and repeats itself for types :math:`> 6`.  This mapping can be changed by the
-"dump_modify acolor" command, though.  If you want to change the color of a
-specific atom type, you can use :doc:`dump modify acolor <dump_image>`.  For
-example to color atoms of type 1 in gray and type 2 in white, you would use:
+
+.. |color_red| image:: img/colors/red.png
+.. |color_forestgreen| image:: img/colors/forestgreen.png
+.. |color_blue| image:: img/colors/blue.png
+.. |color_gold| image:: img/colors/gold.png
+.. |color_cyan| image:: img/colors/cyan.png
+.. |color_magenta| image:: img/colors/magenta.png
+.. |color_silver| image:: img/colors/silver.png
+.. |color_orange| image:: img/colors/orange.png
+.. |color_lime| image:: img/colors/lime.png
+.. |color_gray| image:: img/colors/gray.png
+.. |color_darkred| image:: img/colors/darkred.png
+.. |color_darkgreen| image:: img/colors/darkgreen.png
+.. |color_darkblue| image:: img/colors/darkblue.png
+.. |color_darkcyan| image:: img/colors/darkcyan.png
+.. |color_darkmagenta| image:: img/colors/darkmagenta.png
+.. |color_darkgray| image:: img/colors/darkgray.png
+
+and repeats itself for types > 16. The default color sequence is thus:
+|color_red|       |color_forestgreen|  |color_blue|         |color_gold|
+|color_cyan|      |color_magenta|      |color_silver|       |color_orange|
+|color_lime|      |color_gray|         |color_darkred|      |color_darkgreen|
+|color_darkblue|  |color_darkcyan|     |color_darkmagenta|  |color_darkgray|
+
+This mapping can be changed by the "dump_modify acolor" command, though.
+If you want to change the color of a specific atom type, you can use
+:doc:`dump modify acolor <dump_image>`.  For example to color atoms of
+type 1 in gray and type 2 in white, you would use:
 
 .. code-block:: LAMMPS
 
@@ -291,9 +325,47 @@ the charge:
 
 .. raw:: html
 
-   <center>(Different colorization styles. Left to right: by default
+   <center>(Different colorization settings. Left to right: by default
    type map, by custom type map, by element, and by charge. Click to see
-   the full-size images)</center>
+   the full-size images)</center><br>
+
+.. versionchanged:: TBD
+
+Similar color selections are available for coloring bonds. The available
+options are: *type*, *atom*, *c_ID* (or *c_ID[I]*), and *none*.  With
+*type* the bonds are colored by having a color assigned to each bond
+type which follows the same color sequence as for atoms but can be set
+for each bond type independent from atom types.  When using the *atom*
+selection the bond color follows the color of the atoms.  Bonds are
+drawn in two pieces as a cylinder from the center of the bond to each of
+the atoms. Thus if two atoms have different color, the bond also as two
+parts with different colors with this setting.  If the a compute
+reference is used (e.g. *c_ID* or *c_ID[I]*) the bond color is taken
+from a colormap and the color depends on the value of the compute for
+the given bond.  An input example for coloring bonds by the force
+magnitude is given below. When the bond color argument is *none*, no
+bonds are drawn.
+
+.. code-block:: LAMMPS
+
+   compute  bforce peptide bond/local force
+   dump     viz    peptide image 100 myimage-*.png element type bond c_bforce type
+
+.. |bcolors1| image:: img/bondcolor-type.png
+   :width: 24%
+.. |bcolors2| image:: img/bondcolor-element.png
+   :width: 24%
+.. |bcolors3| image:: img/bondcolor-mapforce.png
+   :width: 24%
+.. |bcolors4| image:: img/bondcolor-none.png
+   :width: 24%
+
+|bcolors1|  |bcolors2|  |bcolors3|  |bcolors4|
+
+.. raw:: html
+
+   <center>(Different bond colorization settings. Left to right: by type, by element,
+   by bond force, and no bonds. Click to see the full-size images)</center>
 
 --------------------
 
@@ -832,6 +904,7 @@ and fix styles:
    * :doc:`fix indent <fix_indent>`
    * :doc:`fix reaxff/bonds <fix_reaxff_bonds>`
    * :doc:`fix smd/wall_surface <fix_smd_wall_surface>`
+   * :doc:`fix surface/global <fix_surface_global>`
    * :doc:`fix wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`fix wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`fix wall/ees <fix_wall_ees>`

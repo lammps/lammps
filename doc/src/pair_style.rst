@@ -117,6 +117,7 @@ accelerated styles exist.
 * :doc:`agni <pair_agni>` - AGNI machine-learning potential
 * :doc:`aip/water/2dm <pair_aip_water_2dm>` - anisotropic interfacial potential for water in 2d geometries
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
+* :doc:`airebo/bc <pair_airebo>` - AIREBO with bond-centric P_CC (Hur and Stuart)
 * :doc:`airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
 * :doc:`amoeba <pair_amoeba>` -
 * :doc:`atm <pair_atm>` - Axilrod-Teller-Muto potential
@@ -396,6 +397,7 @@ accelerated styles exist.
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -
 * :doc:`srp/react <pair_srp>` -
+* :doc:`surf/granular <pair_surf_granular>` - line/triangle interactions with granular spheres
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
 * :doc:`sw/angle/table <pair_sw_angle_table>` - Stillinger-Weber potential with tabulated angular term
 * :doc:`sw/mod <pair_sw>` - modified Stillinger-Weber 3-body potential

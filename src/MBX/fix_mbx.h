@@ -172,6 +172,7 @@ class FixMBX : public Fix {
   void unpack_forward_comm(int, int, double *) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
+  double memory_usage() override;
 };
 
 }    // namespace LAMMPS_NS

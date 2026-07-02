@@ -43,6 +43,14 @@ add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)
 
+if(PKG_EXTRA-FIX)
+  add_executable(test_fix_tprpmd test_fix_tprpmd.cpp)
+  target_link_libraries(test_fix_tprpmd PRIVATE lammps GTest::GMock)
+  add_test(NAME FixTPRPMD COMMAND test_fix_tprpmd --gtest_filter=FixTPRPMDSerialTest.*)
+  add_mpi_test(NAME FixTPRPMDPartition NUM_PROCS 2
+               COMMAND $<TARGET_FILE:test_fix_tprpmd> --gtest_filter=FixTPRPMDMPI.*)
+endif()
+
 add_executable(test_regions test_regions.cpp)
 target_link_libraries(test_regions PRIVATE lammps GTest::GMock)
 add_test(NAME Regions COMMAND test_regions)

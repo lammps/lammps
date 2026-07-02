@@ -1,0 +1,16 @@
+This directory contains minimal regression examples for the
+``fix tprpmd`` style in the EXTRA-FIX package.
+
+Files:
+
+- ``in.electron_tprpmd`` runs a quadratic toy model with an analytic
+  constant-potential equilibrium using a two-bead TP-RPMD integrator.
+- ``in.electron_tprpmd_restart`` continues from the restart written by
+  ``in.electron_tprpmd`` and can be used to check restart continuity.
+
+Build LAMMPS with the EXTRA-FIX package enabled before running these
+examples.
+
+Run ``in.electron_tprpmd`` with a partitioned launch, for example
+``mpirun -np 2 lmp -partition 2x1 -in in.electron_tprpmd``, before
+running ``in.electron_tprpmd_restart`` with the same partition layout.

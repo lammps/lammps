@@ -1,0 +1,213 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifdef FIX_CLASS
+// clang-format off
+FixStyle(tprpmd,FixTPRPMD);
+// clang-format on
+#else
+
+#ifndef LMP_FIX_TPRPMD_H
+#define LMP_FIX_TPRPMD_H
+
+#include "arg_info.h"
+#include "fix.h"
+
+namespace LAMMPS_NS {
+
+class Compute;
+class Fix;
+
+class FixTPRPMD : public Fix {
+ public:
+  FixTPRPMD(class LAMMPS *, int, char **);
+  ~FixTPRPMD() override;
+
+  int setmask() override;
+
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void end_of_step() override;
+
+  double compute_vector(int) override;
+
+ protected:
+  // System setting variables
+  int method;                              // TPPIMD or TPRPMD
+  int fmmode;                              // physical or normal
+  int np;                                  // number of beads
+  double inverse_np;                       // 1.0/np
+  double temp;                             // temperature
+  double hbar;                             // Planck's constant
+  double lj_epsilon, lj_sigma, lj_mass;    // LJ unit energy, length, and mass scales
+  double other_planck;
+  double other_mvv2e;
+  double kt;               // k_B * temp
+  double beta, beta_np;    // beta = 1./kBT beta_np = 1./kBT/np
+  int thermostat;          // NHC
+  int integrator;          // obabo or baoab
+  int ensemble;            // UVT
+  int mapflag;             // should be 1 if number of beads > 1
+  int removecomflag;
+  double masstotal;
+
+  double fixedpoint[3];    // location of dilation fixed-point
+
+  // NHC
+
+  double *eta, *eta_dot;    // chain thermostat for particles
+  double *eta_dotdot;
+  double *eta_mass;
+
+  int mtchain;                 // length of chain
+  int nc_tchain;
+  double factor_eta;
+  double drag, tdrag_factor;     // drag factor on particle thermostat
+  double t_freq;
+  double t_period;
+  double tdof;
+  double ke_target;
+
+  // ring-polymer model
+
+  double omega_np, fbond, spring_energy, sp;
+
+  // fictitious mass
+
+  double fmass, *mass;
+
+  // inter-partition communication
+
+  MPI_Comm rootworld;
+  int me, nprocs, ireplica, nreplica, nprocs_universe;
+  int ntotal, maxlocal;
+
+  int x_last, x_next;
+
+  int cmode;
+  int sizeplan;
+  int *plansend, *planrecv;
+
+  tagint *tagsend, *tagrecv;
+  double **bufsend, **bufrecv, **bufbeads;
+  double **bufsorted, **bufsortedall;
+
+  tagint *tagsendall, *tagrecvall;
+  double **bufsendall, **bufrecvall;
+
+  int *counts, *displacements;
+
+  void comm_init();
+  void inter_replica_comm(double **ptr);
+
+  /* normal-mode operations */
+
+  double *lam, **M_x2xp, **M_xp2x;
+  int *modeindex;
+
+  void reallocate();
+  void nmpimd_init();
+  void nmpimd_transform(double **, double **, double *);
+
+  /* Ring-polymer integration helpers */
+
+  double dtv, dtf, dtv2, dtv3, dthalf, dt4, dt8;
+  double tau;
+  double *tau_k;
+  double pilescale;
+  double *_omega_k, *Lan_s, *Lan_c;    // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
+
+  int tstat_flag;    // tstat_flat = 1 if thermostat if used
+  void nhc_init();
+  void b_step();    // integrate for dt/2 according to B part (v <- v + f * dt/2)
+  void
+  a_step();    // integrate for dt/2 according to A part (non-centroid mode, harmonic force between replicas)
+  void qc_step();    // integrate for dt/2 for the centroid mode (x <- x + v * dt/2)
+  void o_step();     // integrate for dt according to O part (O-U process, for thermostating)
+  void nhc_temp_integrate();
+
+  virtual void nh_v_temp();
+  bool nuclear_thermostat_off() const;
+  bool ne_thermostat_participates() const;
+  bool nhc_chain_active() const;
+  double chain0_target_energy() const;
+  double ne_kinetic_current_share() const;
+
+  /* potentiostat */
+
+  int ustat_flag;
+  double mu;
+  double *Ne_dot;
+  double *Ne_mass;
+  double u_freq;
+  double u_period;
+  void nhc_mu_integrate();
+  void compute_mu_target();
+  double evaluate_dedn();
+  void refresh_dedn_cache();
+  void parse_dedn_source(const char *);
+
+  /* centroid-virial estimator computation */
+  double **xc, *xcall;
+  int maxxc;
+  int maxunwrap;
+  double **x_unwrap;
+  void reallocate_x_unwrap();
+  void reallocate_xc();
+  void collect_xc();
+  void remove_com_motion();
+  double vir, vir_, centroid_vir;
+  double t_prim, t_vir, t_cv, p_prim, p_cv, p_md;
+
+  /* Computes */
+  double pote, tote, totke;
+  double ke_bead, se_bead, pe_bead;
+  double total_spring_energy;
+  char *id_pe;
+  char *id_press;
+  class Compute *c_pe;
+  class Compute *c_press;
+
+  void compute_totke();            // 1: kinetic energy
+  void compute_spring_energy();    // 2: spring elastic energy
+  void compute_pote();             // 3: potential energy
+  void compute_tote();             // 4: total energy: 1+2+3 for all the beads
+  void compute_t_prim();
+  void compute_t_vir();
+  void compute_p_prim();
+  void compute_p_cv();    // centroid-virial pressure estimator
+  void compute_vir();
+  void compute_xf_vir();
+  void compute_cvir();
+  void write_restart(FILE *fp) override;
+  int size_restart_global();
+  int pack_restart_data(double *list);
+  void restart(char *buf) override;
+
+  double *Ne;
+  double u_start, u_stop;
+  double u_current, u_target;
+  char *dedn_name;
+  int dedn_which;
+  int dedn_index;
+  int dedn_var;
+  Compute *dedn_compute;
+  Fix *dedn_fix;
+  double dedn_current;
+};
+}    // namespace LAMMPS_NS
+#endif
+#endif

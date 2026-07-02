@@ -517,6 +517,7 @@ Cerda
 ceriotti
 Ceriotti
 Cerutti
+cetab
 cfg
 CFG
 cfile
@@ -1985,6 +1986,7 @@ Kemppainen
 Kemper
 kepler
 Kemppainen
+ketab
 keV
 Keyes
 keyfile

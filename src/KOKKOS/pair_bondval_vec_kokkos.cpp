@@ -293,14 +293,14 @@ void PairBondValVecKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (need_dup)
       Kokkos::Experimental::contribute(d_eatom, dup_eatom);
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     if (need_dup)
       Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -382,7 +382,7 @@ double PairBondValVecKokkos<DeviceType>::init_one(int i, int j)
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
+  k_cutsq.modify_host();
   k_params.template modify<LMPHostType>();
 
   return cutone;
@@ -396,11 +396,11 @@ int PairBondValVecKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual
                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
-  v_buf = buf.view<DeviceType>();
   int buffer_size = n * datom;
-  if (buf.extent(0) < buffer_size){
+  if (buf.extent(0) < (size_t) buffer_size){
       buf.resize(buffer_size);
   }
+  v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairBondValVecPackForwardComm>(0,n),*this);
   return buffer_size;
 }
@@ -542,9 +542,9 @@ void PairBondValVecKokkos<DeviceType>::operator()(TagPairBondValVecKernelA<NEIGH
 
   const int jnum = d_numneigh[i];
 
-  KK_FLOAT s0xtmp = 0.0;
-  KK_FLOAT s0ytmp = 0.0;
-  KK_FLOAT s0ztmp = 0.0;
+  KK_ACC_FLOAT s0xtmp = 0.0;
+  KK_ACC_FLOAT s0ytmp = 0.0;
+  KK_ACC_FLOAT s0ztmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
@@ -631,9 +631,9 @@ void PairBondValVecKokkos<DeviceType>::operator()(TagPairBondValVecKernelAB<EFLA
 
   const int jnum = d_numneigh[i];
 
-  KK_FLOAT s0xtmp = 0.0;
-  KK_FLOAT s0ytmp = 0.0;
-  KK_FLOAT s0ztmp = 0.0;
+  KK_ACC_FLOAT s0xtmp = 0.0;
+  KK_ACC_FLOAT s0ytmp = 0.0;
+  KK_ACC_FLOAT s0ztmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);

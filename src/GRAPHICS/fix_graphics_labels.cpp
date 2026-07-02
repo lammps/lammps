@@ -602,7 +602,7 @@ FixGraphicsLabels::FixGraphicsLabels(LAMMPS *lmp, int narg, char **arg) :
 
       // clang-format off
       ScaleInfo scale{"", "", {0.0, 0.0, 0.0}, 0, 0, nullptr, {255, 255, 255}, {192, 192, 192},
-                      {192, 192, 192}, {192, 192, 192}, false, true, 48.0, 0.5, 0, 0,
+                      {192, 192, 192}, {192, 192, 192}, false, true, 48.0, 0.5, 0, 0, Image::ATOM_MAP,
                       -1, -1, -1, -1, nullptr, nullptr, nullptr, nullptr};
       // clang-format on
       scale.dumpid = arg[iarg + 1];
@@ -650,6 +650,19 @@ FixGraphicsLabels::FixGraphicsLabels(LAMMPS *lmp, int narg, char **arg) :
             utils::missing_cmd_args(FLERR, "fix graphics/labels colorscale tics", error);
           scale.tics = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
           if (scale.tics < 0) error->all(FLERR, iarg + 1, "Invalid tics value");
+          iarg += 2;
+        } else if (strcmp(arg[iarg], "map") == 0) {
+          if (iarg + 2 > narg)
+            utils::missing_cmd_args(FLERR, "fix graphics/labels colorscale map", error);
+          if (strcmp(arg[iarg + 1], "atom") == 0)
+            scale.mapidx = Image::ATOM_MAP;
+          else if (strcmp(arg[iarg + 1], "grid") == 0)
+            scale.mapidx = Image::GRID_MAP;
+          else if (strcmp(arg[iarg + 1], "bond") == 0)
+            scale.mapidx = Image::BOND_MAP;
+          else
+            error->all(FLERR, iarg + 1,
+                       "Unknown fix graphics/labels colorscale map value: {}", arg[iarg + 1]);
           iarg += 2;
         } else if (strcmp(arg[iarg], "fontcolor") == 0) {
           if (iarg + 2 > narg)
@@ -798,9 +811,19 @@ void FixGraphicsLabels::init()
     if (!image || (dim != 0))
       error->all(FLERR, Error::NOLASTLINE, "Could not extract color scale info from dump {}",
                  scale.dumpid);
+
+    // warn if the selected colormap is not used to color anything in the dump,
+    // in which case the color scale label would show its (unused) default range
+    if ((comm->me == 0) && !dump->colormap_active(scale.mapidx)) {
+      const char *mapname[] = {"atom", "grid", "bond"};
+      error->warning(FLERR,
+                     "Color scale for dump {} uses the {} color map, which is not used to "
+                     "color anything in that dump image",
+                     scale.dumpid, mapname[scale.mapidx]);
+    }
     double lo, hi;
     bool seqmap;
-    if (image->map_info(0, lo, hi, seqmap) && (comm->me == 0))
+    if (image->map_info(scale.mapidx, lo, hi, seqmap) && (comm->me == 0))
       error->warning(FLERR,
                      "Dump {} uses a dynamic color map. "
                      "Color scale can only use data from previous dump output\n",
@@ -1000,7 +1023,7 @@ void FixGraphicsLabels::end_of_step()
       delete[] scale.pixmap;
       scale.pixmap = renderfont.create_colorscale(
           expanded, scale.width, scale.height, scale.fontcolor, scale.framecolor, scale.backcolor,
-          scale.horizontal, scale.length, image, 0, scale.tics);
+          scale.horizontal, scale.length, image, scale.mapidx, scale.tics);
 
       imgobjs[n] = Graphics::PIXMAP;
       imgparms[n][0] = 1;

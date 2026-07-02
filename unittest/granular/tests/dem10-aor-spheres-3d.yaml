@@ -1,0 +1,59 @@
+---
+lammps_version: 30 Mar 2026
+tags: granular slow
+date_generated: Fri May 29 19:55:45 2026
+epsilon: 1e-04
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  pair granular
+  fix pour
+pre_commands: ! |
+  units lj
+  dimension 3
+  boundary f f f
+  atom_style sphere
+  lattice sc 1.0
+  region box block -4.0 4.0 -4.0 4.0 -0.5 10.0 units box
+  create_box 1 box
+  region pourreg block -1.2 1.2 -1.2 1.2 3.0 4.5 units box
+  comm_modify vel yes
+  neighbor 0.3 bin
+  timestep 5.0e-4
+post_commands: ! |
+  fix grav all gravity ${grav} vector 0.0 0.0 -1.0
+  fix integr all nve/sphere
+  fix zwall all wall/gran granular hooke ${knorm} ${en} tangential linear_history ${kt} ${gt} ${xmu} rolling sds ${kr} ${gr} ${mur} damping coeff_restitution zplane 0.0 NULL
+  fix xwall all wall/gran granular hooke ${knorm} ${en} tangential linear_history ${kt} ${gt} ${xmu} rolling sds ${kr} ${gr} ${mur} damping coeff_restitution xplane -3.5 3.5
+  fix ywall all wall/gran granular hooke ${knorm} ${en} tangential linear_history ${kt} ${gt} ${xmu} rolling sds ${kr} ${gr} ${mur} damping coeff_restitution yplane -3.5 3.5
+  fix ins all pour ${npour} 1 ${seed} region pourreg diam one ${diam} dens ${dens} ${dens}
+input_file:
+natoms: 0
+variables: ! |
+  diam 1.0
+  dens 1.0
+  knorm 1.0e4
+  en 0.3
+  kt 8235.0
+  gt 50.0
+  xmu 1.0
+  kr 500.0
+  gr 50.0
+  mur 0.5
+  grav 2.0
+  npour 120
+  seed 5783
+  floor 0.0
+  aor_lo 15.0
+  aor_hi 55.0
+pair_style: granular
+pair_coeff: ! |
+  * * hooke ${knorm} ${en} tangential linear_history ${kt} ${gt} ${xmu} rolling sds ${kr} ${gr} ${mur} damping coeff_restitution
+run_segments: ! |-
+  85000
+analytic_enable: yes
+analytic_model: angle_of_repose
+analytic_tol: 1
+analytic_segment: 0
+analytic_only: yes
+...

@@ -470,6 +470,20 @@ files even if the LAMMPS sources are not locally available. Example:
 
    check-jsonschema --schemafile https://download.lammps.org/json/molecule-schema.json tip3p.json
 
+Because YAML is a superset of JSON, the same tool and mechanism can also
+validate YAML files against a JSON schema.  This is used for the force-style
+regression test reference files in the ``unittest/force-styles`` folder, which
+are described by ``force-style-test-schema.json``.  For example, to validate
+all of them:
+
+.. code-block:: sh
+
+   check-jsonschema --schemafile force-style-test-schema.json \
+       unittest/force-styles/tests/*.yaml
+
+See the :doc:`unit test developer documentation <Developer_unittest>` for a
+description of the available keys in these reference files.
+
 JSON file format normalization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

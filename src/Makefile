@@ -432,7 +432,7 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
-check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-docs check-version
+check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-docs
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..

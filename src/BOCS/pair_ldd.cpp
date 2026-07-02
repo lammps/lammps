@@ -851,7 +851,7 @@ void PairLdd::read_file(char *filename)
   }
 
   // track which ordered species pairs have been defined (duplicate/completeness checks)
-  std::vector<int> seen(nelements * nelements, 0);
+  std::vector<int> seen((std::size_t)nelements * nelements, 0);
 
   char line[MAXLINE];
   int done = 0;

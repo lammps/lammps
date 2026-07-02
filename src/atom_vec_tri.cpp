@@ -27,7 +27,6 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using MathConst::MY_PI;
 
 static constexpr double EPSILON = 0.001;
 

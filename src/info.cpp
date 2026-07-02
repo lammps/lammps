@@ -1045,6 +1045,7 @@ bool Info::has_package(const std::string &package_name) {
 extern bool lmp_gpu_config(const std::string &, const std::string &);
 extern bool lmp_has_compatible_gpu_device();
 extern std::string lmp_gpu_device_info();
+extern void lmp_gpu_defer_device_clear(int);
 
 // we will only report compatible GPUs, i.e. when a GPU device is
 // available *and* supports the required floating point precision
@@ -1057,6 +1058,13 @@ std::string Info::get_gpu_device_info()
 {
   return lmp_gpu_device_info();
 }
+
+// defer (or restore) the GPU package device teardown. used only by the test
+// harness so the GPU package does not reset a device the KOKKOS package shares.
+void Info::gpu_defer_device_clear(int flag)
+{
+  lmp_gpu_defer_device_clear(flag);
+}
 #else
 bool Info::has_gpu_device()
 {
@@ -1065,6 +1073,25 @@ bool Info::has_gpu_device()
 std::string Info::get_gpu_device_info()
 {
   return "";
+}
+void Info::gpu_defer_device_clear(int)
+{
+}
+#endif
+
+#if defined(LMP_KOKKOS)
+extern bool lmp_has_compatible_kokkos_gpu();
+
+// report whether the KOKKOS package can access a compatible GPU device.
+// returns false for host-only KOKKOS builds or when no GPU is available.
+bool Info::has_kokkos_gpu_device()
+{
+  return lmp_has_compatible_kokkos_gpu();
+}
+#else
+bool Info::has_kokkos_gpu_device()
+{
+  return false;
 }
 #endif
 

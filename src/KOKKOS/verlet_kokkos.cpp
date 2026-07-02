@@ -447,7 +447,14 @@ void VerletKokkos::run(int n)
       if (pair_compute_flag && force->pair->datamask_modify != datamask_exclude)
         Kokkos::fence();
       atomKK->sync_pinned(HostKK,~(~datamask_read_host|datamask_exclude),1);
-      if (pair_compute_flag && (force->pair->execution_space != HostKK &&
+      // zero the host-side force buffer before the host styles accumulate into
+      // it, so the later device/host force merge does not re-add stale values.
+      // skip this only when the pair style itself runs on the host, since then
+      // the pair force we want to merge already lives in this buffer.  the old
+      // guard required pair_compute_flag, so with the pair disabled (e.g.
+      // "pair_modify compute no") but host-side bonded styles still present the
+      // buffer was left stale and its contents were re-added every step.
+      if (!pair_compute_flag || (force->pair->execution_space != HostKK &&
           force->pair->execution_space != Host)) {
         Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_hostkk(),0.0);
         atomKK->k_f.modify_hostkk_legacy();

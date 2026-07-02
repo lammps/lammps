@@ -6,6 +6,14 @@ on:
 
   workflow_dispatch:
 
+# Coverity Scan project name. Override by setting a repository variable named
+# COVERITY_PROJECT (Settings -> Secrets and variables -> Actions -> Variables);
+# it falls back to "LAMMPS" when the variable is unset. Keep this in sync with
+# the exact project name shown on scan.coverity.com. The matching COVERITY_TOKEN
+# and COVERITY_EMAIL live in Actions secrets.
+env:
+  COVERITY_PROJECT: ${{ vars.COVERITY_PROJECT || 'LAMMPS' }}
+
 jobs:
   analyze:
     name: Analyze
@@ -16,7 +24,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 2
 
@@ -36,7 +44,7 @@ jobs:
       working-directory: download
       run: |
         if ! wget -nv --server-response \
-             --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=LAMMPS" \
+             --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=${{ env.COVERITY_PROJECT }}" \
              -O coverity_tool.tgz \
              https://scan.coverity.com/download/linux64 2> wget.log; then
           cat wget.log
@@ -47,7 +55,7 @@ jobs:
           fi
           exit 1
         fi
-        wget -nv https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=LAMMPS&md5=1" -O coverity_tool.md5
+        wget -nv https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=${{ env.COVERITY_PROJECT }}&md5=1" -O coverity_tool.md5
         echo " coverity_tool.tgz" >> coverity_tool.md5
         md5sum -c coverity_tool.md5
 
@@ -110,4 +118,4 @@ jobs:
              --form file=@build/lammps.tgz \
              --form version=${{ github.sha }} \
              --form description="LAMMPS automated build" \
-             https://scan.coverity.com/builds?project=LAMMPS
+             https://scan.coverity.com/builds?project=${{ env.COVERITY_PROJECT }}

@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "error_stats.h"
+#include "info.h"
 #include "library.h"
 #include "pointers.h"
 #include "test_config.h"
@@ -178,6 +179,9 @@ void write_yaml_header(YamlWriter *writer, TestConfig *cfg, const char *version)
 
     // input_file
     writer->emit("input_file", cfg->input_file);
+
+    // input_coeffs (only used by the fix-timestep tester; omitted when unset)
+    if (!cfg->input_coeffs.empty()) writer->emit("input_coeffs", cfg->input_coeffs);
 }
 
 // need to be defined in unit test body
@@ -279,6 +283,13 @@ int main(int argc, char **argv)
             return 1;
         }
     }
+
+    // the GPU package resets the whole GPU device when its fix is destroyed,
+    // which invalidates the KOKKOS package device context and crashes at
+    // Kokkos::finalize(). when both packages can use the GPU in this process,
+    // defer the GPU package device teardown to process exit so they coexist.
+    if (LAMMPS_NS::Info::has_package("GPU") && LAMMPS_NS::Info::has_kokkos_gpu_device())
+        LAMMPS_NS::Info::gpu_defer_device_clear(1);
 
     int rv = RUN_ALL_TESTS();
 

@@ -58,6 +58,7 @@ PairBondValVec::~PairBondValVec()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cut);
+    memory->destroy(r0);
     memory->destroy(alpha);
     memory->destroy(bvvsparam);
     memory->destroy(bvvv0);

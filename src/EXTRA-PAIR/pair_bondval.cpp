@@ -53,9 +53,11 @@ PairBondVal::~PairBondVal()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cut);
+    memory->destroy(r0);
     memory->destroy(alpha);
     memory->destroy(sparam);
     memory->destroy(v0);
+    memory->destroy(energy0);
     memory->destroy(offset);
   }
 }

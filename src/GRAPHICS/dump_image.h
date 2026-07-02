@@ -46,6 +46,7 @@ class DumpImage : public DumpCustom {
   void write() override;
 
   void *extract(const char *, int &) override;
+  int colormap_active(int);    // 1 if the colormap with the given index colors something
 
  protected:
   int filetype;
@@ -73,6 +74,9 @@ class DumpImage : public DumpCustom {
   int bcolor, bdiam;    // what determines color/diam of bonds
   double bdiamvalue;    // bond diameter value
   double bondcutoff;    // autobond cutoff
+  char *id_bond_compute;    // ID of per-bond /local compute for bond coloring (or null)
+  Compute *bond_compute;    // ptr to that compute, resolved in init_style()
+  int bond_argindex;        // 1-based column for c_ID[N]; 0 selects the whole vector
 
   int extraflag;                                    // 0/1 for any of line/tri/body flag set
   char *thetastr, *phistr;                          // variables for view theta,phi

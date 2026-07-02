@@ -47,7 +47,10 @@ static constexpr int OFFSET = 16384;
 
 PPPMDispOMP::PPPMDispOMP(LAMMPS *lmp) : PPPMDisp(lmp), ThrOMP(lmp, THR_KSPACE)
 {
-  triclinic_support = 0;
+  // triclinic reciprocal-space setup and Poisson solve are inherited from the
+  // base class (ik differentiation); the threaded make_rho/fieldforce already
+  // operate in lamda coordinates, so the omp variant supports triclinic too
+  triclinic_support = 1;
   suffix_flag |= Suffix::OMP;
 }
 

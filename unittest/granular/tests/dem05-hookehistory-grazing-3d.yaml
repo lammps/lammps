@@ -1,0 +1,58 @@
+---
+lammps_version: 30 Mar 2026
+tags: granular
+date_generated: Fri May 29 18:27:20 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  pair gran/hooke/history
+pre_commands: ! |
+  units lj
+  dimension 3
+  boundary p p f
+  atom_style sphere
+  region box block -10.0 10.0 -2.0 2.0 -0.5 5.0 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 0.0 ${z0} units box
+  set group all diameter ${diam} density ${dens}
+  velocity all set ${vx_in} 0.0 -${vz_in}
+  comm_modify vel yes
+  neighbor 0.3 bin
+  timestep 2.0e-5
+post_commands: ! |
+  fix integr all nve/sphere
+  fix zwall all wall/gran hooke/history ${knorm} NULL ${gnorm} NULL ${xmu} 1 zplane 0.0 NULL
+input_file:
+natoms: 1
+variables: ! |
+  diam 1.0
+  dens 1.0
+  knorm 1.0e4
+  gnorm 10.0
+  xmu 0.5
+  vx_in 4.0
+  vz_in 1.0
+  z0 0.55
+pair_style: gran/hooke/history ${knorm} NULL ${gnorm} NULL ${xmu} 1
+pair_coeff: ! |
+  * *
+run_segments: ! |-
+  4000 4000
+analytic_enable: yes
+analytic_model: energy_dissipation
+analytic_tol: 0.001
+analytic_segment: 1
+run_pos: ! |2
+    0   1  3.0175077594998145e-01  0.0000000000000000e+00  5.0647290772730569e-01
+    1   1  5.4591857348327422e-01  0.0000000000000000e+00  5.7786219665344374e-01
+run_vel: ! |2
+    0   1  3.0520974691666085e+00  0.0000000000000000e+00  8.9236611157415258e-01
+    1   1  3.0520974691666085e+00  0.0000000000000000e+00  8.9236611157415258e-01
+run_torque: ! |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+run_omega: ! |2
+    0   1  0.0000000000000000e+00  4.7395126541669219e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  4.7395126541669219e+00  0.0000000000000000e+00
+...

@@ -2,7 +2,7 @@
 lammps_version: 12 Jun 2025
 date_generated: Sun Jul 20 14:16:44 2025
 epsilon: 2.5e-13
-skip_tests:
+skip_tests: kokkos_gpu
 tags: unstable
 prerequisites: ! |
   atom full

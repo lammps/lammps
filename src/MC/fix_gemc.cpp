@@ -52,7 +52,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), c_pe(nullptr), sublo(nullptr), subhi(nullptr)
+    Fix(lmp, narg, arg), c_pe(nullptr), local_gas_list(nullptr), sublo(nullptr), subhi(nullptr),
+    random_universe(nullptr), random_world(nullptr), random_proc(nullptr)
 {
   if (narg != 11) utils::missing_cmd_args(FLERR, "fix gemc", error);
 
@@ -127,6 +128,9 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
 
 FixGEMC::~FixGEMC()
 {
+  delete random_proc;
+  delete random_world;
+  delete random_universe;
   memory->destroy(local_gas_list);
   MPI_Comm_free(&comm_replica);
 }

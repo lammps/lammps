@@ -148,9 +148,12 @@ void BondQuarticKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 0;
 
-  // sync forces and brokenflag to host for post-processing
+  // mark forces as modified by the kernels above, then pull positions,
+  // forces, and bond topology into the legacy host arrays for the bond
+  // breaking and pair correction post-processing below
 
-  atomKK->k_f.sync_host();
+  atomKK->modified(execution_space, F_MASK);
+  atomKK->sync(Host, X_MASK | F_MASK | BOND_MASK | TAG_MASK | TYPE_MASK);
   atomKK->k_f.modify_host();
 
   k_brokenflag.sync_host();
@@ -224,9 +227,15 @@ void BondQuarticKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     (void) type_n;
   }
 
-  // mark bondlist as modified on host so neighbor knows
+  // mark bondlist and broken bond topology as modified on host
 
   neighborKK->k_bondlist.modify_host();
+  atomKK->modified(Host, BOND_MASK);
+
+  // transform the updated forces back into the Kokkos views, since the
+  // integrator marks them as modified in execution_space after compute()
+
+  atomKK->sync(execution_space, F_MASK);
 }
 
 template<class DeviceType>

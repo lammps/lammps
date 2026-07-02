@@ -136,7 +136,7 @@ def get_git_commit():
     try:
         commit = subprocess.run(['git','rev-parse','HEAD'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         if commit.returncode == 0:
-            return commit.stdout.decode()
+            return commit.stdout.decode().strip()
     except:
         pass
     return ''
@@ -475,11 +475,16 @@ man_pages = [
 
 
 # strip off LAMMPS_NS:: from index entries
+# NOTE: keep this list sorted in *reverse* alphabetical order.  The sphinx
+# c++ domain sorts it in place at 'builder-inited' time, which is after
+# sphinx has compared the configuration against the cached build environment.
+# Since this is an 'env'-rebuild option, any other order makes the comparison
+# fail on every run and forces re-reading all documentation sources.
 cpp_index_common_prefix = [
-    'LAMMPS_NS::',
-    '_LMP_STYLE_CONST::',
+    '_LMP_VAR_CONST::',
     '_LMP_TYPE_CONST::',
-    '_LMP_VAR_CONST::'
+    '_LMP_STYLE_CONST::',
+    'LAMMPS_NS::'
 ]
 
 # -- Options for Texinfo output -------------------------------------------
@@ -537,6 +542,16 @@ if spelling_spec and has_enchant:
     spelling_lang='en_US'
     spelling_word_list_filename='false_positives.txt'
 
+# 'release', 'git_commit', and the latex title page embed git-derived strings
+# that change with every commit.  None of them appear in the spelling builder
+# output, but 'release' is an 'env'-rebuild option, so a new commit would
+# otherwise invalidate the cached build environment and force re-reading
+# every documentation source file.  Keep them constant when spell checking.
+if 'spelling' in sys.argv:
+    release = version
+    git_commit = ''
+    latex_elements['maketitle'] = ''
+
 conf_script_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(conf_script_dir, '.'))
 import LAMMPSLexer
@@ -589,3 +604,17 @@ html_context['downloads'] = [
   ('PDF', 'Manual.pdf'),
   ('Source', 'https://github.com/lammps/lammps/archive/' + git_commit + '.tar.gz'),
 ]
+
+def _restore_static_path(app, env):
+    # the sphinx_tabs and sphinx_design extensions insert generated paths
+    # into html_static_path at 'builder-inited' time, i.e. *after* sphinx has
+    # compared the configuration against the cached build environment.  The
+    # mutated list is stored in the environment pickle and can then never
+    # match a freshly loaded conf.py, so every incremental run claims
+    # "The configuration has changed (html_static_path)".  Builders that
+    # copy no static files can safely store the pristine value instead.
+    if app.builder.name in ('spelling', 'linkcheck'):
+        app.config.html_static_path[:] = ['_static']
+
+def setup(app):
+    app.connect('env-updated', _restore_static_path)

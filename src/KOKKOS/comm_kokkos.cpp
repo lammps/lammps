@@ -1873,3 +1873,20 @@ void CommKokkos::forward_comm_array(int nsize, double **array)
   k_sendlist.sync_host();
   CommBrick::forward_comm_array(nsize,array);
 }
+
+/* ----------------------------------------------------------------------
+   explicit instantiation of the host-type Fix comm methods.
+   The dispatchers above only ever call the LMPDeviceType versions, so on a
+   GPU build (LMPHostType != LMPDeviceType) the host versions are not
+   implicitly instantiated here.  FixRigidSmallKokkos<LMPHostType> (the
+   rigid/small/kk/host variant) calls them directly with DeviceType =
+   LMPHostType, so without these they remain undefined symbols in
+   liblammps.so.
+------------------------------------------------------------------------- */
+
+#ifdef LMP_KOKKOS_GPU
+namespace LAMMPS_NS {
+template void CommKokkos::forward_comm_device<LMPHostType>(Fix *, int);
+template void CommKokkos::reverse_comm_device<LMPHostType>(Fix *, int);
+}
+#endif

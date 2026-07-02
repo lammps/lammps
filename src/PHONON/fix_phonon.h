@@ -54,7 +54,6 @@ class FixPhonon : public Fix {
   int modify_param(int, char **) override;
 
  private:
-  int me, nprocs;
   bigint waitsteps;     // wait these number of timesteps before recording atom positions
   bigint prev_nstep;    // number of steps from previous run(s); to judge if waitsteps is reached.
   int nfreq, ifreq;     // after this number of measurement (nfreq), the result will be output once

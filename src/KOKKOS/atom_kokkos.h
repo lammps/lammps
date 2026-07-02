@@ -62,6 +62,9 @@ class AtomKokkos : public Atom {
   DAT::ttransform_tagint_2d k_improper_atom1, k_improper_atom2, k_improper_atom3, k_improper_atom4;
 
   DAT::ttransform_kkfloat_2d k_dvector;
+  DAT::tdual_int_2d_lr k_ivector;         // width-1: single contiguous 2D view
+  tdual_struct_tdual_int_2d_1d k_iarray;  // ragged cols: view-of-views
+  tdual_struct_tdual_double_2d_1d k_darray;
 
   // SPIN package
 

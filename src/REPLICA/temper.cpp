@@ -292,6 +292,12 @@ void Temper::command(int narg, char **arg)
 
     MPI_Bcast(&swap,1,MPI_INT,0,world);
 
+    // a swap is only accepted for an in-range partner (boundary worlds never
+    // swap), so partner_set_temp is guaranteed valid whenever swap is set
+
+    if (swap && (partner_set_temp < 0 || partner_set_temp >= nworlds))
+      error->universe_one(FLERR,"Internal error: invalid tempering swap partner");
+
     // rescale kinetic energy via velocities if move is accepted
 
     if (swap) scale_velocities(partner_set_temp,my_set_temp);

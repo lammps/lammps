@@ -38,6 +38,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["pre_commands"]   = &TestConfigReader::pre_commands;
     consumers["post_commands"]  = &TestConfigReader::post_commands;
     consumers["input_file"]     = &TestConfigReader::input_file;
+    consumers["input_coeffs"]   = &TestConfigReader::input_coeffs;
     consumers["extract"]        = &TestConfigReader::extract;
     consumers["natoms"]         = &TestConfigReader::natoms;
     consumers["init_stress"]    = &TestConfigReader::init_stress;
@@ -131,6 +132,11 @@ void TestConfigReader::epsilon(const yaml_event_t &event)
 void TestConfigReader::input_file(const yaml_event_t &event)
 {
     config.input_file = (char *)event.data.scalar.value;
+}
+
+void TestConfigReader::input_coeffs(const yaml_event_t &event)
+{
+    config.input_coeffs = (char *)event.data.scalar.value;
 }
 
 void TestConfigReader::extract(const yaml_event_t &event)

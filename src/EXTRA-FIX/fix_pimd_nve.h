@@ -1,0 +1,157 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifdef FIX_CLASS
+// clang-format off
+FixStyle(pimd/nve,FixPIMDNVE);
+// clang-format on
+#else
+
+#ifndef LMP_FIX_PIMD_NVE_H
+#define LMP_FIX_PIMD_NVE_H
+
+#include "fix.h"
+
+#include <functional>
+
+namespace LAMMPS_NS {
+
+class Compute;
+
+class FixPIMDNVE : public Fix {
+ public:
+  FixPIMDNVE(class LAMMPS *, int, char **);
+  ~FixPIMDNVE() override;
+
+  int setmask() override;
+
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void end_of_step() override;
+
+  double compute_vector(int) override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+
+ protected:
+  using KeywordParser = std::function<bool(int, char **, int &)>;
+
+  FixPIMDNVE(class LAMMPS *, int, char **, bool);
+  void init_defaults();
+  void finish_constructor_setup();
+  void parse_arguments(int, char **, const KeywordParser &);
+  bool parse_common_keyword(int, char **, int &);
+
+  int integrator;
+  int fmmode;
+  int np;
+  double inverse_np;
+  double temp;
+  double hbar;
+  double lj_epsilon, lj_sigma, lj_mass;
+  double other_planck;
+  double other_mvv2e;
+  double kt;
+  double beta, beta_np;
+  int mapflag;
+  int removecomflag;
+  double masstotal;
+  double omega_np, fbond, spring_energy, sp;
+  double fmass, *mass;
+
+  MPI_Comm rootworld;
+  int me, nprocs, ireplica, nreplica, nprocs_universe;
+  int ntotal, maxlocal;
+  int x_last, x_next;
+  int cmode;
+  int sizeplan;
+  int *plansend, *planrecv;
+  tagint *tagsend, *tagrecv;
+  double **bufsend, **bufrecv, **bufbeads;
+  double **bufsorted, **bufsortedall;
+  tagint *tagsendall, *tagrecvall;
+  double **bufsendall, **bufrecvall;
+  int *counts, *displacements;
+
+  double *lam, **M_x2xp, **M_xp2x;
+  int *modeindex;
+
+  double dtv, dtf, dtv2, dtv3;
+  double *_omega_k, *Lan_s, *Lan_c;
+
+  double **xc, *xcall;
+  int maxxc;
+  int maxunwrap;
+  double **x_unwrap;
+
+  double vir, vir_, centroid_vir;
+  double t_prim, t_vir, t_cv, p_prim, p_cv, p_md;
+  double pote, tote, totke;
+  double ke_bead, se_bead, pe_bead;
+  double total_spring_energy;
+  char *id_pe;
+  char *id_press;
+  class Compute *c_pe;
+  class Compute *c_press;
+
+  void comm_init();
+  void inter_replica_comm(double **);
+  void reallocate();
+  void reallocate_x_unwrap();
+  void reallocate_xc();
+
+  void nmpimd_init();
+  void nmpimd_transform(double **, double **, double *);
+
+  void collect_xc();
+  void b_step();
+  void qc_step();
+  void a_step();
+  void remove_com_motion();
+
+  void compute_xf_vir();
+  void compute_cvir();
+  void compute_vir();
+  void compute_totke();
+  void compute_spring_energy();
+  void compute_pote();
+  void compute_tote();
+  void compute_t_prim();
+  void compute_t_vir();
+  void compute_p_prim();
+  void compute_p_cv();
+
+  virtual void setup_subclass_state();
+  virtual void after_force_transform_hook();
+  virtual int subclass_restart_size() const;
+  virtual int pack_subclass_restart(double *, int) const;
+  virtual int unpack_subclass_restart(const double *, int);
+  virtual int subclass_vector_size() const;
+  virtual double compute_subclass_vector(int) const;
+
+  int nuclear_vector_size() const;
+  double compute_nuclear_vector(int) const;
+  int base_restart_size() const;
+  int pack_base_restart(double *) const;
+  int unpack_base_restart(const double *);
+  int size_restart_global();
+  int pack_restart_data(double *);
+};
+
+}    // namespace LAMMPS_NS
+
+#endif
+#endif

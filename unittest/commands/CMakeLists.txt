@@ -44,6 +44,12 @@ target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)
 
 if(PKG_EXTRA-FIX)
+  add_executable(test_fix_pimd_nve test_fix_pimd_nve.cpp)
+  target_link_libraries(test_fix_pimd_nve PRIVATE lammps GTest::GMock)
+  add_test(NAME FixPIMDNVE COMMAND test_fix_pimd_nve --gtest_filter=FixPIMDNVESerialTest.*)
+  add_mpi_test(NAME FixPIMDNVEPartition NUM_PROCS 2
+               COMMAND $<TARGET_FILE:test_fix_pimd_nve> --gtest_filter=FixPIMDNVEMPI.*)
+
   add_executable(test_fix_pimd_nvt_validated test_fix_pimd_nvt_validated.cpp)
   target_link_libraries(test_fix_pimd_nvt_validated PRIVATE lammps GTest::GMock)
   add_test(NAME FixPIMDNVTValidated

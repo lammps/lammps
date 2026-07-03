@@ -106,6 +106,13 @@ class FixSurface : public Fix {
     double dr[3], surf_norm[3], dr_force[3];
   };
 
+  // comparators for sorting lists of particle-surface contacts; the presort
+  // variant compares absolute normal-displacement alignment because the
+  // surface normal signs are only assigned by the connection pre-walk
+
+  static bool contact_presort(const ContactSurf &, const ContactSurf &);
+  static bool contact_sort(const ContactSurf &, const ContactSurf &);
+
   FixSurface(class LAMMPS *, int, char **);
   ~FixSurface() override = default;
 

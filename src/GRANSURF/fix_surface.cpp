@@ -17,9 +17,12 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_move.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "molecule.h"
 #include "stl_reader.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -28,6 +31,47 @@ static constexpr int DELTA = 128;
 /* ---------------------------------------------------------------------- */
 
 FixSurface::FixSurface(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg) {}
+
+/* ----------------------------------------------------------------------
+   ordering of particle-surface contacts, used by both the global surface
+   fix and the granular surface pair style so that multi-contact
+   configurations are resolved consistently everywhere:
+   1st by overlap (within epsilon), 2nd by priority (interior > edge >
+   corner), 3rd by alignment of the surface normal with the displacement,
+   4th by distance to the surface center of mass, last by surface index
+------------------------------------------------------------------------- */
+
+static constexpr double SORTEPSILON = 1.0e-12;
+
+static bool contact_compare(const FixSurface::ContactSurf &a, const FixSurface::ContactSurf &b,
+                            bool signednorm)
+{
+  if (a.overlap > (b.overlap + SORTEPSILON)) return true;
+  if (b.overlap > (a.overlap + SORTEPSILON)) return false;
+  if (a.priority > b.priority) return true;
+  if (b.priority > a.priority) return false;
+  double dota = MathExtra::dot3(a.surf_norm, a.dr);
+  double dotb = MathExtra::dot3(b.surf_norm, b.dr);
+  if (!signednorm) {
+    dota = fabs(dota);
+    dotb = fabs(dotb);
+  }
+  if (dota > (dotb + SORTEPSILON)) return true;
+  if (dotb > (dota + SORTEPSILON)) return false;
+  if (a.rsq_com < (b.rsq_com - SORTEPSILON)) return true;
+  if (b.rsq_com < (a.rsq_com - SORTEPSILON)) return false;
+  return a.index < b.index;
+}
+
+bool FixSurface::contact_presort(const ContactSurf &a, const ContactSurf &b)
+{
+  return contact_compare(a, b, false);
+}
+
+bool FixSurface::contact_sort(const ContactSurf &a, const ContactSurf &b)
+{
+  return contact_compare(a, b, true);
+}
 
 /* ----------------------------------------------------------------------
    extract lines or tris from a molecule template ID for one or more molecules

@@ -190,7 +190,7 @@ pairs.
    number of atoms so that a self-consistent data file is written (with a
    warning printed for *warn*).
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 Previously, with the *warn* or *ignore* lost-atoms setting, the atom count in
 the data file header could disagree with the number of atoms actually written

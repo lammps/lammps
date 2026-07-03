@@ -72,7 +72,7 @@ templates include:
 * :doc:`create_atoms <create_atoms>`
 * :doc:`atom_style template <atom_style>`
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 It can also be used to define a collection of line segments (2d) or
 triangles (3d) which define an object's surface or a boundary
@@ -283,7 +283,7 @@ depends on the section keyword as described below.  Zero or more blank
 lines can be used between sections.  Sections can appear in any order,
 with a few exceptions as noted below.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
    New header keywords *lines* and *tris*
 
@@ -788,7 +788,7 @@ the file format.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 *Lines* section:
 
@@ -820,7 +820,7 @@ LAMMPS whether the normal direction matters or not.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 *Triangles* section:
 

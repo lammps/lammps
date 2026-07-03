@@ -591,7 +591,7 @@ s_{min}` from that bond's own :math:`s_{00}` and :math:`\alpha`.  This keeps
 the criterion correct when :math:`s_{00}` and :math:`\alpha` differ between
 atom-type pairs (for example, a deliberately weakened interface).
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 Earlier versions stored a single per-particle critical stretch :math:`s_0`
 (the maximum of :math:`s_{00} - \alpha s` over a particle's bonds), which

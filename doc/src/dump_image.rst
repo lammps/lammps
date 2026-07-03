@@ -354,7 +354,7 @@ prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
 *diameter* setting can be overridden with a numeric value applied to all
 atoms by the optional *adiam* keyword.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    Extended list of colors from 6 to 16
 
@@ -460,7 +460,7 @@ If *atom* is specified for the bond *color* value, then each bond is
 drawn in 2 halves, with the color of each half being the color of the
 atom at that end of the bond.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    Extended list of default colors from 6 to 16
 
@@ -472,7 +472,7 @@ and darkgray for the first 16 bond types and repeats itself after that.
 This mapping can be changed by the "dump_modify bcolor" command, as
 described below.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 If a compute reference *c_ID* or *c_ID[I]* is specified for the *color*
 value, then each bond is colored by a per-bond value taken from that
@@ -694,7 +694,7 @@ and fix commands are in the :doc:`Howto_viz` howto.
 
    draw style *transparent* was added
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    draw triangulated hull from random points for region style *intersect* or *union*
 
@@ -1247,7 +1247,7 @@ The arguments for the *gmap* keyword are identical to those for the
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *bmap* keyword can be used with the dump image command, with its
 *bond* keyword, when the bond *color* value is a compute reference
@@ -1261,7 +1261,7 @@ The arguments for the *bmap* keyword are identical to those for the
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *lights* keyword can be used to set the relative intensities of the
 four light sources used to illuminate the scene: *ambient*, *key*,
@@ -1279,7 +1279,7 @@ the scene from behind the camera to provide depth.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *loadcolors* and *savecolors* keywords can be used to read or write
 the current per-atom-type color assignments and their definitions from

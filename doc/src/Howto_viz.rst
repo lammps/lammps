@@ -329,7 +329,7 @@ the charge:
    type map, by custom type map, by element, and by charge. Click to see
    the full-size images)</center><br>
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 Similar color selections are available for coloring bonds. The available
 options are: *type*, *atom*, *c_ID* (or *c_ID[I]*), and *none*.  With

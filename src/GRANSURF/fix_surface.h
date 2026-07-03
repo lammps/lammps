@@ -106,10 +106,34 @@ class FixSurface : public Fix {
     double dr[3], surf_norm[3], dr_force[3];
   };
 
+  // comparators for sorting lists of particle-surface contacts; the presort
+  // variant compares absolute normal-displacement alignment because the
+  // surface normal signs are only assigned by the connection pre-walk
+
+  static bool contact_presort(const ContactSurf &, const ContactSurf &);
+  static bool contact_sort(const ContactSurf &, const ContactSurf &);
+
+  // shared classification values for line/tri connection flags
+
+  enum { NONFLAT = 0, FLAT = 1 };
+  enum { CONCAVE = 0, CONVEX = 1 };
+  enum { SAME_SIDE = 0, OPPOSITE_SIDE = 1 };
+
   FixSurface(class LAMMPS *, int, char **);
-  ~FixSurface() override;
+  ~FixSurface() override = default;
 
  protected:
+  // shared computation of connection flags between two lines (2d) or
+  // two tris (3d); the callers perform the endpoint/edge matching
+
+  void point_connection2d(const double *inorm, const double *jnorm, int iwhich, int jwhich,
+                          double flatthresh, int &fflag, int &nside, int &aflag);
+  void edge_connection3d(const double *inorm, const double *jnorm, const double *iedge,
+                         int jpfirst, int jpsecond, double flatthresh, int &fflag, int &ewhich,
+                         int &nside, int &aflag);
+  void corner_connection3d(const double *inorm, const double *jnorm, int cwhich,
+                           double flatthresh, int &fflag, int &nside);
+
   // surfs read from molecule or STL files
 
   struct Point {
@@ -132,8 +156,9 @@ class FixSurface : public Fix {
 
   void extract_from_molecule(char *, std::map<std::tuple<double, double, double, int>, int> *,
                              int &, int &, Point *&, int &, Line *&, int &, Tri *&);
-  void extract_from_stlfile(char *, int, int, std::map<std::tuple<double, double, double, int>, int> *,
-                            int &, int &, Point *&, int &, Tri *&);
+  void extract_from_stlfile(char *, int, int,
+                            std::map<std::tuple<double, double, double, int>, int> *, int &, int &,
+                            Point *&, int &, Tri *&);
 
   void connectivity2d_global(int, int, Line *, Connect2d *&, int **&, int **&);
   int connectivity3d_global(int, int, Tri *, Connect3d *&, int **&, int **&, int **&, int **&,

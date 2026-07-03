@@ -1197,8 +1197,8 @@ void FixSurfaceGlobal::post_force(int vflag)
   double *forces, *torquesi, *history, *allhistory, **firsthistory;
 
   int it, jjtmp, nsidej;
-  std::vector<int> *composite_surfs = new std::vector<int>();
-  std::unordered_set<int> *processed_contacts = new std::unordered_set<int>();
+  std::vector<int> composite_surfs;
+  std::unordered_set<int> processed_contacts;
 
   // if just reneighbored:
   // update rigid body masses for owned atoms if using FixRigid
@@ -1439,7 +1439,6 @@ void FixSurfaceGlobal::post_force(int vflag)
     // Initial walk to assign consistent sides of surfaces
     //   Won't guarantee will work for v. complex geometries (e.g. Mobius)
 
-    processed_contacts->clear();
     if (dimension == 2) prewalk_connections2d();
     else prewalk_connections3d();
 
@@ -1462,13 +1461,13 @@ void FixSurfaceGlobal::post_force(int vflag)
     for (n = 0; n < contact_surfs.size(); n++)
       contacts_map[contact_surfs[n].index] = n;
 
-    processed_contacts->clear();
+    processed_contacts.clear();
     for (n = 0; n < contact_surfs.size(); n++) {
 
       j = contact_surfs[n].index;
-      if (processed_contacts->find(j) != processed_contacts->end()) continue;
+      if (processed_contacts.find(j) != processed_contacts.end()) continue;
 
-      composite_surfs->clear();
+      composite_surfs.clear();
       if (dimension == 2) {
         walk_connections2d(composite_surfs, processed_contacts);
         max_overlap = calculate_2d_forces(composite_surfs);
@@ -1481,12 +1480,12 @@ void FixSurfaceGlobal::post_force(int vflag)
         continue;
 
       // Calculate geometry of contact
-      if (composite_surfs->size() > 1) {
+      if (composite_surfs.size() > 1) {
 
         // Calculate overlap-weighted average normal vector
         MathExtra::zero3(dr);
-        for (it = 0; it < composite_surfs->size(); it++) {
-          m = (*composite_surfs)[it];
+        for (it = 0; it < composite_surfs.size(); it++) {
+          m = composite_surfs[it];
           if (contact_surfs[m].overlap < EPSILON) continue;
           MathExtra::scaleadd3(contact_surfs[m].overlap * contact_surfs[m].weight_contribution, contact_surfs[m].dr_force, dr, dr);
         }
@@ -1534,8 +1533,8 @@ void FixSurfaceGlobal::post_force(int vflag)
       if (use_history) {
         // Check if another flat contact has a stored history
         if (touch[jj] != 1) {
-          for (it = 0; it < composite_surfs->size(); it++) {
-            m = (*composite_surfs)[it];
+          for (it = 0; it < composite_surfs.size(); it++) {
+            m = composite_surfs[it];
             jjtmp = contact_surfs[m].neigh_index;
             if (touch[jjtmp] == 1)
               jj = jjtmp;
@@ -1553,8 +1552,8 @@ void FixSurfaceGlobal::post_force(int vflag)
       //   can be arbitrary if not all connected flat surfaces are mutually flat
       //   e.g. a hair pin turn where surfs on either end of the 'U' are not flat
       if (use_history) {
-        for (it = 0; it < composite_surfs->size(); it++) {
-          m = (*composite_surfs)[it];
+        for (it = 0; it < composite_surfs.size(); it++) {
+          m = composite_surfs[it];
           jjtmp = contact_surfs[m].neigh_index;
           if (jj != jjtmp) {
             touch[jjtmp] = 1;
@@ -1572,9 +1571,6 @@ void FixSurfaceGlobal::post_force(int vflag)
       if (heat_flag) heatflow[i] += model->dq;
     }
   }
-
-  delete processed_contacts;
-  delete composite_surfs;
 }
 
 /* ----------------------------------------------------------------------
@@ -3816,7 +3812,7 @@ void FixSurfaceGlobal::prewalk_connections3d()
   start with "closest" surf and then walk all 1st, 2nd, ... connections
 ------------------------------------------------------------------------- */
 
-void FixSurfaceGlobal::walk_connections2d(std::vector<int> *composite_surfs, std::unordered_set<int> *processed_contacts)
+void FixSurfaceGlobal::walk_connections2d(std::vector<int> &composite_surfs, std::unordered_set<int> &processed_contacts)
 {
   std::set<int> to_walk;
   std::set<int> to_add;
@@ -3826,21 +3822,21 @@ void FixSurfaceGlobal::walk_connections2d(std::vector<int> *composite_surfs, std
   for (n = 0; n < contact_surfs.size(); n++) {
     j = contact_surfs[n].index;
 
-    if (processed_contacts->find(j) == processed_contacts->end()) {
+    if (processed_contacts.find(j) == processed_contacts.end()) {
       to_walk.insert(j);
       break;
     }
   }
 
-  int k, m, jflag, aflag, fflag, which, nconnect, nc, contact_at_joint;
+  int k, m, jflag, aflag, fflag, nconnect, nc, contact_at_joint;
   while (!to_walk.empty()) {
     auto it = to_walk.begin();
     j = *it;
     to_walk.erase(it);
 
     n = contacts_map[j];
-    processed_contacts->insert(j);
-    composite_surfs->push_back(n);
+    processed_contacts.insert(j);
+    composite_surfs.push_back(n);
     jflag = contact_surfs[n].flag;
 
     for (nconnect = 0; nconnect < (connect2d[j].np1 + connect2d[j].np2); nconnect++) {
@@ -3875,7 +3871,7 @@ void FixSurfaceGlobal::walk_connections2d(std::vector<int> *composite_surfs, std
       if (fflag == FLAT) {
         // flat, same-type: walk
         if (contact_surfs[n].type == contact_surfs[m].type &&
-          processed_contacts->find(k) == processed_contacts->end())
+          processed_contacts.find(k) == processed_contacts.end())
           to_add.insert(k);
       } else if (aflag == CONVEX) {
         // must overlap w/in epsilon or higher priority to hide (can't walk around a composite surf to hide)
@@ -3903,7 +3899,7 @@ void FixSurfaceGlobal::walk_connections2d(std::vector<int> *composite_surfs, std
 
 /* ---------------------------------------------------------------------- */
 
-void FixSurfaceGlobal::walk_connections3d(std::vector<int> *composite_surfs, std::unordered_set<int> *processed_contacts)
+void FixSurfaceGlobal::walk_connections3d(std::vector<int> &composite_surfs, std::unordered_set<int> &processed_contacts)
 {
   std::set<int> to_walk;
   std::set<int> to_add;
@@ -3913,7 +3909,7 @@ void FixSurfaceGlobal::walk_connections3d(std::vector<int> *composite_surfs, std
   for (n = 0; n < contact_surfs.size(); n++) {
     j = contact_surfs[n].index;
 
-    if (processed_contacts->find(j) == processed_contacts->end()) {
+    if (processed_contacts.find(j) == processed_contacts.end()) {
       to_walk.insert(j);
       break;
     }
@@ -3926,8 +3922,8 @@ void FixSurfaceGlobal::walk_connections3d(std::vector<int> *composite_surfs, std
     to_walk.erase(it);
 
     n = contacts_map[j];
-    processed_contacts->insert(j);
-    composite_surfs->push_back(n);
+    processed_contacts.insert(j);
+    composite_surfs.push_back(n);
     jflag = contact_surfs[n].flag;
 
     // Loop through edge-connected surfs
@@ -3977,7 +3973,7 @@ void FixSurfaceGlobal::walk_connections3d(std::vector<int> *composite_surfs, std
       if (fflag == FLAT) {
         // flat, same-type: walk
         if (contact_surfs[n].type == contact_surfs[m].type &&
-          processed_contacts->find(k) == processed_contacts->end())
+          processed_contacts.find(k) == processed_contacts.end())
           to_add.insert(k);
       } else if (aflag == CONVEX) {
         // must overlap w/in epsilon or higher priority to hide (can't walk around a composite surf to hide)
@@ -4025,7 +4021,7 @@ void FixSurfaceGlobal::walk_connections3d(std::vector<int> *composite_surfs, std
       if (fflag == FLAT) {
         // flat, same-type: walk
         if (contact_surfs[n].type == contact_surfs[m].type &&
-          processed_contacts->find(k) == processed_contacts->end())
+          processed_contacts.find(k) == processed_contacts.end())
           to_add.insert(k);
       }
 
@@ -4052,18 +4048,18 @@ void FixSurfaceGlobal::walk_connections3d(std::vector<int> *composite_surfs, std
    Calculate key variables needed for forces (overlap and direction)
 ------------------------------------------------------------------------- */
 
-double FixSurfaceGlobal::calculate_2d_forces(std::vector<int> *composite_surfs)
+double FixSurfaceGlobal::calculate_2d_forces(std::vector<int> &composite_surfs)
 {
   int n, m, j, k, external, flag;
   double dot, overlap;
-  double jnorm[3], knorm[3], dr[3], kline[3];
+  double jnorm[3], dr[3], kline[3];
 
   // Check if composite is hidden (convex) and calc max overlaps
 
   double max_overlap = -BIG;
   double max_overlap_ext = -BIG;
-  for (auto it = 0; it < composite_surfs->size(); it++) {
-    n = (*composite_surfs)[it];
+  for (auto it = 0; it < composite_surfs.size(); it++) {
+    n = composite_surfs[it];
     j = contact_surfs[n].index;
 
     if (contact_surfs[n].convex_index != -1)
@@ -4091,8 +4087,8 @@ double FixSurfaceGlobal::calculate_2d_forces(std::vector<int> *composite_surfs)
   // Calculate constraints on force norm
   int i, ck, pt, ptk, caflag;
   double neigh_overlap, max_neigh_overlap, max_dot;
-  for (auto it = 0; it < composite_surfs->size(); it++) {
-    n = (*composite_surfs)[it];
+  for (auto it = 0; it < composite_surfs.size(); it++) {
+    n = composite_surfs[it];
     j = contact_surfs[n].index;
     flag = contact_surfs[n].flag;
     external = contact_surfs[n].external;
@@ -4168,7 +4164,7 @@ double FixSurfaceGlobal::calculate_2d_forces(std::vector<int> *composite_surfs)
           to ensure the direction of forces vary continuously.
 ------------------------------------------------------------------------- */
 
-double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> *composite_surfs)
+double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> &composite_surfs)
 {
   int n, m, i, j, k, external, flag;
   double dot, dist, rmag, overlap;
@@ -4183,8 +4179,8 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> *composite_surfs)
   int uc_flag = 0;
 
   // Find if surface is hidden and/or whether it's unconnected
-  for (auto it = 0; it < composite_surfs->size(); it++) {
-    n = (*composite_surfs)[it];
+  for (auto it = 0; it < composite_surfs.size(); it++) {
+    n = composite_surfs[it];
     j = contact_surfs[n].index;
 
     if (contact_surfs[n].convex_index != -1)
@@ -4215,8 +4211,8 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> *composite_surfs)
   // Find primary constraint for all corner/edge connections
   int which1, which2;
   double max_dot1, max_dot2;
-  for (auto it = 0; it < composite_surfs->size(); it++) {
-    n = (*composite_surfs)[it];
+  for (auto it = 0; it < composite_surfs.size(); it++) {
+    n = composite_surfs[it];
     j = contact_surfs[n].index;
     flag = contact_surfs[n].flag;
     MathExtra::copy3(contact_surfs[n].surf_norm, jnorm);
@@ -4265,8 +4261,8 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> *composite_surfs)
   double w_connect = 1.0;
   if (uc_flag) {
     double max_dist_uc = 0.0;
-    for (auto it = 0; it < composite_surfs->size(); it++) {
-      n = (*composite_surfs)[it];
+    for (auto it = 0; it < composite_surfs.size(); it++) {
+      n = composite_surfs[it];
       j = contact_surfs[n].index;
       flag = contact_surfs[n].flag;
 
@@ -4338,8 +4334,8 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> *composite_surfs)
   double line1[3], line2[3], dr_in_plane[3];
   double dr1[3], dr2[3], fn1[3], fn2[3], fntot[3], normave[3];
 
-  for (auto it = 0; it < composite_surfs->size(); it++) {
-    n = (*composite_surfs)[it];
+  for (auto it = 0; it < composite_surfs.size(); it++) {
+    n = composite_surfs[it];
     j = contact_surfs[n].index;
 
     MathExtra::copy3(contact_surfs[n].surf_norm, jnorm);

@@ -34,8 +34,7 @@
  *
  */
 
-namespace LAMMPS_NS {
-namespace ILVES {
+namespace LAMMPS_NS::ILVES {
 
 class Molecule {
 public:
@@ -116,10 +115,9 @@ public:
      *
      * @return The size of the topology storage in bytes.
      */
-    double memory_usage() const;
+  [[nodiscard]] double memory_usage() const;
 };
 
-}    // namespace ILVES
-}    // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS::ILVES
 
 #endif

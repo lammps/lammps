@@ -39,8 +39,7 @@
  * substitution.
  */
 
-namespace LAMMPS_NS {
-namespace ILVES {
+namespace LAMMPS_NS::ILVES {
 
 class SparseDirectSolver {
 public:
@@ -101,7 +100,7 @@ public:
      *
      * @return The size of the solver storage in bytes.
      */
-    double memory_usage() const;
+  [[nodiscard]] double memory_usage() const;
 
 private:
     /**
@@ -210,7 +209,6 @@ private:
         void copy_aux_to_final();
     };
 };
-}    // namespace ILVES
-}    // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS::ILVES
 
 #endif

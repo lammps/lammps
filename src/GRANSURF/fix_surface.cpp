@@ -74,6 +74,84 @@ bool FixSurface::contact_sort(const ContactSurf &a, const ContactSurf &b)
 }
 
 /* ----------------------------------------------------------------------
+   set the connection flags between line I and line J sharing an endpoint:
+   iwhich/jwhich = which endpoint (0/1) of line I/J is the shared point,
+   jwhich < 0 means the caller found no shared point
+   normals on the same side of the surf <=> the shared point is endpoint 1
+   of one line and endpoint 2 of the other
+------------------------------------------------------------------------- */
+
+void FixSurface::point_connection2d(const double *inorm, const double *jnorm, int iwhich,
+                                    int jwhich, double flatthresh, int &fflag, int &nside,
+                                    int &aflag)
+{
+  if (jwhich < 0) error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
+  double dotnorm = MathExtra::dot3(inorm, jnorm);
+  if (fabs(dotnorm) > 1.0 - flatthresh)
+    fflag = FLAT;
+  else
+    fflag = NONFLAT;
+
+  double icrossj[3];
+  MathExtra::cross3(inorm, jnorm, icrossj);
+  nside = (jwhich == iwhich) ? OPPOSITE_SIDE : SAME_SIDE;
+  double upward = (jwhich == 0) ? icrossj[2] : -icrossj[2];
+  if (upward > 0.0)
+    aflag = CONCAVE;
+  else
+    aflag = CONVEX;
+}
+
+/* ----------------------------------------------------------------------
+   set the connection flags between tri I and tri J sharing edge IEDGE of
+   tri I: jpfirst/jpsecond = which corner point (1,2,3) of tri J matches
+   the first/second endpoint of the edge, < 0 for no match
+   normals on opposite sides of the surf <=> tri J traverses the shared
+   edge in the opposite winding order
+------------------------------------------------------------------------- */
+
+void FixSurface::edge_connection3d(const double *inorm, const double *jnorm,
+                                   const double *iedge, int jpfirst, int jpsecond,
+                                   double flatthresh, int &fflag, int &ewhich, int &nside,
+                                   int &aflag)
+{
+  if ((jpfirst < 0) || (jpsecond < 0))
+    error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
+  double dotnorm = MathExtra::dot3(inorm, jnorm);
+  if (fabs(dotnorm) > 1.0 - flatthresh)
+    fflag = FLAT;
+  else
+    fflag = NONFLAT;
+
+  double icrossj[3];
+  MathExtra::cross3(inorm, jnorm, icrossj);
+
+  if ((jpfirst == 1 && jpsecond == 2) || (jpfirst == 2 && jpsecond == 3) ||
+      (jpfirst == 3 && jpsecond == 1)) {
+    ewhich = jpfirst - 1;
+    nside = OPPOSITE_SIDE;
+    if (MathExtra::dot3(icrossj, iedge) > 0.0)
+      aflag = CONCAVE;
+    else
+      aflag = CONVEX;
+  } else {
+    if (jpfirst == 2)
+      ewhich = 0;
+    else if (jpfirst == 3)
+      ewhich = 1;
+    else
+      ewhich = 2;
+    nside = SAME_SIDE;
+    if (MathExtra::dot3(icrossj, iedge) < 0.0)
+      aflag = CONCAVE;
+    else
+      aflag = CONVEX;
+  }
+}
+
+/* ----------------------------------------------------------------------
    extract lines or tris from a molecule template ID for one or more molecules
    concatenate into single list of points and lines or tris
    identify unique points using hash

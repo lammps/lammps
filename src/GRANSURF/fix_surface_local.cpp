@@ -47,10 +47,7 @@ static constexpr int MAXTRIPOINT = 24;
 static constexpr int DELTA_CONNECT = 1024;
 static constexpr int DELTA_RVOUS = 1024;    // must be >= 8
 
-enum { NONFLAT, FLAT };
-enum { CONCAVE, CONVEX };
 enum { INTERNAL = 0, EXTERNAL, UNCONNECTED };
-enum { SAME_SIDE, OPPOSITE_SIDE };
 
 static constexpr double FLATTHRESH =
     0.00015230484360876085;        // = 1.0-cos(MY_PI/180.0); = 1 degree
@@ -3465,30 +3462,15 @@ void FixSurfaceLocal::connectivity2d_complete()
       if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Missing tri atom {} from surface", jtag);
       jconnect = atom2connect[j];
 
-      inorm = normals[iconnect];
-      jnorm = normals[jconnect];
-      dotnorm = MathExtra::dot3(inorm, jnorm);
-      if (fabs(dotnorm) > 1.0 - flatthresh)
-        connect2d[iconnect].fflag_p1[m] = FLAT;
-      else
-        connect2d[iconnect].fflag_p1[m] = NONFLAT;
-
-      MathExtra::cross3(inorm, jnorm, icrossj);
-      if (same_point(endpts[iconnect][0], endpts[jconnect][0])) {
-        connect2d[iconnect].pwhich_p1[m] = 0;
-        connect2d[iconnect].nside_p1[m] = OPPOSITE_SIDE;
-        if (icrossj[2] > 0.0)
-          connect2d[iconnect].aflag_p1[m] = CONCAVE;
-        else
-          connect2d[iconnect].aflag_p1[m] = CONVEX;
-      } else if (same_point(endpts[iconnect][0], endpts[jconnect][1])) {
-        connect2d[iconnect].pwhich_p1[m] = 1;
-        connect2d[iconnect].nside_p1[m] = SAME_SIDE;
-        if (icrossj[2] < 0.0)
-          connect2d[iconnect].aflag_p1[m] = CONCAVE;
-        else
-          connect2d[iconnect].aflag_p1[m] = CONVEX;
-      }
+      int jwhich = -1;
+      if (same_point(endpts[iconnect][0], endpts[jconnect][0]))
+        jwhich = 0;
+      else if (same_point(endpts[iconnect][0], endpts[jconnect][1]))
+        jwhich = 1;
+      point_connection2d(normals[iconnect], normals[jconnect], 0, jwhich, flatthresh,
+                         connect2d[iconnect].fflag_p1[m], connect2d[iconnect].nside_p1[m],
+                         connect2d[iconnect].aflag_p1[m]);
+      connect2d[iconnect].pwhich_p1[m] = jwhich;
     }
 
     for (int m = 0; m < connect2d[iconnect].np2; m++) {
@@ -3497,30 +3479,15 @@ void FixSurfaceLocal::connectivity2d_complete()
       if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Missing tri atom {} from surface", jtag);
       jconnect = atom2connect[j];
 
-      inorm = normals[iconnect];
-      jnorm = normals[jconnect];
-      dotnorm = MathExtra::dot3(inorm, jnorm);
-      if (fabs(dotnorm) > 1.0 - flatthresh)
-        connect2d[iconnect].fflag_p2[m] = FLAT;
-      else
-        connect2d[iconnect].fflag_p2[m] = NONFLAT;
-
-      MathExtra::cross3(inorm, jnorm, icrossj);
-      if (same_point(endpts[iconnect][1], endpts[jconnect][0])) {
-        connect2d[iconnect].pwhich_p2[m] = 0;
-        connect2d[iconnect].nside_p2[m] = SAME_SIDE;
-        if (icrossj[2] > 0.0)
-          connect2d[iconnect].aflag_p2[m] = CONCAVE;
-        else
-          connect2d[iconnect].aflag_p2[m] = CONVEX;
-      } else if (same_point(endpts[iconnect][1], endpts[jconnect][1])) {
-        connect2d[iconnect].pwhich_p2[m] = 1;
-        connect2d[iconnect].nside_p2[m] = OPPOSITE_SIDE;
-        if (icrossj[2] < 0.0)
-          connect2d[iconnect].aflag_p2[m] = CONCAVE;
-        else
-          connect2d[iconnect].aflag_p2[m] = CONVEX;
-      }
+      int jwhich = -1;
+      if (same_point(endpts[iconnect][1], endpts[jconnect][0]))
+        jwhich = 0;
+      else if (same_point(endpts[iconnect][1], endpts[jconnect][1]))
+        jwhich = 1;
+      point_connection2d(normals[iconnect], normals[jconnect], 1, jwhich, flatthresh,
+                         connect2d[iconnect].fflag_p2[m], connect2d[iconnect].nside_p2[m],
+                         connect2d[iconnect].aflag_p2[m]);
+      connect2d[iconnect].pwhich_p2[m] = jwhich;
     }
   }
 
@@ -3621,6 +3588,7 @@ void FixSurfaceLocal::connectivity3d_complete()
       if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Missing tri atom {} from surface", jtag);
       jconnect = atom2connect[j];
 
+      jpfirst = jpsecond = -1;
       if (same_point(cpts[iconnect][0], cpts[jconnect][0]))
         jpfirst = 1;
       else if (same_point(cpts[iconnect][0], cpts[jconnect][1]))
@@ -3635,38 +3603,11 @@ void FixSurfaceLocal::connectivity3d_complete()
       else if (same_point(cpts[iconnect][1], cpts[jconnect][2]))
         jpsecond = 3;
 
-      inorm = normals[iconnect];
-      jnorm = normals[jconnect];
-      dotnorm = MathExtra::dot3(inorm, jnorm);
-      if (fabs(dotnorm) > 1.0 - flatthresh)
-        connect3d[iconnect].fflag_e1[m] = FLAT;
-      else
-        connect3d[iconnect].fflag_e1[m] = NONFLAT;
-
       MathExtra::sub3(cpts[iconnect][1], cpts[iconnect][0], iedge);
-      MathExtra::cross3(inorm, jnorm, icrossj);
-
-      if ((jpfirst == 1 && jpsecond == 2) || (jpfirst == 2 && jpsecond == 3) ||
-          (jpfirst == 3 && jpsecond == 1)) {
-        connect3d[iconnect].ewhich_e1[m] = jpfirst - 1;
-        connect3d[iconnect].nside_e1[m] = OPPOSITE_SIDE;
-        if (MathExtra::dot3(icrossj, iedge) > 0.0)
-          connect3d[iconnect].aflag_e1[m] = CONCAVE;
-        else
-          connect3d[iconnect].aflag_e1[m] = CONVEX;
-      } else {
-        if (jpfirst == 2)
-          connect3d[iconnect].ewhich_e1[m] = 0;
-        else if (jpfirst == 3)
-          connect3d[iconnect].ewhich_e1[m] = 1;
-        else if (jpfirst == 1)
-          connect3d[iconnect].ewhich_e1[m] = 2;
-        connect3d[iconnect].nside_e1[m] = SAME_SIDE;
-        if (MathExtra::dot3(icrossj, iedge) < 0.0)
-          connect3d[iconnect].aflag_e1[m] = CONCAVE;
-        else
-          connect3d[iconnect].aflag_e1[m] = CONVEX;
-      }
+      edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond,
+                        flatthresh, connect3d[iconnect].fflag_e1[m],
+                        connect3d[iconnect].ewhich_e1[m], connect3d[iconnect].nside_e1[m],
+                        connect3d[iconnect].aflag_e1[m]);
     }
 
     for (int m = 0; m < connect3d[iconnect].ne2; m++) {
@@ -3675,6 +3616,7 @@ void FixSurfaceLocal::connectivity3d_complete()
       if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Missing tri atom {} from surface", jtag);
       jconnect = atom2connect[j];
 
+      jpfirst = jpsecond = -1;
       if (same_point(cpts[iconnect][1], cpts[jconnect][0]))
         jpfirst = 1;
       else if (same_point(cpts[iconnect][1], cpts[jconnect][1]))
@@ -3689,37 +3631,11 @@ void FixSurfaceLocal::connectivity3d_complete()
       else if (same_point(cpts[iconnect][2], cpts[jconnect][2]))
         jpsecond = 3;
 
-      inorm = normals[iconnect];
-      jnorm = normals[jconnect];
-      dotnorm = MathExtra::dot3(inorm, jnorm);
-      if (fabs(dotnorm) > 1.0 - flatthresh)
-        connect3d[iconnect].fflag_e2[m] = FLAT;
-      else
-        connect3d[iconnect].fflag_e2[m] = NONFLAT;
-
       MathExtra::sub3(cpts[iconnect][2], cpts[iconnect][1], iedge);
-      MathExtra::cross3(inorm, jnorm, icrossj);
-      if ((jpfirst == 1 && jpsecond == 2) || (jpfirst == 2 && jpsecond == 3) ||
-          (jpfirst == 3 && jpsecond == 1)) {
-        connect3d[iconnect].ewhich_e2[m] = jpfirst - 1;
-        connect3d[iconnect].nside_e2[m] = OPPOSITE_SIDE;
-        if (MathExtra::dot3(icrossj, iedge) > 0.0)
-          connect3d[iconnect].aflag_e2[m] = CONCAVE;
-        else
-          connect3d[iconnect].aflag_e2[m] = CONVEX;
-      } else {
-        if (jpfirst == 2)
-          connect3d[iconnect].ewhich_e2[m] = 0;
-        else if (jpfirst == 3)
-          connect3d[iconnect].ewhich_e2[m] = 1;
-        else if (jpfirst == 1)
-          connect3d[iconnect].ewhich_e2[m] = 2;
-        connect3d[iconnect].nside_e2[m] = SAME_SIDE;
-        if (MathExtra::dot3(icrossj, iedge) < 0.0)
-          connect3d[iconnect].aflag_e2[m] = CONCAVE;
-        else
-          connect3d[iconnect].aflag_e2[m] = CONVEX;
-      }
+      edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond,
+                        flatthresh, connect3d[iconnect].fflag_e2[m],
+                        connect3d[iconnect].ewhich_e2[m], connect3d[iconnect].nside_e2[m],
+                        connect3d[iconnect].aflag_e2[m]);
     }
 
     for (int m = 0; m < connect3d[iconnect].ne3; m++) {
@@ -3728,6 +3644,7 @@ void FixSurfaceLocal::connectivity3d_complete()
       if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Missing tri atom {} from surface", jtag);
       jconnect = atom2connect[j];
 
+      jpfirst = jpsecond = -1;
       if (same_point(cpts[iconnect][2], cpts[jconnect][0]))
         jpfirst = 1;
       else if (same_point(cpts[iconnect][2], cpts[jconnect][1]))
@@ -3742,37 +3659,11 @@ void FixSurfaceLocal::connectivity3d_complete()
       else if (same_point(cpts[iconnect][0], cpts[jconnect][2]))
         jpsecond = 3;
 
-      inorm = normals[iconnect];
-      jnorm = normals[jconnect];
-      dotnorm = MathExtra::dot3(inorm, jnorm);
-      if (fabs(dotnorm) > 1.0 - flatthresh)
-        connect3d[iconnect].fflag_e3[m] = FLAT;
-      else
-        connect3d[iconnect].fflag_e3[m] = NONFLAT;
-
       MathExtra::sub3(cpts[iconnect][0], cpts[iconnect][2], iedge);
-      MathExtra::cross3(inorm, jnorm, icrossj);
-      if ((jpfirst == 1 && jpsecond == 2) || (jpfirst == 2 && jpsecond == 3) ||
-          (jpfirst == 3 && jpsecond == 1)) {
-        connect3d[iconnect].ewhich_e3[m] = jpfirst - 1;
-        connect3d[iconnect].nside_e3[m] = OPPOSITE_SIDE;
-        if (MathExtra::dot3(icrossj, iedge) > 0.0)
-          connect3d[iconnect].aflag_e3[m] = CONCAVE;
-        else
-          connect3d[iconnect].aflag_e3[m] = CONVEX;
-      } else {
-        if (jpfirst == 2)
-          connect3d[iconnect].ewhich_e3[m] = 0;
-        else if (jpfirst == 3)
-          connect3d[iconnect].ewhich_e3[m] = 1;
-        else if (jpfirst == 1)
-          connect3d[iconnect].ewhich_e3[m] = 2;
-        connect3d[iconnect].nside_e3[m] = SAME_SIDE;
-        if (MathExtra::dot3(icrossj, iedge) < 0.0)
-          connect3d[iconnect].aflag_e3[m] = CONCAVE;
-        else
-          connect3d[iconnect].aflag_e3[m] = CONVEX;
-      }
+      edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond,
+                        flatthresh, connect3d[iconnect].fflag_e3[m],
+                        connect3d[iconnect].ewhich_e3[m], connect3d[iconnect].nside_e3[m],
+                        connect3d[iconnect].aflag_e3[m]);
     }
   }
 

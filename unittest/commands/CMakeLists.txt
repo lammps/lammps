@@ -44,11 +44,24 @@ target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)
 
 if(PKG_EXTRA-FIX)
+  add_executable(test_fix_pimd_nvt_validated test_fix_pimd_nvt_validated.cpp)
+  target_link_libraries(test_fix_pimd_nvt_validated PRIVATE lammps GTest::GMock)
+  add_test(NAME FixPIMDNVTValidated
+           COMMAND test_fix_pimd_nvt_validated --gtest_filter=FixPIMDNVTValidatedSerialTest.*)
+  add_mpi_test(NAME FixPIMDNVTValidatedPartition NUM_PROCS 2
+               COMMAND $<TARGET_FILE:test_fix_pimd_nvt_validated>
+                       --gtest_filter=FixPIMDNVTValidatedMPI.*)
+
+  add_executable(test_fix_pimd_uvt test_fix_pimd_uvt.cpp)
+  target_link_libraries(test_fix_pimd_uvt PRIVATE lammps GTest::GMock)
+  add_test(NAME FixPIMDUVT COMMAND test_fix_pimd_uvt --gtest_filter=FixPIMDUVTSerialTest.*)
+  add_mpi_test(NAME FixPIMDUVTPartition NUM_PROCS 2
+               COMMAND $<TARGET_FILE:test_fix_pimd_uvt> --gtest_filter=FixPIMDUVTMPI.*)
+
   add_executable(test_fix_tprpmd test_fix_tprpmd.cpp)
   target_link_libraries(test_fix_tprpmd PRIVATE lammps GTest::GMock)
-  add_test(NAME FixTPRPMD COMMAND test_fix_tprpmd --gtest_filter=FixTPRPMDSerialTest.*)
-  add_mpi_test(NAME FixTPRPMDPartition NUM_PROCS 2
-               COMMAND $<TARGET_FILE:test_fix_tprpmd> --gtest_filter=FixTPRPMDMPI.*)
+  add_test(NAME FixTPRPMDCompatibility
+           COMMAND test_fix_tprpmd --gtest_filter=FixTPRPMDCompatibilityTest.*)
 endif()
 
 add_executable(test_regions test_regions.cpp)

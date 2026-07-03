@@ -44,7 +44,6 @@ static constexpr double EPSILON = 0.001;
 static constexpr int NBIN = 100;
 static constexpr double BIG = 1.0e20;
 static constexpr int MAXTRIPOINT = 24;
-static constexpr int DELTA = 128;
 static constexpr int DELTA_CONNECT = 1024;
 static constexpr int DELTA_RVOUS = 1024;    // must be >= 8
 
@@ -345,8 +344,8 @@ void FixSurfaceLocal::post_constructor()
       connectivity2d_global(npoints, nlines, lines, connect2dall, neigh_p1, neigh_p2);
       assign2d();
     } else {
-      int nedges = connectivity3d_global(npoints, ntris, tris, connect3dall, neigh_e1, neigh_e2,
-                                         neigh_e3, neigh_c1, neigh_c2, neigh_c3);
+      connectivity3d_global(npoints, ntris, tris, connect3dall, neigh_e1, neigh_e2, neigh_e3,
+                            neigh_c1, neigh_c2, neigh_c3);
       assign3d();
     }
 
@@ -444,7 +443,7 @@ void FixSurfaceLocal::post_constructor()
    do at setup() when connectivity for owned/ghost surfs is fully initialized
 ------------------------------------------------------------------------- */
 
-void FixSurfaceLocal::setup(int vflag)
+void FixSurfaceLocal::setup(int /*vflag*/)
 {
   // count instances of FixMove
   // just return if no FixMove commands
@@ -490,7 +489,7 @@ void FixSurfaceLocal::setup(int vflag)
     // avoid double counting by jtag < itag check
 
     tagint itag;
-    int m, iline, jline, np1, np2, j, imotion, jmotion;
+    int m, iline, jline, np1, np2, imotion, jmotion;
     ecount = 0;
 
     for (int i = 0; i < nlocal; i++) {
@@ -573,7 +572,7 @@ void FixSurfaceLocal::setup(int vflag)
     // but edge and corner connections both contribute to error count
 
     tagint itag;
-    int m, itri, jtri, ne1, ne2, ne3, nc1, nc2, nc3, j, imotion, jmotion;
+    int m, itri, jtri, ne1, ne2, ne3, nc1, nc2, nc3, imotion, jmotion;
     ecount = 0;
 
     for (int i = 0; i < nlocal; i++) {
@@ -748,7 +747,7 @@ void FixSurfaceLocal::pre_neighbor()
   MPI_Allreduce(&count1, &all1, 1, MPI_INT, MPI_SUM, world);
   MPI_Allreduce(&count2, &all2, 1, MPI_INT, MPI_SUM, world);
 
-  if (all1 || all2 && comm->me == 0)
+  if ((all1 || all2) && (comm->me == 0))
     error->warning(FLERR, "Fix surface/local atom2connect vector mis-match: {} {}: {}\n", all1,
                    all2, update->ntimestep);
 }
@@ -962,7 +961,7 @@ void FixSurfaceLocal::clear_bonus()
 
 int FixSurfaceLocal::pack_border(int n, int *list, double *buf)
 {
-  int m, ic, nc;
+  int m, ic;
 
   m = 0;
 
@@ -1090,7 +1089,7 @@ int FixSurfaceLocal::pack_border(int n, int *list, double *buf)
 
 int FixSurfaceLocal::unpack_border(int n, int first, double *buf)
 {
-  int k, m, last, flag;
+  int m, last, flag;
 
   m = 0;
   last = first + n;
@@ -1734,7 +1733,7 @@ double FixSurfaceLocal::memory_usage()
 
 void FixSurfaceLocal::connectivity2d_local()
 {
-  int k, m, n;
+  int m, n;
 
   avec_line = (AtomVecLine *) atom->style_match("line");
 
@@ -2025,7 +2024,7 @@ void FixSurfaceLocal::connectivity2d_local()
 
 void FixSurfaceLocal::connectivity3d_local()
 {
-  int i, j, k, m, n;
+  int k, m, n;
 
   avec_tri = (AtomVecTri *) atom->style_match("tri");
 
@@ -2053,7 +2052,7 @@ void FixSurfaceLocal::connectivity3d_local()
   for (int i = 0; i < nlocal; i++) {
     atom2connect[i] = tri[i];
     if (tri[i] < 0) continue;
-    j = tri[i];
+    int j = tri[i];
     connect2atom[j] = i;
   }
 
@@ -2074,7 +2073,7 @@ void FixSurfaceLocal::connectivity3d_local()
   m = 0;
   for (int i = 0; i < nlocal; i++) {
     if (tri[i] < 0) continue;
-    k = 0;
+    int k = 0;
     for (int j = 0; j < 3; j++) {
       mylo[0] = MIN(mylo[0], corners[m][k]);
       myhi[0] = MAX(myhi[0], corners[m][k]);
@@ -2223,7 +2222,7 @@ void FixSurfaceLocal::connectivity3d_local()
 
   for (int i = 0; i < nlocal_connect; i++) n1_counts[i] = n2_counts[i] = n3_counts[i] = 0;
 
-  int np;
+  int j, np;
   tagint atomID;
   tagint *neigh;
 
@@ -2234,7 +2233,7 @@ void FixSurfaceLocal::connectivity3d_local()
       atomID = outbuf[i].atomID;
       np = n1_counts[iconnect];
       neigh = tneigh1[iconnect];
-      for (int j = 0; j < np; j++)
+      for (j = 0; j < np; j++)
         if (neigh[j] == atomID) break;
       if (j == np) {
         neigh[np] = atomID;
@@ -2444,7 +2443,8 @@ void FixSurfaceLocal::connectivity3d_local()
 
   // populate neigh_e123 vectors within Connect3d
 
-  for (int i = 0; i < nlocal_connect; i++) connect3d[i].ne1 = connect3d[i].ne2 = connect3d[i].ne3 = 0;
+  for (int i = 0; i < nlocal_connect; i++)
+    connect3d[i].ne1 = connect3d[i].ne2 = connect3d[i].ne3 = 0;
 
   for (int i = 0; i < nlocal_connect; i++) {
     n1 = n1_counts[i];
@@ -2489,7 +2489,8 @@ void FixSurfaceLocal::connectivity3d_local()
 
   // populate neigh_c123 vectors within Connect3d
 
-  for (int i = 0; i < nlocal_connect; i++) connect3d[i].nc1 = connect3d[i].nc2 = connect3d[i].nc3 = 0;
+  for (int i = 0; i < nlocal_connect; i++)
+    connect3d[i].nc1 = connect3d[i].nc2 = connect3d[i].nc3 = 0;
 
   int flag;
 
@@ -2599,7 +2600,7 @@ int FixSurfaceLocal::point_match(int n, char *inbuf, int &rflag, int *&proclist,
 
   auto in = (InRvous *) inbuf;
 
-  int i, j, ibin, whichbin;
+  int ibin, whichbin;
 
   for (int i = n - 1; i >= 0; i--) {
     ibin = in[i].ibin;
@@ -2726,7 +2727,6 @@ int FixSurfaceLocal::overlap_bins_2d(double *pt, double eps, int *indices)
     return 1;
   }
 
-  int i, j;
   int n = 0;
   for (int j = jlo; j <= jhi; j++)
     for (int i = ilo; i <= ihi; i++) indices[n++] = j * nbinx + i;
@@ -2916,7 +2916,7 @@ void FixSurfaceLocal::assign2d()
   // compute their midpoints
   // keep lines belonging to this proc
 
-  int j, n, num;
+  int num;
   imageint imagedata;
   double xmid[3], lamda[3];
   double *coord, *x1, *x2;
@@ -2955,7 +2955,7 @@ void FixSurfaceLocal::assign2d()
 
       // change it to be a line
 
-      n = atom->nlocal - 1;
+      int n = atom->nlocal - 1;
       atom->tag[n] = idmaxall + i + 1;
       atom->image[n] = imagedata;
       atom->molecule[n] = lines[i].mol;
@@ -3147,7 +3147,7 @@ void FixSurfaceLocal::assign3d()
   // compute their center points
   // keep lines belonging to this proc
 
-  int j, n, num;
+  int num;
   imageint imagedata;
   double xmid[3], lamda[3];
   double *coord, *x1, *x2, *x3;
@@ -3187,7 +3187,7 @@ void FixSurfaceLocal::assign3d()
 
       // change it to be a triangle
 
-      n = atom->nlocal - 1;
+      int n = atom->nlocal - 1;
       atom->tag[n] = idmaxall + i + 1;
       atom->image[n] = imagedata;
       atom->molecule[n] = tris[i].mol;
@@ -3451,7 +3451,7 @@ void FixSurfaceLocal::connectivity2d_complete()
 
   int i, j, jconnect;
   tagint jtag;
-  double dotline, dotnorm;
+  double dotnorm;
   double *inorm, *jnorm;
   double icrossj[3];
 
@@ -3607,7 +3607,7 @@ void FixSurfaceLocal::connectivity3d_complete()
 
   int jconnect, jpfirst, jpsecond;
   tagint jtag;
-  double dotline, dotnorm;
+  double dotnorm;
   double *inorm, *jnorm;
   double icrossj[3], iedge[3];
 

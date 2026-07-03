@@ -358,12 +358,16 @@ void AngleLepton::read_restart(FILE *fp)
   }
   MPI_Bcast(&num, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxlen, 1, MPI_INT, 0, world);
+  if ((num < 0) || (maxlen < 0) || (maxlen > 65536))
+    error->all(FLERR, "Invalid expression data in restart file");
 
   char *buf = new char[maxlen];
 
   for (int i = 0; i < num; ++i) {
     if (comm->me == 0) {
       utils::sfread(FLERR, &len, sizeof(int), 1, fp, nullptr, error);
+      if ((len < 1) || (len > maxlen))
+        error->one(FLERR, "Invalid expression length in restart file");
       utils::sfread(FLERR, buf, sizeof(char), len, fp, nullptr, error);
     }
     MPI_Bcast(buf, maxlen, MPI_CHAR, 0, world);

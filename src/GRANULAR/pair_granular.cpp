@@ -683,6 +683,8 @@ void PairGranular::read_restart(FILE *fp)
 
   if (me == 0) utils::sfread(FLERR,&nmodels,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nmodels,1,MPI_INT,0,world);
+  if ((nmodels < 0) || (nmodels > maxmodels))
+    error->all(FLERR,"Invalid number of granular models in restart file");
 
   for (i = 0; i < nmodels; i++) {
     delete models_list[i];

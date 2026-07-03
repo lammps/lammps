@@ -4333,6 +4333,8 @@ void FixBondReact::read_map_file(Reaction &rxn)
       int nconstraints;
       rv = sscanf(line,"%d",&nconstraints);
       if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+      if ((nconstraints < 0) || (nconstraints > 4096))
+        error->one(FLERR,"Fix bond/react: Invalid number of constraints in map file");
       rxn.constraints.resize(nconstraints);
       for (int i = 0; i < nconstraints; i++) rxn.constraints[i].ID = i;
     } else break;
@@ -4408,7 +4410,7 @@ void FixBondReact::EdgeIDs(char *line, Reaction &rxn, int nedge)
     readline(line);
     rv = sscanf(line,"%d",&tmp);
     if (rv != 1) error->one(FLERR, "EdgeIDs section is incorrectly formatted");
-    if (tmp > rxn.reactant->natoms)
+    if ((tmp < 1) || (tmp > rxn.reactant->natoms))
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     rxn.atoms[tmp-1].edge = 1;
   }
@@ -4421,7 +4423,7 @@ void FixBondReact::Equivalences(char *line, Reaction &rxn, int nequivalent)
     readline(line);
     rv = sscanf(line,"%d %d",&tmp1,&tmp2);
     if (rv != 2) error->one(FLERR, "Equivalences section is incorrectly formatted");
-    if (tmp1 > rxn.reactant->natoms || tmp2 > rxn.product->natoms)
+    if ((tmp1 < 1) || (tmp1 > rxn.reactant->natoms) || (tmp2 < 1) || (tmp2 > rxn.product->natoms))
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     //equivalences is-> clmn 1: post-reacted, clmn 2: pre-reacted
     rxn.atoms[tmp2-1].amap[0] = tmp2;
@@ -4450,7 +4452,7 @@ void FixBondReact::DeleteAtoms(char *line, Reaction &rxn, int ndelete)
     readline(line);
     rv = sscanf(line,"%d",&tmp);
     if (rv != 1) error->one(FLERR, "DeleteIDs section is incorrectly formatted");
-    if (tmp > rxn.reactant->natoms)
+    if ((tmp < 1) || (tmp > rxn.reactant->natoms))
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     rxn.atoms[tmp-1].deleted = 1;
   }
@@ -4464,7 +4466,7 @@ void FixBondReact::CreateAtoms(char *line, Reaction &rxn, int ncreate)
     readline(line);
     rv = sscanf(line,"%d",&tmp);
     if (rv != 1) error->one(FLERR, Error::NOLASTLINE, "CreateIDs section is incorrectly formatted");
-    if (tmp > rxn.product->natoms)
+    if ((tmp < 1) || (tmp > rxn.product->natoms))
       error->one(FLERR, Error::NOLASTLINE, "Fix bond/react: Invalid atom ID in CreateIDs section of map file");
     rxn.atoms[tmp-1].created = 1;
   }
@@ -4493,7 +4495,7 @@ void FixBondReact::ChiralCenters(char *line, Reaction &rxn, int nchiral)
     readline(line);
     rv = sscanf(line,"%d",&tmp);
     if (rv != 1) error->one(FLERR, "ChiralIDs section is incorrectly formatted");
-    if (tmp > rxn.reactant->natoms)
+    if ((tmp < 1) || (tmp > rxn.reactant->natoms))
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     rxn.atoms[tmp-1].chiral[0] = 1;
     if (rxn.reactant->xflag == 0)
@@ -4522,11 +4524,12 @@ void FixBondReact::ChiralCenters(char *line, Reaction &rxn, int nchiral)
 
 void FixBondReact::ReadWildcards(char *line, Reaction &rxn, int nwild)
 {
-  int tmp;
+  int tmp,rv;
   for (int i = 0; i < nwild; i++) {
     readline(line);
-    sscanf(line,"%d",&tmp);
-    if (tmp > rxn.reactant->natoms)
+    rv = sscanf(line,"%d",&tmp);
+    if (rv != 1) error->one(FLERR, "Wildcards section is incorrectly formatted");
+    if ((tmp < 1) || (tmp > rxn.reactant->natoms))
       error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     rxn.atoms[tmp-1].wildcard = true;
   }

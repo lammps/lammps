@@ -3621,6 +3621,7 @@ void FixSurfaceLocal::connectivity3d_complete()
       if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Missing tri atom {} from surface", jtag);
       jconnect = atom2connect[j];
 
+      jpfirst = jpsecond = -1;
       if (same_point(cpts[iconnect][0], cpts[jconnect][0]))
         jpfirst = 1;
       else if (same_point(cpts[iconnect][0], cpts[jconnect][1]))
@@ -3634,6 +3635,9 @@ void FixSurfaceLocal::connectivity3d_complete()
         jpsecond = 2;
       else if (same_point(cpts[iconnect][1], cpts[jconnect][2]))
         jpsecond = 3;
+
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
 
       inorm = normals[iconnect];
       jnorm = normals[jconnect];
@@ -3675,6 +3679,7 @@ void FixSurfaceLocal::connectivity3d_complete()
       if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Missing tri atom {} from surface", jtag);
       jconnect = atom2connect[j];
 
+      jpfirst = jpsecond = -1;
       if (same_point(cpts[iconnect][1], cpts[jconnect][0]))
         jpfirst = 1;
       else if (same_point(cpts[iconnect][1], cpts[jconnect][1]))
@@ -3688,6 +3693,9 @@ void FixSurfaceLocal::connectivity3d_complete()
         jpsecond = 2;
       else if (same_point(cpts[iconnect][2], cpts[jconnect][2]))
         jpsecond = 3;
+
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
 
       inorm = normals[iconnect];
       jnorm = normals[jconnect];
@@ -3728,6 +3736,7 @@ void FixSurfaceLocal::connectivity3d_complete()
       if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Missing tri atom {} from surface", jtag);
       jconnect = atom2connect[j];
 
+      jpfirst = jpsecond = -1;
       if (same_point(cpts[iconnect][2], cpts[jconnect][0]))
         jpfirst = 1;
       else if (same_point(cpts[iconnect][2], cpts[jconnect][1]))
@@ -3741,6 +3750,9 @@ void FixSurfaceLocal::connectivity3d_complete()
         jpsecond = 2;
       else if (same_point(cpts[iconnect][0], cpts[jconnect][2]))
         jpsecond = 3;
+
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
 
       inorm = normals[iconnect];
       jnorm = normals[jconnect];

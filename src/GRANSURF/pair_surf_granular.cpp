@@ -1448,6 +1448,7 @@ double PairSurfGranular::calculate_3d_forces(std::vector<int> &composite_surfs)
     flag = contact_surfs[n].flag;
     MathExtra::copy3(contact_surfs[n].surf_norm, jnorm);
 
+    which1 = which2 = -1;
     if (flag == -4) {
       which1 = 0;
       which2 = 2;

@@ -30,6 +30,7 @@
 #include "kspace.h"
 #include "modify.h"
 #include "pair.h"
+#include "update.h"
 
 #include <cmath>
 
@@ -837,6 +838,96 @@ static void run_kokkos_test(LAMMPS::argv &args)
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
+}
+
+
+/* ----------------------------------------------------------------------
+   collect per-atom pair energies from a direct pair->compute() call
+   with explicit energy/virial flags on the current configuration,
+   including the ghost atom reduction done by compute pe/atom. styles
+   must produce the same per-atom energies whether or not the virial is
+   tallied; styles that maintain their tally bookkeeping only when the
+   virial is requested (as the TIP4P OpenMP variants did) assign
+   per-atom energies to stale or invalid atom indices otherwise, which
+   the comparison against the with-virial reference detects
+------------------------------------------------------------------------- */
+
+std::vector<double> eatom_direct(LAMMPS *lmp, bool with_virial)
+{
+    // satisfy the tally timestamp checks of pair->compute consumers
+
+    lmp->update->eflag_atom  = lmp->update->ntimestep;
+    lmp->update->eflag_global = lmp->update->ntimestep;
+    int vflag = 0;
+    if (with_virial) {
+        vflag = VIRIAL_PAIR | VIRIAL_ATOM;
+        lmp->update->vflag_atom   = lmp->update->ntimestep;
+        lmp->update->vflag_global = lmp->update->ntimestep;
+    }
+    lmp->force->pair->compute(ENERGY_GLOBAL | ENERGY_ATOM, vflag);
+
+    auto *pea = lmp->modify->get_compute_by_id("peaonly");
+    EXPECT_NE(pea, nullptr);
+    pea->compute_peratom();
+    pea->invoked_peratom = -1;    // force a fresh evaluation on the next call
+
+    const int nlocal = lmp->atom->nlocal;
+    const tagint *tag = lmp->atom->tag;
+    std::vector<double> eatom(nlocal, 0.0);
+    for (int i = 0; i < nlocal; i++)
+        eatom[tag[i] - 1] = pea->vector_atom[i];
+    return eatom;
+}
+
+void eatom_only_test(LAMMPS::argv args, const TestConfig &cfg)
+{
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, cfg, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    if (!lmp) GTEST_SKIP();
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("compute peaonly all pe/atom pair");
+    lmp->input->one("run 0 post no");
+    auto reference = eatom_direct(lmp, true);
+    auto eonly     = eatom_direct(lmp, false);
+    cleanup_lammps(lmp, cfg);
+    ::testing::internal::GetCapturedStdout();
+
+    ASSERT_EQ(reference.size(), eonly.size());
+    const double epsilon = cfg.epsilon;
+    for (std::size_t i = 0; i < reference.size(); i++)
+        EXPECT_NEAR(eonly[i], reference[i], (fabs(reference[i]) + 1.0) * epsilon * 10.0)
+            << "per-atom energy for atom " << i + 1
+            << " differs between tallying with and without virial";
+}
+
+TEST(PairStyle, eatom_only)
+{
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
+    eatom_only_test(args, test_config);
+}
+
+TEST(PairStyle, eatom_only_omp)
+{
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    if (test_config.skip_tests.count("omp")) GTEST_SKIP();
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-pk",       "omp",  "4",    "-sf",   "omp"};
+    if (test_config.has_tag("single_thread")) args[8] = "1";
+    eatom_only_test(args, test_config);
 }
 
 TEST(PairStyle, kokkos_omp)

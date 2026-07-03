@@ -700,7 +700,7 @@ void FixSurfaceGlobal::init()
         jmotion = mol2motion[jmol];
         if (imotion != jmotion) ecount++;
       }
-      for (j = 0; j < np1; j++) {
+      for (j = 0; j < np2; j++) {
         jline = connect2d[iline].neigh_p2[j];
         if (jline < iline) continue;
         jmol = lines[jline].mol;

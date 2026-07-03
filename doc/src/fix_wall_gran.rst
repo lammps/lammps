@@ -107,12 +107,12 @@ NULL is used for *Kt*, then a default value is used where *Kt* = 2/7
 *Kn*\ .  If a NULL is used for *gamma_t*, then a default value is used
 where *gamma_t* = 1/2 *gamma_n*.
 
-.. versionchanged::
+.. versionchanged:: TBD
 
 .. note::
 
    In versions of LAMMPS between 28Mar23 and Jun26, the gran/hooke tangential
-   friction calculation accidently included an extra factor of the contact
+   friction calculation accidentally included an extra factor of the contact
    radius. The granular models or KOKKOS versions were not affected.
 
 All the model choices for cohesion, tangential friction, rolling

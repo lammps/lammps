@@ -43,6 +43,10 @@ public:
     void run_pos(const yaml_event_t &event);
     void run_vel(const yaml_event_t &event);
     void run_torque(const yaml_event_t &event);
+    void init_mag_forces(const yaml_event_t &event);
+    void run_mag_forces(const yaml_event_t &event);
+    void run_spin(const yaml_event_t &event);
+    void timestep(const yaml_event_t &event);
     void pair_style(const yaml_event_t &event);
     void pair_coeff(const yaml_event_t &event);
     void bond_style(const yaml_event_t &event);

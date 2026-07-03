@@ -24,6 +24,10 @@ struct coord_t {
     double x, y, z;
 };
 
+struct coord4_t {
+    double x, y, z, w;
+};
+
 struct stress_t {
     double xx, yy, zz, xy, xz, yz;
 };
@@ -34,6 +38,7 @@ public:
     std::string date_generated;
     std::string basename;
     double epsilon;
+    double timestep;
     std::set<std::string> skip_tests;
     std::vector<std::pair<std::string, std::string>> prerequisites;
     std::vector<std::string> pre_commands;
@@ -72,9 +77,14 @@ public:
     std::vector<coord_t> run_vel;
     std::vector<coord_t> restart_vel;
     std::vector<coord_t> run_torque;
+    // magnetic force (precession vector) and spin data for atom_style spin systems
+    std::vector<coord_t> init_mag_forces;
+    std::vector<coord_t> run_mag_forces;
+    std::vector<coord4_t> run_spin;
 
     TestConfig() :
-        lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), input_file(""),
+        lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), timestep(0.0),
+        input_file(""),
         input_coeffs(""), pair_style("zero"), bond_style("zero"), angle_style("zero"),
         dihedral_style("zero"),
         improper_style("zero"), kspace_style("none"), natoms(0), init_energy(0), run_energy(0),
@@ -98,6 +108,9 @@ public:
         run_vel.clear();
         restart_vel.clear();
         run_torque.clear();
+        init_mag_forces.clear();
+        run_mag_forces.clear();
+        run_spin.clear();
         global_vector.clear();
     }
     TestConfig(const TestConfig &)            = delete;

@@ -351,6 +351,7 @@ void FixPIMDNVE::setup(int vflag)
     nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
   else
     nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
+  after_force_transform_hook();
   collect_xc();
   compute_spring_energy();
   compute_t_prim();
@@ -492,19 +493,31 @@ double FixPIMDNVE::compute_subclass_vector(int) const
 void FixPIMDNVE::collect_xc()
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
   tagint *tag = atom->tag;
   double **x = atom->x;
+  if (ireplica == 0) {
+    if (cmode == SINGLE_PROC) {
+      for (int i = 0; i < nlocal; i++) {
+        xcall[3 * i + 0] = xcall[3 * i + 1] = xcall[3 * i + 2] = 0.0;
+      }
+    } else if (cmode == MULTI_PROC) {
+      for (int i = 0; i < ntotal; i++) {
+        xcall[3 * i + 0] = xcall[3 * i + 1] = xcall[3 * i + 2] = 0.0;
+      }
+    }
 
-  for (int i = 0; i < ntotal * 3; i++) xcall[i] = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      xcall[3 * (tag[i] - 1) + 0] = x[i][0];
-      xcall[3 * (tag[i] - 1) + 1] = x[i][1];
-      xcall[3 * (tag[i] - 1) + 2] = x[i][2];
+    const double sqrtnp = sqrt((double) np);
+    for (int i = 0; i < nlocal; i++) {
+      xcall[3 * (tag[i] - 1) + 0] = x[i][0] / sqrtnp;
+      xcall[3 * (tag[i] - 1) + 1] = x[i][1] / sqrtnp;
+      xcall[3 * (tag[i] - 1) + 2] = x[i][2] / sqrtnp;
+    }
+
+    if (cmode == MULTI_PROC) {
+      MPI_Allreduce(MPI_IN_PLACE, xcall, ntotal * 3, MPI_DOUBLE, MPI_SUM, world);
     }
   }
-  MPI_Allreduce(MPI_IN_PLACE, xcall, ntotal * 3, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  MPI_Bcast(xcall, ntotal * 3, MPI_DOUBLE, 0, universe->uworld);
 }
 
 void FixPIMDNVE::b_step()

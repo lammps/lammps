@@ -30,7 +30,7 @@
 using namespace LAMMPS_NS;
 
 enum { TPRPMD = 1 };
-enum { UVT = 4 };
+enum { UVT = 1 };
 
 /* ---------------------------------------------------------------------- */
 
@@ -40,7 +40,7 @@ FixPIMDUVT::FixPIMDUVT(LAMMPS *lmp, int narg, char **arg) :
     u_target(0.0), u_freq(0.0), u_period(0.0), dedn_name(nullptr), dedn_which(ArgInfo::NONE),
     dedn_index(0), dedn_var(-1), dedn_compute(nullptr), dedn_fix(nullptr), dedn_current(0.0)
 {
-  parse_arguments(narg, arg, [this](int parse_narg, char **parse_arg, int &i) {
+  parse_nvt_arguments(narg, arg, [this](int parse_narg, char **parse_arg, int &i) {
     return parse_uvt_keyword(parse_narg, parse_arg, i);
   });
   finish_nuclear_constructor_setup();
@@ -129,6 +129,7 @@ void FixPIMDUVT::finish_uvt_constructor_setup()
 
 void FixPIMDUVT::setup_subclass_state()
 {
+  FixPIMDNVTValidated::setup_subclass_state();
   resolve_dedn_source();
   u_freq = 1.0 / u_period;
   *Ne_mass = tdof * force->boltz * temp / (u_freq * u_freq);

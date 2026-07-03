@@ -14,14 +14,11 @@
 #include "fix_pimd_nvt_validated.h"
 
 #include "atom.h"
-#include "comm.h"
-#include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "group.h"
 #include "math_const.h"
-#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "universe.h"
@@ -31,70 +28,57 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
-using MathConst::MY_2PI;
-using MathConst::MY_PI;
-using MathConst::MY_SQRT2;
 using MathConst::THIRD;
-using MathSpecial::powint;
 
 enum { TPPIMD, TPRPMD };
-enum { PHYSICAL, NORMAL };
 enum { BAOAB, OBABO };
-enum { ISO, ANISO, TRICLINIC };
 enum { NHC };
-enum { MTTK, BZP };
-enum { NVE, NVT, NPH, NPT, UVT };
+enum { NVT, UVT };
 enum { SINGLE_PROC, MULTI_PROC };
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVTValidated::init_defaults()
+void FixPIMDNVTValidated::init_nvt_defaults()
 {
-  restart_global = 1;
-  time_integrate = 1;
-  global_freq = 1;
-  vector_flag = 1;
-  extvector = -1;
-  size_vector = 10;
-
-  ntotal = 0;
-  maxlocal = maxunwrap = maxxc = 0;
-  sizeplan = 0;
-
   method = TPRPMD;
   ensemble = NVT;
-  integrator = OBABO;
   thermostat = NHC;
-  lj_epsilon = 1;
-  lj_sigma = 1;
-  lj_mass = 1;
-  other_planck = 1;
-  other_mvv2e = 1;
-  fmass = 1.0;
-  np = universe->nworlds;
-  inverse_np = 1.0 / np;
-  sp = 1.0;
-  temp = 298.15;
   tau = 1.0;
   pilescale = 1.0;
   tstat_flag = 1;
-  mapflag = 1;
-  removecomflag = 1;
-  fmmode = PHYSICAL;
-  pote = tote = totke = total_spring_energy = 0.0;
-  centroid_vir = vir = vir_ = 0.0;
-  ke_bead = se_bead = pe_bead = tote = t_prim = t_vir = t_cv = p_prim = p_md = p_cv = 0.0;
 
   mtchain = 3;
   nc_tchain = 1;
   t_period = 0.0;
   drag = 0.0;
+
+  factor_eta = 1.0;
+  tdrag_factor = 1.0;
+  t_freq = 0.0;
+  tdof = 0.0;
+  ke_target = 0.0;
+  dthalf = dt4 = dt8 = 0.0;
+
+  fixedpoint[0] = fixedpoint[1] = fixedpoint[2] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-bool FixPIMDNVTValidated::parse_common_keyword(int narg, char **arg, int &i)
+void FixPIMDNVTValidated::parse_nvt_arguments(int narg, char **arg, const KeywordParser &subclass_parser)
+{
+  for (int i = 3; i < narg;) {
+    if (subclass_parser && subclass_parser(narg, arg, i)) continue;
+    if (parse_nvt_keyword(narg, arg, i)) continue;
+    if (FixPIMDNVE::parse_common_keyword(narg, arg, i)) continue;
+    error->all(FLERR, "Unknown keyword {} for fix {}", arg[i], style);
+  }
+
+  if (t_period <= 0.0) error->all(FLERR, "Temperature damping for fix {} must be > 0.0", style);
+}
+
+/* ---------------------------------------------------------------------- */
+
+bool FixPIMDNVTValidated::parse_nvt_keyword(int narg, char **arg, int &i)
 {
   if (strcmp(arg[i], "method") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} method", style), error);
@@ -126,25 +110,6 @@ bool FixPIMDNVTValidated::parse_common_keyword(int narg, char **arg, int &i)
     i += 2;
     return true;
   }
-  if (strcmp(arg[i], "integrator") == 0) {
-    if (i + 2 > narg)
-      utils::missing_cmd_args(FLERR, fmt::format("fix {} integrator", style), error);
-    if (strcmp(arg[i + 1], "obabo") == 0)
-      integrator = OBABO;
-    else if (strcmp(arg[i + 1], "baoab") == 0)
-      integrator = BAOAB;
-    else
-      error->all(FLERR, "Unknown integrator parameter for fix {}", style);
-    i += 2;
-    return true;
-  }
-  if (strcmp(arg[i], "temp") == 0) {
-    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} temp", style), error);
-    temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
-    if (temp < 0.0) error->all(FLERR, "Invalid temp value for fix {}", style);
-    i += 2;
-    return true;
-  }
   if (strcmp(arg[i], "Tdamp") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} Tdamp", style), error);
     t_period = utils::numeric(FLERR, arg[i + 1], false, lmp);
@@ -169,51 +134,9 @@ bool FixPIMDNVTValidated::parse_common_keyword(int narg, char **arg, int &i)
     i += 2;
     return true;
   }
-  if (strcmp(arg[i], "fmass") == 0) {
-    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} fmass", style), error);
-    fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
-    if (fmass < 0.0 || fmass > np) error->all(FLERR, "Invalid fmass value for fix {}", style);
-    i += 2;
-    return true;
-  }
-  if (strcmp(arg[i], "fmmode") == 0) {
-    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} fmmode", style), error);
-    if (strcmp(arg[i + 1], "physical") == 0)
-      fmmode = PHYSICAL;
-    else if (strcmp(arg[i + 1], "normal") == 0)
-      fmmode = NORMAL;
-    else
-      error->all(FLERR, "Unknown fictitious mass mode for fix {}", style);
-    i += 2;
-    return true;
-  }
-  if (strcmp(arg[i], "sp") == 0) {
-    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} sp", style), error);
-    sp = utils::numeric(FLERR, arg[i + 1], false, lmp);
-    if (sp < 0.0) error->all(FLERR, "Invalid sp value for fix {}", style);
-    i += 2;
-    return true;
-  }
-  if (strcmp(arg[i], "lj") == 0) {
-    if (i + 6 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} lj", style), error);
-    lj_epsilon = utils::numeric(FLERR, arg[i + 1], false, lmp);
-    lj_sigma = utils::numeric(FLERR, arg[i + 2], false, lmp);
-    lj_mass = utils::numeric(FLERR, arg[i + 3], false, lmp);
-    other_planck = utils::numeric(FLERR, arg[i + 4], false, lmp);
-    other_mvv2e = utils::numeric(FLERR, arg[i + 5], false, lmp);
-    i += 6;
-    return true;
-  }
   if (strcmp(arg[i], "tau") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} tau", style), error);
     tau = utils::numeric(FLERR, arg[i + 1], false, lmp);
-    i += 2;
-    return true;
-  }
-  if (strcmp(arg[i], "removecom") == 0) {
-    if (i + 2 > narg)
-      utils::missing_cmd_args(FLERR, fmt::format("fix {} removecom", style), error);
-    removecomflag = utils::logical(FLERR, arg[i + 1], false, lmp);
     i += 2;
     return true;
   }
@@ -230,33 +153,12 @@ bool FixPIMDNVTValidated::parse_common_keyword(int narg, char **arg, int &i)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVTValidated::parse_arguments(int narg, char **arg, const KeywordParser &subclass_parser)
-{
-  for (int i = 3; i < narg;) {
-    if (parse_common_keyword(narg, arg, i)) continue;
-    if (subclass_parser && subclass_parser(narg, arg, i)) continue;
-    error->all(FLERR, "Unknown keyword {} for fix {}", arg[i], style);
-  }
-
-  if (t_period <= 0.0) error->all(FLERR, "Temperature damping for fix {} must be > 0.0", style);
-}
-
-/* ---------------------------------------------------------------------- */
-
 FixPIMDNVTValidated::FixPIMDNVTValidated(LAMMPS *lmp, int narg, char **arg, bool) :
-    Fix(lmp, narg, arg), mass(nullptr), plansend(nullptr), planrecv(nullptr), tagsend(nullptr),
-    tagrecv(nullptr), bufsend(nullptr), bufrecv(nullptr), bufbeads(nullptr), bufsorted(nullptr),
-    bufsortedall(nullptr), tagsendall(nullptr),
-    tagrecvall(nullptr), bufsendall(nullptr), bufrecvall(nullptr), counts(nullptr),
-    displacements(nullptr), rootworld(MPI_COMM_NULL), lam(nullptr), M_x2xp(nullptr), M_xp2x(nullptr), modeindex(nullptr), tau_k(nullptr), _omega_k(nullptr), Lan_s(nullptr),
-    Lan_c(nullptr), xc(nullptr), xcall(nullptr), x_unwrap(nullptr), id_pe(nullptr),
-    id_press(nullptr), c_pe(nullptr), c_press(nullptr), eta(nullptr), eta_dot(nullptr),
-    eta_dotdot(nullptr), eta_mass(nullptr)
+    FixPIMDNVE(lmp, narg, arg, true), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
+    eta_mass(nullptr), tau_k(nullptr)
 {
-  init_defaults();
+  init_nvt_defaults();
 
-  if (domain->dimension != 3)
-    error->universe_all(FLERR, fmt::format("Fix {} requires a 3d system", style));
   if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
 }
 
@@ -265,7 +167,7 @@ FixPIMDNVTValidated::FixPIMDNVTValidated(LAMMPS *lmp, int narg, char **arg, bool
 FixPIMDNVTValidated::FixPIMDNVTValidated(LAMMPS *lmp, int narg, char **arg) :
     FixPIMDNVTValidated(lmp, narg, arg, true)
 {
-  parse_arguments(narg, arg, {});
+  parse_nvt_arguments(narg, arg, {});
   if (ensemble != NVT) error->all(FLERR, "Fix {} only supports ensemble nvt", style);
   finish_nuclear_constructor_setup();
 }
@@ -275,30 +177,16 @@ FixPIMDNVTValidated::FixPIMDNVTValidated(LAMMPS *lmp, int narg, char **arg) :
 void FixPIMDNVTValidated::finish_nuclear_constructor_setup()
 {
   if (tstat_flag) {
-    int ich;
     eta = new double[mtchain];
     eta_dot = new double[mtchain + 1];
     eta_dot[mtchain] = 0.0;
     eta_dotdot = new double[mtchain];
-    for (ich = 0; ich < mtchain; ich++) eta[ich] = eta_dot[ich] = eta_dotdot[ich] = 0.0;
+    for (int ich = 0; ich < mtchain; ich++) eta[ich] = eta_dot[ich] = eta_dotdot[ich] = 0.0;
     eta_mass = new double[mtchain];
     size_vector += 4 * mtchain;
   }
 
-  extlist = new int[size_vector];
-  for (int i = 0; i < size_vector; i++) extlist[i] = 1;
-
-  id_pe = utils::strdup(std::string(id) + "_pimd_pe");
-  modify->add_compute(fmt::format("{} all pe", id_pe));
-
-  id_press = utils::strdup(std::string(id) + "_pimd_press");
-  modify->add_compute(fmt::format("{} all pressure NULL virial", id_press));
-
-  ntotal = atom->natoms;
-  nreplica = np;
-
-  if (mass == nullptr) mass = new double[atom->ntypes + 1];
-  for (int i = 1; i <= atom->ntypes; i++) mass[i] = atom->mass[i] * fmass;
+  finish_constructor_setup();
 
   fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
   fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
@@ -309,55 +197,11 @@ void FixPIMDNVTValidated::finish_nuclear_constructor_setup()
 
 FixPIMDNVTValidated::~FixPIMDNVTValidated()
 {
-  modify->delete_compute(id_pe);
-  modify->delete_compute(id_press);
-  delete[] id_pe;
-  delete[] id_press;
-  delete[] extlist;
-  delete[] mass;
-  delete[] _omega_k;
-  delete[] Lan_c;
-  delete[] Lan_s;
   delete[] tau_k;
-  delete[] plansend;
-  delete[] planrecv;
-  delete[] modeindex;
-  memory->sfree(lam);
-  memory->destroy(xcall);
-  if (cmode == SINGLE_PROC) {
-    memory->destroy(bufsorted);
-    memory->destroy(bufsortedall);
-    memory->destroy(counts);
-    memory->destroy(displacements);
-  }
-
-  if (cmode == MULTI_PROC) {
-    memory->destroy(bufsendall);
-    memory->destroy(bufrecvall);
-    memory->destroy(tagsendall);
-    memory->destroy(tagrecvall);
-    memory->destroy(counts);
-    memory->destroy(displacements);
-  }
-  memory->destroy(M_x2xp);
-  memory->destroy(M_xp2x);
-  memory->destroy(xc);
-  memory->destroy(x_unwrap);
-  memory->destroy(bufsend);
-  memory->destroy(bufrecv);
-  memory->destroy(tagsend);
-  memory->destroy(tagrecv);
-  memory->destroy(bufbeads);
-
-  if (thermostat == NHC) {
-    if (tstat_flag) {
-      delete[] eta;
-      delete[] eta_dot;
-      delete[] eta_dotdot;
-      delete[] eta_mass;
-    }
-  }
-  if (rootworld != MPI_COMM_NULL) MPI_Comm_free(&rootworld);
+  delete[] eta;
+  delete[] eta_dot;
+  delete[] eta_dotdot;
+  delete[] eta_mass;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -376,155 +220,12 @@ double FixPIMDNVTValidated::chain0_target_energy() const
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMDNVTValidated::setmask()
+void FixPIMDNVTValidated::setup_subclass_state()
 {
-  int mask = 0;
-  mask |= POST_FORCE;
-  mask |= INITIAL_INTEGRATE;
-  mask |= FINAL_INTEGRATE;
-  mask |= END_OF_STEP;
-  return mask;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::init()
-{
-  if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR, "Fix {} requires an atom map, see atom_modify", style);
-
-  if (comm->nprocs != 1)
-    error->all(FLERR, "Fix {} currently requires one MPI rank per bead", style);
-
-  if (universe->me == 0 && universe->uscreen)
-    fprintf(universe->uscreen, "Fix %s: initializing Path-Integral ...\n", style);
-
-  // prepare the constants
-
-  masstotal = group->mass(igroup);
-
-  double planck;
-  if (strcmp(update->unit_style, "lj") == 0) {
-    double planck_star = sqrt(lj_epsilon) * sqrt(lj_mass) * lj_sigma * sqrt(other_mvv2e);
-    planck = other_planck / planck_star;
-  } else {
-    planck = force->hplanck;
-  }
-  planck *= sp;
-  hbar = planck / (MY_2PI);
-  kt = force->boltz * temp;
-  beta = 1.0 / kt;
-  double _fbond = 1.0 * np * np / (beta * beta * hbar * hbar);
-
-  omega_np = np / (hbar * beta) * sqrt(force->mvv2e);
-  beta_np = 1.0 / force->boltz / temp * inverse_np;
-  fbond = _fbond * force->mvv2e;
-
-  if ((universe->me == 0) && (universe->uscreen))
-    fprintf(universe->uscreen, "Fix %s: -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", style,
-            fbond);
-
-  me = comm->me;
-  nprocs = comm->nprocs;
-  cmode = (nprocs == 1) ? SINGLE_PROC : MULTI_PROC;
-
-  nprocs_universe = universe->nprocs;
-  nreplica = universe->nworlds;
-  ireplica = universe->iworld;
-  mapflag = (nreplica == 1) ? 0 : 1;
-
-  int *iroots = new int[nreplica];
-  MPI_Group uworldgroup, rootgroup;
-  for (int i = 0; i < nreplica; i++) iroots[i] = universe->root_proc[i];
-  MPI_Comm_group(universe->uworld, &uworldgroup);
-  MPI_Group_incl(uworldgroup, nreplica, iroots, &rootgroup);
-  if (rootworld != MPI_COMM_NULL) MPI_Comm_free(&rootworld);
-  MPI_Comm_create(universe->uworld, rootgroup, &rootworld);
-  if (rootgroup != MPI_GROUP_NULL) MPI_Group_free(&rootgroup);
-  if (uworldgroup != MPI_GROUP_NULL) MPI_Group_free(&uworldgroup);
-  delete[] iroots;
-
-  ntotal = atom->natoms;
-  if (atom->nmax > maxlocal) reallocate();
-  if (atom->nmax > maxunwrap) reallocate_x_unwrap();
-  if (atom->nmax > maxxc) reallocate_xc();
-
-  if (integrator == OBABO) {
-    dtf = 0.5 * update->dt * force->ftm2v;
-    dtv = 0.5 * update->dt;
-    dtv2 = dtv * dtv;
-    dtv3 = THIRD * dtv2 * dtv * force->ftm2v;
-    dthalf = 0.5 * update->dt;
-    dt4 = 0.25 * update->dt;
-    dt8 = 0.125 * update->dt;
-  } else if (integrator == BAOAB) {
-    dtf = 0.5 * update->dt * force->ftm2v;
-    dtv = 0.5 * update->dt;
-    dtv2 = dtv * dtv;
-    dtv3 = THIRD * dtv2 * dtv * force->ftm2v;
-    dthalf = 0.5 * update->dt;
-    dt4 = 0.25 * update->dt;
-    dt8 = 0.125 * update->dt;
-  } else {
-    error->universe_all(FLERR, fmt::format("Unknown integrator parameter for fix {}", style));
-  }
-
-  comm_init();
-  if (mass == nullptr) mass = new double[atom->ntypes + 1];
-  if (xcall == nullptr) memory->create(xcall, ntotal * 3, "FixPIMDNVTValidated:xcall");
-  nmpimd_init();
+  dthalf = 0.5 * update->dt;
+  dt4 = 0.25 * update->dt;
+  dt8 = 0.125 * update->dt;
   nhc_init();
-
-  c_pe = modify->get_compute_by_id(id_pe);
-  if (!c_pe)
-    error->universe_all(
-        FLERR, fmt::format("Could not find fix {} potential energy compute ID {}", style, id_pe));
-
-  c_press = modify->get_compute_by_id(id_press);
-  if (!c_press)
-    error->universe_all(
-        FLERR, fmt::format("Could not find fix {} pressure compute ID {}", style, id_press));
-
-  setup_subclass_state();
-  t_prim = t_vir = t_cv = p_cv = p_md = 0.0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::setup(int vflag)
-{
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  imageint *image = atom->image;
-
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap(x[i], image[i]);
-  }
-
-  inter_replica_comm(x);
-  if (cmode == SINGLE_PROC)
-    nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
-  else if (cmode == MULTI_PROC)
-    nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
-  after_force_transform_hook();
-  collect_xc();
-  compute_spring_energy();
-  compute_t_prim();
-  compute_p_prim();
-  inter_replica_comm(x);
-  if (cmode == SINGLE_PROC)
-    nmpimd_transform(bufsortedall, x, M_xp2x[universe->iworld]);
-  else if (cmode == MULTI_PROC)
-    nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap_inv(x[i], image[i]);
-  }
-
-  post_force(vflag);
-  compute_totke();
-  end_of_step();
-  c_pe->addstep(update->ntimestep + 1);
-  c_press->addstep(update->ntimestep + 1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -578,7 +279,7 @@ void FixPIMDNVTValidated::initial_integrate(int /*vflag*/)
     nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
 
   if (mapflag) {
-    for (int i = 0; i < nlocal; i++) { domain->unmap_inv(x[i], image[i]); }
+    for (int i = 0; i < nlocal; i++) domain->unmap_inv(x[i], image[i]);
   }
 }
 
@@ -599,159 +300,6 @@ void FixPIMDNVTValidated::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVTValidated::post_force(int /*flag*/)
-{
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  double **f = atom->f;
-  imageint *image = atom->image;
-  tagint *tag = atom->tag;
-
-  if (atom->nmax > maxunwrap) reallocate_x_unwrap();
-  if (atom->nmax > maxxc) reallocate_xc();
-  for (int i = 0; i < nlocal; i++) {
-    x_unwrap[i][0] = x[i][0];
-    x_unwrap[i][1] = x[i][1];
-    x_unwrap[i][2] = x[i][2];
-  }
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) { domain->unmap(x_unwrap[i], image[i]); }
-  }
-  for (int i = 0; i < nlocal; i++) {
-    xc[i][0] = xcall[3 * (tag[i] - 1) + 0];
-    xc[i][1] = xcall[3 * (tag[i] - 1) + 1];
-    xc[i][2] = xcall[3 * (tag[i] - 1) + 2];
-  }
-
-  compute_vir();
-  compute_xf_vir();
-  compute_cvir();
-  compute_t_vir();
-
-  compute_pote();
-  inter_replica_comm(f);
-  if (cmode == SINGLE_PROC)
-    nmpimd_transform(bufsortedall, f, M_x2xp[universe->iworld]);
-  else if (cmode == MULTI_PROC)
-    nmpimd_transform(bufbeads, f, M_x2xp[universe->iworld]);
-  after_force_transform_hook();
-
-  c_pe->addstep(update->ntimestep + 1);
-  c_press->addstep(update->ntimestep + 1);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::end_of_step()
-{
-  compute_totke();
-  compute_p_cv();
-  compute_tote();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::collect_xc()
-{
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  tagint *tag = atom->tag;
-  if (ireplica == 0) {
-    if (cmode == SINGLE_PROC) {
-      for (int i = 0; i < nlocal; i++) {
-        xcall[3 * i + 0] = xcall[3 * i + 1] = xcall[3 * i + 2] = 0.0;
-      }
-    } else if (cmode == MULTI_PROC) {
-      for (int i = 0; i < ntotal; i++) {
-        xcall[3 * i + 0] = xcall[3 * i + 1] = xcall[3 * i + 2] = 0.0;
-      }
-    }
-
-    const double sqrtnp = sqrt((double) np);
-    for (int i = 0; i < nlocal; i++) {
-      xcall[3 * (tag[i] - 1) + 0] = x[i][0] / sqrtnp;
-      xcall[3 * (tag[i] - 1) + 1] = x[i][1] / sqrtnp;
-      xcall[3 * (tag[i] - 1) + 2] = x[i][2] / sqrtnp;
-    }
-
-    if (cmode == MULTI_PROC) {
-      MPI_Allreduce(MPI_IN_PLACE, xcall, ntotal * 3, MPI_DOUBLE, MPI_SUM, world);
-    }
-  }
-  MPI_Bcast(xcall, ntotal * 3, MPI_DOUBLE, 0, universe->uworld);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::b_step()
-{
-  // The force here is the external potential contribution in normal-mode space;
-  // the harmonic ring-polymer propagation is handled separately in the A/QC steps.
-  int n = atom->nlocal;
-  int *type = atom->type;
-  double **v = atom->v;
-  double **f = atom->f;
-
-  for (int i = 0; i < n; i++) {
-    double dtfm = dtf / mass[type[i]];
-    v[i][0] += dtfm * f[i][0];
-    v[i][1] += dtfm * f[i][1];
-    v[i][2] += dtfm * f[i][2];
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::qc_step()
-{
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  double **v = atom->v;
-  if (universe->iworld == 0) {
-    for (int i = 0; i < nlocal; i++) {
-      x[i][0] += dtv * v[i][0];
-      x[i][1] += dtv * v[i][1];
-      x[i][2] += dtv * v[i][2];
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::a_step()
-{
-  // Use the analytical harmonic-oscillator update for the non-centroid modes.
-  int n = atom->nlocal;
-  double **x = atom->x;
-  double **v = atom->v;
-  double x0, x1, x2, v0, v1, v2;    // three components of x[i] and v[i]
-
-  if (universe->iworld != 0) {
-    for (int i = 0; i < n; i++) {
-      x0 = x[i][0];
-      x1 = x[i][1];
-      x2 = x[i][2];
-      v0 = v[i][0];
-      v1 = v[i][1];
-      v2 = v[i][2];
-      x[i][0] = Lan_c[universe->iworld] * x0 +
-          1.0 / _omega_k[universe->iworld] * Lan_s[universe->iworld] * v0;
-      x[i][1] = Lan_c[universe->iworld] * x1 +
-          1.0 / _omega_k[universe->iworld] * Lan_s[universe->iworld] * v1;
-      x[i][2] = Lan_c[universe->iworld] * x2 +
-          1.0 / _omega_k[universe->iworld] * Lan_s[universe->iworld] * v2;
-      v[i][0] = -1.0 * _omega_k[universe->iworld] * Lan_s[universe->iworld] * x0 +
-          Lan_c[universe->iworld] * v0;
-      v[i][1] = -1.0 * _omega_k[universe->iworld] * Lan_s[universe->iworld] * x1 +
-          Lan_c[universe->iworld] * v1;
-      v[i][2] = -1.0 * _omega_k[universe->iworld] * Lan_s[universe->iworld] * x2 +
-          Lan_c[universe->iworld] * v2;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixPIMDNVTValidated::nhc_init()
 {
   if (kt <= 0.0 || hbar <= 0.0)
@@ -759,31 +307,7 @@ void FixPIMDNVTValidated::nhc_init()
                                            style));
 
   const double beta_local = 1.0 / kt;
-  const double _omega_np = np / beta_local / hbar;
-  double _omega_np_dt_half = _omega_np * update->dt * 0.5;
-
-  delete[] _omega_k;
-  delete[] Lan_c;
-  delete[] Lan_s;
-  delete[] tau_k;
-  _omega_k = new double[np];
-  Lan_c = new double[np];
-  Lan_s = new double[np];
-  if (fmmode == PHYSICAL) {
-    for (int i = 0; i < np; i++) {
-      _omega_k[i] = _omega_np * sqrt(lam[i]) / sqrt(fmass);
-      Lan_c[i] = cos(sqrt(lam[i]) * _omega_np_dt_half);
-      Lan_s[i] = sin(sqrt(lam[i]) * _omega_np_dt_half);
-    }
-  } else if (fmmode == NORMAL) {
-    for (int i = 0; i < np; i++) {
-      _omega_k[i] = _omega_np / sqrt(fmass);
-      Lan_c[i] = cos(_omega_np_dt_half);
-      Lan_s[i] = sin(_omega_np_dt_half);
-    }
-  } else {
-    error->universe_all(FLERR, "Unknown fmmode setting; only physical and normal are supported!");
-  }
+  const double omega_np_local = np / beta_local / hbar;
 
   if (tstat_flag) {
     t_freq = 1.0 / t_period;
@@ -792,9 +316,7 @@ void FixPIMDNVTValidated::nhc_init()
 
   int fix_dof = 0;
   for (auto &ifix : modify->get_fix_list())
-    if (ifix->dof_flag){
-      fix_dof += ifix->dof(igroup);
-    }
+    if (ifix->dof_flag) fix_dof += ifix->dof(igroup);
   int extra_dof = domain->dimension;
   tdof = domain->dimension * group->count(igroup);
   tdof -= extra_dof + fix_dof;
@@ -807,7 +329,7 @@ void FixPIMDNVTValidated::nhc_init()
     eta_mass[0] = chain0_target / (t_freq * t_freq);
     for (int ich = 1; ich < mtchain; ich++) {
       eta_mass[ich] = (np == 1) ? chain_target / (t_freq * t_freq)
-                                : chain_target / (_omega_np * _omega_np);
+                                : chain_target / (omega_np_local * omega_np_local);
       if (eta_mass[ich] > 0.0)
         eta_dotdot[ich] =
             (eta_mass[ich - 1] * eta_dot[ich - 1] * eta_dot[ich - 1] - chain_target) /
@@ -816,22 +338,23 @@ void FixPIMDNVTValidated::nhc_init()
         eta_dotdot[ich] = 0.0;
     }
     if (!thermostat_chain_active()) {
-      for (int ich = 1; ich < mtchain; ich++) eta_dotdot[ich] = 0;
+      for (int ich = 1; ich < mtchain; ich++) eta_dotdot[ich] = 0.0;
     }
   }
 
-  std::string out = "Initializing TP path-integral Nose-Hoover thermostat chain...\n";
-  out += "  Bead ID    |    omega    |    tau\n";
+  delete[] tau_k;
   tau_k = new double[np];
   tau_k[0] = tau;
   for (int i = 1; i < np; i++) tau_k[i] = 0.5 / pilescale / _omega_k[i];
+
+  std::string out = "Initializing TP path-integral Nose-Hoover thermostat chain...\n";
+  out += "  Bead ID    |    omega    |    tau\n";
   for (int i = 0; i < np; i++) {
     out += fmt::format("      {:d}     {:.8e} {:.8e}\n", i, _omega_k[i], tau_k[i]);
   }
   out += "  NHC thermostat successfully initialized!\n\n";
   if (universe->me == 0) utils::logmesg(lmp, out);
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -978,51 +501,6 @@ void FixPIMDNVTValidated::nhc_temp_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVTValidated::setup_subclass_state()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixPIMDNVTValidated::subclass_restart_size() const
-{
-  return 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixPIMDNVTValidated::pack_subclass_restart(double *, int n) const
-{
-  return n;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixPIMDNVTValidated::unpack_subclass_restart(const double *, int n)
-{
-  return n;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixPIMDNVTValidated::subclass_vector_size() const
-{
-  return 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double FixPIMDNVTValidated::compute_subclass_vector(int) const
-{
-  return 0.0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::after_force_transform_hook() {}
-
-/* ---------------------------------------------------------------------- */
-
 void FixPIMDNVTValidated::thermostat_step()
 {
   if (tstat_flag) {
@@ -1062,451 +540,9 @@ void FixPIMDNVTValidated::nh_v_temp()
   }
 }
 
-/* ----------------------------------------------------------------------
-   Normal-mode ring-polymer operations
-   ------------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::nmpimd_init()
-{
-  memory->destroy(M_x2xp);
-  memory->destroy(M_xp2x);
-  memory->sfree(lam);
-  memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
-  memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
-
-  lam = (double *) memory->smalloc(sizeof(double) * np, "FixPIMDNVTValidated::lam");
-
-  // Set up  eigenvalues
-  for (int i = 0; i < np; i++) {
-    double sin_tmp = sin(i * MY_PI / np);
-    lam[i] = 4 * sin_tmp * sin_tmp;
-  }
-
-  for (int i = 0; i < np; i++) {
-    if (!std::isfinite(lam[i]))
-      error->universe_all(FLERR, fmt::format("Fix {} encountered invalid lambda", style));
-  }
-
-  // Set up eigenvectors for degenerated modes
-  const double sqrtnp = sqrt((double) np);
-  for (int j = 0; j < np; j++) {
-    for (int i = 1; i < int(np / 2) + 1; i++) {
-      M_x2xp[i][j] = MY_SQRT2 * cos(MY_2PI * double(i) * double(j) / double(np)) / sqrtnp;
-    }
-    for (int i = int(np / 2) + 1; i < np; i++) {
-      M_x2xp[i][j] = MY_SQRT2 * sin(MY_2PI * double(i) * double(j) / double(np)) / sqrtnp;
-    }
-  }
-
-  // Set up eigenvectors for non-degenerated modes
-  for (int i = 0; i < np; i++) {
-    M_x2xp[0][i] = 1.0 / sqrtnp;
-    if (np % 2 == 0) M_x2xp[np / 2][i] = 1.0 / sqrtnp * powint(-1.0, i);
-  }
-
-  // Set up Ut
-  for (int i = 0; i < np; i++)
-    for (int j = 0; j < np; j++) { M_xp2x[i][j] = M_x2xp[j][i]; }
-
-  // Set up fictitious masses
-  int iworld = universe->iworld;
-  for (int i = 1; i <= atom->ntypes; i++) {
-    mass[i] = atom->mass[i];
-    mass[i] *= fmass;
-    if (iworld) {
-      if (fmmode == PHYSICAL) {
-        mass[i] *= 1.0;
-      } else if (fmmode == NORMAL) {
-        mass[i] *= lam[iworld];
-      }
-    }
-  }
-}
-
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVTValidated::nmpimd_transform(double **src, double **des, double *vector)
-{
-  if (cmode == SINGLE_PROC) {
-    for (int i = 0; i < ntotal; i++) {
-      for (int d = 0; d < 3; d++) {
-        bufsorted[i][d] = 0.0;
-        for (int j = 0; j < nreplica; j++) {
-          bufsorted[i][d] += src[j * ntotal + i][d] * vector[j];
-        }
-      }
-    }
-    for (int i = 0; i < ntotal; i++) {
-      tagint tagtmp = atom->tag[i];
-      for (int d = 0; d < 3; d++) { des[i][d] = bufsorted[tagtmp - 1][d]; }
-    }
-  } else if (cmode == MULTI_PROC) {
-    int n = atom->nlocal;
-    int m = 0;
-
-    for (int i = 0; i < n; i++)
-      for (int d = 0; d < 3; d++) {
-        des[i][d] = 0.0;
-        for (int j = 0; j < np; j++) { des[i][d] += (src[j][m] * vector[j]); }
-        m++;
-      }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   Comm operations
-   ------------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::comm_init()
-{
-  if (np != universe->nworlds)
-    error->all(FLERR, "Fix {}: np must equal universe->nworlds", style);
-
-  int nlocal = atom->nlocal;
-  if (cmode == SINGLE_PROC) {
-    memory->destroy(counts);
-    memory->destroy(displacements);
-    memory->create(counts, nreplica, "FixPIMDNVTValidated:counts");
-    memory->create(displacements, nreplica, "FixPIMDNVTValidated:displacements");
-    for (int i = 0; i < nreplica; i++) counts[i] = 3 * nlocal;
-    displacements[0] = 0;
-    for (int i = 0; i < nreplica - 1; i++) displacements[i + 1] = displacements[i] + counts[i];
-  }
-
-  if (sizeplan) {
-    delete[] plansend;
-    delete[] planrecv;
-    delete[] modeindex;
-  }
-
-  sizeplan = np - 1;
-  plansend = new int[sizeplan];
-  planrecv = new int[sizeplan];
-  modeindex = new int[sizeplan];
-  for (int i = 0; i < sizeplan; i++) {
-    int isend = ireplica + i + 1;
-    if (isend >= nreplica) isend -= nreplica;
-
-    int irecv = ireplica - (i + 1);
-    if (irecv < 0) irecv += nreplica;
-
-    plansend[i] = universe->root_proc[isend];
-    planrecv[i] = universe->root_proc[irecv];
-    modeindex[i] = irecv;
-  }
-
-  x_next = (universe->iworld + 1 + universe->nworlds) % (universe->nworlds);
-  x_last = (universe->iworld - 1 + universe->nworlds) % (universe->nworlds);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::reallocate_xc()
-{
-  maxxc = atom->nmax;
-  memory->destroy(xc);
-  memory->create(xc, maxxc, 3, "FixPIMDNVTValidated:xc");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::reallocate_x_unwrap()
-{
-  maxunwrap = atom->nmax;
-  memory->destroy(x_unwrap);
-  memory->create(x_unwrap, maxunwrap, 3, "FixPIMDNVTValidated:x_unwrap");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::reallocate()
-{
-  maxlocal = atom->nmax;
-  ntotal = atom->natoms;
-  if (cmode == SINGLE_PROC) {
-    memory->destroy(bufsorted);
-    memory->destroy(bufsortedall);
-    memory->create(bufsorted, ntotal, 3, "FixPIMDNVTValidated:bufsorted");
-    memory->create(bufsortedall, nreplica * ntotal, 3, "FixPIMDNVTValidated:bufsortedall");
-  } else if (cmode == MULTI_PROC) {
-    memory->destroy(bufsend);
-    memory->destroy(bufrecv);
-    memory->destroy(tagsend);
-    memory->destroy(tagrecv);
-    memory->destroy(bufbeads);
-    memory->create(bufsend, maxlocal, 3, "FixPIMDNVTValidated:bufsend");
-    memory->create(bufrecv, maxlocal, 3, "FixPIMDNVTValidated:bufrecv");
-    memory->create(tagsend, maxlocal, "FixPIMDNVTValidated:tagsend");
-    memory->create(tagrecv, maxlocal, "FixPIMDNVTValidated:tagrecv");
-    memory->create(bufbeads, nreplica, maxlocal * 3, "FixPIMDNVTValidated:bufbeads");
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::inter_replica_comm(double **ptr)
-{
-  MPI_Request requests[2];
-  MPI_Status statuses[2];
-  if (atom->nmax > maxlocal) reallocate();
-  int nlocal = atom->nlocal;
-  tagint *tag = atom->tag;
-  int i, m;
-
-  // communicate values from the other beads
-  if (cmode == SINGLE_PROC) {
-    m = 0;
-    for (i = 0; i < nlocal; i++) {
-      tagint tagtmp = tag[i];
-      bufsorted[tagtmp - 1][0] = ptr[i][0];
-      bufsorted[tagtmp - 1][1] = ptr[i][1];
-      bufsorted[tagtmp - 1][2] = ptr[i][2];
-      m++;
-    }
-    MPI_Allgatherv(bufsorted[0], 3 * m, MPI_DOUBLE, bufsortedall[0], counts, displacements,
-                   MPI_DOUBLE, universe->uworld);
-  } else if (cmode == MULTI_PROC) {
-    for (i = 0; i < nlocal; i++) {
-      bufbeads[ireplica][3 * i + 0] = ptr[i][0];
-      bufbeads[ireplica][3 * i + 1] = ptr[i][1];
-      bufbeads[ireplica][3 * i + 2] = ptr[i][2];
-    }
-    m = 0;
-    for (i = 0; i < nlocal; i++) {
-      tagsend[m] = tag[i];
-      bufsend[m][0] = ptr[i][0];
-      bufsend[m][1] = ptr[i][1];
-      bufsend[m][2] = ptr[i][2];
-      m++;
-    }
-    MPI_Gather(&m, 1, MPI_INT, counts, 1, MPI_INT, 0, world);
-    displacements[0] = 0;
-    for (i = 0; i < nprocs - 1; i++) displacements[i + 1] = displacements[i] + counts[i];
-    MPI_Gatherv(tagsend, m, MPI_LMP_TAGINT, tagsendall, counts, displacements, MPI_LMP_TAGINT, 0,
-                world);
-    for (i = 0; i < nprocs; i++) counts[i] *= 3;
-    for (i = 0; i < nprocs - 1; i++) displacements[i + 1] = displacements[i] + counts[i];
-    MPI_Gatherv(bufsend[0], 3 * m, MPI_DOUBLE, bufsendall[0], counts, displacements, MPI_DOUBLE, 0,
-                world);
-    for (int iplan = 0; iplan < sizeplan; iplan++) {
-      if (me == 0) {
-        MPI_Irecv(bufrecvall[0], 3 * ntotal, MPI_DOUBLE, planrecv[iplan], 0, universe->uworld,
-                  &requests[0]);
-        MPI_Irecv(tagrecvall, ntotal, MPI_LMP_TAGINT, planrecv[iplan], 0, universe->uworld,
-                  &requests[1]);
-        MPI_Send(bufsendall[0], 3 * ntotal, MPI_DOUBLE, plansend[iplan], 0, universe->uworld);
-        MPI_Send(tagsendall, ntotal, MPI_LMP_TAGINT, plansend[iplan], 0, universe->uworld);
-        MPI_Waitall(2, requests, statuses);
-      }
-      MPI_Bcast(tagrecvall, ntotal, MPI_LMP_TAGINT, 0, world);
-      MPI_Bcast(bufrecvall[0], 3 * ntotal, MPI_DOUBLE, 0, world);
-      for (i = 0; i < ntotal; i++) {
-        m = atom->map(tagrecvall[i]);
-        if (m < 0 || m >= nlocal) continue;
-        bufbeads[modeindex[iplan]][3 * m + 0] = bufrecvall[i][0];
-        bufbeads[modeindex[iplan]][3 * m + 1] = bufrecvall[i][1];
-        bufbeads[modeindex[iplan]][3 * m + 2] = bufrecvall[i][2];
-      }
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::remove_com_motion()
-{
-  if (universe->iworld == 0) {
-    double **v = atom->v;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-    if (dynamic) masstotal = group->mass(igroup);
-    double vcm[3];
-    group->vcm(igroup, masstotal, vcm);
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        v[i][0] -= vcm[0];
-        v[i][1] -= vcm[1];
-        v[i][2] -= vcm[2];
-      }
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::compute_xf_vir()
-{
-  int nlocal = atom->nlocal;
-  double xf = 0.0;
-  vir_ = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    for (int j = 0; j < 3; j++) { xf += x_unwrap[i][j] * atom->f[i][j]; }
-  }
-  MPI_Allreduce(&xf, &vir_, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::compute_cvir()
-{
-  int nlocal = atom->nlocal;
-  double xcf = 0.0;
-  centroid_vir = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    for (int j = 0; j < 3; j++) { xcf += (x_unwrap[i][j] - xc[i][j]) * atom->f[i][j]; }
-  }
-  MPI_Allreduce(&xcf, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::compute_vir()
-{
-  double volume = domain->xprd * domain->yprd * domain->zprd;
-  c_press->compute_vector();
-  virial[0] = c_press->vector[0] * volume;
-  virial[1] = c_press->vector[1] * volume;
-  virial[2] = c_press->vector[2] * volume;
-  virial[3] = c_press->vector[3] * volume;
-  virial[4] = c_press->vector[4] * volume;
-  virial[5] = c_press->vector[5] * volume;
-  for (int i = 0; i < 6; i++) virial[i] /= universe->procs_per_world[universe->iworld];
-  double vir_bead = (virial[0] + virial[1] + virial[2]);
-  MPI_Allreduce(&vir_bead, &vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  MPI_Allreduce(MPI_IN_PLACE, &virial[0], 6, MPI_DOUBLE, MPI_SUM, universe->uworld);
-}
-
-void FixPIMDNVTValidated::compute_totke()
-{
-  double kine = 0.0;
-  totke = ke_bead = 0.0;
-  int nlocal = atom->nlocal;
-  int *type = atom->type;
-  for (int i = 0; i < nlocal; i++) {
-    for (int j = 0; j < 3; j++) { kine += 0.5 * mass[type[i]] * atom->v[i][j] * atom->v[i][j]; }
-  }
-  kine *= force->mvv2e;
-  MPI_Allreduce(&kine, &ke_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(&ke_bead, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  totke /= universe->procs_per_world[universe->iworld];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::compute_spring_energy()
-{
-  spring_energy = 0.0;
-  total_spring_energy = se_bead = 0.0;
-
-  double **x = atom->x;
-  double *_mass = atom->mass;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] *
-        (x[i][0] * x[i][0] + x[i][1] * x[i][1] + x[i][2] * x[i][2]);
-  }
-  MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(&se_bead, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  total_spring_energy /= universe->procs_per_world[universe->iworld];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::compute_pote()
-{
-  pe_bead = 0.0;
-  pote = 0.0;
-  c_pe->compute_scalar();
-  pe_bead = c_pe->scalar;
-  double pot_energy_partition = pe_bead / universe->procs_per_world[universe->iworld];
-  MPI_Allreduce(&pot_energy_partition, &pote, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::compute_tote()
-{
-  tote = totke + pote + total_spring_energy;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::compute_t_prim()
-{
-  t_prim = 1.5 * atom->natoms * np * force->boltz * temp - total_spring_energy * inverse_np;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::compute_t_vir()
-{
-  t_vir = -0.5 * inverse_np * vir_;
-  t_cv = 1.5 * atom->natoms * force->boltz * temp - 0.5 * inverse_np * centroid_vir;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::compute_p_prim()
-{
-  double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-  p_prim = atom->natoms * np * force->boltz * temp * inv_volume -
-      1.0 / 1.5 * inv_volume * total_spring_energy;
-  p_prim *= force->nktv2p;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::compute_p_cv()
-{
-  double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-  p_md = THIRD * inv_volume * (totke + vir);
-  if (universe->iworld == 0) {
-    p_cv = THIRD * inv_volume * ((2.0 * ke_bead - centroid_vir) * force->nktv2p + vir) / np;
-  }
-  MPI_Bcast(&p_cv, 1, MPI_DOUBLE, 0, universe->uworld);
-}
-
-/* ----------------------------------------------------------------------
-   pack entire state of Fix into one write
-------------------------------------------------------------------------- */
-
-void FixPIMDNVTValidated::write_restart(FILE *fp)
-{
-  int nsize = size_restart_global();
-
-  double *list;
-  memory->create(list, nsize, "FixPIMDNVTValidated:list");
-
-  pack_restart_data(list);
-
-  if (comm->me == 0) {
-    int size = nsize * sizeof(double);
-    fwrite(&size, sizeof(int), 1, fp);
-    fwrite(list, sizeof(double), nsize, fp);
-  }
-
-  memory->destroy(list);
-}
-/* ---------------------------------------------------------------------- */
-
-int FixPIMDNVTValidated::size_restart_global()
-{
-  return nuclear_restart_size() + subclass_restart_size();
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixPIMDNVTValidated::pack_restart_data(double *list)
-{
-  int n = pack_nuclear_restart(list);
-  return pack_subclass_restart(list, n);
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixPIMDNVTValidated::nuclear_restart_size() const
+int FixPIMDNVTValidated::base_restart_size() const
 {
   int nsize = 1;
   if (tstat_flag) nsize += 1 + 2 * mtchain;
@@ -1515,7 +551,7 @@ int FixPIMDNVTValidated::nuclear_restart_size() const
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMDNVTValidated::pack_nuclear_restart(double *list) const
+int FixPIMDNVTValidated::pack_base_restart(double *list) const
 {
   int n = 0;
   list[n++] = tstat_flag;
@@ -1529,15 +565,7 @@ int FixPIMDNVTValidated::pack_nuclear_restart(double *list) const
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVTValidated::restart(char *buf)
-{
-  auto list = (double *) buf;
-  unpack_subclass_restart(list, unpack_nuclear_restart(list));
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixPIMDNVTValidated::unpack_nuclear_restart(const double *list)
+int FixPIMDNVTValidated::unpack_base_restart(const double *list)
 {
   int n = 0;
   int flag = static_cast<int>(list[n++]);
@@ -1558,23 +586,11 @@ int FixPIMDNVTValidated::unpack_nuclear_restart(const double *list)
   return n;
 }
 
-/* ----------------------------------------------------------------------
-   if thermostat == NHC, return a single element of the following vectors, in this order:
-      eta[tchain], eta_dot[tchain], PE_eta[tchain], KE_eta_dot[tchain]
-------------------------------------------------------------------------- */
-
-double FixPIMDNVTValidated::compute_vector(int n)
-{
-  const int prefix = nuclear_vector_size();
-  if (n < prefix) return compute_nuclear_vector(n);
-  return compute_subclass_vector(n - prefix);
-}
-
 /* ---------------------------------------------------------------------- */
 
 int FixPIMDNVTValidated::nuclear_vector_size() const
 {
-  int nsize = 10;
+  int nsize = FixPIMDNVE::nuclear_vector_size();
   if (tstat_flag) nsize += 4 * mtchain;
   return nsize;
 }
@@ -1583,26 +599,9 @@ int FixPIMDNVTValidated::nuclear_vector_size() const
 
 double FixPIMDNVTValidated::compute_nuclear_vector(int n) const
 {
-  if (n == 0) return ke_bead;
-  n -= 1;
-  if (n == 0) return se_bead;
-  n -= 1;
-  if (n == 0) return pe_bead;
-  n -= 1;
-  if (n == 0) return tote;
-  n -= 1;
-  if (n == 0) return t_prim;
-  n -= 1;
-  if (n == 0) return t_vir;
-  n -= 1;
-  if (n == 0) return t_cv;
-  n -= 1;
-  if (n == 0) return p_prim;
-  n -= 1;
-  if (n == 0) return p_md;
-  n -= 1;
-  if (n == 0) return p_cv;
-  n -= 1;
+  const int prefix = FixPIMDNVE::nuclear_vector_size();
+  if (n < prefix) return FixPIMDNVE::compute_nuclear_vector(n);
+  n -= prefix;
 
   int ilen;
   if (tstat_flag) {
@@ -1618,16 +617,12 @@ double FixPIMDNVTValidated::compute_nuclear_vector(int n) const
   if (tstat_flag) {
     ilen = mtchain;
     if (n < ilen) {
-      int ich = n;
-      if (ich == 0) return chain0_target_energy() * eta[0];
-      return thermostat_chain_active() ? kt_local * eta[ich] : 0.0;
+      if (n == 0) return kt_local * eta[0] * tdof;
+      return kt_local * eta[n] * np;
     }
     n -= ilen;
     ilen = mtchain;
-    if (n < ilen) {
-      int ich = n;
-      return 0.5 * eta_mass[ich] * eta_dot[ich] * eta_dot[ich];
-    }
+    if (n < ilen) return 0.5 * eta_mass[n] * eta_dot[n] * eta_dot[n];
   }
 
   return 0.0;

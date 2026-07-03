@@ -395,13 +395,15 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
       plan->packplan = (struct pack_plan_3d *)
         malloc(nsend*sizeof(struct pack_plan_3d));
 
-      if (plan->usenonblocking)
+      if (plan->usenonblocking) {
         plan->isend_reqs = (MPI_Request *) malloc(nsend*sizeof(MPI_Request));
-        plan->send_bufloc = (int *) malloc(nsend*sizeof(int));
-        if (plan->send_bufloc == nullptr) return nullptr;
+      }
+      plan->send_bufloc = (int *) malloc(nsend*sizeof(int));
 
       if (plan->send_offset == nullptr || plan->send_size == nullptr ||
-          plan->send_proc == nullptr || plan->packplan == nullptr) return nullptr;
+          plan->send_proc == nullptr || plan->packplan == nullptr ||
+          (plan->usenonblocking && (plan->isend_reqs == nullptr)) ||
+          (plan->send_bufloc == nullptr)) return nullptr;
     }
 
     if (nrecv) {

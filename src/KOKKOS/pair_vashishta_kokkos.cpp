@@ -916,7 +916,10 @@ void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT & /*ev*/, const in
 {
   KK_FLOAT epairthird,v[6];
 
-  const int VFLAG = vflag_either;
+  // only tally per-atom virial data here: the caller computes valid fj/fk data
+  // only when vflag_atom is set, so vflag_either would be too broad
+
+  const int VFLAG = vflag_atom;
 
   if (eflag_atom) {
     epairthird = THIRD * (evdwl + ecoul);

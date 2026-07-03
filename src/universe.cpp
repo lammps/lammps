@@ -104,6 +104,9 @@ void Universe::reorder(char *style, char *arg)
 
       // read nprocs lines
       // uni2orig = inverse mapping
+      // each original and each new rank must appear exactly once
+
+      std::vector<int> seen_orig(nprocs,0), seen_new(nprocs,0);
 
       int me_orig,me_new,rv;
       rv = sscanf(line,"%d %d",&me_orig,&me_new);
@@ -111,6 +114,7 @@ void Universe::reorder(char *style, char *arg)
           me_new < 0 || me_new >= nprocs || rv != 2)
         error->one(FLERR,"Invalid entry '{} {}' in -reorder "
                                      "file", me_orig, me_new);
+      seen_orig[me_orig] = seen_new[me_new] = 1;
       uni2orig[me_new] = me_orig;
 
       for (int i = 1; i < nprocs; i++) {
@@ -121,6 +125,9 @@ void Universe::reorder(char *style, char *arg)
             me_new < 0 || me_new >= nprocs || rv != 2)
           error->one(FLERR,"Invalid entry '{} {}' in -reorder "
                                        "file", me_orig, me_new);
+        if (seen_orig[me_orig] || seen_new[me_new])
+          error->one(FLERR,"Duplicate entry '{} {}' in -reorder file", me_orig, me_new);
+        seen_orig[me_orig] = seen_new[me_new] = 1;
         uni2orig[me_new] = me_orig;
       }
     }

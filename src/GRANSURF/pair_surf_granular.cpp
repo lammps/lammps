@@ -328,7 +328,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
 
     // Sort contacts by overlap and create a map
     std::sort(contact_surfs.begin(), contact_surfs.end(),
-              [](FixSurface::ContactSurf a, FixSurface::ContactSurf b) {
+              [](const FixSurface::ContactSurf &a, const FixSurface::ContactSurf &b) {
                 if (a.overlap > (b.overlap + EPSILON))
                   return 1;    // 1st compare overlaps within epsilon
                 if (b.overlap > (a.overlap + EPSILON)) return 0;
@@ -362,7 +362,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
 
     // Given corrected surface norms, resort contacts
     std::sort(contact_surfs.begin(), contact_surfs.end(),
-              [](FixSurface::ContactSurf a, FixSurface::ContactSurf b) {
+              [](const FixSurface::ContactSurf &a, const FixSurface::ContactSurf &b) {
                 if (a.overlap > (b.overlap + EPSILON)) return 1;
                 if (b.overlap > (a.overlap + EPSILON)) return 0;
                 if (a.priority > b.priority) return 1;

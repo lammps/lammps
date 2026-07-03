@@ -1415,7 +1415,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
       continue;
 
     // Sort contacts by overlap and create a map
-    std::sort(contact_surfs.begin(), contact_surfs.end(), [](ContactSurf a, ContactSurf b) {
+    std::sort(contact_surfs.begin(), contact_surfs.end(), [](const ContactSurf &a, const ContactSurf &b) {
         if (a.overlap > (b.overlap + EPSILON)) return 1; // 1st compare overlaps within epsilon
         if (b.overlap > (a.overlap + EPSILON)) return 0;
         if (a.priority > b.priority) return 1; // 2nd, prioritize interior > edge > corner
@@ -1441,7 +1441,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
     else prewalk_connections3d();
 
     // Given corrected surface norms, resort contacts
-    std::sort(contact_surfs.begin(), contact_surfs.end(), [](ContactSurf a, ContactSurf b) {
+    std::sort(contact_surfs.begin(), contact_surfs.end(), [](const ContactSurf &a, const ContactSurf &b) {
         if (a.overlap > (b.overlap + EPSILON)) return 1;
         if (b.overlap > (a.overlap + EPSILON)) return 0;
         if (a.priority > b.priority) return 1;

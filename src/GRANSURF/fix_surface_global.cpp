@@ -792,7 +792,7 @@ void FixSurfaceGlobal::setup_pre_neighbor()
    similar to fix move operations
 ------------------------------------------------------------------------- */
 
-void FixSurfaceGlobal::initial_integrate(int vflag)
+void FixSurfaceGlobal::initial_integrate(int /*vflag*/)
 {
   int imotion,mstyle;
 
@@ -873,7 +873,7 @@ void FixSurfaceGlobal::initial_integrate(int vflag)
 
 void FixSurfaceGlobal::pre_neighbor()
 {
-  int i,j,j2,k,m,n,nn,dnum,dnumbytes;
+  int i,j,j2,k,n,nn,dnum,dnumbytes;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double radi,rsq,radsum,cutsq;
   int *neighptr;
@@ -989,7 +989,6 @@ void FixSurfaceGlobal::pre_neighbor()
 
         // add ghost coordinates
         j = nsurf;
-        double ximage[3];
         for (i = 0; i < nsurf; i++) {
           idsurf[i] = i;
 
@@ -1185,9 +1184,9 @@ void FixSurfaceGlobal::pre_neighbor()
    impart force and torque to spherical particles
 ------------------------------------------------------------------------- */
 
-void FixSurfaceGlobal::post_force(int vflag)
+void FixSurfaceGlobal::post_force(int /*vflag*/)
 {
-  int i, j, k, a, n, m, ii, jj, inum, jnum, jflag;
+  int i, j, k, a, m, ii, jj, inum, jnum, jflag;
   int itype, jtype, external_flag, priority;
   double xtmp, ytmp, ztmp, radi, delx, dely, delz, meff;
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -1196,7 +1195,7 @@ void FixSurfaceGlobal::post_force(int vflag)
   double x_min_image[3], norm[3], dr[3], contact[3], ds[3], xc[3], vc[3], omegac[3];
   double *forces, *torquesi, *history, *allhistory, **firsthistory;
 
-  int it, jjtmp, nsidej;
+  int jjtmp, nsidej;
   std::vector<int> composite_surfs;
   std::unordered_set<int> processed_contacts;
 
@@ -1208,7 +1207,7 @@ void FixSurfaceGlobal::post_force(int vflag)
   if (neighbor->ago == 0 && fix_rigid) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body", tmp);
-    double *mass_body = (double *) fix_rigid->extract("masstotal", tmp);
+    auto *mass_body = (double *) fix_rigid->extract("masstotal", tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;
@@ -1235,10 +1234,9 @@ void FixSurfaceGlobal::post_force(int vflag)
   double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
 
   class GranularModel* model;
-  for (n = 0; n < nmodel; n++) {
+  for (auto n = 0; n < nmodel; n++) {
     model = models[n];
     model->history_update = 1;
     model->radj = 0.0;
@@ -1433,7 +1431,7 @@ void FixSurfaceGlobal::post_force(int vflag)
       });
 
     contacts_map.clear();
-    for (n = 0; n < contact_surfs.size(); n++)
+    for (auto n = 0; n < contact_surfs.size(); n++)
       contacts_map[contact_surfs[n].index] = n;
 
     // Initial walk to assign consistent sides of surfaces
@@ -1458,11 +1456,11 @@ void FixSurfaceGlobal::post_force(int vflag)
         else return 0;
       });
 
-    for (n = 0; n < contact_surfs.size(); n++)
+    for (auto n = 0; n < contact_surfs.size(); n++)
       contacts_map[contact_surfs[n].index] = n;
 
     processed_contacts.clear();
-    for (n = 0; n < contact_surfs.size(); n++) {
+    for (auto n = 0; n < contact_surfs.size(); n++) {
 
       j = contact_surfs[n].index;
       if (processed_contacts.find(j) != processed_contacts.end()) continue;
@@ -1484,7 +1482,7 @@ void FixSurfaceGlobal::post_force(int vflag)
 
         // Calculate overlap-weighted average normal vector
         MathExtra::zero3(dr);
-        for (it = 0; it < composite_surfs.size(); it++) {
+        for (auto it = 0; it < composite_surfs.size(); it++) {
           m = composite_surfs[it];
           if (contact_surfs[m].overlap < EPSILON) continue;
           MathExtra::scaleadd3(contact_surfs[m].overlap * contact_surfs[m].weight_contribution, contact_surfs[m].dr_force, dr, dr);
@@ -1533,7 +1531,7 @@ void FixSurfaceGlobal::post_force(int vflag)
       if (use_history) {
         // Check if another flat contact has a stored history
         if (touch[jj] != 1) {
-          for (it = 0; it < composite_surfs.size(); it++) {
+          for (auto it = 0; it < composite_surfs.size(); it++) {
             m = composite_surfs[it];
             jjtmp = contact_surfs[m].neigh_index;
             if (touch[jjtmp] == 1)
@@ -1552,7 +1550,7 @@ void FixSurfaceGlobal::post_force(int vflag)
       //   can be arbitrary if not all connected flat surfaces are mutually flat
       //   e.g. a hair pin turn where surfs on either end of the 'U' are not flat
       if (use_history) {
-        for (it = 0; it < composite_surfs.size(); it++) {
+        for (auto it = 0; it < composite_surfs.size(); it++) {
           m = composite_surfs[it];
           jjtmp = contact_surfs[m].neigh_index;
           if (jj != jjtmp) {
@@ -4085,7 +4083,7 @@ double FixSurfaceGlobal::calculate_2d_forces(std::vector<int> &composite_surfs)
 
   // Calculate constraints on force norm
   int i, ck, pt, ptk, caflag;
-  double neigh_overlap, max_neigh_overlap, max_dot;
+  double max_dot;
   for (auto it = 0; it < composite_surfs.size(); it++) {
     n = composite_surfs[it];
     j = contact_surfs[n].index;

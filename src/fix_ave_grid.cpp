@@ -1060,7 +1060,7 @@ void FixAveGrid::atom2grid()
                 vec2d[bin[i][0]][bin[i][1]] += ovector[i];
             }
           } else {
-            int jm1 = j = 1;
+            int jm1 = j - 1;
             for (i = 0; i < nlocal; i++) {
               if (!skip[i])
                 vec2d[bin[i][0]][bin[i][1]] += oarray[i][jm1];

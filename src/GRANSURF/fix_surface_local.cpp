@@ -450,19 +450,9 @@ void FixSurfaceLocal::setup(int vflag)
   // count instances of FixMove
   // just return if no FixMove commands
   // movelist = pointers to each instance
-  // NOTE: should this use modify->get_fix_by_style() instead ?
 
-  int nmove = 0;
-  for (const auto &ifix : modify->get_fix_list())
-    if (strcmp(ifix->style,"move") == 0) nmove++;
-  if (nmove == 0) return;
-
-  auto *movelist = new Fix*[nmove];
-
-  nmove = 0;
-  for (const auto &ifix : modify->get_fix_list())
-    if (strcmp(ifix->style,"move") == 0)
-      movelist[nmove++] = ifix;
+  auto movelist = modify->get_fix_by_style("^move");
+  if (movelist.size() == 0) return;
 
   // check for inconsistent surf motion
   // error if a single surf is assigned to multiple motions

@@ -201,9 +201,10 @@ void FixSurface::extract_from_stlfile(char *filename, int stype, int smol,
   // read tris from STL file
   // stltris = tri coords internal to STL reader
 
-  double **stltris;
+  STLReader stl(lmp);
+  double **stltris;    // automatically freed when stl goes out of scope
   int ntris_old = ntris;
-  int ntris_new = STLReader(lmp).read_file(filename, stltris);
+  int ntris_new = stl.read_file(filename, stltris);
   if (ntris_new < 0) error->one(FLERR, Error::NOLASTLINE, "Failed to read STL file {}", filename);
   ntris += ntris_new;
 

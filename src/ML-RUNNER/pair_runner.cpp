@@ -127,9 +127,9 @@ enum {
 int PairRuNNer::instances = 0;
 
 PairRuNNer::PairRuNNer(LAMMPS *lmp) :
-    Pair(lmp), map(nullptr), atomic_charge(nullptr), hirshfeld_volume(nullptr),
-    electronegativity(nullptr), lagrange_charges(nullptr), de_dq(nullptr), screening_de_dq(nullptr),
-    committee_storage(nullptr)
+    Pair(lmp), directory(nullptr), map(nullptr), atomic_charge(nullptr),
+    hirshfeld_volume(nullptr), electronegativity(nullptr), lagrange_charges(nullptr),
+    de_dq(nullptr), screening_de_dq(nullptr), committee_storage(nullptr)
 {
   // Sanity check: Prevent multiple instances due to static Fortran interface
   if (instances > 0) { error->all(FLERR, "Only one pair runner instance can be active at a time"); }
@@ -727,7 +727,7 @@ void PairRuNNer::compute(int eflag, int vflag)
 
   // Virial is -1.0 * d_energy_d_strain
   if (vflag_global) {
-    memset(virial, 0, 9 * (sizeof *virial));
+    memset(virial, 0, 6 * (sizeof *virial));
     for (i = 0; i < num_committee_members; i++) {
       virial[0] -= committee_d_energy_d_strain[0 + 9 * i] / cfenergy / num_committee_members;
       virial[1] -= committee_d_energy_d_strain[4 + 9 * i] / cfenergy / num_committee_members;

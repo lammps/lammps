@@ -772,8 +772,13 @@ void Group::read_restart(FILE *fp)
 
   // delete existing group names
   // atom masks will be overwritten by reading of restart file
+  // also null the pointers: if reading the restart data fails below, the
+  // destructor of a still-active library instance must not free them again
 
-  for (i = 0; i < MAX_GROUP; i++) delete[] names[i];
+  for (i = 0; i < MAX_GROUP; i++) {
+    delete[] names[i];
+    names[i] = nullptr;
+  }
 
   if (me == 0) utils::sfread(FLERR, &ngroup, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&ngroup, 1, MPI_INT, 0, world);

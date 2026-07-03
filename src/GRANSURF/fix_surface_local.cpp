@@ -3448,9 +3448,6 @@ void FixSurfaceLocal::connectivity2d_complete()
 
   int i, j, jconnect;
   tagint jtag;
-  double dotnorm;
-  double *inorm, *jnorm;
-  double icrossj[3];
 
   for (int i = 0; i < nlocal; i++) {
     if (line[i] < 0) continue;
@@ -3574,9 +3571,7 @@ void FixSurfaceLocal::connectivity3d_complete()
 
   int jconnect, jpfirst, jpsecond;
   tagint jtag;
-  double dotnorm;
-  double *inorm, *jnorm;
-  double icrossj[3], iedge[3];
+  double iedge[3];
 
   for (int i = 0; i < nlocal; i++) {
     if (tri[i] < 0) continue;
@@ -3681,24 +3676,16 @@ void FixSurfaceLocal::connectivity3d_complete()
       int j = atom->map(jtag);
       if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Missing tri atom {} from surface", jtag);
       jconnect = atom2connect[j];
+      int cwhich = -1;
       if (same_point(cpts[iconnect][0], cpts[jconnect][0]))
-        connect3d[iconnect].cwhich_c1[m] = 0;
+        cwhich = 0;
       else if (same_point(cpts[iconnect][0], cpts[jconnect][1]))
-        connect3d[iconnect].cwhich_c1[m] = 1;
+        cwhich = 1;
       else if (same_point(cpts[iconnect][0], cpts[jconnect][2]))
-        connect3d[iconnect].cwhich_c1[m] = 2;
-
-      inorm = normals[iconnect];
-      jnorm = normals[jconnect];
-      dotnorm = MathExtra::dot3(inorm, jnorm);
-      if (dotnorm < 0.0)
-        connect3d[iconnect].nside_c1[m] = OPPOSITE_SIDE;
-      else
-        connect3d[iconnect].nside_c1[m] = SAME_SIDE;
-      if (fabs(dotnorm) > 1.0 - flatthresh)
-        connect3d[iconnect].fflag_c1[m] = FLAT;
-      else
-        connect3d[iconnect].fflag_c1[m] = NONFLAT;
+        cwhich = 2;
+      corner_connection3d(normals[iconnect], normals[jconnect], cwhich, flatthresh,
+                          connect3d[iconnect].fflag_c1[m], connect3d[iconnect].nside_c1[m]);
+      connect3d[iconnect].cwhich_c1[m] = cwhich;
     }
 
     for (int m = 0; m < connect3d[iconnect].nc2; m++) {
@@ -3706,24 +3693,16 @@ void FixSurfaceLocal::connectivity3d_complete()
       int j = atom->map(jtag);
       if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Missing tri atom {} from surface", jtag);
       jconnect = atom2connect[j];
+      int cwhich = -1;
       if (same_point(cpts[iconnect][1], cpts[jconnect][0]))
-        connect3d[iconnect].cwhich_c2[m] = 0;
+        cwhich = 0;
       else if (same_point(cpts[iconnect][1], cpts[jconnect][1]))
-        connect3d[iconnect].cwhich_c2[m] = 1;
+        cwhich = 1;
       else if (same_point(cpts[iconnect][1], cpts[jconnect][2]))
-        connect3d[iconnect].cwhich_c2[m] = 2;
-
-      inorm = normals[iconnect];
-      jnorm = normals[jconnect];
-      dotnorm = MathExtra::dot3(inorm, jnorm);
-      if (dotnorm < 0.0)
-        connect3d[iconnect].nside_c2[m] = OPPOSITE_SIDE;
-      else
-        connect3d[iconnect].nside_c2[m] = SAME_SIDE;
-      if (fabs(dotnorm) > 1.0 - flatthresh)
-        connect3d[iconnect].fflag_c2[m] = FLAT;
-      else
-        connect3d[iconnect].fflag_c2[m] = NONFLAT;
+        cwhich = 2;
+      corner_connection3d(normals[iconnect], normals[jconnect], cwhich, flatthresh,
+                          connect3d[iconnect].fflag_c2[m], connect3d[iconnect].nside_c2[m]);
+      connect3d[iconnect].cwhich_c2[m] = cwhich;
     }
 
     for (int m = 0; m < connect3d[iconnect].nc3; m++) {
@@ -3731,24 +3710,16 @@ void FixSurfaceLocal::connectivity3d_complete()
       int j = atom->map(jtag);
       if (j == -1) error->one(FLERR, Error::NOLASTLINE, "Missing tri atom {} from surface", jtag);
       jconnect = atom2connect[j];
+      int cwhich = -1;
       if (same_point(cpts[iconnect][2], cpts[jconnect][0]))
-        connect3d[iconnect].cwhich_c3[m] = 0;
+        cwhich = 0;
       else if (same_point(cpts[iconnect][2], cpts[jconnect][1]))
-        connect3d[iconnect].cwhich_c3[m] = 1;
+        cwhich = 1;
       else if (same_point(cpts[iconnect][2], cpts[jconnect][2]))
-        connect3d[iconnect].cwhich_c3[m] = 2;
-
-      inorm = normals[iconnect];
-      jnorm = normals[jconnect];
-      dotnorm = MathExtra::dot3(inorm, jnorm);
-      if (dotnorm < 0.0)
-        connect3d[iconnect].nside_c3[m] = OPPOSITE_SIDE;
-      else
-        connect3d[iconnect].nside_c3[m] = SAME_SIDE;
-      if (fabs(dotnorm) > 1.0 - flatthresh)
-        connect3d[iconnect].fflag_c3[m] = FLAT;
-      else
-        connect3d[iconnect].fflag_c3[m] = NONFLAT;
+        cwhich = 2;
+      corner_connection3d(normals[iconnect], normals[jconnect], cwhich, flatthresh,
+                          connect3d[iconnect].fflag_c3[m], connect3d[iconnect].nside_c3[m]);
+      connect3d[iconnect].cwhich_c3[m] = cwhich;
     }
   }
 

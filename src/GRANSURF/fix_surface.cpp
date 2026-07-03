@@ -152,6 +152,29 @@ void FixSurface::edge_connection3d(const double *inorm, const double *jnorm,
 }
 
 /* ----------------------------------------------------------------------
+   set the connection flags between tri I and tri J sharing only the
+   corner point of tri I that the caller matched to corner point CWHICH
+   (0,1,2) of tri J, cwhich < 0 for no match
+   normals on opposite sides of the surf <=> their dot product is negative
+------------------------------------------------------------------------- */
+
+void FixSurface::corner_connection3d(const double *inorm, const double *jnorm, int cwhich,
+                                     double flatthresh, int &fflag, int &nside)
+{
+  if (cwhich < 0) error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
+  double dotnorm = MathExtra::dot3(inorm, jnorm);
+  if (dotnorm < 0.0)
+    nside = OPPOSITE_SIDE;
+  else
+    nside = SAME_SIDE;
+  if (fabs(dotnorm) > 1.0 - flatthresh)
+    fflag = FLAT;
+  else
+    fflag = NONFLAT;
+}
+
+/* ----------------------------------------------------------------------
    extract lines or tris from a molecule template ID for one or more molecules
    concatenate into single list of points and lines or tris
    identify unique points using hash

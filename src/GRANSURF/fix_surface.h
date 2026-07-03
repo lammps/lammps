@@ -131,6 +131,8 @@ class FixSurface : public Fix {
   void edge_connection3d(const double *inorm, const double *jnorm, const double *iedge,
                          int jpfirst, int jpsecond, double flatthresh, int &fflag, int &ewhich,
                          int &nside, int &aflag);
+  void corner_connection3d(const double *inorm, const double *jnorm, int cwhich,
+                           double flatthresh, int &fflag, int &nside);
 
   // surfs read from molecule or STL files
 

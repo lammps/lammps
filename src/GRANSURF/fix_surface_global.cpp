@@ -329,7 +329,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   else nsurf = ntris;
 
   nmotion = maxmotion = 0;
-  motions = NULL;
+  motions = nullptr;
   anymove = anymove_variable = 0;
 
   points_lastneigh = nullptr;
@@ -1187,7 +1187,7 @@ void FixSurfaceGlobal::pre_neighbor()
 
 void FixSurfaceGlobal::post_force(int vflag)
 {
-  int i, j, k, a, n, m, nconnect, ii, jj, inum, jnum, jflag;
+  int i, j, k, a, n, m, ii, jj, inum, jnum, jflag;
   int itype, jtype, external_flag, priority;
   double xtmp, ytmp, ztmp, radi, delx, dely, delz, meff;
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -1791,7 +1791,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
     if ((smol <= 0) || (smol > maxsurfmol))
       error->all(FLERR,"Invalid fix_modify mol/region surf mol");
 
-    auto region = domain->get_region_by_id(arg[2]);
+    auto *region = domain->get_region_by_id(arg[2]);
     if (!region) error->all(FLERR,"Fix_modify mol/region region {} does not exist", arg[2]);
 
     int count = 0;
@@ -1824,7 +1824,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
     if ((stype <= 0) || (stype > maxsurftype))
       error->all(FLERR,"Invalid fix_modify type/region surf type");
 
-    auto region = domain->get_region_by_id(arg[2]);
+    auto *region = domain->get_region_by_id(arg[2]);
     if (!region) error->all(FLERR,"Fix_modify type/region region {} does not exist", arg[2]);
 
     int count = 0;
@@ -2304,7 +2304,7 @@ void FixSurfaceGlobal::check3d()
 
 void FixSurfaceGlobal::check_molecules()
 {
-  int i,j,m,imol,flag;
+  int i,m,imol,flag;
 
   if (dimension == 2) {
     int *neigh_p1, *neigh_p2;
@@ -2420,7 +2420,7 @@ void FixSurfaceGlobal::connectivity2d_complete()
   // aflag is based on dot and cross product of 2 connected line normals
   //   cross product is either along +z or -z direction
 
-  double dotline,dotnorm;
+  double dotnorm;
   double *inorm,*jnorm;
   double icrossj[3];
 
@@ -2587,7 +2587,7 @@ void FixSurfaceGlobal::connectivity3d_complete()
   //   cross product is either along itri edge or in opposite dir
 
   int jpfirst,jpsecond;
-  double dotline,dotnorm;
+  double dotnorm;
   double *inorm,*jnorm;
   double icrossj[3],iedge[3];
 
@@ -2784,7 +2784,6 @@ void FixSurfaceGlobal::connectivity3d_complete()
   // if all paths have only convex connections, then mark as convex
   // otherwise, concave (may be hard to say if it flip flops)
 
-  int n, swap_concave;
   for (int i = 0; i < ntris; i++) {
     for (m = 0; m < connect3d[i].nc1; m++) {
       j = connect3d[i].neigh_c1[m];

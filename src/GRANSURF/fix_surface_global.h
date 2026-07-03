@@ -41,7 +41,7 @@ class FixSurfaceGlobal : public FixSurface {
   class NeighList *listhistory;
 
   FixSurfaceGlobal(class LAMMPS *, int, char **);
-  ~FixSurfaceGlobal();
+  ~FixSurfaceGlobal() override;
   int setmask() override;
   void post_constructor() override;
 

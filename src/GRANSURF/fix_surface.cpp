@@ -29,10 +29,6 @@ static constexpr int DELTA = 128;
 
 FixSurface::FixSurface(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg) {}
 
-/* ---------------------------------------------------------------------- */
-
-FixSurface::~FixSurface() {}
-
 /* ----------------------------------------------------------------------
    extract lines or tris from a molecule template ID for one or more molecules
    concatenate into single list of points and lines or tris

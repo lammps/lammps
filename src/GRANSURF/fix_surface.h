@@ -107,7 +107,7 @@ class FixSurface : public Fix {
   };
 
   FixSurface(class LAMMPS *, int, char **);
-  ~FixSurface() override;
+  ~FixSurface() override = default;
 
  protected:
   // surfs read from molecule or STL files
@@ -132,8 +132,9 @@ class FixSurface : public Fix {
 
   void extract_from_molecule(char *, std::map<std::tuple<double, double, double, int>, int> *,
                              int &, int &, Point *&, int &, Line *&, int &, Tri *&);
-  void extract_from_stlfile(char *, int, int, std::map<std::tuple<double, double, double, int>, int> *,
-                            int &, int &, Point *&, int &, Tri *&);
+  void extract_from_stlfile(char *, int, int,
+                            std::map<std::tuple<double, double, double, int>, int> *, int &, int &,
+                            Point *&, int &, Tri *&);
 
   void connectivity2d_global(int, int, Line *, Connect2d *&, int **&, int **&);
   int connectivity3d_global(int, int, Tri *, Connect3d *&, int **&, int **&, int **&, int **&,

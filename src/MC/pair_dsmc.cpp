@@ -368,6 +368,10 @@ void PairDSMC::write_restart_settings(FILE *fp)
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&max_cell_size,sizeof(double),1,fp);
   fwrite(&seed,sizeof(int),1,fp);
+  fwrite(&weighting,sizeof(double),1,fp);
+  fwrite(&T_ref,sizeof(double),1,fp);
+  fwrite(&recompute_vsigmamax_stride,sizeof(int),1,fp);
+  fwrite(&vsigmamax_samples,sizeof(int),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
@@ -382,6 +386,10 @@ void PairDSMC::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
     utils::sfread(FLERR,&max_cell_size,sizeof(double),1,fp,nullptr,error);
     utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&weighting,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&T_ref,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&recompute_vsigmamax_stride,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&vsigmamax_samples,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
@@ -389,8 +397,14 @@ void PairDSMC::read_restart_settings(FILE *fp)
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&max_cell_size,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&seed,1,MPI_INT,0,world);
+  MPI_Bcast(&weighting,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&T_ref,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&recompute_vsigmamax_stride,1,MPI_INT,0,world);
+  MPI_Bcast(&vsigmamax_samples,1,MPI_INT,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+
+  kT_ref = force->boltz*T_ref;
 
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified

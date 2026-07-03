@@ -212,7 +212,7 @@ void ThirdOrder::options(int narg, char **arg)
 {
   if (narg < 0) error->all(FLERR,"Illegal Third Order command");
   int iarg = 0;
-  const char *filename = "Third Order.dat";
+  const char *filename = "third_order.dat";
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"binary") == 0) {
@@ -238,9 +238,10 @@ void ThirdOrder::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal Third Order command");
   }
-  if (file_flag == 1 && me == 0) {
-    openfile(filename);
-  }
+  // always open the output file (documented default name unless changed
+  // with the file keyword); without it rank 0 wrote to a null FILE pointer
+
+  openfile(filename);
 }
 
 /* ----------------------------------------------------------------------

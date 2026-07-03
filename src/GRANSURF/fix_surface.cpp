@@ -17,9 +17,12 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_move.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "molecule.h"
 #include "stl_reader.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -28,6 +31,148 @@ static constexpr int DELTA = 128;
 /* ---------------------------------------------------------------------- */
 
 FixSurface::FixSurface(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg) {}
+
+/* ----------------------------------------------------------------------
+   ordering of particle-surface contacts, used by both the global surface
+   fix and the granular surface pair style so that multi-contact
+   configurations are resolved consistently everywhere:
+   1st by overlap (within epsilon), 2nd by priority (interior > edge >
+   corner), 3rd by alignment of the surface normal with the displacement,
+   4th by distance to the surface center of mass, last by surface index
+------------------------------------------------------------------------- */
+
+static constexpr double SORTEPSILON = 1.0e-12;
+
+static bool contact_compare(const FixSurface::ContactSurf &a, const FixSurface::ContactSurf &b,
+                            bool signednorm)
+{
+  if (a.overlap > (b.overlap + SORTEPSILON)) return true;
+  if (b.overlap > (a.overlap + SORTEPSILON)) return false;
+  if (a.priority > b.priority) return true;
+  if (b.priority > a.priority) return false;
+  double dota = MathExtra::dot3(a.surf_norm, a.dr);
+  double dotb = MathExtra::dot3(b.surf_norm, b.dr);
+  if (!signednorm) {
+    dota = fabs(dota);
+    dotb = fabs(dotb);
+  }
+  if (dota > (dotb + SORTEPSILON)) return true;
+  if (dotb > (dota + SORTEPSILON)) return false;
+  if (a.rsq_com < (b.rsq_com - SORTEPSILON)) return true;
+  if (b.rsq_com < (a.rsq_com - SORTEPSILON)) return false;
+  return a.index < b.index;
+}
+
+bool FixSurface::contact_presort(const ContactSurf &a, const ContactSurf &b)
+{
+  return contact_compare(a, b, false);
+}
+
+bool FixSurface::contact_sort(const ContactSurf &a, const ContactSurf &b)
+{
+  return contact_compare(a, b, true);
+}
+
+/* ----------------------------------------------------------------------
+   set the connection flags between line I and line J sharing an endpoint:
+   iwhich/jwhich = which endpoint (0/1) of line I/J is the shared point,
+   jwhich < 0 means the caller found no shared point
+   normals on the same side of the surf <=> the shared point is endpoint 1
+   of one line and endpoint 2 of the other
+------------------------------------------------------------------------- */
+
+void FixSurface::point_connection2d(const double *inorm, const double *jnorm, int iwhich,
+                                    int jwhich, double flatthresh, int &fflag, int &nside,
+                                    int &aflag)
+{
+  if (jwhich < 0) error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
+  double dotnorm = MathExtra::dot3(inorm, jnorm);
+  if (fabs(dotnorm) > 1.0 - flatthresh)
+    fflag = FLAT;
+  else
+    fflag = NONFLAT;
+
+  double icrossj[3];
+  MathExtra::cross3(inorm, jnorm, icrossj);
+  nside = (jwhich == iwhich) ? OPPOSITE_SIDE : SAME_SIDE;
+  double upward = (jwhich == 0) ? icrossj[2] : -icrossj[2];
+  if (upward > 0.0)
+    aflag = CONCAVE;
+  else
+    aflag = CONVEX;
+}
+
+/* ----------------------------------------------------------------------
+   set the connection flags between tri I and tri J sharing edge IEDGE of
+   tri I: jpfirst/jpsecond = which corner point (1,2,3) of tri J matches
+   the first/second endpoint of the edge, < 0 for no match
+   normals on opposite sides of the surf <=> tri J traverses the shared
+   edge in the opposite winding order
+------------------------------------------------------------------------- */
+
+void FixSurface::edge_connection3d(const double *inorm, const double *jnorm,
+                                   const double *iedge, int jpfirst, int jpsecond,
+                                   double flatthresh, int &fflag, int &ewhich, int &nside,
+                                   int &aflag)
+{
+  if ((jpfirst < 0) || (jpsecond < 0))
+    error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
+  double dotnorm = MathExtra::dot3(inorm, jnorm);
+  if (fabs(dotnorm) > 1.0 - flatthresh)
+    fflag = FLAT;
+  else
+    fflag = NONFLAT;
+
+  double icrossj[3];
+  MathExtra::cross3(inorm, jnorm, icrossj);
+
+  if ((jpfirst == 1 && jpsecond == 2) || (jpfirst == 2 && jpsecond == 3) ||
+      (jpfirst == 3 && jpsecond == 1)) {
+    ewhich = jpfirst - 1;
+    nside = OPPOSITE_SIDE;
+    if (MathExtra::dot3(icrossj, iedge) > 0.0)
+      aflag = CONCAVE;
+    else
+      aflag = CONVEX;
+  } else {
+    if (jpfirst == 2)
+      ewhich = 0;
+    else if (jpfirst == 3)
+      ewhich = 1;
+    else
+      ewhich = 2;
+    nside = SAME_SIDE;
+    if (MathExtra::dot3(icrossj, iedge) < 0.0)
+      aflag = CONCAVE;
+    else
+      aflag = CONVEX;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   set the connection flags between tri I and tri J sharing only the
+   corner point of tri I that the caller matched to corner point CWHICH
+   (0,1,2) of tri J, cwhich < 0 for no match
+   normals on opposite sides of the surf <=> their dot product is negative
+------------------------------------------------------------------------- */
+
+void FixSurface::corner_connection3d(const double *inorm, const double *jnorm, int cwhich,
+                                     double flatthresh, int &fflag, int &nside)
+{
+  if (cwhich < 0) error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
+  double dotnorm = MathExtra::dot3(inorm, jnorm);
+  if (dotnorm < 0.0)
+    nside = OPPOSITE_SIDE;
+  else
+    nside = SAME_SIDE;
+  if (fabs(dotnorm) > 1.0 - flatthresh)
+    fflag = FLAT;
+  else
+    fflag = NONFLAT;
+}
 
 /* ----------------------------------------------------------------------
    extract lines or tris from a molecule template ID for one or more molecules

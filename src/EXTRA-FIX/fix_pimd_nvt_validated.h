@@ -22,6 +22,8 @@ FixStyle(pimd/nvt/validated,FixPIMDNVTValidated);
 
 #include "fix.h"
 
+#include <functional>
+
 namespace LAMMPS_NS {
 
 class Compute;
@@ -42,8 +44,12 @@ class FixPIMDNVTValidated : public Fix {
   double compute_vector(int) override;
 
  protected:
+  using KeywordParser = std::function<bool(int, char **, int &)>;
+
+  FixPIMDNVTValidated(class LAMMPS *, int, char **, bool);
   void init_defaults();
-  void parse_arguments(int, char **, bool);
+  void finish_nuclear_constructor_setup();
+  void parse_arguments(int, char **, const KeywordParser &);
   bool parse_common_keyword(int, char **, int &);
 
   // System setting variables
@@ -139,6 +145,16 @@ class FixPIMDNVTValidated : public Fix {
   void qc_step();    // integrate for dt/2 for the centroid mode (x <- x + v * dt/2)
   void o_step();     // integrate for dt according to O part (O-U process, for thermostating)
   void nhc_temp_integrate();
+  double compute_nuclear_kinetic_energy() const;
+  double chain_target_energy() const;
+  virtual bool thermostat_chain_active() const;
+  void update_chain0_acceleration(double);
+  void propagate_chain_tail_halfstep(double);
+  double propagate_chain0_halfstep(double, bool);
+  void update_scaled_nuclear_kinetic(double &, double &) const;
+  void advance_chain_positions(double);
+  void complete_chain0_halfstep(double, double);
+  void update_outer_chain_accelerations(double);
 
   virtual void setup_subclass_state();
   virtual void after_force_transform_hook();
@@ -148,6 +164,16 @@ class FixPIMDNVTValidated : public Fix {
   virtual void nh_v_temp();
   bool nuclear_thermostat_off() const;
   double chain0_target_energy() const;
+  int nuclear_restart_size() const;
+  int pack_nuclear_restart(double *) const;
+  int unpack_nuclear_restart(const double *);
+  virtual int subclass_restart_size() const;
+  virtual int pack_subclass_restart(double *, int) const;
+  virtual int unpack_subclass_restart(const double *, int);
+  int nuclear_vector_size() const;
+  double compute_nuclear_vector(int) const;
+  virtual int subclass_vector_size() const;
+  virtual double compute_subclass_vector(int) const;
 
   /* centroid-virial estimator computation */
   double **xc, *xcall;

@@ -109,8 +109,12 @@ bool FixPIMDNVTValidated::parse_common_keyword(int narg, char **arg, int &i)
   }
   if (strcmp(arg[i], "ensemble") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} ensemble", style), error);
-    if (strcmp(arg[i + 1], "nvt") != 0)
-      error->all(FLERR, "Fix {} only supports ensemble nvt", style);
+    if (strcmp(arg[i + 1], "nvt") == 0)
+      ensemble = NVT;
+    else if (strcmp(arg[i + 1], "uvt") == 0)
+      ensemble = UVT;
+    else
+      error->all(FLERR, "Fix {} only supports ensemble nvt or uvt", style);
     i += 2;
     return true;
   }
@@ -226,15 +230,11 @@ bool FixPIMDNVTValidated::parse_common_keyword(int narg, char **arg, int &i)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVTValidated::parse_arguments(int narg, char **arg, bool allow_uvt_keywords)
+void FixPIMDNVTValidated::parse_arguments(int narg, char **arg, const KeywordParser &subclass_parser)
 {
   for (int i = 3; i < narg;) {
     if (parse_common_keyword(narg, arg, i)) continue;
-    if (!allow_uvt_keywords &&
-        ((strcmp(arg[i], "mu") == 0) || (strcmp(arg[i], "ne") == 0) ||
-         (strcmp(arg[i], "ne_velocity") == 0) || (strcmp(arg[i], "dedn") == 0))) {
-      error->all(FLERR, "Keyword {} is only supported by fix pimd/uvt", arg[i]);
-    }
+    if (subclass_parser && subclass_parser(narg, arg, i)) continue;
     error->all(FLERR, "Unknown keyword {} for fix {}", arg[i], style);
   }
 
@@ -243,7 +243,7 @@ void FixPIMDNVTValidated::parse_arguments(int narg, char **arg, bool allow_uvt_k
 
 /* ---------------------------------------------------------------------- */
 
-FixPIMDNVTValidated::FixPIMDNVTValidated(LAMMPS *lmp, int narg, char **arg) :
+FixPIMDNVTValidated::FixPIMDNVTValidated(LAMMPS *lmp, int narg, char **arg, bool) :
     Fix(lmp, narg, arg), mass(nullptr), plansend(nullptr), planrecv(nullptr), tagsend(nullptr),
     tagrecv(nullptr), bufsend(nullptr), bufrecv(nullptr), bufbeads(nullptr), bufsorted(nullptr),
     bufsortedall(nullptr), tagsendall(nullptr),
@@ -256,10 +256,24 @@ FixPIMDNVTValidated::FixPIMDNVTValidated(LAMMPS *lmp, int narg, char **arg) :
   init_defaults();
 
   if (domain->dimension != 3)
-    error->universe_all(FLERR, "Fix pimd/nvt/validated requires a 3d system");
+    error->universe_all(FLERR, fmt::format("Fix {} requires a 3d system", style));
   if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
-  parse_arguments(narg, arg, false);
+}
 
+/* ---------------------------------------------------------------------- */
+
+FixPIMDNVTValidated::FixPIMDNVTValidated(LAMMPS *lmp, int narg, char **arg) :
+    FixPIMDNVTValidated(lmp, narg, arg, true)
+{
+  parse_arguments(narg, arg, {});
+  if (ensemble != NVT) error->all(FLERR, "Fix {} only supports ensemble nvt", style);
+  finish_nuclear_constructor_setup();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDNVTValidated::finish_nuclear_constructor_setup()
+{
   if (tstat_flag) {
     int ich;
     eta = new double[mtchain];
@@ -377,13 +391,13 @@ int FixPIMDNVTValidated::setmask()
 void FixPIMDNVTValidated::init()
 {
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR, "Fix pimd/nvt/validated requires an atom map, see atom_modify");
+    error->all(FLERR, "Fix {} requires an atom map, see atom_modify", style);
 
   if (comm->nprocs != 1)
-    error->all(FLERR, "Fix pimd/nvt/validated currently requires one MPI rank per bead");
+    error->all(FLERR, "Fix {} currently requires one MPI rank per bead", style);
 
   if (universe->me == 0 && universe->uscreen)
-    fprintf(universe->uscreen, "Fix pimd/nvt/validated: initializing Path-Integral ...\n");
+    fprintf(universe->uscreen, "Fix %s: initializing Path-Integral ...\n", style);
 
   // prepare the constants
 
@@ -407,8 +421,8 @@ void FixPIMDNVTValidated::init()
   fbond = _fbond * force->mvv2e;
 
   if ((universe->me == 0) && (universe->uscreen))
-    fprintf(universe->uscreen,
-            "Fix pimd/nvt/validated: -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
+    fprintf(universe->uscreen, "Fix %s: -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", style,
+            fbond);
 
   me = comm->me;
   nprocs = comm->nprocs;
@@ -452,7 +466,7 @@ void FixPIMDNVTValidated::init()
     dt4 = 0.25 * update->dt;
     dt8 = 0.125 * update->dt;
   } else {
-    error->universe_all(FLERR, "Unknown integrator parameter for fix pimd/nvt/validated");
+    error->universe_all(FLERR, fmt::format("Unknown integrator parameter for fix {}", style));
   }
 
   comm_init();
@@ -548,9 +562,9 @@ void FixPIMDNVTValidated::initial_integrate(int /*vflag*/)
     centroid_position_half_step();
     a_step();
   } else {
-    error->universe_all(FLERR,
-                        "Unknown integrator parameter for fix pimd/nvt/validated. Only obabo and baoab "
-                        "integrators are supported!");
+    error->universe_all(FLERR, fmt::format("Unknown integrator parameter for fix {}. Only obabo "
+                                           "and baoab integrators are supported!",
+                                           style));
   }
   collect_xc();
 
@@ -579,7 +593,7 @@ void FixPIMDNVTValidated::final_integrate()
   } else if (integrator == BAOAB) {
 
   } else {
-    error->universe_all(FLERR, "Unknown integrator parameter for fix pimd/nvt/validated");
+    error->universe_all(FLERR, fmt::format("Unknown integrator parameter for fix {}", style));
   }
 }
 
@@ -741,7 +755,8 @@ void FixPIMDNVTValidated::a_step()
 void FixPIMDNVTValidated::nhc_init()
 {
   if (kt <= 0.0 || hbar <= 0.0)
-    error->universe_all(FLERR, "Fix pimd/nvt/validated requires positive kt and hbar in nhc_init");
+    error->universe_all(FLERR, fmt::format("Fix {} requires positive kt and hbar in nhc_init",
+                                           style));
 
   const double beta_local = 1.0 / kt;
   const double _omega_np = np / beta_local / hbar;
@@ -788,8 +803,7 @@ void FixPIMDNVTValidated::nhc_init()
 
   if (tstat_flag) {
     const double chain0_target = chain0_target_energy();
-    const double chain_target =
-        nuclear_thermostat_off() ? 0.0 : static_cast<double>(np) * force->boltz * temp;
+    const double chain_target = chain_target_energy();
     eta_mass[0] = chain0_target / (t_freq * t_freq);
     for (int ich = 1; ich < mtchain; ich++) {
       eta_mass[ich] = (np == 1) ? chain_target / (t_freq * t_freq)
@@ -801,7 +815,7 @@ void FixPIMDNVTValidated::nhc_init()
       else
         eta_dotdot[ich] = 0.0;
     }
-    if (nuclear_thermostat_off()) {
+    if (!thermostat_chain_active()) {
       for (int ich = 1; ich < mtchain; ich++) eta_dotdot[ich] = 0;
     }
   }
@@ -826,75 +840,139 @@ void FixPIMDNVTValidated::o_step()
   if (tstat_flag) nhc_temp_integrate();
 }
 
-void FixPIMDNVTValidated::nhc_temp_integrate()
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDNVTValidated::compute_nuclear_kinetic_energy() const
 {
-  int ich;
-  double expfac;
   int *type = atom->type;
   double **v = atom->v;
   int nlocal = atom->nlocal;
-  double kecurrent = 0, t_current;
+  double kecurrent = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
     kecurrent += (v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2]) * mass[type[i]];
   }
-  kecurrent *= force->mvv2e;
+  return kecurrent * force->mvv2e;
+}
 
-  t_current = kecurrent / force->boltz / tdof;
+/* ---------------------------------------------------------------------- */
 
-  if (nuclear_thermostat_off()) return;
+bool FixPIMDNVTValidated::thermostat_chain_active() const
+{
+  return !nuclear_thermostat_off();
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDNVTValidated::chain_target_energy() const
+{
+  return thermostat_chain_active() ? static_cast<double>(np) * force->boltz * temp : 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDNVTValidated::update_chain0_acceleration(double extra_ke)
+{
+  if (!thermostat_chain_active()) return;
 
   const double chain0_target = chain0_target_energy();
-  const double chain_target = static_cast<double>(np) * force->boltz * temp;
   if (eta_mass[0] > 0.0)
-    eta_dotdot[0] = (kecurrent - chain0_target) / eta_mass[0];
-  else eta_dotdot[0] = 0.0;
+    eta_dotdot[0] = (compute_nuclear_kinetic_energy() + extra_ke - chain0_target) / eta_mass[0];
+  else
+    eta_dotdot[0] = 0.0;
+}
 
-  double ncfac = 1.0/nc_tchain;
-  for (int iloop = 0; iloop < nc_tchain; iloop++) {
+/* ---------------------------------------------------------------------- */
 
-    for (ich = mtchain-1; ich > 0; ich--) {
-      expfac = exp(-ncfac*dt8*eta_dot[ich+1]);
-      eta_dot[ich] *= expfac;
-      eta_dot[ich] += eta_dotdot[ich] * ncfac*dt4;
-      eta_dot[ich] *= tdrag_factor;
-      eta_dot[ich] *= expfac;
-    }
+void FixPIMDNVTValidated::propagate_chain_tail_halfstep(double ncfac)
+{
+  for (int ich = mtchain - 1; ich > 0; ich--) {
+    double expfac = exp(-ncfac * dt8 * eta_dot[ich + 1]);
+    eta_dot[ich] *= expfac;
+    eta_dot[ich] += eta_dotdot[ich] * ncfac * dt4;
+    eta_dot[ich] *= tdrag_factor;
+    eta_dot[ich] *= expfac;
+  }
+}
 
-    expfac = exp(-ncfac*dt8*eta_dot[1]);
-    eta_dot[0] *= expfac;
-    eta_dot[0] += eta_dotdot[0] * ncfac*dt4;
-    eta_dot[0] *= tdrag_factor;
-    eta_dot[0] *= expfac;
+/* ---------------------------------------------------------------------- */
 
-    factor_eta = exp(-ncfac*dthalf*eta_dot[0]);
-    nh_v_temp();
+double FixPIMDNVTValidated::propagate_chain0_halfstep(double ncfac, bool apply_velocity_scaling)
+{
+  double expfac = exp(-ncfac * dt8 * eta_dot[1]);
+  eta_dot[0] *= expfac;
+  eta_dot[0] += eta_dotdot[0] * ncfac * dt4;
+  eta_dot[0] *= tdrag_factor;
+  eta_dot[0] *= expfac;
 
-    // rescale temperature due to velocity scaling
-    // should not be necessary to explicitly recompute the temperature
+  factor_eta = exp(-ncfac * dthalf * eta_dot[0]);
+  if (apply_velocity_scaling) nh_v_temp();
+  return expfac;
+}
 
-    t_current *= factor_eta*factor_eta;
-    kecurrent = tdof * force->boltz * t_current;
+/* ---------------------------------------------------------------------- */
 
-    if (eta_mass[0] > 0.0)
-      eta_dotdot[0] = (kecurrent - chain0_target) / eta_mass[0];
-    else eta_dotdot[0] = 0.0;
+void FixPIMDNVTValidated::update_scaled_nuclear_kinetic(double &t_current, double &kecurrent) const
+{
+  t_current *= factor_eta * factor_eta;
+  kecurrent = tdof * force->boltz * t_current;
+}
 
-    for (ich = 0; ich < mtchain; ich++)
-      eta[ich] += ncfac*dthalf*eta_dot[ich];
+/* ---------------------------------------------------------------------- */
 
-    eta_dot[0] *= expfac;
-    eta_dot[0] += eta_dotdot[0] * ncfac*dt4;
-    eta_dot[0] *= expfac;
+void FixPIMDNVTValidated::advance_chain_positions(double ncfac)
+{
+  for (int ich = 0; ich < mtchain; ich++) eta[ich] += ncfac * dthalf * eta_dot[ich];
+}
 
-    for (ich = 1; ich < mtchain; ich++) {
-      expfac = exp(-ncfac*dt8*eta_dot[ich+1]);
-      eta_dot[ich] *= expfac;
-      eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] - chain_target) /
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDNVTValidated::complete_chain0_halfstep(double ncfac, double expfac)
+{
+  eta_dot[0] *= expfac;
+  eta_dot[0] += eta_dotdot[0] * ncfac * dt4;
+  eta_dot[0] *= expfac;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDNVTValidated::update_outer_chain_accelerations(double chain_target)
+{
+  for (int ich = 1; ich < mtchain; ich++) {
+    if (eta_mass[ich] > 0.0)
+      eta_dotdot[ich] =
+          (eta_mass[ich - 1] * eta_dot[ich - 1] * eta_dot[ich - 1] - chain_target) /
           eta_mass[ich];
-      eta_dot[ich] += eta_dotdot[ich] * ncfac*dt4;
-      eta_dot[ich] *= expfac;
-    }
+    else
+      eta_dotdot[ich] = 0.0;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDNVTValidated::nhc_temp_integrate()
+{
+  double kecurrent = compute_nuclear_kinetic_energy();
+  double t_current = kecurrent / force->boltz / tdof;
+  if (!thermostat_chain_active()) return;
+
+  update_chain0_acceleration(0.0);
+
+  double ncfac = 1.0 / nc_tchain;
+  const double chain_target = chain_target_energy();
+  for (int iloop = 0; iloop < nc_tchain; iloop++) {
+    propagate_chain_tail_halfstep(ncfac);
+    double expfac = propagate_chain0_halfstep(ncfac, true);
+
+    update_scaled_nuclear_kinetic(t_current, kecurrent);
+    if (eta_mass[0] > 0.0)
+      eta_dotdot[0] = (kecurrent - chain0_target_energy()) / eta_mass[0];
+    else
+      eta_dotdot[0] = 0.0;
+
+    advance_chain_positions(ncfac);
+    complete_chain0_halfstep(ncfac, expfac);
+    update_outer_chain_accelerations(chain_target);
   }
 }
 
@@ -902,6 +980,41 @@ void FixPIMDNVTValidated::nhc_temp_integrate()
 
 void FixPIMDNVTValidated::setup_subclass_state()
 {
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixPIMDNVTValidated::subclass_restart_size() const
+{
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixPIMDNVTValidated::pack_subclass_restart(double *, int n) const
+{
+  return n;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixPIMDNVTValidated::unpack_subclass_restart(const double *, int n)
+{
+  return n;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixPIMDNVTValidated::subclass_vector_size() const
+{
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDNVTValidated::compute_subclass_vector(int) const
+{
+  return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -971,7 +1084,7 @@ void FixPIMDNVTValidated::nmpimd_init()
 
   for (int i = 0; i < np; i++) {
     if (!std::isfinite(lam[i]))
-      error->universe_all(FLERR, "Fix pimd/nvt/validated encountered invalid lambda");
+      error->universe_all(FLERR, fmt::format("Fix {} encountered invalid lambda", style));
   }
 
   // Set up eigenvectors for degenerated modes
@@ -1047,7 +1160,7 @@ void FixPIMDNVTValidated::nmpimd_transform(double **src, double **des, double *v
 void FixPIMDNVTValidated::comm_init()
 {
   if (np != universe->nworlds)
-    error->all(FLERR, "Fix pimd/nvt/validated: np must equal universe->nworlds");
+    error->all(FLERR, "Fix {}: np must equal universe->nworlds", style);
 
   int nlocal = atom->nlocal;
   if (cmode == SINGLE_PROC) {
@@ -1380,6 +1493,21 @@ void FixPIMDNVTValidated::write_restart(FILE *fp)
 
 int FixPIMDNVTValidated::size_restart_global()
 {
+  return nuclear_restart_size() + subclass_restart_size();
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixPIMDNVTValidated::pack_restart_data(double *list)
+{
+  int n = pack_nuclear_restart(list);
+  return pack_subclass_restart(list, n);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixPIMDNVTValidated::nuclear_restart_size() const
+{
   int nsize = 1;
   if (tstat_flag) nsize += 1 + 2 * mtchain;
   return nsize;
@@ -1387,7 +1515,7 @@ int FixPIMDNVTValidated::size_restart_global()
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMDNVTValidated::pack_restart_data(double *list)
+int FixPIMDNVTValidated::pack_nuclear_restart(double *list) const
 {
   int n = 0;
   list[n++] = tstat_flag;
@@ -1403,8 +1531,15 @@ int FixPIMDNVTValidated::pack_restart_data(double *list)
 
 void FixPIMDNVTValidated::restart(char *buf)
 {
-  int n = 0;
   auto list = (double *) buf;
+  unpack_subclass_restart(list, unpack_nuclear_restart(list));
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixPIMDNVTValidated::unpack_nuclear_restart(const double *list)
+{
+  int n = 0;
   int flag = static_cast<int>(list[n++]);
   if (flag) {
     int m = static_cast<int>(list[n++]);
@@ -1420,6 +1555,7 @@ void FixPIMDNVTValidated::restart(char *buf)
       n += 2 * m;
     }
   }
+  return n;
 }
 
 /* ----------------------------------------------------------------------
@@ -1428,6 +1564,24 @@ void FixPIMDNVTValidated::restart(char *buf)
 ------------------------------------------------------------------------- */
 
 double FixPIMDNVTValidated::compute_vector(int n)
+{
+  const int prefix = nuclear_vector_size();
+  if (n < prefix) return compute_nuclear_vector(n);
+  return compute_subclass_vector(n - prefix);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixPIMDNVTValidated::nuclear_vector_size() const
+{
+  int nsize = 10;
+  if (tstat_flag) nsize += 4 * mtchain;
+  return nsize;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDNVTValidated::compute_nuclear_vector(int n) const
 {
   if (n == 0) return ke_bead;
   n -= 1;
@@ -1451,7 +1605,6 @@ double FixPIMDNVTValidated::compute_vector(int n)
   n -= 1;
 
   int ilen;
-
   if (tstat_flag) {
     ilen = mtchain;
     if (n < ilen) return eta[n];
@@ -1461,24 +1614,20 @@ double FixPIMDNVTValidated::compute_vector(int n)
     n -= ilen;
   }
 
-  double kt = force->boltz * temp;
-  int ich;
-
+  const double kt_local = force->boltz * temp;
   if (tstat_flag) {
     ilen = mtchain;
     if (n < ilen) {
-      ich = n;
+      int ich = n;
       if (ich == 0) return chain0_target_energy() * eta[0];
-      return nuclear_thermostat_off() ? 0.0 : kt * eta[ich];
+      return thermostat_chain_active() ? kt_local * eta[ich] : 0.0;
     }
     n -= ilen;
     ilen = mtchain;
     if (n < ilen) {
-      ich = n;
-      if (ich == 0) return 0.5 * eta_mass[0] * eta_dot[0] * eta_dot[0];
+      int ich = n;
       return 0.5 * eta_mass[ich] * eta_dot[ich] * eta_dot[ich];
     }
-    n -= ilen;
   }
 
   return 0.0;

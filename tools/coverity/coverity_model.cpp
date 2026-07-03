@@ -25,14 +25,14 @@
    goes inert.
 ------------------------------------------------------------------------- */
 
-#include <cstdint>
+
 
 namespace LAMMPS_NS {
 
 // Must match the typedef in src/lmptype.h for the analyzed build.
 // The Coverity Scan build uses -D LAMMPS_SIZES=SMALLBIG (see
 // .github/workflows/coverity.yml), where bigint == int64_t.
-typedef int64_t bigint;
+typedef long int bigint;
 
 /* ----------------------------------------------------------------------
    Custom memory allocator -- src/memory.h

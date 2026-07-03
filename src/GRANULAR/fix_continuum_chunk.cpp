@@ -48,7 +48,7 @@ using namespace NeighConst;
 using namespace MathConst;
 
 enum { OTHER, GRANULAR };
-enum { DENSITY, VOLFRAC, MOMENTUM, VELOCITY, MGRAD, VGRAD, STRAINRATE, STRESS, STRESSKE, STRESSCON, IFD, FABRIC };
+enum { DENSITY, VOLFRAC, MOMENTUM, VELOCITY, MGRAD, VGRAD, STRAINRATE, STRESS, STRESSKE, STRESSCON, IFD, FABRIC, TEMPERATURE };
 enum { BOUNDARY_NONE, BOUNDARY_FIX, BOUNDARY_ATOM, BOUNDARY_BOTH };
 enum { SCALAR, VECTOR };
 enum { SAMPLE, ALL };
@@ -209,6 +209,11 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (utils::strmatch(arg[iarg], "^fabric/")) {
       add_tensor_component(arg[iarg], FABRIC);
       calculate_pair = 1;
+    } else if (strcmp(arg[iarg], "temperature") == 0) {
+      values.push_back(std::make_pair(TEMPERATURE, -1));
+      labels.push_back("temperature");
+      need_density = 1;
+      need_momentum = 1;
     } else {
       break;
     }

@@ -60,10 +60,7 @@ using namespace MathExtra;
 using namespace SurfExtra;
 
 enum{LINEAR,WIGGLE,ROTATE,TRANSROT,VARIABLE};
-enum{NONFLAT,FLAT};
-enum{CONCAVE,CONVEX};
 enum{INTERNAL = 0,EXTERNAL,UNCONNECTED};
-enum{SAME_SIDE,OPPOSITE_SIDE};
 enum{NSQ, BIN};
 
 static constexpr double FLATTHRESH = 0.00015230484360876085; // = 1.0-cos(MY_PI/180.0); = 1 degree
@@ -75,8 +72,8 @@ static constexpr double BIG = 1.0e20;
 static constexpr double EPSILON = 1e-12;
 
 static inline int FLIPSIDE(int nside) {
-  if (nside == OPPOSITE_SIDE) return SAME_SIDE;
-  else return OPPOSITE_SIDE;
+  if (nside == FixSurface::OPPOSITE_SIDE) return FixSurface::SAME_SIDE;
+  else return FixSurface::OPPOSITE_SIDE;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -700,7 +697,7 @@ void FixSurfaceGlobal::init()
         jmotion = mol2motion[jmol];
         if (imotion != jmotion) ecount++;
       }
-      for (j = 0; j < np1; j++) {
+      for (j = 0; j < np2; j++) {
         jline = connect2d[iline].neigh_p2[j];
         if (jline < iline) continue;
         jmol = lines[jline].mol;
@@ -1415,20 +1412,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
       continue;
 
     // Sort contacts by overlap and create a map
-    std::sort(contact_surfs.begin(), contact_surfs.end(), [](ContactSurf a, ContactSurf b) {
-        if (a.overlap > (b.overlap + EPSILON)) return 1; // 1st compare overlaps within epsilon
-        if (b.overlap > (a.overlap + EPSILON)) return 0;
-        if (a.priority > b.priority) return 1; // 2nd, prioritize interior > edge > corner
-        if (b.priority > a.priority) return 0;
-        double dota = fabs(MathExtra::dot3(a.surf_norm, a.dr)); // sign may not yet be set
-        double dotb = fabs(MathExtra::dot3(b.surf_norm, b.dr));
-        if (dota > (dotb + EPSILON)) return 1; // 3rd, prioritize which one aligns best
-        if (dotb > (dota + EPSILON)) return 0;
-        if (a.rsq_com < (b.rsq_com - EPSILON)) return 1; // 4th, prioritize closer CoM
-        if (b.rsq_com < (a.rsq_com - EPSILON)) return 0;
-        if (a.index < b.index) return 1;
-        else return 0;
-      });
+    std::sort(contact_surfs.begin(), contact_surfs.end(), FixSurface::contact_presort);
 
     contacts_map.clear();
     for (auto n = 0; n < contact_surfs.size(); n++)
@@ -1441,20 +1425,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
     else prewalk_connections3d();
 
     // Given corrected surface norms, resort contacts
-    std::sort(contact_surfs.begin(), contact_surfs.end(), [](ContactSurf a, ContactSurf b) {
-        if (a.overlap > (b.overlap + EPSILON)) return 1;
-        if (b.overlap > (a.overlap + EPSILON)) return 0;
-        if (a.priority > b.priority) return 1;
-        if (b.priority > a.priority) return 0;
-        double dota = MathExtra::dot3(a.surf_norm, a.dr);
-        double dotb = MathExtra::dot3(b.surf_norm, b.dr);
-        if (dota > (dotb + EPSILON)) return 1;
-        if (dotb > (dota + EPSILON)) return 0;
-        if (a.rsq_com < (b.rsq_com - EPSILON)) return 1;
-        if (b.rsq_com < (a.rsq_com - EPSILON)) return 0;
-        if (a.index < b.index) return 1;
-        else return 0;
-      });
+    std::sort(contact_surfs.begin(), contact_surfs.end(), FixSurface::contact_sort);
 
     for (auto n = 0; n < contact_surfs.size(); n++)
       contacts_map[contact_surfs[n].index] = n;
@@ -2418,57 +2389,31 @@ void FixSurfaceGlobal::connectivity2d_complete()
   // aflag is based on dot and cross product of 2 connected line normals
   //   cross product is either along +z or -z direction
 
-  double dotnorm;
-  double *inorm,*jnorm;
-  double icrossj[3];
-
   int j,m;
 
   for (int i = 0; i < nlines; i++) {
     for (m = 0; m < connect2d[i].np1; m++) {
       j = connect2d[i].neigh_p1[m];
 
-      inorm = lines[i].norm;
-      jnorm = lines[j].norm;
-      dotnorm = MathExtra::dot3(inorm,jnorm);
-      if (fabs(dotnorm) > 1.0-flatthresh) connect2d[i].fflag_p1[m] = FLAT;
-      else connect2d[i].fflag_p1[m] = NONFLAT;
-
-      MathExtra::cross3(inorm,jnorm,icrossj);
-      if (lines[i].p1 == lines[j].p1) {
-        connect2d[i].pwhich_p1[m] = 0;
-        connect2d[i].nside_p1[m] = OPPOSITE_SIDE;
-        if (icrossj[2] > 0.0) connect2d[i].aflag_p1[m] = CONCAVE;
-        else connect2d[i].aflag_p1[m] = CONVEX;
-      } else if (lines[i].p1 == lines[j].p2) {
-        connect2d[i].pwhich_p1[m] = 1;
-        connect2d[i].nside_p1[m] = SAME_SIDE;
-        if (icrossj[2] < 0.0) connect2d[i].aflag_p1[m] = CONCAVE;
-        else connect2d[i].aflag_p1[m] = CONVEX;
-      }
+      int jwhich = -1;
+      if (lines[i].p1 == lines[j].p1) jwhich = 0;
+      else if (lines[i].p1 == lines[j].p2) jwhich = 1;
+      point_connection2d(lines[i].norm,lines[j].norm,0,jwhich,flatthresh,
+                         connect2d[i].fflag_p1[m],connect2d[i].nside_p1[m],
+                         connect2d[i].aflag_p1[m]);
+      connect2d[i].pwhich_p1[m] = jwhich;
     }
 
     for (m = 0; m < connect2d[i].np2; m++) {
       j = connect2d[i].neigh_p2[m];
 
-      inorm = lines[i].norm;
-      jnorm = lines[j].norm;
-      dotnorm = MathExtra::dot3(inorm,jnorm);
-      if (fabs(dotnorm) > 1.0-flatthresh) connect2d[i].fflag_p2[m] = FLAT;
-      else connect2d[i].fflag_p2[m] = NONFLAT;
-      MathExtra::cross3(inorm,jnorm,icrossj);
-
-      if (lines[i].p2 == lines[j].p1) {
-        connect2d[i].pwhich_p2[m] = 0;
-        connect2d[i].nside_p2[m] = SAME_SIDE;
-        if (icrossj[2] > 0.0) connect2d[i].aflag_p2[m] = CONCAVE;
-        else connect2d[i].aflag_p2[m] = CONVEX;
-      } else if (lines[i].p2 == lines[j].p2) {
-        connect2d[i].pwhich_p2[m] = 1;
-        connect2d[i].nside_p2[m] = OPPOSITE_SIDE;
-        if (icrossj[2] < 0.0) connect2d[i].aflag_p2[m] = CONCAVE;
-        else connect2d[i].aflag_p2[m] = CONVEX;
-      }
+      int jwhich = -1;
+      if (lines[i].p2 == lines[j].p1) jwhich = 0;
+      else if (lines[i].p2 == lines[j].p2) jwhich = 1;
+      point_connection2d(lines[i].norm,lines[j].norm,1,jwhich,flatthresh,
+                         connect2d[i].fflag_p2[m],connect2d[i].nside_p2[m],
+                         connect2d[i].aflag_p2[m]);
+      connect2d[i].pwhich_p2[m] = jwhich;
     }
   }
 
@@ -2585,9 +2530,7 @@ void FixSurfaceGlobal::connectivity3d_complete()
   //   cross product is either along itri edge or in opposite dir
 
   int jpfirst,jpsecond;
-  double dotnorm;
-  double *inorm,*jnorm;
-  double icrossj[3],iedge[3];
+  double iedge[3];
 
   int j,m;
 
@@ -2607,33 +2550,10 @@ void FixSurfaceGlobal::connectivity3d_complete()
       if ((jpfirst < 0) || (jpsecond < 0))
         error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
 
-      inorm = tris[i].norm;
-      jnorm = tris[j].norm;
-      dotnorm = MathExtra::dot3(inorm,jnorm);
       MathExtra::sub3(points[tris[i].p2].x,points[tris[i].p1].x,iedge);
-      if (fabs(dotnorm) > 1.0-flatthresh) connect3d[i].fflag_e1[m] = FLAT;
-      else connect3d[i].fflag_e1[m] = NONFLAT;
-      MathExtra::cross3(inorm,jnorm,icrossj);
-
-      if ((jpfirst == 1 && jpsecond == 2) ||
-          (jpfirst == 2 && jpsecond == 3) ||
-          (jpfirst == 3 && jpsecond == 1)) {
-        connect3d[i].ewhich_e1[m] = jpfirst - 1;
-        connect3d[i].nside_e1[m] = OPPOSITE_SIDE;
-        if (MathExtra::dot3(icrossj,iedge) > 0.0)
-          connect3d[i].aflag_e1[m] = CONCAVE;
-        else
-          connect3d[i].aflag_e1[m] = CONVEX;
-      } else {
-        if (jpfirst == 2) connect3d[i].ewhich_e1[m] = 0;
-        else if (jpfirst == 3) connect3d[i].ewhich_e1[m] = 1;
-        else if (jpfirst == 1) connect3d[i].ewhich_e1[m] = 2;
-        connect3d[i].nside_e1[m] = SAME_SIDE;
-        if (MathExtra::dot3(icrossj,iedge) < 0.0)
-          connect3d[i].aflag_e1[m] = CONCAVE;
-        else
-          connect3d[i].aflag_e1[m] = CONVEX;
-      }
+      edge_connection3d(tris[i].norm,tris[j].norm,iedge,jpfirst,jpsecond,flatthresh,
+                        connect3d[i].fflag_e1[m],connect3d[i].ewhich_e1[m],
+                        connect3d[i].nside_e1[m],connect3d[i].aflag_e1[m]);
     }
 
     for (m = 0; m < connect3d[i].ne2; m++) {
@@ -2651,33 +2571,10 @@ void FixSurfaceGlobal::connectivity3d_complete()
       if ((jpfirst < 0) || (jpsecond < 0))
         error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
 
-      inorm = tris[i].norm;
-      jnorm = tris[j].norm;
-      dotnorm = MathExtra::dot3(inorm,jnorm);
       MathExtra::sub3(points[tris[i].p3].x,points[tris[i].p2].x,iedge);
-      if (fabs(dotnorm) > 1.0-flatthresh) connect3d[i].fflag_e2[m] = FLAT;
-      else connect3d[i].fflag_e2[m] = NONFLAT;
-      MathExtra::cross3(inorm,jnorm,icrossj);
-
-      if ((jpfirst == 1 && jpsecond == 2) ||
-          (jpfirst == 2 && jpsecond == 3) ||
-          (jpfirst == 3 && jpsecond == 1)) {
-        connect3d[i].ewhich_e2[m] = jpfirst - 1;
-        connect3d[i].nside_e2[m] = OPPOSITE_SIDE;
-        if (MathExtra::dot3(icrossj,iedge) > 0.0)
-          connect3d[i].aflag_e2[m] = CONCAVE;
-        else
-          connect3d[i].aflag_e2[m] = CONVEX;
-      } else {
-        if (jpfirst == 2) connect3d[i].ewhich_e2[m] = 0;
-        else if (jpfirst == 3) connect3d[i].ewhich_e2[m] = 1;
-        else if (jpfirst == 1) connect3d[i].ewhich_e2[m] = 2;
-        connect3d[i].nside_e2[m] = SAME_SIDE;
-        if (MathExtra::dot3(icrossj,iedge) < 0.0)
-          connect3d[i].aflag_e2[m] = CONCAVE;
-        else
-          connect3d[i].aflag_e2[m] = CONVEX;
-      }
+      edge_connection3d(tris[i].norm,tris[j].norm,iedge,jpfirst,jpsecond,flatthresh,
+                        connect3d[i].fflag_e2[m],connect3d[i].ewhich_e2[m],
+                        connect3d[i].nside_e2[m],connect3d[i].aflag_e2[m]);
     }
 
     for (m = 0; m < connect3d[i].ne3; m++) {
@@ -2695,33 +2592,10 @@ void FixSurfaceGlobal::connectivity3d_complete()
       if ((jpfirst < 0) || (jpsecond < 0))
         error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
 
-      inorm = tris[i].norm;
-      jnorm = tris[j].norm;
-      dotnorm = MathExtra::dot3(inorm,jnorm);
       MathExtra::sub3(points[tris[i].p1].x,points[tris[i].p3].x,iedge);
-      if (fabs(dotnorm) > 1.0-flatthresh) connect3d[i].fflag_e3[m] = FLAT;
-      else connect3d[i].fflag_e3[m] = NONFLAT;
-      MathExtra::cross3(inorm,jnorm,icrossj);
-
-      if ((jpfirst == 1 && jpsecond == 2) ||
-          (jpfirst == 2 && jpsecond == 3) ||
-          (jpfirst == 3 && jpsecond == 1)) {
-        connect3d[i].ewhich_e3[m] = jpfirst - 1;
-        connect3d[i].nside_e3[m] = OPPOSITE_SIDE;
-        if (MathExtra::dot3(icrossj,iedge) > 0.0)
-          connect3d[i].aflag_e3[m] = CONCAVE;
-        else
-          connect3d[i].aflag_e3[m] = CONVEX;
-      } else {
-        if (jpfirst == 2) connect3d[i].ewhich_e3[m] = 0;
-        else if (jpfirst == 3) connect3d[i].ewhich_e3[m] = 1;
-        else if (jpfirst == 1) connect3d[i].ewhich_e3[m] = 2;
-        connect3d[i].nside_e3[m] = SAME_SIDE;
-        if (MathExtra::dot3(icrossj,iedge) < 0.0)
-          connect3d[i].aflag_e3[m] = CONCAVE;
-        else
-          connect3d[i].aflag_e3[m] = CONVEX;
-      }
+      edge_connection3d(tris[i].norm,tris[j].norm,iedge,jpfirst,jpsecond,flatthresh,
+                        connect3d[i].fflag_e3[m],connect3d[i].ewhich_e3[m],
+                        connect3d[i].nside_e3[m],connect3d[i].aflag_e3[m]);
     }
   }
 
@@ -2797,60 +2671,35 @@ void FixSurfaceGlobal::connectivity3d_complete()
   for (int i = 0; i < ntris; i++) {
     for (m = 0; m < connect3d[i].nc1; m++) {
       j = connect3d[i].neigh_c1[m];
-      if (tris[i].p1 == tris[j].p1) connect3d[i].cwhich_c1[m] = 0;
-      else if (tris[i].p1 == tris[j].p2) connect3d[i].cwhich_c1[m] = 1;
-      else if (tris[i].p1 == tris[j].p3) connect3d[i].cwhich_c1[m] = 2;
-
-      inorm = tris[i].norm;
-      jnorm = tris[j].norm;
-      dotnorm = MathExtra::dot3(inorm,jnorm);
-      if (dotnorm < 0.0)
-        connect3d[i].nside_c1[m] = OPPOSITE_SIDE;
-      else
-        connect3d[i].nside_c1[m] = SAME_SIDE;
-      if (fabs(dotnorm) > 1.0-flatthresh)
-        connect3d[i].fflag_c1[m] = FLAT;
-      else
-        connect3d[i].fflag_c1[m] = NONFLAT;
+      int cwhich = -1;
+      if (tris[i].p1 == tris[j].p1) cwhich = 0;
+      else if (tris[i].p1 == tris[j].p2) cwhich = 1;
+      else if (tris[i].p1 == tris[j].p3) cwhich = 2;
+      corner_connection3d(tris[i].norm,tris[j].norm,cwhich,flatthresh,
+                          connect3d[i].fflag_c1[m],connect3d[i].nside_c1[m]);
+      connect3d[i].cwhich_c1[m] = cwhich;
     }
 
     for (m = 0; m < connect3d[i].nc2; m++) {
       j = connect3d[i].neigh_c2[m];
-      if (tris[i].p2 == tris[j].p1) connect3d[i].cwhich_c2[m] = 0;
-      else if (tris[i].p2 == tris[j].p2) connect3d[i].cwhich_c2[m] = 1;
-      else if (tris[i].p2 == tris[j].p3) connect3d[i].cwhich_c2[m] = 2;
-
-      inorm = tris[i].norm;
-      jnorm = tris[j].norm;
-      dotnorm = MathExtra::dot3(inorm,jnorm);
-
-      if (dotnorm < 0.0)
-        connect3d[i].nside_c2[m] = OPPOSITE_SIDE;
-      else
-        connect3d[i].nside_c2[m] = SAME_SIDE;
-      if (fabs(dotnorm) > 1.0-flatthresh)
-        connect3d[i].fflag_c2[m] = FLAT;
-      else
-        connect3d[i].fflag_c2[m] = NONFLAT;
+      int cwhich = -1;
+      if (tris[i].p2 == tris[j].p1) cwhich = 0;
+      else if (tris[i].p2 == tris[j].p2) cwhich = 1;
+      else if (tris[i].p2 == tris[j].p3) cwhich = 2;
+      corner_connection3d(tris[i].norm,tris[j].norm,cwhich,flatthresh,
+                          connect3d[i].fflag_c2[m],connect3d[i].nside_c2[m]);
+      connect3d[i].cwhich_c2[m] = cwhich;
     }
 
     for (m = 0; m < connect3d[i].nc3; m++) {
       j = connect3d[i].neigh_c3[m];
-      if (tris[i].p3 == tris[j].p1) connect3d[i].cwhich_c3[m] = 0;
-      else if (tris[i].p3 == tris[j].p2) connect3d[i].cwhich_c3[m] = 1;
-      else if (tris[i].p3 == tris[j].p3) connect3d[i].cwhich_c3[m] = 2;
-
-      inorm = tris[i].norm;
-      jnorm = tris[j].norm;
-      dotnorm = MathExtra::dot3(inorm,jnorm);
-      if (dotnorm < 0.0)
-        connect3d[i].nside_c3[m] = OPPOSITE_SIDE;
-      else
-        connect3d[i].nside_c3[m] = SAME_SIDE;
-      if (fabs(dotnorm) > 1.0-flatthresh)
-        connect3d[i].fflag_c3[m] = FLAT;
-      else
-        connect3d[i].fflag_c3[m] = NONFLAT;
+      int cwhich = -1;
+      if (tris[i].p3 == tris[j].p1) cwhich = 0;
+      else if (tris[i].p3 == tris[j].p2) cwhich = 1;
+      else if (tris[i].p3 == tris[j].p3) cwhich = 2;
+      corner_connection3d(tris[i].norm,tris[j].norm,cwhich,flatthresh,
+                          connect3d[i].fflag_c3[m],connect3d[i].nside_c3[m]);
+      connect3d[i].cwhich_c3[m] = cwhich;
     }
   }
 

@@ -255,7 +255,7 @@ LAMMPS must be compiled with ``-DFFT_SINGLE`` to use PPPM with GPU acceleration
 or GPU acceleration should be disabled for PPPM (e.g. suffix off or ``pair/only``
 as described in the LAMMPS documentation).
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 ``GPU_ARCH`` is the canonical architecture setting for all ``GPU_API``
 back ends.  The back end specific ``HIP_ARCH`` (for ``GPU_API=hip``)

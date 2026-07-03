@@ -278,7 +278,7 @@ may be added:
   colors are drawn.  This can simplify determining which value a
   specific color corresponds to.
 
-  .. versionadded:: TBD
+  .. versionadded:: 4Jul2026
 
   The *map* value selects which of the colormaps of the :doc:`dump image
   <dump_image>` instance the legend represents.  A dump image has separate

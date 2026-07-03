@@ -327,26 +327,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
     if (contact_surfs.size() == 0) continue;
 
     // Sort contacts by overlap and create a map
-    std::sort(contact_surfs.begin(), contact_surfs.end(),
-              [](FixSurface::ContactSurf a, FixSurface::ContactSurf b) {
-                if (a.overlap > (b.overlap + EPSILON))
-                  return 1;    // 1st compare overlaps within epsilon
-                if (b.overlap > (a.overlap + EPSILON)) return 0;
-                if (a.priority > b.priority)
-                  return 1;    // 2nd, prioritize interior > edge > corner
-                if (b.priority > a.priority) return 0;
-                double dota =
-                    fabs(MathExtra::dot3(a.surf_norm, a.dr));    // sign may not yet be set
-                double dotb = fabs(MathExtra::dot3(b.surf_norm, b.dr));
-                if (dota > (dotb + EPSILON)) return 1;    // 3rd, prioritize which one aligns best
-                if (dotb > (dota + EPSILON)) return 0;
-                if (a.rsq_com < (b.rsq_com - EPSILON)) return 1;    // 4th, prioritize closer CoM
-                if (b.rsq_com < (a.rsq_com - EPSILON)) return 0;
-                if (a.index < b.index)
-                  return 1;
-                else
-                  return 0;
-              });
+    std::sort(contact_surfs.begin(), contact_surfs.end(), FixSurface::contact_presort);
 
     contacts_map.clear();
     for (auto n = 0; n < contact_surfs.size(); n++) contacts_map[contact_surfs[n].index] = n;
@@ -361,23 +342,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
       prewalk_connections3d();
 
     // Given corrected surface norms, resort contacts
-    std::sort(contact_surfs.begin(), contact_surfs.end(),
-              [](FixSurface::ContactSurf a, FixSurface::ContactSurf b) {
-                if (a.overlap > (b.overlap + EPSILON)) return 1;
-                if (b.overlap > (a.overlap + EPSILON)) return 0;
-                if (a.priority > b.priority) return 1;
-                if (b.priority > a.priority) return 0;
-                double dota = MathExtra::dot3(a.surf_norm, a.dr);
-                double dotb = MathExtra::dot3(b.surf_norm, b.dr);
-                if (dota > (dotb + EPSILON)) return 1;
-                if (dotb > (dota + EPSILON)) return 0;
-                if (a.rsq_com < (b.rsq_com - EPSILON)) return 1;
-                if (b.rsq_com < (a.rsq_com - EPSILON)) return 0;
-                if (a.index < b.index)
-                  return 1;
-                else
-                  return 0;
-              });
+    std::sort(contact_surfs.begin(), contact_surfs.end(), FixSurface::contact_sort);
 
     for (auto n = 0; n < contact_surfs.size(); n++) contacts_map[contact_surfs[n].index] = n;
 

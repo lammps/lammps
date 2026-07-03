@@ -45,7 +45,7 @@ void FixSurface::extract_from_molecule(char *molID,
 
   int imol = atom->find_molecule(molID);
   if (imol == -1)
-    error->all(FLERR,"Molecule template ID for fix surface does not exist");
+    error->all(FLERR, Error::NOLASTLINE, "Molecule template ID for fix surface does not exist");
 
   // loop over one or more molecules in molID
 
@@ -55,10 +55,10 @@ void FixSurface::extract_from_molecule(char *molID,
   for (int m = 0; m < nmol; m++) {
     if (dimension == 2)
       if (onemols[m]->lineflag == 0)
-        error->all(FLERR,"Fix surface molecule must have lines");
+        error->all(FLERR, Error::NOLASTLINE, "Fix surface molecule must have lines");
     if (dimension == 3)
       if (onemols[m]->triflag == 0)
-        error->all(FLERR,"Fix surface molecule must have triangles");
+        error->all(FLERR, Error::NOLASTLINE, "Fix surface molecule must have triangles");
 
     int nl = onemols[m]->nlines;
     int nt = onemols[m]->ntris;
@@ -192,10 +192,10 @@ void FixSurface::extract_from_stlfile(char *filename, int stype, int smol,
                                       Point *&points, int &ntris, Tri *&tris)
 {
   if (domain->dimension == 2)
-    error->all(FLERR, "Fix surface cannot use an STL file for 2d simulations");
+    error->all(FLERR,  Error::NOLASTLINE, "Fix surface cannot use an STL file for 2d simulations");
 
   if (stype < 1)
-    error->all(FLERR, "STL surface type must be >= 1");
+    error->all(FLERR,  Error::NOLASTLINE, "STL surface type must be >= 1");
 
   // read tris from STL file
   // stltris = tri coords internal to STL reader
@@ -204,7 +204,7 @@ void FixSurface::extract_from_stlfile(char *filename, int stype, int smol,
   double **stltris;
   int ntris_old = ntris;
   int ntris_new = stl->read_file(filename,stltris);
-  if (ntris_new < 0) error->one(FLERR, "Failed to read STL file {}", filename);
+  if (ntris_new < 0) error->one(FLERR, Error::NOLASTLINE, "Failed to read STL file {}", filename);
   ntris += ntris_new;
 
   tris = (Tri *) memory->srealloc(tris,ntris*sizeof(Tri),"surface:tris");

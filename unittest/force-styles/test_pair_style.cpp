@@ -439,8 +439,6 @@ TEST(PairStyle, plain)
         pair = lmp->force->pair;
 
         EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
-    EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
-                      epsilon);
         EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
                           epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,
@@ -630,22 +628,24 @@ TEST(PairStyle, omp)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    pair = lmp->force->pair;
+
     // skip over these tests if newton pair is forced to be on
     if (lmp->force->newton_pair == 0) {
 
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        try {
-            lmp = init_lammps(args, test_config, false);
-        } catch (std::exception &e) {
-            if (!verbose) ::testing::internal::GetCapturedStdout();
-            FAIL() << e.what();
-        }
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-
-        pair = lmp->force->pair;
-
-        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, epsilon);
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
+                          epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,
                       10 * epsilon);
 
@@ -774,23 +774,22 @@ static void run_kokkos_test(LAMMPS::argv &args)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    pair = lmp->force->pair;
+
     // skip over these tests if newton pair is forced to be on
     if (lmp->force->newton_pair == 0) {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        try {
-            lmp = init_lammps(args, test_config, false);
-        } catch (std::exception &e) {
-            if (!verbose) ::testing::internal::GetCapturedStdout();
-            FAIL() << e.what();
-        }
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-
-        pair = lmp->force->pair;
 
         EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
-    EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
-                      epsilon);
         EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
                           epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,

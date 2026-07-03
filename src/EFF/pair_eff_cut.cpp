@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairEffCut::PairEffCut(LAMMPS *lmp) : Pair(lmp)
+PairEffCut::PairEffCut(LAMMPS *lmp) : Pair(lmp), cut(nullptr)
 {
   single_enable = 0;
 

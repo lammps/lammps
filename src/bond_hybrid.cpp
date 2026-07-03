@@ -28,7 +28,7 @@ static constexpr int EXTRA = 1000;
 
 /* ---------------------------------------------------------------------- */
 
-BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
+BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp), styles(nullptr), keywords(nullptr), map(nullptr)
 {
   writedata = 0;
   nstyles = 0;

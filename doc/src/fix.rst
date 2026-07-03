@@ -280,6 +280,7 @@ accelerated styles exist.
 * :doc:`hmc <fix_hmc>` -  Hybrid/Hamiltonian Monte Carlo (HMC) particle propagation
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
+* :doc:`ilves <fix_ilves>` - ILVES constraints on bonds and/or angles
 * :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol
 * :doc:`indent <fix_indent>` - impose force due to an indenter
 * :doc:`ipi <fix_ipi>` - enable LAMMPS to run as a client for i-PI path-integral simulations

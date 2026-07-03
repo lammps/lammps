@@ -37,7 +37,8 @@ using namespace InterLayer;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulShield::PairCoulShield(LAMMPS *lmp) : Pair(lmp)
+PairCoulShield::PairCoulShield(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), sigmae(nullptr), offset(nullptr)
 {
   tap_flag = 1;
 }

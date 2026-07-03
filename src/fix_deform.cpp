@@ -45,8 +45,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-irregular(nullptr), set(nullptr)
+FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), h_rate(nullptr), h_ratelo(nullptr), irregular(nullptr),
+    step_respa(nullptr), set(nullptr)
 {
   const std::string thiscmd = fmt::format("fix {}", style);
   if (narg < 4) utils::missing_cmd_args(FLERR, thiscmd, error);

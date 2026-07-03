@@ -155,7 +155,7 @@ details please see the description in "(Mitchell2011a)".
 
    Prior versions of LAMMPS, had an incorrect the plasticity model in style
    *peri/eps* relative to the source report :ref:`(Mitchell2011a) <Mitchell2011a>`.
-   These affected the evolution of the plastic devatoric extension and caused
+   These affected the evolution of the plastic deviatoric extension and caused
    significant overshooting of the yield surface. These have since been corrected,
    however, there is still no radial return rule to ensure the plastic deviatoric
    extension does not leave the yield surface. This may cause some drift off the

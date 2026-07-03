@@ -46,7 +46,7 @@ enum{DIAMETER, CHARGE};
 /* ---------------------------------------------------------------------- */
 
 FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), fix_diam(nullptr), fix_chg(nullptr), kspace_scale(nullptr)
 {
   if (narg < 5) utils::missing_cmd_args(FLERR,"fix adapt/fep", error);
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);

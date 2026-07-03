@@ -585,7 +585,6 @@ void DomainKokkos::lamda2x(int n, int groupbit_in)
   atomKK->sync(Device,X_MASK);
   x = atomKK->k_x.view_device();
   mask = atomKK->k_mask.view_device();
-  mask = atomKK->k_mask.view_device();
   groupbit = groupbit_in;
 
   copymode = 1;

@@ -40,7 +40,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairOxdna2Dh::PairOxdna2Dh(LAMMPS *lmp) : Pair(lmp)
+PairOxdna2Dh::PairOxdna2Dh(LAMMPS *lmp) :
+    Pair(lmp), qeff_dh_pf(nullptr), kappa_dh(nullptr), b_dh(nullptr), cut_dh_ast(nullptr),
+    cutsq_dh_ast(nullptr), cut_dh_c(nullptr), cutsq_dh_c(nullptr), nxyz_xtrct(nullptr),
+    fix_lrf(nullptr)
 {
   single_enable = 0;
   writedata = 0;

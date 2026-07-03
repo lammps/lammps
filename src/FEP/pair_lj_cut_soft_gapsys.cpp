@@ -32,7 +32,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutSoftGapsys::PairLJCutSoftGapsys(LAMMPS *lmp) : Pair(lmp)
+PairLJCutSoftGapsys::PairLJCutSoftGapsys(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr)
 {
   writedata = 1;
   allocated = 0;

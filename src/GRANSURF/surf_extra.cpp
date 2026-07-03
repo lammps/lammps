@@ -103,7 +103,7 @@ int overlap_sphere_tri(double *xsphere, double radius,
   int e12flag,e23flag,e31flag,o12flag,o23flag,o31flag;
   int esum,osum,lineflag;
   double dot, xnorm;
-  double a[3],point[3],edge[3],pvec[3],xproduct[3];
+  double a[3],edge[3],pvec[3],xproduct[3];
 
   // A = vector from P1 to Xsphere
   // alpha = distance from Xsphere to triangle plane

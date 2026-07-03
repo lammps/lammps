@@ -804,7 +804,7 @@ void EwaldDisp::eik_dot_r()
   const int *type = atom->type;
   double **mu = atom->mu;
 
-  memset(sfac, 0, kcount*nsums*sizeof(complex));        // reset sums
+  memset(sfac, 0, (sizeof(complex)*kcount*nsums));        // reset sums
 
   for (int i = 0; i < nlocal; i++) {
 

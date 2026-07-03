@@ -23,8 +23,7 @@
 
 #include <vector>
 
-namespace LAMMPS_NS {
-namespace ILVES {
+namespace LAMMPS_NS::ILVES {
 
 Graph::Graph() : nnodes(0) {}
 
@@ -33,14 +32,19 @@ Graph::Graph(const int nodes, const int edges) : nnodes(nodes), xadj(nodes + 1),
   xadj[0] = 0;
 }
 
-int Graph::num_nodes() const { return nnodes; }
+int Graph::num_nodes() const
+{
+  return nnodes;
+}
 
-int Graph::num_edges() const { return adj.size(); }
+int Graph::num_edges() const
+{
+  return adj.size();
+}
 
 double Graph::memory_usage() const
 {
   return (double) (xadj.size() + adj.size()) * sizeof(int);
 }
 
-}    // namespace ILVES
-}    // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS::ILVES

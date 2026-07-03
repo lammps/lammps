@@ -120,6 +120,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   nmax = 0;
   m_fill = m_cap = 0;
   pack_flag = 0;
+  matvecs_s = matvecs_t = 0;
   s = nullptr;
   t = nullptr;
   nprev = 4;

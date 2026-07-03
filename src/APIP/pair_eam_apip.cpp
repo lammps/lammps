@@ -47,6 +47,8 @@ PairEAMAPIP::PairEAMAPIP(LAMMPS *lmp) : Pair(lmp)
   fp = nullptr;
   numforce = nullptr;
   type2frho = nullptr;
+  type2rhor = nullptr;
+  type2z2r = nullptr;
 
   nfuncfl = 0;
   funcfl = nullptr;

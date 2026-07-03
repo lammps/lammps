@@ -128,6 +128,15 @@ void CommTiled::init_pointers()
   nexchprocmax = nullptr;
   exchproc = nullptr;
   exchnum = nullptr;
+
+  prd = nullptr;
+  boxlo = boxhi = nullptr;
+  sublo = subhi = nullptr;
+
+  box_drop = nullptr;
+  box_other = nullptr;
+  box_touch = nullptr;
+  point_drop = nullptr;
 }
 
 /* ----------------------------------------------------------------------

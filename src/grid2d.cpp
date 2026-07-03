@@ -63,6 +63,8 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny) :
   nx = gnx;
   ny = gny;
 
+  noverlap_list = maxoverlap_list = 0;
+
   // default settings, can be overridden by set() methods
   // these affect assignment of owned and ghost cells
 
@@ -106,6 +108,8 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int ixlo, int ixhi
 
   nx = gnx;
   ny = gny;
+
+  noverlap_list = maxoverlap_list = 0;
 
   // store owned/ghost indices provided by caller
 

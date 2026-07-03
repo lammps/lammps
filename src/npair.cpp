@@ -31,7 +31,8 @@ using namespace LAMMPS_NS;
 
 NPair::NPair(LAMMPS *lmp) :
     Pointers(lmp), nb(nullptr), ns(nullptr), atom2bin(nullptr), bins(nullptr),
-    binatoms_hash_multi(nullptr), stencil(nullptr)
+    binatoms_hash_multi(nullptr), stencil(nullptr), nstencil_multi(nullptr),
+    stencil_multi(nullptr)
 {
   last_build = -1;
   mycutneighsq = nullptr;

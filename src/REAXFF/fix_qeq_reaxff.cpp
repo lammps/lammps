@@ -90,6 +90,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // check for compatibility is in Fix::post_constructor()
 
   dual_enabled = 0;
+  matvecs_s = matvecs_t = 0;
 
   // matrix-free support only available for Kokkos backend
   matrix_free = 0; // default to false

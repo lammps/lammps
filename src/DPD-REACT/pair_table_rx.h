@@ -33,6 +33,7 @@ class PairTableRX : public PairTable {
   void settings(int, char **) override;
   void coeff(int, char **) override;
   double single(int, int, int, int, double, double, double, double &) override;
+  double memory_usage() override;
 
  protected:
   int nspecies;
@@ -43,8 +44,6 @@ class PairTableRX : public PairTable {
 
   int nmax_rx;
   double *mixWtSite1old, *mixWtSite2old, *mixWtSite1, *mixWtSite2;
-
-  double memory_usage() override;
 };
 
 }    // namespace LAMMPS_NS

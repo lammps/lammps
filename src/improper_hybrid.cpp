@@ -28,7 +28,8 @@ static constexpr int EXTRA = 1000;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperHybrid::ImproperHybrid(LAMMPS *lmp) : Improper(lmp)
+ImproperHybrid::ImproperHybrid(LAMMPS *lmp) :
+    Improper(lmp), styles(nullptr), keywords(nullptr), map(nullptr)
 {
   writedata = 0;
   nstyles = 0;

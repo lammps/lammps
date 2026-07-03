@@ -67,7 +67,9 @@ static const char cite_fix_qeq_reaxff[] =
 /* ---------------------------------------------------------------------- */
 
 FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), matvecs(0), pertype_option(nullptr)
+    Fix(lmp, narg, arg), matvecs(0), list(nullptr), efield(nullptr), ilist(nullptr),
+    numneigh(nullptr), firstneigh(nullptr), chi(nullptr), eta(nullptr), gamma(nullptr),
+    pertype_option(nullptr)
 {
   scalar_flag = 1;
   extscalar = 0;

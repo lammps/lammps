@@ -52,7 +52,10 @@ static constexpr double EPS_EWALD_SQR = 1.0e-12;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) : Pair(lmp)
+PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), cut_respa(nullptr), cut(nullptr),
+    scale(nullptr), polar(nullptr), thole(nullptr), ascreen(nullptr)
 {
   ewaldflag = pppmflag = 1;
   single_enable = 0;

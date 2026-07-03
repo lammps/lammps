@@ -91,28 +91,16 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
 
     if (use_respa) command("run_style respa 2 1 bond 1 pair 2");
 
-    // set up molecular system force field
+    // set up molecular system force field and groups from the coeffs file
+    // indicated by the YAML file (the input template only defines the geometry)
 
-    command("pair_style lj/cut 8.0");
-    command("pair_coeff  1 1  0.02   2.5");
-    command("pair_coeff  2 2  0.005  1.0");
-    command("pair_coeff  2 4  0.005  0.5");
-    command("pair_coeff  3 3  0.02   3.2");
-    command("pair_coeff  4 4  0.015  3.1");
-    command("pair_coeff  5 5  0.015  3.1");
-    command("bond_style harmonic");
-    command("bond_coeff  1 250.0 1.5");
-    command("bond_coeff  2 300.0 1.1");
-    command("bond_coeff  3 350.0 1.3");
-    command("bond_coeff  4 650.0 1.2");
-    command("bond_coeff  5 450.0 1.0");
-    command("angle_style harmonic");
-    command("angle_coeff  1  75.0 110.1");
-    command("angle_coeff  2  45.0 111.0");
-    command("angle_coeff  3  50.0 120.0");
-    command("angle_coeff  4 100.0 108.5");
-    command("group solute  molecule 1:2");
-    command("group solvent molecule 3:5");
+    if (cfg.input_coeffs.empty()) {
+        std::cerr << "ERROR: no 'input_coeffs' file given in the YAML file\n";
+        cleanup_lammps(lmp, cfg);
+        return nullptr;
+    }
+    std::string coeffs_file = platform::path_join(INPUT_FOLDER, cfg.input_coeffs);
+    lmp->input->file(coeffs_file.c_str());
 
     for (const auto &post_command : cfg.post_commands)
         command(post_command);
@@ -148,7 +136,9 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool use_rmass, bool use
         command(post_command);
 
     auto *ifix = lmp->modify->get_fix_by_id("test");
-    if (ifix && !utils::strmatch(ifix->style, "^move")) {
+    // styles tagged "no_reset_dt" reject a timestep change (Fix::reset_dt() raises
+    // an error, e.g. fix move), so do not exercise it for them
+    if (ifix && !test_config.has_tag("no_reset_dt")) {
         // must be set to trigger calling Fix::reset_dt() with timestep
         lmp->update->first_update = 1;
         // test validity of Fix::reset_dt(). With run_style respa there may be segfaults
@@ -434,11 +424,14 @@ TEST(FixTimestep, plain)
         }
     }
 
-    // rigid fixes need work to test properly with r-RESPA.
-    // fix nve/limit cannot work with r-RESPA
+    // styles tagged "no_respa" are not exercised under r-RESPA: rigid fixes need
+    // work to test properly with r-RESPA, fix nve/limit and fix recenter do not
+    // support it, and stochastic integrators/barostats (brownian, gjf,
+    // press/langevin) draw their random numbers differently under r-RESPA so the
+    // trajectories cannot match.  Adding the tag to a YAML file is all that is
+    // needed for a future case; no change to this driver is required.
     ifix = lmp->modify->get_fix_by_id("test");
-    if (ifix && !utils::strmatch(ifix->style, "^rigid") &&
-        !utils::strmatch(ifix->style, "^nve/limit") && !utils::strmatch(ifix->style, "^recenter")) {
+    if (ifix && !test_config.has_tag("no_respa")) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         delete lmp;
@@ -746,10 +739,10 @@ TEST(FixTimestep, omp)
         }
     }
 
-    // rigid fixes need work to test properly with r-RESPA,
-    // also, torque is not supported by respa/omp
+    // skip the r-RESPA leg for styles tagged "no_respa" (same set as the plain
+    // fixture); also, torque is not supported by respa/omp
     ifix = lmp->modify->get_fix_by_id("test");
-    if (ifix && !utils::strmatch(ifix->style, "^rigid") && !lmp->atom->torque) {
+    if (ifix && !test_config.has_tag("no_respa") && !lmp->atom->torque) {
 
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
@@ -885,25 +878,16 @@ TEST(FixTimestep, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
-TEST(FixTimestep, kokkos_omp)
+// precision of the KOKKOS package as selected with -D KOKKOS_PREC at compile time
+static std::string kokkos_precision()
 {
-    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
-    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
-    // test either OpenMP or Serial
-    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial") &&
-        !Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
-        GTEST_SKIP();
-    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
-    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
-        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
-        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
-        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
-    }
-    LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
-                         "-k",          "on",   "t",    "4",     "-sf",    "kk"};
-    // fall back to serial if openmp is not available
-    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[9] = "1";
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "mixed")) return "mixed";
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "single")) return "single";
+    return "double";
+}
 
+static void run_kokkos_test(LAMMPS::argv &args)
+{
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
     try {
@@ -934,6 +918,12 @@ TEST(FixTimestep, kokkos_omp)
 
     // relax error a bit for KOKKOS package
     double epsilon = 10.0 * test_config.epsilon;
+    // relax error a lot for reduced precision KOKKOS builds
+    const std::string kk_precision = kokkos_precision();
+    if (kk_precision == "mixed")
+        epsilon *= 2.0e9;
+    else if (kk_precision == "single")
+        epsilon *= 1.0e10;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)
     if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
@@ -1074,4 +1064,82 @@ TEST(FixTimestep, kokkos_omp)
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
+}
+
+TEST(FixTimestep, kokkos_omp)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_omp_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires the OpenMP backend of KOKKOS
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        GTEST_SKIP() << "KOKKOS OpenMP backend not enabled";
+    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
+    }
+
+    LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",          "on",   "t",    "4",     "-sf",    "kk"};
+
+    run_kokkos_test(args);
+};
+
+TEST(FixTimestep, kokkos_serial)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_serial_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires the KOKKOS package compiled with only the Serial backend: when the
+    // OpenMP (or a GPU) backend is enabled, the host execution space is not Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial"))
+        GTEST_SKIP() << "KOKKOS Serial backend not enabled";
+    if (Info::has_accelerator_feature("KOKKOS", "api", "openmp") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "pthreads"))
+        GTEST_SKIP() << "Cannot test KOKKOS/Serial with threading support enabled";
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/Serial with GPU support enabled";
+    }
+
+    LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",          "on",   "t",    "1",     "-sf",    "kk"};
+
+    run_kokkos_test(args);
+};
+
+TEST(FixTimestep, kokkos_gpu)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_gpu_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires a GPU backend of the KOKKOS package
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "cuda") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "hip") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "sycl"))
+        GTEST_SKIP() << "KOKKOS GPU backend not enabled";
+    // transparently skip when no compatible GPU device is present
+    if (!Info::has_kokkos_gpu_device())
+        GTEST_SKIP() << "No compatible GPU device available";
+
+    // use a half neighbor list so the GPU kernels run with the input's default
+    // "newton on"; with the default "neigh full" the KOKKOS package requires
+    // newton off, which the force-style input templates do not use
+    LAMMPS::argv args = {"FixTimestep", "-log", "none",   "-echo", "screen", "-nocite", "-k", "on",
+                         "g",           "1",    "-sf",    "kk",    "-pk",     "kokkos",  "neigh",
+                         "half", "newton", "on"};
+
+    run_kokkos_test(args);
 };

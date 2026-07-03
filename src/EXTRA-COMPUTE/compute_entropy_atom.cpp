@@ -41,8 +41,7 @@ using namespace MathConst;
 
 ComputeEntropyAtom::
 ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  pair_entropy(nullptr), pair_entropy_avg(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), pair_entropy(nullptr), pair_entropy_avg(nullptr)
 {
   if (narg < 5 || narg > 10)
     error->all(FLERR,"Illegal compute entropy/atom command; wrong number of arguments");

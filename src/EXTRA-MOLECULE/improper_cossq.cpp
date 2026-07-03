@@ -38,7 +38,7 @@ static constexpr double SMALL =     0.001;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperCossq::ImproperCossq(LAMMPS *lmp) : Improper(lmp)
+ImproperCossq::ImproperCossq(LAMMPS *lmp) : Improper(lmp), k(nullptr), chi(nullptr)
 {
   // the first atom in the quadruplet is the atom of symmetry
 

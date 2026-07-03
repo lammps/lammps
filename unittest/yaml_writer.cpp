@@ -65,14 +65,21 @@ void YamlWriter::emit(const std::string &key, const int value)
     emit(key, fmt::format("{}", value));
 }
 
+// Note: the two implicit-tag flags (plain_implicit, quoted_implicit) are both
+// set to 1 so the default string tag is left implicit and libyaml does not emit
+// the "! " non-specific tag indicator in front of block scalars ("! |") or empty
+// values ("! \"\""). This keeps the generated YAML standard and uniform so that
+// generic YAML loaders (e.g. for schema validation) parse it without special
+// handling. See tools/json/force-style-test-schema.json.
+
 void YamlWriter::emit(const std::string &key, const std::string &value)
 {
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *)key.c_str(), key.size(), 1, 0,
+                                 (yaml_char_t *)key.c_str(), key.size(), 1, 1,
                                  YAML_PLAIN_SCALAR_STYLE);
     yaml_emitter_emit(&emitter, &event);
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *)value.c_str(), value.size(), 1, 0,
+                                 (yaml_char_t *)value.c_str(), value.size(), 1, 1,
                                  YAML_PLAIN_SCALAR_STYLE);
     yaml_emitter_emit(&emitter, &event);
 }
@@ -80,11 +87,11 @@ void YamlWriter::emit(const std::string &key, const std::string &value)
 void YamlWriter::emit_block(const std::string &key, const std::string &value)
 {
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *)key.c_str(), key.size(), 1, 0,
+                                 (yaml_char_t *)key.c_str(), key.size(), 1, 1,
                                  YAML_PLAIN_SCALAR_STYLE);
     yaml_emitter_emit(&emitter, &event);
     yaml_scalar_event_initialize(&event, nullptr, (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *)value.c_str(), value.size(), 1, 0,
+                                 (yaml_char_t *)value.c_str(), value.size(), 1, 1,
                                  YAML_LITERAL_SCALAR_STYLE);
     yaml_emitter_emit(&emitter, &event);
 }

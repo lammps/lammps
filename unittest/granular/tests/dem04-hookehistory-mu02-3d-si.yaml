@@ -1,0 +1,64 @@
+---
+lammps_version: 30 Mar 2026
+tags: granular unstable
+date_generated: Fri May 29 18:24:07 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  pair gran/hooke/history
+pre_commands: ! |
+  units lj
+  dimension 3
+  boundary p f f
+  atom_style sphere
+  region box block -5.0 5.0 -1.0 1.0 -0.5 3.0 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 0.0 ${z0} units box
+  set group all diameter ${diam} density ${dens}
+  velocity all set ${u0} 0.0 0.0
+  comm_modify vel yes
+  neighbor 0.3 bin
+  timestep 2.0e-4
+post_commands: ! |
+  fix grav all gravity ${grav} vector 0.0 0.0 -1.0
+  fix integr all nve/sphere
+  fix zwall all wall/gran hooke/history ${knorm} NULL ${gnorm} NULL ${xmu} 1 zplane 0.0 NULL
+input_file:
+natoms: 1
+variables: ! |
+  diam 1.0
+  dens 1.0
+  knorm 1.0e4
+  gnorm 10.0
+  xmu 0.2
+  grav 1.0
+  u0 1.0
+  radius 0.5
+  z0 0.49994764
+pair_style: gran/hooke/history ${knorm} NULL ${gnorm} NULL ${xmu} 1
+pair_coeff: ! |
+  * *
+run_segments: ! |-
+  5000 3000 2000
+analytic_enable: yes
+analytic_model: slip_cessation
+analytic_tol: 0.005
+analytic_segment: 2
+run_pos: ! |2
+    0   1  9.0002000002244098e-01  0.0000000000000000e+00  4.9994764012162163e-01
+    1   1  1.3469570518343204e+00  0.0000000000000000e+00  4.9994764012242288e-01
+    2   1  1.6326712117809838e+00  0.0000000000000000e+00  4.9994764012243476e-01
+run_vel: ! |2
+    0   1  8.0002000004788232e-01  0.0000000000000000e+00 -5.5866548574272763e-12
+    1   1  7.1460456306198483e-01  0.0000000000000000e+00  5.1633308959063600e-12
+    2   1  7.1428881832023994e-01  0.0000000000000000e+00 -7.1821801507704452e-15
+run_torque: ! |2
+    0   1  0.0000000000000000e+00  5.2359878382119314e-02  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  1.7575722353025908e-03  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00 -3.2148536923392229e-04  0.0000000000000000e+00
+run_omega: ! |2
+    0   1  0.0000000000000000e+00  9.9989999976056754e-01  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  1.4269771846900607e+00  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  1.4285559083987927e+00  0.0000000000000000e+00
+...

@@ -129,6 +129,7 @@ void ReaderNative::skip()
     int n;
     for (int i = 0; i < nchunk; i++) {
       read_buf(&n, sizeof(int), 1);
+      if (n < 0) error->one(FLERR,"Dump file is invalid or corrupted");
       skip_buf(n*sizeof(double));
     }
 

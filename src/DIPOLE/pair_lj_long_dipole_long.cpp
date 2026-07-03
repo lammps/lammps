@@ -41,7 +41,10 @@ using namespace EwaldConst;
 
 // ----------------------------------------------------------------------
 
-PairLJLongDipoleLong::PairLJLongDipoleLong(LAMMPS *lmp) : Pair(lmp)
+PairLJLongDipoleLong::PairLJLongDipoleLong(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_lj_read(nullptr), cut_ljsq(nullptr), epsilon_read(nullptr),
+    epsilon(nullptr), sigma_read(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr),
+    lj3(nullptr), lj4(nullptr), offset(nullptr), cut_respa(nullptr)
 {
   dispersionflag = ewaldflag = dipoleflag = 1;
   respa_enable = 0;

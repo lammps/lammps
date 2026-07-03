@@ -984,7 +984,7 @@ void ReadRestart::magic_string()
   if (count < n)
     error->all(FLERR,"Invalid LAMMPS restart file");
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  if (strcmp(str,MAGIC_STRING) != 0)
+  if (memcmp(str,MAGIC_STRING,n) != 0)
     error->all(FLERR,"Invalid LAMMPS restart file");
   delete[] str;
 }
@@ -1032,7 +1032,7 @@ void ReadRestart::check_eof_magic()
   }
 
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  if (strcmp(str,MAGIC_STRING) != 0)
+  if (memcmp(str,MAGIC_STRING,n) != 0)
     error->all(FLERR,"Incomplete or corrupted LAMMPS restart file");
 
   delete[] str;

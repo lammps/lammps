@@ -27,7 +27,6 @@
 #include "group.h"
 #include "math_extra.h"
 #include "modify.h"
-#include "utils.h"
 
 #include <cstring>
 

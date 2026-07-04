@@ -118,6 +118,7 @@ class FixPIMDNVE : public Fix {
 
   void collect_xc();
   void b_step();
+  void apply_force_velocity_kick(bool);
   virtual void qc_step();
   virtual void a_step();
   void remove_com_motion();

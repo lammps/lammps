@@ -554,12 +554,20 @@ void FixPIMDNVE::collect_xc()
 
 void FixPIMDNVE::b_step()
 {
-  int n = atom->nlocal;
+  apply_force_velocity_kick(false);
+}
+
+void FixPIMDNVE::apply_force_velocity_kick(bool restrict_group)
+{
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
   int *type = atom->type;
   double **v = atom->v;
   double **f = atom->f;
 
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < nlocal; i++) {
+    if (restrict_group && !(mask[i] & groupbit)) continue;
+
     double dtfm = dtf / mass[type[i]];
     v[i][0] += dtfm * f[i][0];
     v[i][1] += dtfm * f[i][1];

@@ -682,20 +682,7 @@ void FixPIMDLangevin::b_step()
   // used for both NMPIMD and PIMD
   // For NMPIMD, force only includes the contribution of external potential.
   // For PIMD, force includes the contributions of external potential and spring force.
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-  int *type = atom->type;
-  double **v = atom->v;
-  double **f = atom->f;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      double dtfm = dtf / mass[type[i]];
-      v[i][0] += dtfm * f[i][0];
-      v[i][1] += dtfm * f[i][1];
-      v[i][2] += dtfm * f[i][2];
-    }
-  }
+  apply_force_velocity_kick(true);
 }
 
 /* ---------------------------------------------------------------------- */

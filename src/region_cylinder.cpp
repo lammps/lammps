@@ -459,6 +459,10 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
   double xp, yp, zp;
   double dx, dr, dr2, d2, d2prev;
 
+  // with all three faces open there is no surface left to contact
+
+  if (open_faces[0] && open_faces[1] && open_faces[2]) return 0;
+
   // radius of curvature for granular
   // 0 for flat surfaces (infinite case), 2*radius for curved portion
 

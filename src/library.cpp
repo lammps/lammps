@@ -2594,7 +2594,7 @@ A table with supported keywords is included in the documentation of the
    between output steps (for example from the LAMMPS GUI or a Python script
    while a run is in progress).
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 When using the KOKKOS package with a device backend, per-atom data is now
 synchronized from the device to the host before the pointer is returned.

@@ -890,7 +890,7 @@ of the potentials and differences in compilers.
 Tests for granular (DEM) models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The ``unittest/granular`` folder contains a YAML-driven test suite for
 discrete element method (DEM) / granular models, built in the same spirit

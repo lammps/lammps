@@ -118,8 +118,8 @@ class FixPIMDNVE : public Fix {
 
   void collect_xc();
   void b_step();
-  void qc_step();
-  void a_step();
+  virtual void qc_step();
+  virtual void a_step();
   void remove_com_motion();
   void unmap_coordinates(double **, imageint *);
   void remap_coordinates(double **, imageint *);
@@ -128,6 +128,9 @@ class FixPIMDNVE : public Fix {
   void backward_normal_mode_transform(double **);
   void prepare_setup_normal_mode_coordinates();
   void finalize_setup_normal_mode_coordinates();
+  void begin_normal_mode_coordinate_propagation();
+  void propagate_normal_mode_coordinate_halfstep();
+  void finalize_normal_mode_coordinate_propagation();
   void prepare_common_virial_state();
   void prepare_normal_mode_forces();
   void schedule_common_computes();
@@ -144,12 +147,12 @@ class FixPIMDNVE : public Fix {
   void compute_cvir();
   void compute_vir();
   void compute_totke();
-  void compute_spring_energy();
+  virtual void compute_spring_energy();
   void compute_pote();
   void compute_tote();
-  void compute_t_prim();
+  virtual void compute_t_prim();
   void compute_t_vir();
-  void compute_p_prim();
+  virtual void compute_p_prim();
   void compute_p_cv();
 
   virtual void setup_subclass_state();

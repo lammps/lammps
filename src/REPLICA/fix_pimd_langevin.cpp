@@ -535,12 +535,6 @@ void FixPIMDLangevin::setup(int vflag)
 
 void FixPIMDLangevin::initial_integrate(int /*vflag*/)
 {
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  imageint *image = atom->image;
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap(x[i], image[i]);
-  }
   if (integrator == OBABO) {
     if (tstat_flag) {
       o_step();
@@ -554,16 +548,11 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
     }
     b_step();
     if (method == NMPIMD) {
-      inter_replica_comm(x);
-      if (cmode == SINGLE_PROC)
-        nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
-      else if (cmode == MULTI_PROC)
-        nmpimd_transform(multirank_bufbeads, x, M_x2xp[universe->iworld]);
-      qc_step();
-      a_step();
-      qc_step();
-      a_step();
+      begin_normal_mode_coordinate_propagation();
+      propagate_normal_mode_coordinate_halfstep();
+      propagate_normal_mode_coordinate_halfstep();
     } else if (method == PIMD) {
+      unmap_coordinates(atom->x, atom->image);
       q_step();
       q_step();
     } else {
@@ -580,14 +569,10 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
     }
     b_step();
     if (method == NMPIMD) {
-      inter_replica_comm(x);
-      if (cmode == SINGLE_PROC)
-        nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
-      else if (cmode == MULTI_PROC)
-        nmpimd_transform(multirank_bufbeads, x, M_x2xp[universe->iworld]);
-      qc_step();
-      a_step();
+      begin_normal_mode_coordinate_propagation();
+      propagate_normal_mode_coordinate_halfstep();
     } else if (method == PIMD) {
+      unmap_coordinates(atom->x, atom->image);
       q_step();
     } else {
       error->universe_all(
@@ -601,8 +586,7 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
       if (pstat_flag) press_o_step();
     }
     if (method == NMPIMD) {
-      qc_step();
-      a_step();
+      propagate_normal_mode_coordinate_halfstep();
     } else if (method == PIMD) {
       q_step();
     } else {
@@ -617,24 +601,11 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
                                     "integrators are supported!",
                                     style));
   }
-  collect_xc();
-
   if (method == NMPIMD) {
-    compute_spring_energy();
-    compute_t_prim();
-    compute_p_prim();
-  }
-
-  if (method == NMPIMD) {
-    inter_replica_comm(x);
-    if (cmode == SINGLE_PROC)
-      nmpimd_transform(bufsortedall, x, M_xp2x[universe->iworld]);
-    else if (cmode == MULTI_PROC)
-      nmpimd_transform(multirank_bufbeads, x, M_xp2x[universe->iworld]);
-  }
-
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) { domain->unmap_inv(x[i], image[i]); }
+    finalize_normal_mode_coordinate_propagation();
+  } else {
+    collect_xc();
+    remap_coordinates(atom->x, atom->image);
   }
 }
 

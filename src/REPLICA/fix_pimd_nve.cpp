@@ -357,38 +357,11 @@ void FixPIMDNVE::setup(int vflag)
 
 void FixPIMDNVE::initial_integrate(int /*vflag*/)
 {
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  imageint *image = atom->image;
-
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap(x[i], image[i]);
-  }
-
   b_step();
-  inter_replica_comm(x);
-  if (cmode == SINGLE_PROC)
-    nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
-  else
-    nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
-  qc_step();
-  a_step();
-  qc_step();
-  a_step();
-
-  collect_xc();
-  compute_spring_energy();
-  compute_t_prim();
-  compute_p_prim();
-  inter_replica_comm(x);
-  if (cmode == SINGLE_PROC)
-    nmpimd_transform(bufsortedall, x, M_xp2x[universe->iworld]);
-  else
-    nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
-
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap_inv(x[i], image[i]);
-  }
+  begin_normal_mode_coordinate_propagation();
+  propagate_normal_mode_coordinate_halfstep();
+  propagate_normal_mode_coordinate_halfstep();
+  finalize_normal_mode_coordinate_propagation();
 }
 
 void FixPIMDNVE::final_integrate()
@@ -464,6 +437,28 @@ void FixPIMDNVE::prepare_setup_normal_mode_coordinates()
 
 void FixPIMDNVE::finalize_setup_normal_mode_coordinates()
 {
+  backward_normal_mode_transform(atom->x);
+  remap_coordinates(atom->x, atom->image);
+}
+
+void FixPIMDNVE::begin_normal_mode_coordinate_propagation()
+{
+  unmap_coordinates(atom->x, atom->image);
+  forward_normal_mode_transform(atom->x);
+}
+
+void FixPIMDNVE::propagate_normal_mode_coordinate_halfstep()
+{
+  qc_step();
+  a_step();
+}
+
+void FixPIMDNVE::finalize_normal_mode_coordinate_propagation()
+{
+  collect_xc();
+  compute_spring_energy();
+  compute_t_prim();
+  compute_p_prim();
   backward_normal_mode_transform(atom->x);
   remap_coordinates(atom->x, atom->image);
 }

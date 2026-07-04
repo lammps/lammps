@@ -75,6 +75,12 @@ void FixPIMDNVE::init_defaults()
   pote = tote = totke = total_spring_energy = 0.0;
   centroid_vir = vir = vir_ = 0.0;
   ke_bead = se_bead = pe_bead = t_prim = t_vir = t_cv = p_prim = p_md = p_cv = 0.0;
+  kt = 0.0;
+  beta = 0.0;
+  beta_np = 0.0;
+  hbar = 0.0;
+  omega_np = 0.0;
+  fbond = 0.0;
 }
 
 bool FixPIMDNVE::parse_common_keyword(int narg, char **arg, int &i)

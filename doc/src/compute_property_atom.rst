@@ -238,7 +238,7 @@ switching parameter can be calculated from *apip_lambda_input* and
 mixes the energies of a fast (*apip_e_fast*) and a precise
 (*apip_e_precise*) potential into an adaptive-precision energy.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 Alternatively, the switching parameter can be calculated from a
 locally averaged descriptor (*apip_la_avg*) to obtain a conservative

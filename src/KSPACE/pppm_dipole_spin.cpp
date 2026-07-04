@@ -48,7 +48,7 @@ PPPMDipoleSpin::PPPMDipoleSpin(LAMMPS *lmp) :
 
   hbar = force->hplanck/MY_2PI;                 // eV/(rad.THz)
   mub = 9.274e-4;                               // in A.Ang^2
-  mu_0 = 785.15;                                // in eV/Ang/A^2
+  mu_0 = 784.15;                                // in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
   mub2mu0hbinv = mub2mu0 / hbar;                // in rad.THz
 }
@@ -515,11 +515,14 @@ void PPPMDipoleSpin::fieldforce_ik_spin()
     f[i][2] += spfactor*(vxz*spx + vyz*spy + vzz*spz);
 
     // store long-range mag. precessions
+    // fm_i = (g_i/hbar) * B_i, so weight the interpolated field by the
+    // per-atom spin norm sp[i][3] (sign follows the dipole torque
+    // convention t = +mufactor*(mu x E) used in fieldforce_ik_dipole)
 
     const double spfactorh = mub2mu0hbinv * scale;
-    fm_long[i][0] += spfactorh*ex;
-    fm_long[i][1] += spfactorh*ey;
-    fm_long[i][2] += spfactorh*ez;
+    fm_long[i][0] += sp[i][3]*spfactorh*ex;
+    fm_long[i][1] += sp[i][3]*spfactorh*ey;
+    fm_long[i][2] += sp[i][3]*spfactorh*ez;
   }
 }
 
@@ -642,8 +645,10 @@ void PPPMDipoleSpin::slabcorr()
   MPI_Allreduce(&spin,&spin_all,1,MPI_DOUBLE,MPI_SUM,world);
 
   // compute corrections
+  // the spin self term is E = (2pi/V) M_z^2 with M_z = sum sp_iz, which is
+  // consistent with the -4pi/V force/field acting on the spins below
 
-  const double e_slabcorr = MY_2PI*(spin_all*spin_all/12.0)/volume;
+  const double e_slabcorr = MY_2PI*(spin_all*spin_all)/volume;
   const double spscale = mub2mu0 * scale;
 
   if (eflag_global) energy += spscale * e_slabcorr;
@@ -651,7 +656,7 @@ void PPPMDipoleSpin::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    double efact = spscale * MY_2PI/volume/12.0;
+    double efact = spscale * MY_2PI/volume;
     for (int i = 0; i < nlocal; i++) {
       spz = sp[i][2]*sp[i][3];
       eatom[i] += efact * spz * spin_all;
@@ -659,11 +664,14 @@ void PPPMDipoleSpin::slabcorr()
   }
 
   // add on mag. force corrections
+  // fm_long is the precession vector, so use spscale2 (= mub2mu0hbinv)
+  // and weight by the per-atom spin norm sp[i][3]
 
-  double ffact = spscale * (-4.0*MY_PI/volume);
+  const double spscale2 = mub2mu0hbinv * scale;
+  double ffact = spscale2 * (-4.0*MY_PI/volume);
   double **fm_long = atom->fm_long;
   for (int i = 0; i < nlocal; i++) {
-    fm_long[i][2] += ffact * spin_all;
+    fm_long[i][2] += sp[i][3] * ffact * spin_all;
   }
 }
 
@@ -697,8 +705,10 @@ void PPPMDipoleSpin::spsum_spsq()
     MPI_Allreduce(&spsum_local,&musum,1,MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&spsqsum_local,&musqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-    //mu2 = musqsum * mub2mu0;
-    mu2 = musqsum;
+    // scale squared moment by the dipolar prefactor (analog of qqrd2e for
+    // charges/dipoles) so the g_ewald estimate and rms error are correct
+
+    mu2 = musqsum * mub2mu0;
   }
 
   if (mu2 == 0 && comm->me == 0)

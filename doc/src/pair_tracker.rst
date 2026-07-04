@@ -119,7 +119,7 @@ should be used.
 
 The *time/min* keyword sets a minimum amount of time that an
 interaction must persist to be included.  This setting can be used to
-censor short-lived interactions.
+exclude short-lived interactions.
 
 The *type/include* keyword filters interactions based on the types of
 the two atoms.  Data is only saved for interactions between atoms

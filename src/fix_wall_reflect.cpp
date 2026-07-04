@@ -35,7 +35,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), nwall(0), varflag(0), imgobjs(nullptr), imgparms(nullptr)
+    Fix(lmp, narg, arg), nwall(0), varstr{}, varflag(0), imgobjs(nullptr), imgparms(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "fix wall/reflect", error);
 

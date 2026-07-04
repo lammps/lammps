@@ -30,7 +30,9 @@ using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
-FixWallEES::FixWallEES(LAMMPS *lmp, int narg, char **arg) : FixWall(lmp, narg, arg) {}
+FixWallEES::FixWallEES(LAMMPS *lmp, int narg, char **arg) : FixWall(lmp, narg, arg), avec(nullptr)
+{
+}
 
 /* ---------------------------------------------------------------------- */
 

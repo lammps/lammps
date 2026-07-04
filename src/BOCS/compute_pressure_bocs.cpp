@@ -41,8 +41,7 @@ using MathSpecial::powint;
 /* ---------------------------------------------------------------------- */
 
 ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  vptr(nullptr), id_temp(nullptr)
+    Compute(lmp, narg, arg), vptr(nullptr), kspace_virial(nullptr), id_temp(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"compute pressure/bocs", error);
   if (igroup) error->all(FLERR, 1, "Compute pressure/bocs must use group all");

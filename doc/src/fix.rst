@@ -280,6 +280,7 @@ accelerated styles exist.
 * :doc:`hmc <fix_hmc>` -  Hybrid/Hamiltonian Monte Carlo (HMC) particle propagation
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
+* :doc:`ilves <fix_ilves>` - ILVES constraints on bonds and/or angles
 * :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol
 * :doc:`indent <fix_indent>` - impose force due to an indenter
 * :doc:`ipi <fix_ipi>` - enable LAMMPS to run as a client for i-PI path-integral simulations
@@ -457,6 +458,7 @@ accelerated styles exist.
 * :doc:`vector <fix_vector>` - accumulate a global vector every *N* timesteps
 * :doc:`viscosity <fix_viscosity>` - Mueller-Plathe momentum exchange for viscosity calculation
 * :doc:`viscous <fix_viscous>` - viscous damping for granular simulations
+* :doc:`viscous/nonlinear <fix_viscous_nonlinear>` - nonlinear (Schiller-Naumann) viscous drag for granular simulations
 * :doc:`viscous/sphere <fix_viscous_sphere>` - viscous damping on angular velocity for granular simulations
 * :doc:`wall/body/polygon <fix_wall_body_polygon>` - time integration for body particles of style :doc:`rounded/polygon <Howto_body>`
 * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>` - time integration for body particles of style :doc:`rounded/polyhedron <Howto_body>`

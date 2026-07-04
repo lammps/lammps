@@ -154,7 +154,7 @@ options to support this, and strategies are discussed in :doc:`Section
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The requirements for the run style *verlet/split/rk* are similar to that
 of *verlet/split*, and much of what was written above about the latter

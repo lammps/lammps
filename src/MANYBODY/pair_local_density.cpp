@@ -53,7 +53,7 @@ static const char cite_pair_local_density[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairLocalDensity::PairLocalDensity(LAMMPS *lmp) : Pair(lmp)
+PairLocalDensity::PairLocalDensity(LAMMPS *lmp) : Pair(lmp), delta_rho(nullptr)
 {
   restartinfo = 0;
   one_coeff = 1;

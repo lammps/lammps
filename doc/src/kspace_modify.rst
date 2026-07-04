@@ -90,7 +90,7 @@ hardware.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *collective/self/copy* keyword applies only to PPPM and only when
 *collective* is set to *yes*.  It controls whether data remapped to the
@@ -280,7 +280,10 @@ mixing rule, this will speed-up the simulations but introduces some
 error in the force computations, as shown in :ref:`(Wennberg) <Wennberg>`.
 With *none*, it is assumed that no mixing rule is
 applicable. Splitting of the dispersion coefficients will be performed
-as described in :ref:`(Isele-Holder) <Isele-Holder1>`.
+as described in :ref:`(Isele-Holder) <Isele-Holder1>`.  The *none*
+splitting is only available with the PPPM dispersion solver; with
+*ewald/disp* the *none* value is rejected, while *pair* (the default)
+and *geom* are honored.
 
 This splitting can be influenced with the *splittol* keywords.  Only
 the eigenvalues that are larger than tol compared to the largest
@@ -429,7 +432,7 @@ option is explained in the paper by :ref:`(Yeh) <Yeh>`.  The *slab*
 option is also extended to non-neutral systems :ref:`(Ballenegger)
 <Ballenegger>`.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 As an alternative to specifying a fixed volfactor, the keyword
 *auto* can be used to determine the extended z dimension from the
@@ -474,7 +477,7 @@ interactions :ref:`(Klapp) <Klapp>` in :doc:`kspace_style
 This dipole slab correction is currently limited to orthogonal
 (non-triclinic) simulation cells.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    The *slab* correction with a *volfactor* value now supports triclinic
    simulation cells for the *ewald*, *ewald/disp*, *pppm*, *pppm/cg*, and

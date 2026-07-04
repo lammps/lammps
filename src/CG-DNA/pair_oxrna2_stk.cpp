@@ -40,7 +40,18 @@ using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
 
-PairOxrna2Stk::PairOxrna2Stk(LAMMPS *lmp) : Pair(lmp)
+PairOxrna2Stk::PairOxrna2Stk(LAMMPS *lmp) :
+    Pair(lmp), epsilon_st(nullptr), a_st(nullptr), cut_st_0(nullptr), cut_st_c(nullptr),
+    cut_st_lo(nullptr), cut_st_hi(nullptr), cut_st_lc(nullptr), cut_st_hc(nullptr),
+    b_st_lo(nullptr), b_st_hi(nullptr), shift_st(nullptr), cutsq_st_hc(nullptr), a_st5(nullptr),
+    theta_st5_0(nullptr), dtheta_st5_ast(nullptr), b_st5(nullptr), dtheta_st5_c(nullptr),
+    a_st6(nullptr), theta_st6_0(nullptr), dtheta_st6_ast(nullptr), b_st6(nullptr),
+    dtheta_st6_c(nullptr), a_st9(nullptr), theta_st9_0(nullptr), dtheta_st9_ast(nullptr),
+    b_st9(nullptr), dtheta_st9_c(nullptr), a_st10(nullptr), theta_st10_0(nullptr),
+    dtheta_st10_ast(nullptr), b_st10(nullptr), dtheta_st10_c(nullptr), a_st1(nullptr),
+    cosphi_st1_ast(nullptr), b_st1(nullptr), cosphi_st1_c(nullptr), a_st2(nullptr),
+    cosphi_st2_ast(nullptr), b_st2(nullptr), cosphi_st2_c(nullptr), nxyz_xtrct(nullptr),
+    fix_lrf(nullptr)
 {
   single_enable = 0;
   writedata = 0;

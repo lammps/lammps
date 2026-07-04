@@ -32,8 +32,15 @@ FixPropertyAtomKokkos::FixPropertyAtomKokkos(LAMMPS *lmp, int narg, char **arg) 
   kokkosable = 1;
 
   dvector_flag = 0;
-  for (int nv = 0; nv < nvalue; nv++)
+  ivector_flag = 0;
+  iarray_flag = 0;
+  darray_flag = 0;
+  for (int nv = 0; nv < nvalue; nv++) {
+    if (styles[nv] == IVEC) ivector_flag = 1;
     if (styles[nv] == DVEC) dvector_flag = 1;
+    if (styles[nv] == IARRAY) iarray_flag = 1;
+    if (styles[nv] == DARRAY) darray_flag = 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,6 +87,17 @@ FixPropertyAtomKokkos::~FixPropertyAtomKokkos()
 
 void FixPropertyAtomKokkos::grow_arrays(int nmax)
 {
+  // ivector is one shared contiguous 2D view holding all custom int vectors,
+  // so grow it once here rather than re-growing the whole view once per IVEC
+  // value inside the loop below
+  if (ivector_flag) {
+    atomKK->sync(Device,IVECTOR_MASK);
+    atomKK->modified(Device,IVECTOR_MASK);
+    memoryKK->grow_kokkos(atomKK->k_ivector,atom->ivector,atomKK->k_ivector.extent(0),nmax,
+                        "atom:ivector");
+    atomKK->sync(Host,IVECTOR_MASK);
+  }
+
   for (int nv = 0; nv < nvalue; nv++) {
     if (styles[nv] == MOLECULE) {
       atomKK->sync(Device,MOLECULE_MASK);
@@ -105,7 +123,8 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
       size_t nbytes = (nmax - nmax_old) * sizeof(double);
       memset(&atom->heatflow[nmax_old], 0, nbytes);
     } else if (styles[nv] == IVEC) {
-      memory->grow(atom->ivector[index[nv]],nmax,"atom:ivector");
+      // storage was grown once above (shared contiguous k_ivector); just zero
+      // this vector's newly added tail
       size_t nbytes = (nmax-nmax_old) * sizeof(int);
       memset(&atom->ivector[index[nv]][nmax_old],0,nbytes);
     } else if (styles[nv] == DVEC) {
@@ -115,13 +134,38 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
                           "atom:dvector");
       atomKK->sync(Host,DVECTOR_MASK);
     } else if (styles[nv] == IARRAY) {
-      memory->grow(atom->iarray[index[nv]], nmax, cols[nv], "atom:iarray");
+      // ragged cols: grow this property's inner DualView in the view-of-views,
+      // using the same device/host sync handshake as the DVEC branch so a grow
+      // that follows a device-side modification does not lose data
+      int idx = index[nv];
+      auto& inner = atomKK->k_iarray.view_host()[idx].k_view;
+      inner.sync_device();
+      inner.modify_device();
+      memoryKK->grow_kokkos(inner, atom->iarray[idx], nmax, cols[nv], "atom:iarray");
+      inner.sync_host();
       size_t nbytes = (size_t) (nmax - nmax_old) * cols[nv] * sizeof(int);
-      if (nbytes) memset(&atom->iarray[index[nv]][nmax_old][0], 0, nbytes);
+      if (nbytes) {
+        memset(&atom->iarray[idx][nmax_old][0], 0, nbytes);
+        inner.modify_host();   // the memset wrote host; mark it so it reaches device
+      }
+      // re-sync the outer struct array: growing the inner view changed its
+      // device pointer, which the device-side view-of-views must see
+      atomKK->k_iarray.modify_host();
+      atomKK->k_iarray.sync_device();
     } else if (styles[nv] == DARRAY) {
-      memory->grow(atom->darray[index[nv]], nmax, cols[nv], "atom:darray");
+      int idx = index[nv];
+      auto& inner = atomKK->k_darray.view_host()[idx].k_view;
+      inner.sync_device();
+      inner.modify_device();
+      memoryKK->grow_kokkos(inner, atom->darray[idx], nmax, cols[nv], "atom:darray");
+      inner.sync_host();
       size_t nbytes = (size_t) (nmax - nmax_old) * cols[nv] * sizeof(double);
-      if (nbytes) memset(&atom->darray[index[nv]][nmax_old][0], 0, nbytes);
+      if (nbytes) {
+        memset(&atom->darray[idx][nmax_old][0], 0, nbytes);
+        inner.modify_host();
+      }
+      atomKK->k_darray.modify_host();
+      atomKK->k_darray.sync_device();
     }
   }
   nmax_old = nmax;
@@ -136,16 +180,37 @@ void FixPropertyAtomKokkos::sync(ExecutionSpace space, uint64_t mask)
     if (q_flag && (mask & Q_MASK)) atomKK->k_q.sync_device();
     if (rmass_flag && (mask & RMASS_MASK)) {atomKK->k_rmass.sync_device();}
     if (dvector_flag && (mask & DVECTOR_MASK)) atomKK->k_dvector.sync_device();
+    if (ivector_flag && (mask & IVECTOR_MASK)) atomKK->k_ivector.sync_device();
+    if (iarray_flag && (mask & IARRAY_MASK))
+      for (int i = 0; i < atom->niarray; i++)
+        atomKK->k_iarray.view_host()[i].k_view.sync_device();
+    if (darray_flag && (mask & DARRAY_MASK))
+      for (int i = 0; i < atom->ndarray; i++)
+        atomKK->k_darray.view_host()[i].k_view.sync_device();
   } else if (space == Host) {
     if (molecule_flag && (mask & MOLECULE_MASK)) atomKK->k_molecule.sync_host();
     if (q_flag && (mask & Q_MASK)) atomKK->k_q.sync_host();
     if (rmass_flag && (mask & RMASS_MASK)) atomKK->k_rmass.sync_host();
     if (dvector_flag && (mask & DVECTOR_MASK)) atomKK->k_dvector.sync_host();
+    if (ivector_flag && (mask & IVECTOR_MASK)) atomKK->k_ivector.sync_host();
+    if (iarray_flag && (mask & IARRAY_MASK))
+      for (int i = 0; i < atom->niarray; i++)
+        atomKK->k_iarray.view_host()[i].k_view.sync_host();
+    if (darray_flag && (mask & DARRAY_MASK))
+      for (int i = 0; i < atom->ndarray; i++)
+        atomKK->k_darray.view_host()[i].k_view.sync_host();
   } else if (space == HostKK) {
     if (molecule_flag && (mask & MOLECULE_MASK)) atomKK->k_molecule.sync_host();
     if (q_flag && (mask & Q_MASK)) atomKK->k_q.sync_hostkk();
     if (rmass_flag && (mask & RMASS_MASK)) atomKK->k_rmass.sync_hostkk();
     if (dvector_flag && (mask & DVECTOR_MASK)) atomKK->k_dvector.sync_hostkk();
+    if (ivector_flag && (mask & IVECTOR_MASK)) atomKK->k_ivector.sync_host();
+    if (iarray_flag && (mask & IARRAY_MASK))
+      for (int i = 0; i < atom->niarray; i++)
+        atomKK->k_iarray.view_host()[i].k_view.sync_host();
+    if (darray_flag && (mask & DARRAY_MASK))
+      for (int i = 0; i < atom->ndarray; i++)
+        atomKK->k_darray.view_host()[i].k_view.sync_host();
   }
 }
 
@@ -162,6 +227,18 @@ void FixPropertyAtomKokkos::sync_pinned(ExecutionSpace space, uint64_t mask, int
       atomKK->avecKK->perform_pinned_copy_transform<DAT::ttransform_kkfloat_1d>(atomKK->k_rmass,space,async_flag);
     if ((mask & DVECTOR_MASK) && atomKK->k_dvector.need_sync_device())
       atomKK->avecKK->perform_pinned_copy_transform<DAT::ttransform_kkfloat_2d>(atomKK->k_dvector,space,async_flag);
+    if ((mask & IVECTOR_MASK) && atomKK->k_ivector.need_sync_device())
+      atomKK->avecKK->perform_pinned_copy<DAT::tdual_int_2d_lr>(atomKK->k_ivector,space,async_flag);
+    if (mask & IARRAY_MASK)
+      for (int i = 0; i < atom->niarray; i++)
+        if (atomKK->k_iarray.view_host()[i].k_view.need_sync_device())
+          atomKK->avecKK->perform_pinned_copy<DAT::tdual_int_2d_lr>(
+              atomKK->k_iarray.view_host()[i].k_view, space, async_flag);
+    if (mask & DARRAY_MASK)
+      for (int i = 0; i < atom->ndarray; i++)
+        if (atomKK->k_darray.view_host()[i].k_view.need_sync_device())
+          atomKK->avecKK->perform_pinned_copy<DAT::tdual_double_2d_lr>(
+              atomKK->k_darray.view_host()[i].k_view, space, async_flag);
   } else {
     if ((mask & MOLECULE_MASK) && atomKK->k_molecule.need_sync_host())
       atomKK->avecKK->perform_pinned_copy<DAT::tdual_tagint_1d>(atomKK->k_molecule,space,async_flag);
@@ -171,6 +248,18 @@ void FixPropertyAtomKokkos::sync_pinned(ExecutionSpace space, uint64_t mask, int
       atomKK->avecKK->perform_pinned_copy_transform<DAT::ttransform_kkfloat_1d>(atomKK->k_rmass,space,async_flag);
     if ((mask & DVECTOR_MASK) && atomKK->k_dvector.need_sync_host())
       atomKK->avecKK->perform_pinned_copy_transform<DAT::ttransform_kkfloat_2d>(atomKK->k_dvector,space,async_flag);
+    if ((mask & IVECTOR_MASK) && atomKK->k_ivector.need_sync_host())
+      atomKK->avecKK->perform_pinned_copy<DAT::tdual_int_2d_lr>(atomKK->k_ivector,space,async_flag);
+    if (mask & IARRAY_MASK)
+      for (int i = 0; i < atom->niarray; i++)
+        if (atomKK->k_iarray.view_host()[i].k_view.need_sync_host())
+          atomKK->avecKK->perform_pinned_copy<DAT::tdual_int_2d_lr>(
+              atomKK->k_iarray.view_host()[i].k_view, space, async_flag);
+    if (mask & DARRAY_MASK)
+      for (int i = 0; i < atom->ndarray; i++)
+        if (atomKK->k_darray.view_host()[i].k_view.need_sync_host())
+          atomKK->avecKK->perform_pinned_copy<DAT::tdual_double_2d_lr>(
+              atomKK->k_darray.view_host()[i].k_view, space, async_flag);
   }
 }
 
@@ -183,15 +272,36 @@ void FixPropertyAtomKokkos::modified(ExecutionSpace space, uint64_t mask)
     if (q_flag && (mask & Q_MASK)) atomKK->k_q.modify_device();
     if (rmass_flag && (mask & RMASS_MASK)) atomKK->k_rmass.modify_device();
     if (dvector_flag && (mask & DVECTOR_MASK)) atomKK->k_dvector.modify_device();
+    if (ivector_flag && (mask & IVECTOR_MASK)) atomKK->k_ivector.modify_device();
+    if (iarray_flag && (mask & IARRAY_MASK))
+      for (int i = 0; i < atom->niarray; i++)
+        atomKK->k_iarray.view_host()[i].k_view.modify_device();
+    if (darray_flag && (mask & DARRAY_MASK))
+      for (int i = 0; i < atom->ndarray; i++)
+        atomKK->k_darray.view_host()[i].k_view.modify_device();
   } else if (space == Host) {
     if (molecule_flag && (mask & MOLECULE_MASK)) atomKK->k_molecule.modify_host();
     if (q_flag && (mask & Q_MASK)) atomKK->k_q.modify_host();
     if (rmass_flag && (mask & RMASS_MASK)) atomKK->k_rmass.modify_host();
     if (dvector_flag && (mask & DVECTOR_MASK)) atomKK->k_dvector.modify_host();
+    if (ivector_flag && (mask & IVECTOR_MASK)) atomKK->k_ivector.modify_host();
+    if (iarray_flag && (mask & IARRAY_MASK))
+      for (int i = 0; i < atom->niarray; i++)
+        atomKK->k_iarray.view_host()[i].k_view.modify_host();
+    if (darray_flag && (mask & DARRAY_MASK))
+      for (int i = 0; i < atom->ndarray; i++)
+        atomKK->k_darray.view_host()[i].k_view.modify_host();
   } else if (space == HostKK) {
     if (molecule_flag && (mask & MOLECULE_MASK)) atomKK->k_molecule.modify_host();
     if (q_flag && (mask & Q_MASK)) atomKK->k_q.modify_hostkk();
     if (rmass_flag && (mask & RMASS_MASK)) atomKK->k_rmass.modify_hostkk();
     if (dvector_flag && (mask & DVECTOR_MASK)) atomKK->k_dvector.modify_hostkk();
+    if (ivector_flag && (mask & IVECTOR_MASK)) atomKK->k_ivector.modify_host();
+    if (iarray_flag && (mask & IARRAY_MASK))
+      for (int i = 0; i < atom->niarray; i++)
+        atomKK->k_iarray.view_host()[i].k_view.modify_host();
+    if (darray_flag && (mask & DARRAY_MASK))
+      for (int i = 0; i < atom->ndarray; i++)
+        atomKK->k_darray.view_host()[i].k_view.modify_host();
   }
 }

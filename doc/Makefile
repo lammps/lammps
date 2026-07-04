@@ -84,7 +84,7 @@ clean-all: clean
 	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
 
 clean: clean-spelling clean-linkcheck
-	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py $(BUILDDIR)/fasthtml $(BUILDDIR)/spelling
+	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doctrees-spelling $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py $(BUILDDIR)/fasthtml $(BUILDDIR)/spelling
 
 clean-spelling:
 	rm -rf $(BUILDDIR)/spelling
@@ -155,12 +155,17 @@ fasthtml/%.html: $(RSTDIR)/%.rst
 	@pandoc -s --mathml --css="pandoc.css" --template=$(BUILDDIR)/utils/pandoc.html --metadata title="$@" -o $@ fasthtml/$*.temp.rst
 	@rm -f fasthtml/$*.temp.rst
 
+# use a dedicated doctree cache: the html/epub/pdf builds use -E (which would
+# discard it) and produce different doctrees (e.g. from the sphinx-tabs hack
+# for non-html builders), so sharing $(BUILDDIR)/doctrees would re-read all
+# sources on every run instead of only changed files.
 spelling: xmlgen globbed-tocs $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@rm -rf $(BUILDDIR)/spelling
 	@(\
 		. $(VENV)/bin/activate ; \
 		cp $(SPHINXCONFIG)/false_positives.txt $(RSTDIR)/;  env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		sphinx-build -b spelling -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
+		sphinx-build $(SPHINXEXTRA) -b spelling -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees-spelling $(RSTDIR) spelling ;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		deactivate ;\
 	)

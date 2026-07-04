@@ -127,3 +127,31 @@ add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
 target_link_libraries(test_mpi_load_balancing PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_mpi_load_balancing PRIVATE ${TEST_CONFIG_DEFS})
 add_mpi_test(NAME MPILoadBalancing NUM_PROCS 4 COMMAND $<TARGET_FILE:test_mpi_load_balancing>)
+
+if(PKG_REPLICA)
+  add_executable(test_fix_pimd_langevin test_fix_pimd_langevin.cpp)
+  target_link_libraries(test_fix_pimd_langevin PRIVATE lammps GTest::GMock)
+  add_test(NAME FixPIMDLangevin
+           COMMAND test_fix_pimd_langevin
+                   --gtest_filter=FixPIMDLangevinSerialTest.*)
+  add_mpi_test(NAME FixPIMDLangevinPartition NUM_PROCS 2
+               COMMAND $<TARGET_FILE:test_fix_pimd_langevin>
+                       --gtest_filter=FixPIMDLangevinMPI.NMPIMDNVEOBABOP2:
+                                      FixPIMDLangevinMPI.NMPIMDNVTBAOABP2:
+                                      FixPIMDLangevinMPI.PIMDNVEOBABOP2:
+                                      FixPIMDLangevinMPI.PIMDNVTBAOABP2:
+                                      FixPIMDLangevinRestartTest.NMPIMDNVTRestartContinuation:
+                                      FixPIMDLangevinRestartTest.PIMDNVTRestartContinuation)
+  add_mpi_test(NAME FixPIMDLangevinMultiRank NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_fix_pimd_langevin>
+                       --gtest_filter=FixPIMDLangevinMPI.NMPIMDNVTOBABOMultiRankPerBead:
+                                      FixPIMDLangevinMPI.NMPIMDNPTBZP:
+                                      FixPIMDLangevinMPI.NMPIMDNPTMTTK:
+                                      FixPIMDLangevinRestartTest.NMPIMDNPTBZPRestartContinuation:
+                                      FixPIMDLangevinExpectedErrorTest.PIMDRejectsMultipleRanksPerBead)
+
+  add_executable(test_fix_pimd_langevin_bosonic test_fix_pimd_langevin_bosonic.cpp)
+  target_link_libraries(test_fix_pimd_langevin_bosonic PRIVATE lammps GTest::GMock)
+  add_mpi_test(NAME FixPIMDLangevinBosonic NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_fix_pimd_langevin_bosonic>)
+endif()

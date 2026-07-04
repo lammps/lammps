@@ -391,9 +391,15 @@ bool FixPIMDLangevin::use_langevin_multirank_comm() const
 void FixPIMDLangevin::sync_base_physics_state()
 {
   this->FixPIMDNVE::np = np;
+  this->FixPIMDNVE::inverse_np = inverse_np;
+  this->FixPIMDNVE::temp = temp;
   this->FixPIMDNVE::fmmode = fmmode;
   this->FixPIMDNVE::fmass = fmass;
+  this->FixPIMDNVE::sp = sp;
+  this->FixPIMDNVE::beta = beta;
+  this->FixPIMDNVE::beta_np = beta_np;
   this->FixPIMDNVE::omega_np = omega_np;
+  this->FixPIMDNVE::fbond = fbond;
   this->FixPIMDNVE::kt = kt;
   this->FixPIMDNVE::hbar = hbar;
 }
@@ -1445,15 +1451,8 @@ void FixPIMDLangevin::remove_com_motion()
 
 void FixPIMDLangevin::compute_xf_vir()
 {
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-  double xf = 0.0;
   vir_ = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      for (int j = 0; j < 3; j++) { xf += x_unwrap[i][j] * atom->f[i][j]; }
-    }
-  }
+  double xf = local_xf_virial_sum(true);
   MPI_Allreduce(&xf, &vir_, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
 }
 
@@ -1461,15 +1460,10 @@ void FixPIMDLangevin::compute_xf_vir()
 
 void FixPIMDLangevin::compute_cvir()
 {
+  centroid_vir = 0.0;
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
-  double xcf = 0.0;
-  centroid_vir = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      for (int j = 0; j < 3; j++) { xcf += (x_unwrap[i][j] - xc[i][j]) * atom->f[i][j]; }
-    }
-  }
+  double xcf = local_centroid_virial_sum(true);
   MPI_Allreduce(&xcf, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   if (pstyle == ANISO) {
     for (int i = 0; i < 6; i++) c_vir_tensor[i] = 0.0;
@@ -1538,20 +1532,9 @@ void FixPIMDLangevin::compute_stress_tensor()
 
 void FixPIMDLangevin::compute_totke()
 {
-  double kine = 0.0;
   totke = ke_bead = 0.0;
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-  int *type = atom->type;
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      for (int j = 0; j < 3; j++) { kine += 0.5 * mass[type[i]] * atom->v[i][j] * atom->v[i][j]; }
-    }
-  }
-  kine *= force->mvv2e;
-  MPI_Allreduce(&kine, &ke_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(&ke_bead, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  totke /= universe->procs_per_world[universe->iworld];
+  double kine = local_kinetic_energy_sum(true);
+  reduce_bead_and_total(kine, ke_bead, totke);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1559,29 +1542,12 @@ void FixPIMDLangevin::compute_totke()
 void FixPIMDLangevin::compute_spring_energy()
 {
   if (method == NMPIMD) {
-    spring_energy = 0.0;
     total_spring_energy = se_bead = 0.0;
-
-    double **x = atom->x;
-    double *_mass = atom->mass;
-    int *type = atom->type;
-    int nlocal = atom->nlocal;
-    int *mask = atom->mask;
-
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] *
-            (x[i][0] * x[i][0] + x[i][1] * x[i][1] + x[i][2] * x[i][2]);
-      }
-    }
-    MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-    MPI_Allreduce(&se_bead, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-    total_spring_energy /= universe->procs_per_world[universe->iworld];
+    spring_energy = local_normal_mode_spring_energy_sum(true);
+    reduce_bead_and_total(spring_energy, se_bead, total_spring_energy);
   } else if (method == PIMD) {
     total_spring_energy = se_bead = 0.0;
-    MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-    MPI_Allreduce(&se_bead, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-    total_spring_energy /= universe->procs_per_world[universe->iworld];
+    reduce_bead_and_total(spring_energy, se_bead, total_spring_energy);
   } else {
     error->universe_all(
         FLERR,
@@ -1599,7 +1565,7 @@ void FixPIMDLangevin::compute_pote()
   c_pe->compute_scalar();
   pe_bead = c_pe->scalar;
   double pot_energy_partition = pe_bead / universe->procs_per_world[universe->iworld];
-  MPI_Allreduce(&pot_energy_partition, &pote, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  pote = reduce_partition_scalar(pot_energy_partition);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1613,7 +1579,8 @@ void FixPIMDLangevin::compute_tote()
 
 void FixPIMDLangevin::compute_t_prim()
 {
-  t_prim = 1.5 * group->count(igroup) * np * force->boltz * temp - total_spring_energy * inverse_np;
+  t_prim = 1.5 * estimator_atom_count(true) * np * force->boltz * temp -
+      total_spring_energy * inverse_np;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1621,7 +1588,7 @@ void FixPIMDLangevin::compute_t_prim()
 void FixPIMDLangevin::compute_t_vir()
 {
   t_vir = -0.5 * inverse_np * vir_;
-  t_cv = 1.5 * group->count(igroup) * force->boltz * temp - 0.5 * inverse_np * centroid_vir;
+  t_cv = 1.5 * estimator_atom_count(true) * force->boltz * temp - 0.5 * inverse_np * centroid_vir;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1629,7 +1596,7 @@ void FixPIMDLangevin::compute_t_vir()
 void FixPIMDLangevin::compute_p_prim()
 {
   double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-  p_prim = group->count(igroup) * np * force->boltz * temp * inv_volume -
+  p_prim = estimator_atom_count(true) * np * force->boltz * temp * inv_volume -
       1.0 / 1.5 * inv_volume * total_spring_energy;
   p_prim *= force->nktv2p;
 }

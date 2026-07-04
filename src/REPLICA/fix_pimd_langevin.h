@@ -80,7 +80,7 @@ class FixPIMDLangevin : public FixPIMDNVE {
 
   // fictitious mass
 
-  double fmass, *mass;
+  double fmass;
 
   // inter-partition communication
 
@@ -102,6 +102,7 @@ class FixPIMDLangevin : public FixPIMDNVE {
   int *counts, *displacements;
 
   void comm_init();
+  void sync_base_nmpimd_state();
   virtual void prepare_coordinates();
   void inter_replica_comm(double **ptr);
   void ring_collect(const std::vector<tagint> &miss_tag,
@@ -112,12 +113,10 @@ class FixPIMDLangevin : public FixPIMDNVE {
 
   /* normal-mode operations */
 
-  double *lam, **M_x2xp, **M_xp2x, **M_f2fp, **M_fp2f;
+  double **M_f2fp, **M_fp2f;
   int *modeindex;
 
   void reallocate();
-  void nmpimd_init();
-  void nmpimd_transform(double **, double **, double *);
 
   /* Langevin integration */
 
@@ -126,7 +125,6 @@ class FixPIMDLangevin : public FixPIMDNVE {
   double *tau_k, *c1_k, *c2_k;
   double pilescale;
   double Lan_temp;
-  double *_omega_k, *Lan_s, *Lan_c;    // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
 
   class RanMars *random;
 
@@ -158,13 +156,6 @@ class FixPIMDLangevin : public FixPIMDNVE {
 
   /* centroid-virial estimator computation */
   double vol0 = 0.0;
-  double **xc, *xcall;
-  int maxxc;
-  int maxunwrap;
-  double **x_unwrap;
-  void reallocate_x_unwrap();
-  void reallocate_xc();
-  void collect_xc();
   void remove_com_motion();
   double vir, vir_, centroid_vir;
   double t_prim, t_vir, t_cv, p_prim, p_vir, p_cv, p_md;

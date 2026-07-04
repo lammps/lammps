@@ -79,20 +79,17 @@ constexpr int TAG_RING_REP_VALS   = 404;
 /* ---------------------------------------------------------------------- */
 
 FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
-    FixPIMDNVE(lmp, narg, arg, true), mass(nullptr), plansend(nullptr), planrecv(nullptr),
-    tagsend(nullptr),
+    FixPIMDNVE(lmp, narg, arg, true), plansend(nullptr), planrecv(nullptr), tagsend(nullptr),
     tagrecv(nullptr), bufsend(nullptr), bufrecv(nullptr), bufbeads(nullptr), bufsorted(nullptr),
-    bufsortedall(nullptr), counts(nullptr),
-    displacements(nullptr), lam(nullptr), M_x2xp(nullptr), M_xp2x(nullptr), M_f2fp(nullptr),
+    bufsortedall(nullptr), counts(nullptr), displacements(nullptr), M_f2fp(nullptr),
     M_fp2f(nullptr), modeindex(nullptr), tau_k(nullptr), c1_k(nullptr), c2_k(nullptr),
-    _omega_k(nullptr), Lan_s(nullptr), Lan_c(nullptr), random(nullptr), xc(nullptr), xcall(nullptr),
-    x_unwrap(nullptr), id_pe(nullptr), id_press(nullptr), c_pe(nullptr), c_press(nullptr)
+    random(nullptr), id_pe(nullptr), id_press(nullptr), c_pe(nullptr), c_press(nullptr)
 {
   restart_global = 1;
   time_integrate = 1;
 
   ntotal = 0;
-  maxlocal = maxsend = maxunwrap = maxxc = 0;
+  maxlocal = maxsend = 0;
 
   sizeplan = 0;
 
@@ -346,7 +343,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   if (atom->nmax > maxlocal) reallocate();
   if (atom->nmax > maxunwrap) reallocate_x_unwrap();
   if (atom->nmax > maxxc) reallocate_xc();
-  memory->create(xcall, ntotal * 3, "FixPIMDLangevin:xcall");
+  if (xcall == nullptr) memory->create(xcall, ntotal * 3, "FixPIMDLangevin:xcall");
 
 }
 
@@ -354,22 +351,20 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
 FixPIMDLangevin::~FixPIMDLangevin()
 {
+  this->FixPIMDNVE::cmode = -1;
+  this->FixPIMDNVE::bufsorted = nullptr;
+
   modify->delete_compute(id_pe);
   modify->delete_compute(id_press);
   delete[] id_pe;
   delete[] id_press;
   delete random;
-  delete[] mass;
-  delete[] _omega_k;
-  delete[] Lan_c;
-  delete[] Lan_s;
   delete[] tau_k;
   delete[] c1_k;
   delete[] c2_k;
   delete[] plansend;
   delete[] planrecv;
   delete[] modeindex;
-  memory->destroy(xcall);
   if (cmode == SINGLE_PROC) {
     memory->destroy(bufsorted);
     memory->destroy(bufsortedall);
@@ -377,16 +372,28 @@ FixPIMDLangevin::~FixPIMDLangevin()
     memory->destroy(displacements);
   }
 
-  memory->destroy(M_x2xp);
-  memory->destroy(M_xp2x);
-  memory->destroy(xc);
-  memory->destroy(x_unwrap);
   memory->destroy(bufsend);
   memory->destroy(bufrecv);
   memory->destroy(tagsend);
   memory->destroy(tagrecv);
   memory->destroy(bufbeads);
-  if (rootworld != MPI_COMM_NULL) MPI_Comm_free(&rootworld);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDLangevin::sync_base_nmpimd_state()
+{
+  this->FixPIMDNVE::np = np;
+  this->FixPIMDNVE::nreplica = nreplica;
+  this->FixPIMDNVE::ireplica = ireplica;
+  this->FixPIMDNVE::cmode = cmode;
+  this->FixPIMDNVE::ntotal = ntotal;
+  this->FixPIMDNVE::fmmode = fmmode;
+  this->FixPIMDNVE::fmass = fmass;
+  this->FixPIMDNVE::omega_np = omega_np;
+  this->FixPIMDNVE::kt = kt;
+  this->FixPIMDNVE::hbar = hbar;
+  this->FixPIMDNVE::bufsorted = bufsorted;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -446,9 +453,12 @@ void FixPIMDLangevin::init()
 
   comm_init();
 
-  mass = new double[atom->ntypes + 1];
+  if (mass == nullptr) mass = new double[atom->ntypes + 1];
 
+  sync_base_nmpimd_state();
   nmpimd_init();
+
+  if (xcall == nullptr) memory->create(xcall, ntotal * 3, "FixPIMDLangevin:xcall");
 
   langevin_init();
 
@@ -734,38 +744,6 @@ void FixPIMDLangevin::end_of_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDLangevin::collect_xc()
-{
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  tagint *tag = atom->tag;
-  if (ireplica == 0) {
-    if (cmode == SINGLE_PROC) {
-      for (int i = 0; i < nlocal; i++) {
-        xcall[3 * i + 0] = xcall[3 * i + 1] = xcall[3 * i + 2] = 0.0;
-      }
-    } else if (cmode == MULTI_PROC) {
-      for (int i = 0; i < ntotal; i++) {
-        xcall[3 * i + 0] = xcall[3 * i + 1] = xcall[3 * i + 2] = 0.0;
-      }
-    }
-
-    const double sqrtnp = sqrt((double) np);
-    for (int i = 0; i < nlocal; i++) {
-      xcall[3 * (tag[i] - 1) + 0] = x[i][0] / sqrtnp;
-      xcall[3 * (tag[i] - 1) + 1] = x[i][1] / sqrtnp;
-      xcall[3 * (tag[i] - 1) + 2] = x[i][2] / sqrtnp;
-    }
-
-    if (cmode == MULTI_PROC) {
-      MPI_Allreduce(MPI_IN_PLACE, xcall, ntotal * 3, MPI_DOUBLE, MPI_SUM, world);
-    }
-  }
-  MPI_Bcast(xcall, ntotal * 3, MPI_DOUBLE, 0, universe->uworld);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixPIMDLangevin::b_step()
 {
   // used for both NMPIMD and PIMD
@@ -1015,28 +993,6 @@ void FixPIMDLangevin::langevin_init()
 {
   double beta = 1.0 / kt;
   const double _omega_np = np / beta / hbar;
-  double _omega_np_dt_half = _omega_np * update->dt * 0.5;
-
-  _omega_k = new double[np];
-  Lan_c = new double[np];
-  Lan_s = new double[np];
-  if (method == NMPIMD) {
-    if (fmmode == PHYSICAL) {
-      for (int i = 0; i < np; i++) {
-        _omega_k[i] = _omega_np * sqrt(lam[i]) / sqrt(fmass);
-        Lan_c[i] = cos(sqrt(lam[i]) * _omega_np_dt_half);
-        Lan_s[i] = sin(sqrt(lam[i]) * _omega_np_dt_half);
-      }
-    } else if (fmmode == NORMAL) {
-      for (int i = 0; i < np; i++) {
-        _omega_k[i] = _omega_np / sqrt(fmass);
-        Lan_c[i] = cos(_omega_np_dt_half);
-        Lan_s[i] = sin(_omega_np_dt_half);
-      }
-    } else {
-      error->universe_all(FLERR, "Unknown fmmode setting; only physical and normal are supported!");
-    }
-  }
 
   if (tau > 0)
     gamma = 1.0 / tau;
@@ -1133,88 +1089,6 @@ void FixPIMDLangevin::o_step()
    Normal Mode PIMD
    ------------------------------------------------------------------------- */
 
-void FixPIMDLangevin::nmpimd_init()
-{
-  memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
-  memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
-
-  lam = (double *) memory->smalloc(sizeof(double) * np, "FixPIMDLangevin::lam");
-
-  // Set up  eigenvalues
-  for (int i = 0; i < np; i++) {
-    double sin_tmp = sin(i * MY_PI / np);
-    lam[i] = 4 * sin_tmp * sin_tmp;
-  }
-
-  // Set up eigenvectors for degenerated modes
-  const double sqrtnp = sqrt((double) np);
-  for (int j = 0; j < np; j++) {
-    for (int i = 1; i < int(np / 2) + 1; i++) {
-      M_x2xp[i][j] = MY_SQRT2 * cos(MY_2PI * double(i) * double(j) / double(np)) / sqrtnp;
-    }
-    for (int i = int(np / 2) + 1; i < np; i++) {
-      M_x2xp[i][j] = MY_SQRT2 * sin(MY_2PI * double(i) * double(j) / double(np)) / sqrtnp;
-    }
-  }
-
-  // Set up eigenvectors for non-degenerated modes
-  for (int i = 0; i < np; i++) {
-    M_x2xp[0][i] = 1.0 / sqrtnp;
-    if (np % 2 == 0) M_x2xp[np / 2][i] = 1.0 / sqrtnp * powint(-1.0, i);
-  }
-
-  // Set up Ut
-  for (int i = 0; i < np; i++)
-    for (int j = 0; j < np; j++) { M_xp2x[i][j] = M_x2xp[j][i]; }
-
-  // Set up fictitious masses
-  int iworld = universe->iworld;
-  for (int i = 1; i <= atom->ntypes; i++) {
-    mass[i] = atom->mass[i];
-    mass[i] *= fmass;
-    if (iworld) {
-      if (fmmode == PHYSICAL) {
-        mass[i] *= 1.0;
-      } else if (fmmode == NORMAL) {
-        mass[i] *= lam[iworld];
-      }
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDLangevin::nmpimd_transform(double **src, double **des, double *vector)
-{
-  if (cmode == SINGLE_PROC) {
-    for (int i = 0; i < ntotal; i++) {
-      for (int d = 0; d < 3; d++) {
-        bufsorted[i][d] = 0.0;
-        for (int j = 0; j < nreplica; j++) {
-          bufsorted[i][d] += src[j * ntotal + i][d] * vector[j];
-        }
-      }
-    }
-    for (int i = 0; i < ntotal; i++) {
-      tagint tagtmp = atom->tag[i];
-      for (int d = 0; d < 3; d++) { des[i][d] = bufsorted[tagtmp - 1][d]; }
-    }
-  } else if (cmode == MULTI_PROC) {
-    int n = atom->nlocal;
-    int m = 0;
-
-    for (int i = 0; i < n; i++) {
-      for (int d = 0; d < 3; d++) {
-        des[i][d] = 0.0;
-        for (int j = 0; j < np; j++) { des[i][d] += (src[j][m] * vector[j]); }
-        m++;
-      }
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixPIMDLangevin::spring_force()
 {
   spring_energy = 0.0;
@@ -1301,24 +1175,6 @@ void FixPIMDLangevin::comm_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDLangevin::reallocate_xc()
-{
-  maxxc = atom->nmax;
-  memory->destroy(xc);
-  memory->create(xc, maxxc, 3, "FixPIMDLangevin:xc");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDLangevin::reallocate_x_unwrap()
-{
-  maxunwrap = atom->nmax;
-  memory->destroy(x_unwrap);
-  memory->create(x_unwrap, maxunwrap, 3, "FixPIMDLangevin:x_unwrap");
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixPIMDLangevin::reallocate()
 {
   maxlocal = atom->nmax;
@@ -1340,6 +1196,7 @@ void FixPIMDLangevin::reallocate()
     memory->create(tagrecv, maxlocal, "FixPIMDLangevin:tagrecv");
     memory->create(bufbeads, nreplica, maxlocal * 3, "FixPIMDLangevin:bufrecv");
   }
+  this->FixPIMDNVE::bufsorted = bufsorted;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -386,36 +386,6 @@ bool FixPIMDLangevin::use_langevin_multirank_comm() const
   return comm->nprocs > 1;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDLangevin::sync_base_physics_state()
-{
-  this->FixPIMDNVE::np = np;
-  this->FixPIMDNVE::inverse_np = inverse_np;
-  this->FixPIMDNVE::temp = temp;
-  this->FixPIMDNVE::fmmode = fmmode;
-  this->FixPIMDNVE::fmass = fmass;
-  this->FixPIMDNVE::sp = sp;
-  this->FixPIMDNVE::beta = beta;
-  this->FixPIMDNVE::beta_np = beta_np;
-  this->FixPIMDNVE::omega_np = omega_np;
-  this->FixPIMDNVE::fbond = fbond;
-  this->FixPIMDNVE::kt = kt;
-  this->FixPIMDNVE::hbar = hbar;
-  this->FixPIMDNVE::ke_bead = ke_bead;
-  this->FixPIMDNVE::se_bead = se_bead;
-  this->FixPIMDNVE::pe_bead = pe_bead;
-  this->FixPIMDNVE::tote = tote;
-  this->FixPIMDNVE::t_prim = t_prim;
-  this->FixPIMDNVE::t_vir = t_vir;
-  this->FixPIMDNVE::t_cv = t_cv;
-  this->FixPIMDNVE::p_prim = p_prim;
-  this->FixPIMDNVE::p_md = p_md;
-  this->FixPIMDNVE::p_cv = p_cv;
-}
-
-/* ---------------------------------------------------------------------- */
-
 int FixPIMDLangevin::setmask()
 {
   int mask = 0;
@@ -473,7 +443,6 @@ void FixPIMDLangevin::init()
 
   if (mass == nullptr) mass = new double[atom->ntypes + 1];
 
-  sync_base_physics_state();
   nmpimd_init();
 
   if (xcall == nullptr) memory->create(xcall, ntotal * 3, "FixPIMDLangevin:xcall");
@@ -1580,7 +1549,6 @@ void FixPIMDLangevin::schedule_common_computes()
 
 double FixPIMDLangevin::compute_vector(int n)
 {
-  sync_base_physics_state();
   return FixPIMDNVE::compute_vector(n);
 }
 

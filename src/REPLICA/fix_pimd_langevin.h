@@ -51,39 +51,27 @@ class FixPIMDLangevin : public FixPIMDNVE {
  protected:
   // System setting variables
   int method;                              // PIMD or NMPIMD or CMD
-  int fmmode;                              // physical or normal
-  int np;                                  // number of beads
-  double inverse_np;                       // 1.0/np
-  double temp;                             // temperature
-  double hbar;                             // Planck's constant
   double lj_epsilon, lj_sigma, lj_mass;    // LJ unit energy, length, and mass scales
   double other_planck;
   double other_mvv2e;
-  double kt;               // k_B * temp
-  double beta, beta_np;    // beta = 1./kBT beta_np = 1./kBT/np
   int thermostat;          // NHC or PILE_L
   int barostat;            // BZP
   int integrator;          // obabo or baoab
   int ensemble;            // nve or nvt or nph or npt
-  int mapflag;             // should be 1 if number of beads > 1
   int removecomflag;
-  double masstotal;
 
   double fixedpoint[3];    // location of dilation fixed-point
 
   // ring-polymer model
 
-  double omega_np, fbond, spring_energy, sp;
+  double spring_energy;
 
   // fictitious mass
-
-  double fmass;
 
   void comm_init();
   void comm_init_multirank();
   bool use_base_single_rank_comm() const;
   bool use_langevin_multirank_comm() const;
-  void sync_base_physics_state();
   virtual void prepare_coordinates();
   double **normal_mode_transform_buffer() override;
   void inter_replica_comm(double **ptr) override;
@@ -149,12 +137,9 @@ class FixPIMDLangevin : public FixPIMDNVE {
   double vol0 = 0.0;
   void remove_com_motion();
   double vir, vir_, centroid_vir;
-  double t_prim, t_vir, t_cv, p_prim, p_vir, p_cv, p_md;
+  double p_vir;
 
   /* Computes */
-  double pote, tote, totke;
-  double ke_bead, se_bead, pe_bead;
-  double total_spring_energy;
   char *id_pe;
   char *id_press;
   class Compute *c_pe;

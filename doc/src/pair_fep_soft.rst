@@ -404,7 +404,7 @@ used.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The pair style *coul/cut/soft/gapsys* implements the pair potential for
 Coulombic interactions which was proposed by Gapsys et al :ref:`(Gapsys)
@@ -453,7 +453,7 @@ This pair style requires the following pair coefficients:
 The recommended values for :math:`\sigma_q` and :math:`\alpha_q` are 1.0
 and 0.3 :math:`r_c` respectively.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 Similarly, the pair style *lj/cut/soft/gapsys* implements the pair potential for
 Lennard-Jones interactions which was proposed by Gapsys et al :ref:`(Gapsys)

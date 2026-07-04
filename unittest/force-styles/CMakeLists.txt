@@ -143,6 +143,20 @@ foreach(TEST ${ELLIPSOID_PAIR_TESTS})
   set_tests_properties(${TNAME} PROPERTIES LABELS "${TEST_TAGS}")
 endforeach()
 
+# tests for magnetic (atom_style spin) systems and related pair styles
+file(GLOB SPIN_PAIR_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/spin-pair-*.yaml)
+foreach(TEST ${SPIN_PAIR_TESTS})
+  string(REGEX REPLACE "^.*spin-pair-(.*)\.yaml" "SpinPairStyle:\\1" TNAME ${TEST})
+  extract_tags(TEST_TAGS ${TEST})
+  list(FIND TEST_TAGS "no${CMAKE_SYSTEM_NAME}" _SKIPME)
+  if(_SKIPME GREATER_EQUAL 0)
+    continue()
+  endif()
+  add_test(NAME ${TNAME} COMMAND test_pair_style ${TEST})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "${FORCE_TEST_ENVIRONMENT}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "${TEST_TAGS}")
+endforeach()
+
 # bond style tester
 add_executable(test_bond_style test_bond_style.cpp)
 target_include_directories(test_bond_style PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")

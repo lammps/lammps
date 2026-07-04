@@ -107,7 +107,7 @@ NULL is used for *Kt*, then a default value is used where *Kt* = 2/7
 *Kn*\ .  If a NULL is used for *gamma_t*, then a default value is used
 where *gamma_t* = 1/2 *gamma_n*.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 .. note::
 

@@ -243,7 +243,7 @@ to the *x*\ -- *y* plane in a 3D simulation. Only compatible with
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 This fix writes the state of its random number generator to :doc:`binary
 restart files <restart>`, so that a simulation continued from a restart

@@ -53,6 +53,9 @@ void FixPIMDNVE::init_defaults()
   ntotal = 0;
   maxlocal = maxunwrap = maxxc = 0;
   sizeplan = 0;
+  me = nprocs = ireplica = nreplica = nprocs_universe = 0;
+  x_last = x_next = 0;
+  cmode = -1;
 
   integrator = OBABO;
   lj_epsilon = 1.0;
@@ -203,8 +206,8 @@ void FixPIMDNVE::finish_constructor_setup()
 
 FixPIMDNVE::~FixPIMDNVE()
 {
-  modify->delete_compute(id_pe);
-  modify->delete_compute(id_press);
+  if (id_pe) modify->delete_compute(id_pe);
+  if (id_press) modify->delete_compute(id_press);
   delete[] id_pe;
   delete[] id_press;
   delete[] extlist;

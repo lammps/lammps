@@ -79,7 +79,8 @@ constexpr int TAG_RING_REP_VALS   = 404;
 /* ---------------------------------------------------------------------- */
 
 FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), mass(nullptr), plansend(nullptr), planrecv(nullptr), tagsend(nullptr),
+    FixPIMDNVE(lmp, narg, arg, true), mass(nullptr), plansend(nullptr), planrecv(nullptr),
+    tagsend(nullptr),
     tagrecv(nullptr), bufsend(nullptr), bufrecv(nullptr), bufbeads(nullptr), bufsorted(nullptr),
     bufsortedall(nullptr), counts(nullptr),
     displacements(nullptr), lam(nullptr), M_x2xp(nullptr), M_xp2x(nullptr), M_f2fp(nullptr),

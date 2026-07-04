@@ -20,11 +20,11 @@ FixStyle(pimd/langevin,FixPIMDLangevin);
 #ifndef FIX_PIMD_LANGEVIN_H
 #define FIX_PIMD_LANGEVIN_H
 
-#include "fix.h"
+#include "fix_pimd_nve.h"
 
 namespace LAMMPS_NS {
 
-class FixPIMDLangevin : public Fix {
+class FixPIMDLangevin : public FixPIMDNVE {
  public:
   FixPIMDLangevin(class LAMMPS *, int, char **);
   ~FixPIMDLangevin() override;

@@ -1560,10 +1560,6 @@ void FixPIMDLangevin::compute_totenthalpy()
     totenthalpy = tote + 1.5 * W * vw[0] * vw[0] * inverse_np + p_hydro * (volume - vol0);
 }
 
-/* ----------------------------------------------------------------------
-   pack entire state of Fix into one write
-------------------------------------------------------------------------- */
-
 void FixPIMDLangevin::schedule_common_computes()
 {
   c_pe->addstep(update->ntimestep + 1);
@@ -1572,35 +1568,54 @@ void FixPIMDLangevin::schedule_common_computes()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDLangevin::write_restart(FILE *fp)
+int FixPIMDLangevin::subclass_vector_size() const
 {
-  int nsize = size_restart_global();
+  if (!pstat_flag) return 0;
+  if (pstyle == ISO) return 5;
+  if (pstyle == ANISO) return 7;
+  return 0;
+}
 
-  double *list;
-  memory->create(list, nsize, "FixPIMDLangevin:list");
+/* ---------------------------------------------------------------------- */
 
-  pack_restart_data(list);
+double FixPIMDLangevin::compute_subclass_vector(int n) const
+{
+  if (!pstat_flag) return 0.0;
 
-  if (comm->me == 0) {
-    int size = nsize * sizeof(double);
-    fwrite(&size, sizeof(int), 1, fp);
-    fwrite(list, sizeof(double), nsize, fp);
+  const double volume = domain->xprd * domain->yprd * domain->zprd;
+
+  if (pstyle == ISO) {
+    if (n == 0) return vw[0];
+    if (n == 1) {
+      if (barostat == BZP) return 0.5 * W * vw[0] * vw[0];
+      if (barostat == MTTK) return 1.5 * W * vw[0] * vw[0];
+      return 0.0;
+    }
+    if (n == 2) return np * Pext * volume / force->nktv2p;
+    if (n == 3) return -Vcoeff * np * kt * log(volume);
+    if (n == 4) return totenthalpy;
+  } else if (pstyle == ANISO) {
+    if (n == 0) return vw[0];
+    if (n == 1) return vw[1];
+    if (n == 2) return vw[2];
+    if (n == 3) return 0.5 * W * (vw[0] * vw[0] + vw[1] * vw[1] + vw[2] * vw[2]);
+    if (n == 4) return np * Pext * volume / force->nktv2p;
+    if (n == 5) return -Vcoeff * np * kt * log(volume);
+    if (n == 6) return totenthalpy;
   }
-
-  memory->destroy(list);
+  return 0.0;
 }
+
 /* ---------------------------------------------------------------------- */
 
-int FixPIMDLangevin::size_restart_global()
+int FixPIMDLangevin::base_restart_size() const
 {
-  int nsize = 6;
-
-  return nsize;
+  return 6;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMDLangevin::pack_restart_data(double *list)
+int FixPIMDLangevin::pack_base_restart(double *list) const
 {
   int n = 0;
   for (int i = 0; i < 6; i++) list[n++] = vw[i];
@@ -1609,52 +1624,9 @@ int FixPIMDLangevin::pack_restart_data(double *list)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDLangevin::restart(char *buf)
+int FixPIMDLangevin::unpack_base_restart(const double *list)
 {
   int n = 0;
-  auto *list = (double *) buf;
   for (int i = 0; i < 6; i++) vw[i] = list[n++];
-}
-
-/* ---------------------------------------------------------------------- */
-
-double FixPIMDLangevin::compute_vector(int n)
-{
-  if (n == 0) return ke_bead;
-  if (n == 1) return se_bead;
-  if (n == 2) return pe_bead;
-  if (n == 3) return tote;
-  if (n == 4) return t_prim;
-  if (n == 5) return t_vir;
-  if (n == 6) return t_cv;
-  if (n == 7) return p_prim;
-  if (n == 8) return p_md;
-  if (n == 9) return p_cv;
-
-  if (pstat_flag) {
-    double volume = domain->xprd * domain->yprd * domain->zprd;
-    if (pstyle == ISO) {
-      if (n == 10) return vw[0];
-      if (barostat == BZP) {
-        if (n == 11) return 0.5 * W * vw[0] * vw[0];
-      } else if (barostat == MTTK) {
-        if (n == 11) return 1.5 * W * vw[0] * vw[0];
-      }
-      if (n == 12) { return np * Pext * volume / force->nktv2p; }
-      if (n == 13) { return -Vcoeff * np * kt * log(volume); }
-      if (n == 14) return totenthalpy;
-    } else if (pstyle == ANISO) {
-      if (n == 10) return vw[0];
-      if (n == 11) return vw[1];
-      if (n == 12) return vw[2];
-      if (n == 13) return 0.5 * W * (vw[0] * vw[0] + vw[1] * vw[1] + vw[2] * vw[2]);
-      if (n == 14) { return np * Pext * volume / force->nktv2p; }
-      if (n == 15) {
-        double volume = domain->xprd * domain->yprd * domain->zprd;
-        return -Vcoeff * np * kt * log(volume);
-      }
-      if (n == 16) return totenthalpy;
-    }
-  }
-  return 0.0;
+  return n;
 }

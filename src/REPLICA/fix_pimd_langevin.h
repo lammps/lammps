@@ -46,10 +46,6 @@ class FixPIMDLangevin : public FixPIMDNVE {
   void initial_integrate(int) override;
   void final_integrate() override;
   void end_of_step() override;
-  void write_restart(FILE *fp) override;
-  void restart(char *buf) override;
-
-  double compute_vector(int) override;
 
  protected:
   // System setting variables
@@ -178,9 +174,11 @@ class FixPIMDLangevin : public FixPIMDNVE {
   void compute_cvir();
   void compute_totenthalpy();
   void schedule_common_computes();
-
-  int size_restart_global();
-  int pack_restart_data(double *list);
+  int subclass_vector_size() const override;
+  double compute_subclass_vector(int) const override;
+  int base_restart_size() const override;
+  int pack_base_restart(double *) const override;
+  int unpack_base_restart(const double *) override;
 };
 }    // namespace LAMMPS_NS
 #endif

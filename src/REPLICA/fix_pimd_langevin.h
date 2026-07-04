@@ -82,29 +82,14 @@ class FixPIMDLangevin : public FixPIMDNVE {
 
   double fmass;
 
-  // inter-partition communication
-
-  MPI_Comm rootworld;
-  int me, nprocs, ireplica, nreplica, nprocs_universe;
-  int ntotal, maxlocal;
-
-  int x_last, x_next;
-
-  int cmode;
-  int sizeplan;
-  int maxsend;
-  int *plansend, *planrecv;
-
-  tagint *tagsend, *tagrecv;
-  double *bufsend, *bufrecv, **bufbeads;
-  double **bufsorted, **bufsortedall;
-
-  int *counts, *displacements;
-
   void comm_init();
-  void sync_base_nmpimd_state();
+  void comm_init_multirank();
+  bool use_base_single_rank_comm() const;
+  bool use_langevin_multirank_comm() const;
+  void sync_base_physics_state();
   virtual void prepare_coordinates();
   void inter_replica_comm(double **ptr);
+  void inter_replica_comm_multirank(double **ptr);
   void ring_collect(const std::vector<tagint> &miss_tag,
                                             double **ptr,
                                             std::vector<tagint> &rep_tag,
@@ -114,9 +99,17 @@ class FixPIMDLangevin : public FixPIMDNVE {
   /* normal-mode operations */
 
   double **M_f2fp, **M_fp2f;
-  int *modeindex;
 
   void reallocate();
+  void reallocate_multirank();
+
+  int maxsend;
+  int multirank_sizeplan;
+  int *multirank_plansend, *multirank_planrecv;
+  int *multirank_modeindex;
+  tagint *multirank_tagsend;
+  double *multirank_bufsend, *multirank_bufrecv;
+  double **multirank_bufbeads;
 
   /* Langevin integration */
 

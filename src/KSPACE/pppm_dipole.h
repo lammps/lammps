@@ -79,7 +79,7 @@ class PPPMDipole : public PPPM {
 
   class Grid3d *gc_dipole;
 
-  int has_charges;
+  int charge_flag;
   double musum, musqsum, mu2;
 
   double find_gewald_dipole(double, double, bigint, double, double);

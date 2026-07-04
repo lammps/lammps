@@ -105,7 +105,10 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     for (const auto &post_command : cfg.post_commands)
         command(post_command);
 
-    command("timestep 0.25");
+    // the default timestep of 0.25 assumes the (real units) molecular input templates;
+    // systems needing a different timestep (e.g. spin dynamics in metal units) set the
+    // "timestep" keyword in their yaml file.
+    command(fmt::format("timestep {}", (cfg.timestep > 0.0) ? cfg.timestep : 0.25));
     command("run 0 post no");
     command("thermo 2");
     command("run 4 post no start 0 stop 8");
@@ -142,7 +145,7 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool use_rmass, bool use
         // must be set to trigger calling Fix::reset_dt() with timestep
         lmp->update->first_update = 1;
         // test validity of Fix::reset_dt(). With run_style respa there may be segfaults
-        command("timestep 0.25");
+        command(fmt::format("timestep {}", (cfg.timestep > 0.0) ? cfg.timestep : 0.25));
     }
     command("thermo 2");
     command("run 4 post no start 0 stop 8");
@@ -249,12 +252,34 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         writer.emit_block("run_torque", block);
     }
 
+    // run_spin and run_mag_forces (only for atom_style spin)
+
+    if (lmp->atom->sp_flag) {
+        block.clear();
+        auto *sp = lmp->atom->sp;
+        for (int i = 1; i <= natoms; ++i) {
+            const int j = lmp->atom->map(i);
+            block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e} {:23.16e}\n", i, sp[j][0],
+                                 sp[j][1], sp[j][2], sp[j][3]);
+        }
+        writer.emit_block("run_spin", block);
+
+        block.clear();
+        auto *fm = lmp->atom->fm;
+        for (int i = 1; i <= natoms; ++i) {
+            const int j = lmp->atom->map(i);
+            block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, fm[j][0], fm[j][1],
+                                 fm[j][2]);
+        }
+        writer.emit_block("run_mag_forces", block);
+    }
+
     cleanup_lammps(lmp, config);
 }
 
 TEST(FixTimestep, plain)
 {
-    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
+    // the "atom <style>" entry in the yaml prerequisites covers required packages
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 #if defined(USING_STATIC_LIBS)
     if (test_config.skip_tests.count("static")) GTEST_SKIP();
@@ -303,6 +328,9 @@ TEST(FixTimestep, plain)
     if (lmp->atom->torque_flag)
         EXPECT_TORQUES("run_torques (normal run, verlet)", lmp->atom, test_config.run_torque,
                        epsilon);
+    EXPECT_SPINS("run_spin (normal run, verlet)", lmp->atom, test_config.run_spin, epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (normal run, verlet)", lmp->atom,
+                      test_config.run_mag_forces, epsilon);
 
     auto *ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {
@@ -354,6 +382,9 @@ TEST(FixTimestep, plain)
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
     if (lmp->atom->torque_flag)
         EXPECT_TORQUES("run_torque (restart, verlet)", lmp->atom, test_config.run_torque, epsilon);
+    EXPECT_SPINS("run_spin (restart, verlet)", lmp->atom, test_config.run_spin, epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (restart, verlet)", lmp->atom, test_config.run_mag_forces,
+                      epsilon);
 
     ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {
@@ -569,7 +600,6 @@ TEST(FixTimestep, plain)
 TEST(FixTimestep, omp)
 {
     if (!Info::has_package("OPENMP")) GTEST_SKIP();
-    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 #if defined(USING_STATIC_LIBS)
     if (test_config.skip_tests.count("static")) GTEST_SKIP();
@@ -936,6 +966,9 @@ static void run_kokkos_test(LAMMPS::argv &args)
     if (lmp->atom->torque_flag)
         EXPECT_TORQUES("run_torque (normal run, verlet)", lmp->atom, test_config.run_torque,
                        epsilon);
+    EXPECT_SPINS("run_spin (normal run, verlet)", lmp->atom, test_config.run_spin, epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (normal run, verlet)", lmp->atom,
+                      test_config.run_mag_forces, epsilon);
 
     auto *ifix = lmp->modify->get_fix_by_id("test");
 
@@ -989,6 +1022,9 @@ static void run_kokkos_test(LAMMPS::argv &args)
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
     if (lmp->atom->torque_flag)
         EXPECT_TORQUES("run_torque (restart, verlet)", lmp->atom, test_config.run_torque, epsilon);
+    EXPECT_SPINS("run_spin (restart, verlet)", lmp->atom, test_config.run_spin, epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (restart, verlet)", lmp->atom, test_config.run_mag_forces,
+                      epsilon);
 
     ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {

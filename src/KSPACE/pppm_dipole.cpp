@@ -67,7 +67,7 @@ PPPMDipole::PPPMDipole(LAMMPS *lmp) : PPPM(lmp),
 {
   dipoleflag = 1;
   group_group_enable = 0;
-  has_charges = 0;
+  charge_flag = 0;
 
   gc_dipole = nullptr;
 }
@@ -97,10 +97,10 @@ void PPPMDipole::init()
   dipoleflag = atom->mu?1:0;
 
   if (atom->q) {
-    has_charges = 1;
+    charge_flag = 1;
     qsum_qsq(0); // computes qsum, qsqsum, q2 for the charge channel
   } else {
-    has_charges = 0;
+    charge_flag = 0;
     qsum = qsqsum = q2 = 0.0;
   }
 
@@ -506,7 +506,7 @@ void PPPMDipole::compute(int eflag, int vflag)
         eatom[i] *= 0.5;
         eatom[i] -= (mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] +
                      mu[i][2]*mu[i][2])*2.0*g3/3.0/MY_PIS;
-        if (has_charges)
+        if (charge_flag)
           eatom[i] -= g_ewald*q[i]*q[i]/MY_PIS +
             MY_PI2*q[i]*qsum/(g_ewald*g_ewald*volume);
         eatom[i] *= qscale;
@@ -1383,7 +1383,7 @@ void PPPMDipole::make_rho_dipole()
 
     compute_rho1d(dx,dy,dz);
 
-    qtmp = has_charges ? q[i] : ZEROF;
+    qtmp = charge_flag ? q[i] : ZEROF;
 
     z0 = delvolinv * mu[i][0];
     z1 = delvolinv * mu[i][1];
@@ -2069,7 +2069,7 @@ void PPPMDipole::fieldforce_ik_dipole()
 
     // force on point charge from the total E-field
 
-    if (has_charges) {
+    if (charge_flag) {
       f[i][0] += qfactor*q[i]*ekx;
       f[i][1] += qfactor*q[i]*eky;
       f[i][2] += qfactor*q[i]*ekz;
@@ -2125,7 +2125,7 @@ void PPPMDipole::fieldforce_peratom_dipole()
 
     compute_rho1d(dx,dy,dz);
 
-    qtmp = has_charges ? q[i] : ZEROF;
+    qtmp = charge_flag ? q[i] : ZEROF;
 
     ux = uy = uz = uq = ZEROF;
     v0x = v1x = v2x = v3x = v4x = v5x = ZEROF;
@@ -2179,7 +2179,7 @@ void PPPMDipole::fieldforce_peratom_dipole()
 
     if (eflag_atom) {
       eatom[i] += mu[i][0]*ux + mu[i][1]*uy + mu[i][2]*uz;
-      if (has_charges) eatom[i] += qtmp*uq;
+      if (charge_flag) eatom[i] += qtmp*uq;
     }
 
     if (vflag_atom) {
@@ -2452,7 +2452,7 @@ void PPPMDipole::slabcorr()
 
   double dipole = 0.0;
   for (int i = 0; i < nlocal; i++) {
-    double qtmp = has_charges ? q[i] : ZEROF;
+    double qtmp = charge_flag ? q[i] : ZEROF;
     dipole += qtmp*x[i][2] + mu[i][2];
   }
 
@@ -2493,7 +2493,7 @@ void PPPMDipole::slabcorr()
   if (eflag_atom) {
     double efact = qscale * MY_2PI/volume;
     for (int i = 0; i < nlocal; i++) {
-      double qtmp = has_charges ? q[i] : ZEROF;
+      double qtmp = charge_flag ? q[i] : ZEROF;
       double mi = qtmp*x[i][2] + mu[i][2];
       eatom[i] += efact * (mi*dipole_all - qtmp*(0.5*(dipole_r2 +
         qsum*x[i][2]*x[i][2]) + qsum*zprd_slab*zprd_slab/12.0));
@@ -2504,7 +2504,7 @@ void PPPMDipole::slabcorr()
 
   // add on force corrections (act on point charges only)
 
-  if (has_charges) {
+  if (charge_flag) {
     double **f = atom->f;
     for (int i = 0; i < nlocal; i++)
       f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);

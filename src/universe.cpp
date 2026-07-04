@@ -140,10 +140,11 @@ void Universe::reorder(char *style, char *arg)
 
   // create new uworld communicator
 
-  int ome,key;
+  int ome,key = -1;
   MPI_Comm_rank(uorig,&ome);
   for (int i = 0; i < nprocs; i++)
     if (uni2orig[i] == ome) key = i;
+  if (key < 0) error->universe_one(FLERR,"Invalid -reorder file: not a permutation of all ranks");
 
   MPI_Comm_split(uorig,0,key,&uworld);
   MPI_Comm_rank(uworld,&me);

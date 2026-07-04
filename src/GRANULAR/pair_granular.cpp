@@ -83,6 +83,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
 id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_string(instance_me));
 id_history = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR") + std::to_string(instance_me));
 
+  cutoff_global = -1.0;
   fix_history = nullptr;
   fix_dummy = dynamic_cast<FixDummy *>(modify->add_fix(fmt::format("{} all DUMMY", id_dummy)));
 }

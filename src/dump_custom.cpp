@@ -164,6 +164,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     cols += earg[iarg];
   }
   columns_default = utils::strdup(cols);
+
+  nchoose = 0;
 }
 
 /* ---------------------------------------------------------------------- */

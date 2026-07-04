@@ -59,6 +59,7 @@ CommTiled::CommTiled(LAMMPS *lmp) :
   init_pointers();
   init_buffers_flag = 0;
   maxswap = 0;
+  dimension = 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,6 +77,7 @@ CommTiled::CommTiled(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
   init_pointers();
   init_buffers_flag = 0;
   maxswap = 0;
+  dimension = 3;
 }
 
 /* ---------------------------------------------------------------------- */

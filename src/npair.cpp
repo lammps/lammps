@@ -35,6 +35,7 @@ NPair::NPair(LAMMPS *lmp) :
     stencil_multi(nullptr)
 {
   last_build = -1;
+  flag_same_multi = nullptr;
   mycutneighsq = nullptr;
   molecular = atom->molecular;
   copymode = 0;

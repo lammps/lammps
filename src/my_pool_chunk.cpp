@@ -63,6 +63,7 @@ MyPoolChunk<T>::MyPoolChunk(int user_minchunk, int user_maxchunk, int user_nbin,
   pages = nullptr;
   whichbin = nullptr;
   npage = 0;
+  binsize = 0;
 
   errorflag = 0;
   if (minchunk <= 0 || minchunk > maxchunk) errorflag = 1;

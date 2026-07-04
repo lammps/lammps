@@ -62,6 +62,7 @@ ComputeAveSphereAtom::ComputeAveSphereAtom(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 3;
 
   nmax = 0;
+  volume = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

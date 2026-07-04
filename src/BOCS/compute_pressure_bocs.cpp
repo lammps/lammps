@@ -121,6 +121,7 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
 
   splines = nullptr;
   spline_length = 0;
+  temperature = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

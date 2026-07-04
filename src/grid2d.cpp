@@ -79,6 +79,15 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny) :
   // layout_grid = how this grid instance is distributed across procs
   // depends on comm->layout at time this Grid2d instance is created
 
+  // the destructor may run before setup_grid() calls initialize();
+  // null all counts it iterates over
+
+  nswap = maxswap = 0;
+  nsend = nrecv = ncopy = 0;
+  nsend_remap = nrecv_remap = self_remap = 0;
+  copy_remap.npack = copy_remap.nunpack = 0;
+  copy_remap.packlist = copy_remap.unpacklist = nullptr;
+
   layout_grid = comm->layout;
 }
 
@@ -431,6 +440,8 @@ void Grid2d::initialize()
   nsend_remap = nrecv_remap = self_remap = 0;
   send_remap = nullptr;
   recv_remap = nullptr;
+  copy_remap.npack = copy_remap.nunpack = 0;
+  copy_remap.packlist = copy_remap.unpacklist = nullptr;
 
   // store info about Comm decomposition needed for remap operation
   //   two Grid instances will exist for duration of remap

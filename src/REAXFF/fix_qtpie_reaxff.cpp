@@ -154,6 +154,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
 
   s_hist = t_hist = nullptr;
+  dist_cutoff_sq = 0.0;
   atom->add_callback(Atom::GROW);
 }
 

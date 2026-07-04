@@ -1,0 +1,89 @@
+# GitHub action to build LAMMPS with KOKKOS host backends at all precisions
+# and run the force-style and c-library unit tests
+name: "Unittest for KOKKOS host backends"
+
+on:
+  push:
+    branches:
+      - develop
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: KOKKOS ${{ matrix.backend }} ${{ matrix.precision }} precision
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+    strategy:
+      fail-fast: false
+      matrix:
+        backend: [ 'serial', 'openmp' ]
+        precision: [ 'double', 'mixed', 'single' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 2
+
+    - name: Install extra packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ccache \
+                                mold \
+                                ninja-build
+
+    - name: Create Build Environment
+      run: mkdir build
+
+    - name: Set up ccache
+      uses: actions/cache@v5
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: linux-kokkos-unit-${{ matrix.backend }}-${{ matrix.precision }}-ccache-${{ github.sha }}
+        restore-keys: linux-kokkos-unit-${{ matrix.backend }}-${{ matrix.precision }}-ccache-
+
+    - name: Building LAMMPS via CMake
+      shell: bash
+      run: |
+        ccache -z -M 3
+        # ML-IAP requires a double precision KOKKOS package
+        EXTRA_FLAGS=""
+        if [ "${{ matrix.precision }}" == "double" ]; then
+          EXTRA_FLAGS="-D PKG_ML-IAP=on -D MLIAP_ENABLE_PYTHON=off"
+        fi
+        cmake -S cmake -B build \
+              -C cmake/presets/gcc.cmake \
+              -C cmake/presets/kokkos-${{ matrix.backend }}.cmake \
+              -C cmake/presets/kokkos-packages.cmake \
+              -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D BUILD_SHARED_LIBS=on \
+              -D DOWNLOAD_POTENTIALS=off \
+              -D ENABLE_TESTING=on \
+              -D FFT=kiss \
+              -D KOKKOS_PREC=${{ matrix.precision }} \
+              ${EXTRA_FLAGS} \
+              -G Ninja
+        cmake --build build
+        ccache -s
+
+    - name: Run Tests
+      working-directory: build
+      shell: bash
+      run: ctest --output-on-failure -R '^(MolPairStyle|AtomicPairStyle|ManybodyPairStyle|EllipsoidPairStyle|KSpaceStyle|BondStyle|AngleStyle|DihedralStyle|ImproperStyle|FixTimestep|Library)' --output-junit junit-kokkos-${{ matrix.backend }}-${{ matrix.precision }}.xml
+
+    # test results from pull request branches are only for the submitters,
+    # only post-merge results are published for downstream reporting
+    - name: Upload JUnit test results for post-merge runs
+      if: ${{ always() && (github.event_name == 'push') }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: junit-kokkos-${{ matrix.backend }}-${{ matrix.precision }}
+        path: build/junit-kokkos-${{ matrix.backend }}-${{ matrix.precision }}.xml

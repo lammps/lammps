@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHHeatConduction::PairSPHHeatConduction(LAMMPS *lmp) : Pair(lmp)
+PairSPHHeatConduction::PairSPHHeatConduction(LAMMPS *lmp) : Pair(lmp), cut(nullptr), alpha(nullptr)
 {
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1))
     error->all(FLERR, "Pair sph/heatconduction requires atom attributes energy and density, e.g. in atom_style sph");

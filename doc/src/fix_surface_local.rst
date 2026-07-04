@@ -52,7 +52,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 Enable granular surfaces to be used as boundary conditions on
 particles in a granular simulation.  Granular surfaces are defined as

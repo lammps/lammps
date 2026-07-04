@@ -28,6 +28,7 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
+#include "tune_kokkos.h"
 #include "update.h"
 
 #include "pair_zbl_const.h"
@@ -47,6 +48,7 @@ template<class DeviceType>
 PairZBLKokkos<DeviceType>::PairZBLKokkos(LAMMPS *lmp) : PairZBL(lmp)
 {
   respa_enable = 0;
+  tuner = nullptr;
 
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -66,6 +68,8 @@ PairZBLKokkos<DeviceType>::~PairZBLKokkos()
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
   }
+
+  delete tuner;
 }
 
 
@@ -98,6 +102,14 @@ void PairZBLKokkos<DeviceType>::init_style()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+
+  if (lmp->kokkos->autotuning > 0 && !tuner) {
+    if (!force->newton_pair)
+      tuner = new TuneKokkos(lmp, TuneKokkos::PAIR, lmp->kokkos->autotuning,
+        2, "pair-zbl");
+    else
+      error->warning(FLERR,"Autotuner for pair zbl/kk is disabled with 'newton on'");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -160,6 +172,10 @@ void PairZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over neighbors of my atoms
 
+  copymode = 1;
+
+  if (lmp->kokkos->autotuning && tuner) tuner->tuning_kernel_params();
+
   EV_FLOAT ev = pair_compute<PairZBLKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
@@ -186,6 +202,8 @@ void PairZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
+
+  copymode = 0;
 }
 
 template<class DeviceType>

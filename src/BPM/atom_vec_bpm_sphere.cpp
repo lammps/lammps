@@ -28,7 +28,9 @@ using MathConst::MY_PI;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *_lmp) : AtomVec(_lmp)
+AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *_lmp) :
+    AtomVec(_lmp), num_bond(nullptr), bond_type(nullptr), nspecial(nullptr), radius(nullptr),
+    rmass(nullptr), omega(nullptr), quat(nullptr)
 {
   mass_type = PER_ATOM;
   molecular = Atom::MOLECULAR;

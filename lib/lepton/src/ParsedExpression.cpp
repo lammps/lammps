@@ -47,7 +47,7 @@ ParsedExpression::ParsedExpression(const ExpressionTreeNode& rootNode) : rootNod
 }
 
 const ExpressionTreeNode& ParsedExpression::getRootNode() const {
-    if (&rootNode.getOperation() == NULL)
+    if (rootNode.operation == NULL)
         throw Exception("Illegal call to an initialized ParsedExpression");
     return rootNode;
 }

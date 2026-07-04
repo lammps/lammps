@@ -42,7 +42,7 @@ enum{UNKNOWN,BCC,FCC,HCP,ICO};
 /* ---------------------------------------------------------------------- */
 
 ComputeAcklandAtom::ComputeAcklandAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+    Compute(lmp, narg, arg), list(nullptr)
 {
   if ((narg < 3) || (narg > 5))
     error->all(FLERR,"Illegal compute ackland/atom command");

@@ -54,7 +54,9 @@ enum { X, Y, Z };
 
 /* ---------------------------------------------------------------------- */
 
-Balance::Balance(LAMMPS *lmp) : Command(lmp)
+Balance::Balance(LAMMPS *lmp) :
+    Command(lmp), bdim(nullptr), onecost(nullptr), allcost(nullptr), sum(nullptr), target(nullptr),
+    lo(nullptr), hi(nullptr), losum(nullptr), hisum(nullptr), weight(nullptr)
 {
   user_xsplit = user_ysplit = user_zsplit = nullptr;
   shift_allocate = 0;

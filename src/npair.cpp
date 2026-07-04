@@ -29,7 +29,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPair::NPair(LAMMPS *lmp) : Pointers(lmp), nb(nullptr), ns(nullptr), bins(nullptr), stencil(nullptr)
+NPair::NPair(LAMMPS *lmp) :
+    Pointers(lmp), nb(nullptr), ns(nullptr), atom2bin(nullptr), bins(nullptr),
+    binatoms_hash_multi(nullptr), stencil(nullptr)
 {
   last_build = -1;
   mycutneighsq = nullptr;

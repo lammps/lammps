@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeGridLocal::ComputeGridLocal(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), alocal(nullptr)
+    Compute(lmp, narg, arg), alocal(nullptr), boxlo(nullptr), prd(nullptr), sublo(nullptr),
+    subhi(nullptr)
 {
   if (narg < 6) error->all(FLERR, "Illegal compute grid/local command");
 

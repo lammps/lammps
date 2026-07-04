@@ -1082,6 +1082,13 @@ std::string Info::get_gpu_device_info()
 {
   return lmp_gpu_device_info();
 }
+
+// defer (or restore) the GPU package device teardown. used only by the test
+// harness so the GPU package does not reset a device the KOKKOS package shares.
+void Info::gpu_defer_device_clear(int flag)
+{
+  lmp_gpu_defer_device_clear(flag);
+}
 #else
 bool Info::has_gpu_device()
 {
@@ -1090,6 +1097,25 @@ bool Info::has_gpu_device()
 std::string Info::get_gpu_device_info()
 {
   return "";
+}
+void Info::gpu_defer_device_clear(int)
+{
+}
+#endif
+
+#if defined(LMP_KOKKOS)
+extern bool lmp_has_compatible_kokkos_gpu();
+
+// report whether the KOKKOS package can access a compatible GPU device.
+// returns false for host-only KOKKOS builds or when no GPU is available.
+bool Info::has_kokkos_gpu_device()
+{
+  return lmp_has_compatible_kokkos_gpu();
+}
+#else
+bool Info::has_kokkos_gpu_device()
+{
+  return false;
 }
 #endif
 

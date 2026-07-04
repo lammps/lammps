@@ -38,7 +38,7 @@ static constexpr int MAXLOOP = 100;
 /* ---------------------------------------------------------------------- */
 
 ComputeAggregateAtom::ComputeAggregateAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), aggregateID(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), aggregateID(nullptr)
 {
   if (narg != 4) error->all(FLERR, "Illegal compute aggregate/atom command");
 

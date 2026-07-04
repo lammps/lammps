@@ -50,6 +50,7 @@ extern int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu, con
                            char *opencl_config, const int ocl_platform, char *device_type_flags,
                            const int block_pair);
 extern void lmp_clear_device();
+extern void lmp_gpu_defer_device_clear(int flag);
 extern double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,
                              double *virial, double &ecoul, int &error_flag);
 extern double lmp_gpu_update_bin_size(const double subx, const double suby, const double subz,

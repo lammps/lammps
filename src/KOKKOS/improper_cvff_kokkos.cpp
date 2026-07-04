@@ -88,7 +88,7 @@ void ImproperCvffKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     } else Kokkos::deep_copy(d_vatom,0.0);
   }
 
-  //atomKK->sync(execution_space,datamask_read);
+  atomKK->sync(execution_space,datamask_read);
   k_k.template sync<DeviceType>();
   k_sign.template sync<DeviceType>();
   k_multiplicity.template sync<DeviceType>();

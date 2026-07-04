@@ -45,7 +45,7 @@ using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
-FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), comm_ptr(nullptr)
 {
   max_nsend = 0;
   tag_send = nullptr;

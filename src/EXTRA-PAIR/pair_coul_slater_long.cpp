@@ -36,7 +36,7 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulSlaterLong::PairCoulSlaterLong(LAMMPS *lmp) : Pair(lmp)
+PairCoulSlaterLong::PairCoulSlaterLong(LAMMPS *lmp) : Pair(lmp), scale(nullptr)
 {
   ewaldflag = pppmflag = 1;
 }

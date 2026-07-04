@@ -38,7 +38,10 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralSpherical::DihedralSpherical(LAMMPS *lmp) : Dihedral(lmp)
+DihedralSpherical::DihedralSpherical(LAMMPS *lmp) :
+    Dihedral(lmp), nterms(nullptr), Ccoeff(nullptr), phi_mult(nullptr), phi_shift(nullptr),
+    phi_offset(nullptr), theta1_mult(nullptr), theta1_shift(nullptr), theta1_offset(nullptr),
+    theta2_mult(nullptr), theta2_shift(nullptr), theta2_offset(nullptr)
 {
   writedata = 1;
   nterms_max = 0;

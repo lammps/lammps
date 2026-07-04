@@ -43,7 +43,7 @@ static constexpr double TINY = 1.E-10;
 
 /* ---------------------------------------------------------------------- */
 
-AngleTable::AngleTable(LAMMPS *_lmp) : Angle(_lmp)
+AngleTable::AngleTable(LAMMPS *_lmp) : Angle(_lmp), theta0(nullptr), tabindex(nullptr)
 {
   writedata = 0;
   ntables = 0;

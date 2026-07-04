@@ -31,7 +31,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuck::PairBuck(LAMMPS *lmp) : Pair(lmp)
+PairBuck::PairBuck(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), a(nullptr), rho(nullptr), c(nullptr), rhoinv(nullptr), buck1(nullptr),
+    buck2(nullptr), offset(nullptr)
 {
   born_matrix_enable = 1;
   writedata = 1;

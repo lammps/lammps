@@ -61,9 +61,11 @@ static constexpr double WT[16][16] = {
 /* ---------------------------------------------------------------------- */
 
 FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), num_bitorsion(nullptr), bitorsion_type(nullptr), bitorsion_atom1(nullptr),
-  bitorsion_atom2(nullptr), bitorsion_atom3(nullptr), bitorsion_atom4(nullptr),
-  bitorsion_atom5(nullptr), bitorsion_list(nullptr)
+    Fix(lmp, narg, arg), num_bitorsion(nullptr), bitorsion_type(nullptr), bitorsion_atom1(nullptr),
+    bitorsion_atom2(nullptr), bitorsion_atom3(nullptr), bitorsion_atom4(nullptr),
+    bitorsion_atom5(nullptr), bitorsion_list(nullptr), nxgrid(nullptr), nygrid(nullptr),
+    ttx(nullptr), tty(nullptr), tbf(nullptr), tbx(nullptr), tby(nullptr), tbxy(nullptr),
+    pair(nullptr), amtype(nullptr), atomic_num(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix amoeba/bitorsion command");
 

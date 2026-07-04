@@ -83,7 +83,7 @@ more helpful column names. An example of this procedure is found in
 ``/examples/bpm/pour/``. External software, such as OVITO, can read these dump
 files to render bond data.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The :doc:`compute bond/local <compute_bond_local>` property can also be
 visualized using :doc:`dump image <dump_image>` to color bonds by

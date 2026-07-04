@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairGauss::PairGauss(LAMMPS *lmp) : Pair(lmp)
+PairGauss::PairGauss(LAMMPS *lmp) : Pair(lmp), cut(nullptr), a(nullptr), b(nullptr), offset(nullptr)
 {
   nextra = 1;
   pvector = new double[1];

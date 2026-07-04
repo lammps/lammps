@@ -48,6 +48,10 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["run_pos"]        = &TestConfigReader::run_pos;
     consumers["run_vel"]        = &TestConfigReader::run_vel;
     consumers["run_torque"]     = &TestConfigReader::run_torque;
+    consumers["init_mag_forces"] = &TestConfigReader::init_mag_forces;
+    consumers["run_mag_forces"] = &TestConfigReader::run_mag_forces;
+    consumers["run_spin"]       = &TestConfigReader::run_spin;
+    consumers["timestep"]       = &TestConfigReader::timestep;
 
     consumers["pair_style"] = &TestConfigReader::pair_style;
     consumers["pair_coeff"] = &TestConfigReader::pair_coeff;
@@ -246,6 +250,56 @@ void TestConfigReader::run_torque(const yaml_event_t &event)
         sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
         config.run_torque[tag] = xyz;
     }
+}
+
+void TestConfigReader::init_mag_forces(const yaml_event_t &event)
+{
+    config.init_mag_forces.clear();
+    config.init_mag_forces.resize(config.natoms + 1);
+    std::stringstream data((char *)event.data.scalar.value);
+    std::string line;
+
+    while (std::getline(data, line, '\n')) {
+        int tag;
+        coord_t xyz;
+        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
+        config.init_mag_forces[tag] = xyz;
+    }
+}
+
+void TestConfigReader::run_mag_forces(const yaml_event_t &event)
+{
+    config.run_mag_forces.clear();
+    config.run_mag_forces.resize(config.natoms + 1);
+    std::stringstream data((char *)event.data.scalar.value);
+    std::string line;
+
+    while (std::getline(data, line, '\n')) {
+        int tag;
+        coord_t xyz;
+        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
+        config.run_mag_forces[tag] = xyz;
+    }
+}
+
+void TestConfigReader::run_spin(const yaml_event_t &event)
+{
+    config.run_spin.clear();
+    config.run_spin.resize(config.natoms + 1);
+    std::stringstream data((char *)event.data.scalar.value);
+    std::string line;
+
+    while (std::getline(data, line, '\n')) {
+        int tag;
+        coord4_t xyzw;
+        sscanf(line.c_str(), "%d %lg %lg %lg %lg", &tag, &xyzw.x, &xyzw.y, &xyzw.z, &xyzw.w);
+        config.run_spin[tag] = xyzw;
+    }
+}
+
+void TestConfigReader::timestep(const yaml_event_t &event)
+{
+    config.timestep = atof((char *)event.data.scalar.value);
 }
 
 void TestConfigReader::pair_style(const yaml_event_t &event)

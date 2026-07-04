@@ -41,7 +41,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) : PairSpin(lmp)
+PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) :
+    PairSpin(lmp), sigma(nullptr), cut_spin_long(nullptr)
 {
   spinflag = 1;
 
@@ -268,7 +269,7 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
         fm[i][2] += fmi[2];
 
         if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-            evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
+            evdwl,ecoul,fi[0],fi[1],fi[2],-rij[0],-rij[1],-rij[2]);
       }
     }
   }

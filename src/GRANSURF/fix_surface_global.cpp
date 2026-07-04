@@ -144,7 +144,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
       if (nmodel == maxmodel) {
         maxmodel += DELTAMODEL;
         modeltypes = (ModelTypes *)
-          memory->srealloc(models,maxmodel*sizeof(ModelTypes),"surf/global:modeltypes");
+          memory->srealloc(modeltypes,maxmodel*sizeof(ModelTypes),"surf/global:modeltypes");
         models = (Granular_NS::GranularModel **)
           memory->srealloc(models,maxmodel*sizeof(Granular_NS::GranularModel *),
                            "surf/global:models");

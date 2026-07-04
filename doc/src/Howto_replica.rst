@@ -28,9 +28,9 @@ replicas are coupled together by springs to model a system of ring-polymers whic
 can represent the quantum nature of atom cores.
 
 The command-style replica methods above require LAMMPS to be built with
-the REPLICA package.  The ``fix tprpmd`` style instead lives in the
-EXTRA-FIX package, but it uses the same multi-partition launch model.
-See the :doc:`Build package <Build_package>` page for more info.
+the REPLICA package.  The ``fix tprpmd`` style also lives in the
+REPLICA package and uses the same multi-partition launch model.  See
+the :doc:`Build package <Build_package>` page for more info.
 
 In all these cases, you must run with one or more processors per
 replica.  The processors assigned to each replica are determined at

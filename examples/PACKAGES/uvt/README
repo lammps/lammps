@@ -1,5 +1,5 @@
 This directory contains minimal regression examples for the
-``fix tprpmd`` style in the EXTRA-FIX package.
+``fix tprpmd`` style in the REPLICA package.
 
 Files:
 
@@ -8,7 +8,7 @@ Files:
 - ``in.electron_tprpmd_restart`` continues from the restart written by
   ``in.electron_tprpmd`` and can be used to check restart continuity.
 
-Build LAMMPS with the EXTRA-FIX package enabled before running these
+Build LAMMPS with the REPLICA package enabled before running these
 examples.
 
 Run ``in.electron_tprpmd`` with a partitioned launch, for example

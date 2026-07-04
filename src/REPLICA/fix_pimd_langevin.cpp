@@ -500,20 +500,10 @@ void FixPIMDLangevin::init()
 
 void FixPIMDLangevin::setup(int vflag)
 {
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  imageint *image = atom->image;
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap(x[i], image[i]);
-  }
-
   if (method == NMPIMD) {
-    inter_replica_comm(x);
-    if (cmode == SINGLE_PROC)
-      nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
-    else if (cmode == MULTI_PROC)
-      nmpimd_transform(multirank_bufbeads, x, M_x2xp[universe->iworld]);
+    prepare_setup_normal_mode_coordinates();
   } else if (method == PIMD) {
+    unmap_coordinates(atom->x, atom->image);
     prepare_coordinates();
     if (cmode == SINGLE_PROC)
       spring_force();
@@ -530,21 +520,15 @@ void FixPIMDLangevin::setup(int vflag)
   compute_t_prim();
   compute_p_prim();
   if (method == NMPIMD) {
-    inter_replica_comm(x);
-    if (cmode == SINGLE_PROC)
-      nmpimd_transform(bufsortedall, x, M_xp2x[universe->iworld]);
-    else if (cmode == MULTI_PROC)
-      nmpimd_transform(multirank_bufbeads, x, M_xp2x[universe->iworld]);
-  }
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap_inv(x[i], image[i]);
+    finalize_setup_normal_mode_coordinates();
+  } else {
+    remap_coordinates(atom->x, atom->image);
   }
 
   post_force(vflag);
   compute_totke();
   end_of_step();
-  c_pe->addstep(update->ntimestep + 1);
-  c_press->addstep(update->ntimestep + 1);
+  schedule_common_computes();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -688,56 +672,26 @@ void FixPIMDLangevin::prepare_coordinates()
 
 void FixPIMDLangevin::post_force(int /*flag*/)
 {
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  double **f = atom->f;
-  imageint *image = atom->image;
-  tagint *tag = atom->tag;
-
-  if (atom->nmax > maxunwrap) reallocate_x_unwrap();
-  if (atom->nmax > maxxc) reallocate_xc();
-  for (int i = 0; i < nlocal; i++) {
-    x_unwrap[i][0] = x[i][0];
-    x_unwrap[i][1] = x[i][1];
-    x_unwrap[i][2] = x[i][2];
-  }
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) { domain->unmap(x_unwrap[i], image[i]); }
-  }
-  for (int i = 0; i < nlocal; i++) {
-    xc[i][0] = xcall[3 * (tag[i] - 1) + 0];
-    xc[i][1] = xcall[3 * (tag[i] - 1) + 1];
-    xc[i][2] = xcall[3 * (tag[i] - 1) + 2];
-  }
-
+  prepare_common_virial_state();
   compute_vir();
   compute_xf_vir();
   compute_cvir();
   compute_t_vir();
 
   if (method == PIMD) {
-    if (mapflag) {
-      for (int i = 0; i < nlocal; i++) { domain->unmap(x[i], image[i]); }
-    }
+    unmap_coordinates(atom->x, atom->image);
     prepare_coordinates();
     spring_force();
     compute_spring_energy();
     compute_t_prim();
-    if (mapflag) {
-      for (int i = 0; i < nlocal; i++) { domain->unmap_inv(x[i], image[i]); }
-    }
+    remap_coordinates(atom->x, atom->image);
   }
   compute_pote();
   if (method == NMPIMD) {
-    inter_replica_comm(f);
-    if (cmode == SINGLE_PROC)
-      nmpimd_transform(bufsortedall, f, M_x2xp[universe->iworld]);
-    else if (cmode == MULTI_PROC)
-      nmpimd_transform(multirank_bufbeads, f, M_x2xp[universe->iworld]);
+    prepare_normal_mode_forces();
   }
 
-  c_pe->addstep(update->ntimestep + 1);
-  c_press->addstep(update->ntimestep + 1);
+  schedule_common_computes();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1220,6 +1174,14 @@ void FixPIMDLangevin::inter_replica_comm(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 
+double **FixPIMDLangevin::normal_mode_transform_buffer()
+{
+  if (use_base_single_rank_comm()) return bufsortedall;
+  return multirank_bufbeads;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPIMDLangevin::inter_replica_comm_multirank(double **ptr)
 {
   if (atom->nmax > maxlocal) reallocate_multirank();
@@ -1643,6 +1605,14 @@ void FixPIMDLangevin::compute_totenthalpy()
 /* ----------------------------------------------------------------------
    pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
+
+void FixPIMDLangevin::schedule_common_computes()
+{
+  c_pe->addstep(update->ntimestep + 1);
+  c_press->addstep(update->ntimestep + 1);
+}
+
+/* ---------------------------------------------------------------------- */
 
 void FixPIMDLangevin::write_restart(FILE *fp)
 {

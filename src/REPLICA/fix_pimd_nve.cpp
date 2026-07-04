@@ -341,38 +341,18 @@ void FixPIMDNVE::init()
 
 void FixPIMDNVE::setup(int vflag)
 {
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  imageint *image = atom->image;
-
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap(x[i], image[i]);
-  }
-
-  inter_replica_comm(x);
-  if (cmode == SINGLE_PROC)
-    nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
-  else
-    nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
+  prepare_setup_normal_mode_coordinates();
   after_force_transform_hook();
   collect_xc();
   compute_spring_energy();
   compute_t_prim();
   compute_p_prim();
-  inter_replica_comm(x);
-  if (cmode == SINGLE_PROC)
-    nmpimd_transform(bufsortedall, x, M_xp2x[universe->iworld]);
-  else
-    nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap_inv(x[i], image[i]);
-  }
+  finalize_setup_normal_mode_coordinates();
 
   post_force(vflag);
   compute_totke();
   end_of_step();
-  c_pe->addstep(update->ntimestep + 1);
-  c_press->addstep(update->ntimestep + 1);
+  schedule_common_computes();
 }
 
 void FixPIMDNVE::initial_integrate(int /*vflag*/)
@@ -418,43 +398,17 @@ void FixPIMDNVE::final_integrate()
 
 void FixPIMDNVE::post_force(int /*flag*/)
 {
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  double **f = atom->f;
-  imageint *image = atom->image;
-  tagint *tag = atom->tag;
-
-  if (atom->nmax > maxunwrap) reallocate_x_unwrap();
-  if (atom->nmax > maxxc) reallocate_xc();
-  for (int i = 0; i < nlocal; i++) {
-    x_unwrap[i][0] = x[i][0];
-    x_unwrap[i][1] = x[i][1];
-    x_unwrap[i][2] = x[i][2];
-  }
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap(x_unwrap[i], image[i]);
-  }
-  for (int i = 0; i < nlocal; i++) {
-    xc[i][0] = xcall[3 * (tag[i] - 1) + 0];
-    xc[i][1] = xcall[3 * (tag[i] - 1) + 1];
-    xc[i][2] = xcall[3 * (tag[i] - 1) + 2];
-  }
-
+  prepare_common_virial_state();
   compute_vir();
   compute_xf_vir();
   compute_cvir();
   compute_t_vir();
 
   compute_pote();
-  inter_replica_comm(f);
-  if (cmode == SINGLE_PROC)
-    nmpimd_transform(bufsortedall, f, M_x2xp[universe->iworld]);
-  else
-    nmpimd_transform(bufbeads, f, M_x2xp[universe->iworld]);
+  prepare_normal_mode_forces();
   after_force_transform_hook();
 
-  c_pe->addstep(update->ntimestep + 1);
-  c_press->addstep(update->ntimestep + 1);
+  schedule_common_computes();
 }
 
 void FixPIMDNVE::end_of_step()
@@ -467,6 +421,86 @@ void FixPIMDNVE::end_of_step()
 void FixPIMDNVE::setup_subclass_state() {}
 
 void FixPIMDNVE::after_force_transform_hook() {}
+
+void FixPIMDNVE::unmap_coordinates(double **coords, imageint *image)
+{
+  if (!mapflag) return;
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) domain->unmap(coords[i], image[i]);
+}
+
+void FixPIMDNVE::remap_coordinates(double **coords, imageint *image)
+{
+  if (!mapflag) return;
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) domain->unmap_inv(coords[i], image[i]);
+}
+
+double **FixPIMDNVE::normal_mode_transform_buffer()
+{
+  if (cmode == SINGLE_PROC) return bufsortedall;
+  return bufbeads;
+}
+
+void FixPIMDNVE::forward_normal_mode_transform(double **ptr)
+{
+  inter_replica_comm(ptr);
+  nmpimd_transform(normal_mode_transform_buffer(), ptr, M_x2xp[universe->iworld]);
+}
+
+void FixPIMDNVE::backward_normal_mode_transform(double **ptr)
+{
+  inter_replica_comm(ptr);
+  nmpimd_transform(normal_mode_transform_buffer(), ptr, M_xp2x[universe->iworld]);
+}
+
+void FixPIMDNVE::prepare_setup_normal_mode_coordinates()
+{
+  unmap_coordinates(atom->x, atom->image);
+  forward_normal_mode_transform(atom->x);
+}
+
+void FixPIMDNVE::finalize_setup_normal_mode_coordinates()
+{
+  backward_normal_mode_transform(atom->x);
+  remap_coordinates(atom->x, atom->image);
+}
+
+void FixPIMDNVE::prepare_common_virial_state()
+{
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
+  imageint *image = atom->image;
+  tagint *tag = atom->tag;
+
+  if (atom->nmax > maxunwrap) reallocate_x_unwrap();
+  if (atom->nmax > maxxc) reallocate_xc();
+
+  for (int i = 0; i < nlocal; i++) {
+    x_unwrap[i][0] = x[i][0];
+    x_unwrap[i][1] = x[i][1];
+    x_unwrap[i][2] = x[i][2];
+  }
+  unmap_coordinates(x_unwrap, image);
+  for (int i = 0; i < nlocal; i++) {
+    xc[i][0] = xcall[3 * (tag[i] - 1) + 0];
+    xc[i][1] = xcall[3 * (tag[i] - 1) + 1];
+    xc[i][2] = xcall[3 * (tag[i] - 1) + 2];
+  }
+}
+
+void FixPIMDNVE::prepare_normal_mode_forces()
+{
+  forward_normal_mode_transform(atom->f);
+}
+
+void FixPIMDNVE::schedule_common_computes()
+{
+  c_pe->addstep(update->ntimestep + 1);
+  c_press->addstep(update->ntimestep + 1);
+}
 
 int FixPIMDNVE::subclass_restart_size() const
 {

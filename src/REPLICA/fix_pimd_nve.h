@@ -108,7 +108,7 @@ class FixPIMDNVE : public Fix {
   class Compute *c_press;
 
   void comm_init();
-  void inter_replica_comm(double **);
+  virtual void inter_replica_comm(double **);
   void reallocate();
   void reallocate_x_unwrap();
   void reallocate_xc();
@@ -121,6 +121,16 @@ class FixPIMDNVE : public Fix {
   void qc_step();
   void a_step();
   void remove_com_motion();
+  void unmap_coordinates(double **, imageint *);
+  void remap_coordinates(double **, imageint *);
+  virtual double **normal_mode_transform_buffer();
+  void forward_normal_mode_transform(double **);
+  void backward_normal_mode_transform(double **);
+  void prepare_setup_normal_mode_coordinates();
+  void finalize_setup_normal_mode_coordinates();
+  void prepare_common_virial_state();
+  void prepare_normal_mode_forces();
+  void schedule_common_computes();
 
   double estimator_atom_count(bool) const;
   double local_kinetic_energy_sum(bool) const;

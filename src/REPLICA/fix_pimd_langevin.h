@@ -88,7 +88,8 @@ class FixPIMDLangevin : public FixPIMDNVE {
   bool use_langevin_multirank_comm() const;
   void sync_base_physics_state();
   virtual void prepare_coordinates();
-  void inter_replica_comm(double **ptr);
+  double **normal_mode_transform_buffer() override;
+  void inter_replica_comm(double **ptr) override;
   void inter_replica_comm_multirank(double **ptr);
   void ring_collect(const std::vector<tagint> &miss_tag,
                                             double **ptr,
@@ -176,6 +177,7 @@ class FixPIMDLangevin : public FixPIMDNVE {
   void compute_xf_vir();
   void compute_cvir();
   void compute_totenthalpy();
+  void schedule_common_computes();
 
   int size_restart_global();
   int pack_restart_data(double *list);

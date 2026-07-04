@@ -402,6 +402,16 @@ void FixPIMDLangevin::sync_base_physics_state()
   this->FixPIMDNVE::fbond = fbond;
   this->FixPIMDNVE::kt = kt;
   this->FixPIMDNVE::hbar = hbar;
+  this->FixPIMDNVE::ke_bead = ke_bead;
+  this->FixPIMDNVE::se_bead = se_bead;
+  this->FixPIMDNVE::pe_bead = pe_bead;
+  this->FixPIMDNVE::tote = tote;
+  this->FixPIMDNVE::t_prim = t_prim;
+  this->FixPIMDNVE::t_vir = t_vir;
+  this->FixPIMDNVE::t_cv = t_cv;
+  this->FixPIMDNVE::p_prim = p_prim;
+  this->FixPIMDNVE::p_md = p_md;
+  this->FixPIMDNVE::p_cv = p_cv;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1564,6 +1574,14 @@ void FixPIMDLangevin::schedule_common_computes()
 {
   c_pe->addstep(update->ntimestep + 1);
   c_press->addstep(update->ntimestep + 1);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDLangevin::compute_vector(int n)
+{
+  sync_base_physics_state();
+  return FixPIMDNVE::compute_vector(n);
 }
 
 /* ---------------------------------------------------------------------- */

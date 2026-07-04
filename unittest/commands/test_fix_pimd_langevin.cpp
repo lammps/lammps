@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
+#include <cctype>
 #include <cstdlib>
 #include <functional>
 #include <mpi.h>
@@ -158,11 +159,50 @@ void setup_barostat_system(void *lmp)
 
 void cleanup_partition_restart(const std::string &prefix, int count)
 {
-  char suffix[8];
+  char suffix[16];
   for (int i = 1; i <= count; ++i) {
     snprintf(suffix, sizeof(suffix), ".%02d", i);
     platform::unlink((prefix + suffix).c_str());
   }
+}
+
+struct PartitionedLammpsHandle {
+  void *lmp = nullptr;
+
+  ~PartitionedLammpsHandle()
+  {
+    if (lmp) lammps_close(lmp);
+  }
+};
+
+struct RestartFileGuard {
+  std::string prefix;
+  int count = 0;
+
+  RestartFileGuard(std::string prefix_in, int count_in) :
+      prefix(std::move(prefix_in)), count(count_in)
+  {
+    cleanup_partition_restart(prefix, count);
+  }
+
+  ~RestartFileGuard() { cleanup_partition_restart(prefix, count); }
+};
+
+std::string sanitized_test_token(const std::string &value)
+{
+  std::string sanitized = value;
+  for (char &ch : sanitized) {
+    if (!std::isalnum(static_cast<unsigned char>(ch))) ch = '_';
+  }
+  return sanitized;
+}
+
+std::string unique_restart_prefix(const std::string &basename)
+{
+  const auto *info = ::testing::UnitTest::GetInstance()->current_test_info();
+  std::string suite = info ? sanitized_test_token(info->test_suite_name()) : "unknown_suite";
+  std::string name = info ? sanitized_test_token(info->name()) : "unknown_test";
+  return fmt::format("{}.{}.{}", basename, suite, name);
 }
 
 void *open_partitioned_lammps(int /*expected_procs*/, const char *partition)
@@ -195,27 +235,27 @@ void expect_reproducible_nvt_partitioned(const std::function<void(void *)> &setu
   std::vector<double> first;
 
   {
-    void *lmp = open_partitioned_lammps(expected_procs, partition);
-    ASSERT_NE(lmp, nullptr);
-    setup_commands(lmp);
-    fix_commands(lmp);
-    lammps_command(lmp, "run 2 post no");
-    first = fix_vector(lmp, "cp");
-    lammps_close(lmp);
+    PartitionedLammpsHandle handle;
+    handle.lmp = open_partitioned_lammps(expected_procs, partition);
+    ASSERT_NE(handle.lmp, nullptr);
+    setup_commands(handle.lmp);
+    fix_commands(handle.lmp);
+    lammps_command(handle.lmp, "run 2 post no");
+    first = fix_vector(handle.lmp, "cp");
   }
 
   {
-    void *lmp = open_partitioned_lammps(expected_procs, partition);
-    ASSERT_NE(lmp, nullptr);
-    setup_commands(lmp);
-    fix_commands(lmp);
-    lammps_command(lmp, "run 2 post no");
-    const auto second = fix_vector(lmp, "cp");
+    PartitionedLammpsHandle handle;
+    handle.lmp = open_partitioned_lammps(expected_procs, partition);
+    ASSERT_NE(handle.lmp, nullptr);
+    setup_commands(handle.lmp);
+    fix_commands(handle.lmp);
+    lammps_command(handle.lmp, "run 2 post no");
+    const auto second = fix_vector(handle.lmp, "cp");
     ASSERT_EQ(first.size(), second.size());
     for (size_t i = 0; i < first.size(); ++i) {
       EXPECT_NEAR(first[i], second[i], tolerance) << "index=" << i;
     }
-    lammps_close(lmp);
   }
 }
 
@@ -295,22 +335,21 @@ TEST_F(FixPIMDLangevinSerialTest, NuclearPrefixLayout)
 TEST(FixPIMDLangevinMPI, NMPIMDNVEOBABOP2)
 {
   if (!has_exact_procs(2)) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-  void *lmp = open_partitioned_lammps(2, "2x1");
-  ASSERT_NE(lmp, nullptr);
+  PartitionedLammpsHandle handle;
+  handle.lmp = open_partitioned_lammps(2, "2x1");
+  ASSERT_NE(handle.lmp, nullptr);
 
-  setup_partition_zero_pair_system(lmp);
-  lammps_command(lmp, "fix cp all pimd/langevin method nmpimd ensemble nve integrator obabo "
+  setup_partition_zero_pair_system(handle.lmp);
+  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble nve integrator obabo "
                      "temp 1.0 thermostat PILE_L 1234 fixcom no");
-  lammps_command(lmp, "run 0 post no");
-  double before = fix_value(lmp, "cp", pimd_langevin_test::TOTAL_ENERGY);
-  lammps_command(lmp, "run 10 post no");
-  double after = fix_value(lmp, "cp", pimd_langevin_test::TOTAL_ENERGY);
+  lammps_command(handle.lmp, "run 0 post no");
+  double before = fix_value(handle.lmp, "cp", pimd_langevin_test::TOTAL_ENERGY);
+  lammps_command(handle.lmp, "run 10 post no");
+  double after = fix_value(handle.lmp, "cp", pimd_langevin_test::TOTAL_ENERGY);
 
-  EXPECT_EQ(fix_vector_size(lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
-  expect_all_finite(lmp, "cp");
+  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
+  expect_all_finite(handle.lmp, "cp");
   EXPECT_NEAR(after, before, 1.0e-8);
-
-  lammps_close(lmp);
 }
 
 TEST(FixPIMDLangevinMPI, NMPIMDNVTBAOABP2)
@@ -328,37 +367,35 @@ TEST(FixPIMDLangevinMPI, NMPIMDNVTBAOABP2)
 TEST(FixPIMDLangevinMPI, NMPIMDNVTOBABOMultiRankPerBead)
 {
   if (!has_exact_procs(4)) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
-  void *lmp = open_partitioned_lammps(4, "2x2");
-  ASSERT_NE(lmp, nullptr);
+  PartitionedLammpsHandle handle;
+  handle.lmp = open_partitioned_lammps(4, "2x2");
+  ASSERT_NE(handle.lmp, nullptr);
 
-  setup_partition_lj_system(lmp);
-  lammps_command(lmp, "fix cp all pimd/langevin method nmpimd ensemble nvt integrator obabo "
+  setup_partition_lj_system(handle.lmp);
+  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble nvt integrator obabo "
                      "temp 0.8 sp 0.2 thermostat PILE_L 1234 tau 1.0 fixcom no");
-  lammps_command(lmp, "run 2 post no");
+  lammps_command(handle.lmp, "run 2 post no");
 
-  EXPECT_EQ(fix_vector_size(lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
-  expect_all_finite(lmp, "cp");
-  EXPECT_GT(lammps_get_natoms(lmp), 0.0);
-
-  lammps_close(lmp);
+  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
+  expect_all_finite(handle.lmp, "cp");
+  EXPECT_GT(lammps_get_natoms(handle.lmp), 0.0);
 }
 
 TEST(FixPIMDLangevinMPI, PIMDNVEOBABOP2)
 {
   if (!has_exact_procs(2)) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-  void *lmp = open_partitioned_lammps(2, "2x1");
-  ASSERT_NE(lmp, nullptr);
+  PartitionedLammpsHandle handle;
+  handle.lmp = open_partitioned_lammps(2, "2x1");
+  ASSERT_NE(handle.lmp, nullptr);
 
-  setup_partition_zero_pair_system(lmp);
-  lammps_command(lmp, "fix cp all pimd/langevin method pimd ensemble nve integrator obabo "
+  setup_partition_zero_pair_system(handle.lmp);
+  lammps_command(handle.lmp, "fix cp all pimd/langevin method pimd ensemble nve integrator obabo "
                      "temp 1.0 thermostat PILE_L 1234 fixcom no");
-  lammps_command(lmp, "run 2 post no");
+  lammps_command(handle.lmp, "run 2 post no");
 
-  EXPECT_EQ(fix_vector_size(lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
-  expect_all_finite(lmp, "cp");
-  EXPECT_GT(std::abs(fix_value(lmp, "cp", pimd_langevin_test::SE_BEAD)), 0.0);
-
-  lammps_close(lmp);
+  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
+  expect_all_finite(handle.lmp, "cp");
+  EXPECT_GT(std::abs(fix_value(handle.lmp, "cp", pimd_langevin_test::SE_BEAD)), 0.0);
 }
 
 TEST(FixPIMDLangevinMPI, PIMDNVTBAOABP2)
@@ -376,87 +413,83 @@ TEST(FixPIMDLangevinMPI, PIMDNVTBAOABP2)
 TEST(FixPIMDLangevinMPI, NMPIMDNPTBZP)
 {
   if (!has_exact_procs(4)) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
-  void *lmp = open_partitioned_lammps(4, "4x1");
-  ASSERT_NE(lmp, nullptr);
+  PartitionedLammpsHandle handle;
+  handle.lmp = open_partitioned_lammps(4, "4x1");
+  ASSERT_NE(handle.lmp, nullptr);
 
-  setup_barostat_system(lmp);
-  lammps_command(lmp, "fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo "
+  setup_barostat_system(handle.lmp);
+  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo "
                      "temp 0.8 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat BZP taup 1.0 "
                      "fixcom no");
-  lammps_command(lmp, "run 2 post no");
+  lammps_command(handle.lmp, "run 2 post no");
 
-  EXPECT_EQ(fix_vector_size(lmp, "cp"), pimd_langevin_test::kIsoBarostatVectorSize);
-  expect_all_finite(lmp, "cp");
-
-  lammps_close(lmp);
+  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kIsoBarostatVectorSize);
+  expect_all_finite(handle.lmp, "cp");
 }
 
 TEST(FixPIMDLangevinMPI, NMPIMDNPTMTTK)
 {
   if (!has_exact_procs(4)) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
-  void *lmp = open_partitioned_lammps(4, "4x1");
-  ASSERT_NE(lmp, nullptr);
+  PartitionedLammpsHandle handle;
+  handle.lmp = open_partitioned_lammps(4, "4x1");
+  ASSERT_NE(handle.lmp, nullptr);
 
-  setup_barostat_system(lmp);
-  lammps_command(lmp, "fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo "
+  setup_barostat_system(handle.lmp);
+  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo "
                      "temp 0.8 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat MTTK taup 1.0 "
                      "fixcom no");
-  lammps_command(lmp, "run 2 post no");
+  lammps_command(handle.lmp, "run 2 post no");
 
-  EXPECT_EQ(fix_vector_size(lmp, "cp"), pimd_langevin_test::kIsoBarostatVectorSize);
-  expect_all_finite(lmp, "cp");
-
-  lammps_close(lmp);
+  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kIsoBarostatVectorSize);
+  expect_all_finite(handle.lmp, "cp");
 }
 
 TEST(FixPIMDLangevinRestartTest, NMPIMDNVTRestartContinuation)
 {
   if (!has_exact_procs(2)) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-  void *lmp = open_partitioned_lammps(2, "2x1");
-  ASSERT_NE(lmp, nullptr);
+  PartitionedLammpsHandle handle;
+  handle.lmp = open_partitioned_lammps(2, "2x1");
+  ASSERT_NE(handle.lmp, nullptr);
+  RestartFileGuard restart_guard{unique_restart_prefix("pimd_langevin_nmpimd_nvt.restart"), 2};
 
-  setup_partition_zero_pair_system(lmp);
-  lammps_command(lmp, "variable beadid world 01 02");
-  lammps_command(lmp, "fix cp all pimd/langevin method nmpimd ensemble nvt integrator baoab "
+  setup_partition_zero_pair_system(handle.lmp);
+  lammps_command(handle.lmp, "variable beadid world 01 02");
+  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble nvt integrator baoab "
                      "temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
-  lammps_command(lmp, "run 2 post no");
-  lammps_command(lmp, "write_restart pimd_langevin_nmpimd_nvt.restart.${beadid}");
-  lammps_command(lmp, "clear");
-  lammps_command(lmp, "read_restart pimd_langevin_nmpimd_nvt.restart.${beadid}");
-  lammps_command(lmp, "fix cp all pimd/langevin method nmpimd ensemble nvt integrator baoab "
+  lammps_command(handle.lmp, "run 2 post no");
+  lammps_command(handle.lmp, fmt::format("write_restart {}.${{beadid}}", restart_guard.prefix).c_str());
+  lammps_command(handle.lmp, "clear");
+  lammps_command(handle.lmp, fmt::format("read_restart {}.${{beadid}}", restart_guard.prefix).c_str());
+  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble nvt integrator baoab "
                      "temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
-  lammps_command(lmp, "run 1 post no");
+  lammps_command(handle.lmp, "run 1 post no");
 
-  EXPECT_EQ(fix_vector_size(lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
-  expect_all_finite(lmp, "cp");
-
-  lammps_close(lmp);
-  cleanup_partition_restart("pimd_langevin_nmpimd_nvt.restart", 2);
+  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
+  expect_all_finite(handle.lmp, "cp");
 }
 
 TEST(FixPIMDLangevinRestartTest, PIMDNVTRestartContinuation)
 {
   if (!has_exact_procs(2)) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-  void *lmp = open_partitioned_lammps(2, "2x1");
-  ASSERT_NE(lmp, nullptr);
+  PartitionedLammpsHandle handle;
+  handle.lmp = open_partitioned_lammps(2, "2x1");
+  ASSERT_NE(handle.lmp, nullptr);
+  RestartFileGuard restart_guard{unique_restart_prefix("pimd_langevin_pimd_nvt.restart"), 2};
 
-  setup_partition_zero_pair_system(lmp);
-  lammps_command(lmp, "variable beadid world 01 02");
-  lammps_command(lmp, "fix cp all pimd/langevin method pimd ensemble nvt integrator baoab "
+  setup_partition_zero_pair_system(handle.lmp);
+  lammps_command(handle.lmp, "variable beadid world 01 02");
+  lammps_command(handle.lmp, "fix cp all pimd/langevin method pimd ensemble nvt integrator baoab "
                      "temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
-  lammps_command(lmp, "run 2 post no");
-  lammps_command(lmp, "write_restart pimd_langevin_pimd_nvt.restart.${beadid}");
-  lammps_command(lmp, "clear");
-  lammps_command(lmp, "read_restart pimd_langevin_pimd_nvt.restart.${beadid}");
-  lammps_command(lmp, "fix cp all pimd/langevin method pimd ensemble nvt integrator baoab "
+  lammps_command(handle.lmp, "run 2 post no");
+  lammps_command(handle.lmp, fmt::format("write_restart {}.${{beadid}}", restart_guard.prefix).c_str());
+  lammps_command(handle.lmp, "clear");
+  lammps_command(handle.lmp, fmt::format("read_restart {}.${{beadid}}", restart_guard.prefix).c_str());
+  lammps_command(handle.lmp, "fix cp all pimd/langevin method pimd ensemble nvt integrator baoab "
                      "temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
-  lammps_command(lmp, "run 1 post no");
+  lammps_command(handle.lmp, "run 1 post no");
 
-  EXPECT_EQ(fix_vector_size(lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
-  expect_all_finite(lmp, "cp");
-
-  lammps_close(lmp);
-  cleanup_partition_restart("pimd_langevin_pimd_nvt.restart", 2);
+  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
+  expect_all_finite(handle.lmp, "cp");
 }
 
 TEST(FixPIMDLangevinRestartTest, NMPIMDNPTBZPRestartContinuation)
@@ -464,30 +497,29 @@ TEST(FixPIMDLangevinRestartTest, NMPIMDNPTBZPRestartContinuation)
   const auto iso = pimd_langevin_test::iso_barostat_indices();
   if (!has_exact_procs(4)) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
 
-  void *lmp = open_partitioned_lammps(4, "4x1");
-  ASSERT_NE(lmp, nullptr);
+  PartitionedLammpsHandle handle;
+  handle.lmp = open_partitioned_lammps(4, "4x1");
+  ASSERT_NE(handle.lmp, nullptr);
+  RestartFileGuard restart_guard{unique_restart_prefix("pimd_langevin_npt_bzp.restart"), 4};
 
-  setup_barostat_system(lmp);
-  lammps_command(lmp, "variable beadid world 01 02 03 04");
-  lammps_command(lmp, "fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo "
+  setup_barostat_system(handle.lmp);
+  lammps_command(handle.lmp, "variable beadid world 01 02 03 04");
+  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo "
                      "temp 0.8 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat BZP taup 1.0 "
                      "fixcom no");
-  lammps_command(lmp, "run 2 post no");
-  const double vw_before = fix_value(lmp, "cp", iso.vw0);
-  lammps_command(lmp, "write_restart pimd_langevin_npt_bzp.restart.${beadid}");
-  lammps_command(lmp, "clear");
-  lammps_command(lmp, "read_restart pimd_langevin_npt_bzp.restart.${beadid}");
-  lammps_command(lmp, "fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo "
+  lammps_command(handle.lmp, "run 2 post no");
+  const double vw_before = fix_value(handle.lmp, "cp", iso.vw0);
+  lammps_command(handle.lmp, fmt::format("write_restart {}.${{beadid}}", restart_guard.prefix).c_str());
+  lammps_command(handle.lmp, "clear");
+  lammps_command(handle.lmp, fmt::format("read_restart {}.${{beadid}}", restart_guard.prefix).c_str());
+  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo "
                      "temp 0.8 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat BZP taup 1.0 "
                      "fixcom no");
-  lammps_command(lmp, "run 0 post no");
+  lammps_command(handle.lmp, "run 0 post no");
 
-  EXPECT_EQ(fix_vector_size(lmp, "cp"), pimd_langevin_test::kIsoBarostatVectorSize);
-  EXPECT_NEAR(fix_value(lmp, "cp", iso.vw0), vw_before, 1.0e-12);
-  expect_all_finite(lmp, "cp");
-
-  lammps_close(lmp);
-  cleanup_partition_restart("pimd_langevin_npt_bzp.restart", 4);
+  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kIsoBarostatVectorSize);
+  EXPECT_NEAR(fix_value(handle.lmp, "cp", iso.vw0), vw_before, 1.0e-12);
+  expect_all_finite(handle.lmp, "cp");
 }
 
 TEST(FixPIMDLangevinExpectedErrorTest, PIMDRejectsMultipleRanksPerBead)

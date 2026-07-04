@@ -90,7 +90,7 @@ hardware.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *collective/self/copy* keyword applies only to PPPM and only when
 *collective* is set to *yes*.  It controls whether data remapped to the
@@ -432,7 +432,7 @@ option is explained in the paper by :ref:`(Yeh) <Yeh>`.  The *slab*
 option is also extended to non-neutral systems :ref:`(Ballenegger)
 <Ballenegger>`.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 As an alternative to specifying a fixed volfactor, the keyword
 *auto* can be used to determine the extended z dimension from the
@@ -477,7 +477,7 @@ interactions :ref:`(Klapp) <Klapp>` in :doc:`kspace_style
 This dipole slab correction is currently limited to orthogonal
 (non-triclinic) simulation cells.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    The *slab* correction with a *volfactor* value now supports triclinic
    simulation cells for the *ewald*, *ewald/disp*, *pppm*, *pppm/cg*, and

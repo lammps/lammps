@@ -1562,18 +1562,21 @@ int Modify::read_restart(FILE *fp)
   for (int i = 0; i < nfix_restart_global; i++) {
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     id_restart_global[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, id_restart_global[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(id_restart_global[i], n, MPI_CHAR, 0, world);
 
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     style_restart_global[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, style_restart_global[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(style_restart_global[i], n, MPI_CHAR, 0, world);
 
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > (1 << 30))) error->all(FLERR, "Invalid fix data size in restart file");
     state_restart_global[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, state_restart_global[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(state_restart_global[i], n, MPI_CHAR, 0, world);
@@ -1606,12 +1609,14 @@ int Modify::read_restart(FILE *fp)
   for (int i = 0; i < nfix_restart_peratom; i++) {
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     id_restart_peratom[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, id_restart_peratom[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(id_restart_peratom[i], n, MPI_CHAR, 0, world);
 
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     style_restart_peratom[i] = new char[n];
     if (me == 0)
       utils::sfread(FLERR, style_restart_peratom[i], sizeof(char), n, fp, nullptr, error);

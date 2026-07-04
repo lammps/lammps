@@ -85,3 +85,27 @@ void Memory::sfree(void *ptr)
 ------------------------------------------------------------------------- */
 
 }    // namespace LAMMPS_NS
+
+/* ----------------------------------------------------------------------
+   Kokkos::abort -- external Kokkos library
+
+   Kokkos::abort terminates execution, but its inline definition splits
+   into host and device branches and, depending on backend and version,
+   not every branch is annotated noreturn, so the analyzer continues on
+   paths that cannot be reached.  Several KOKKOS styles guard divisions
+   with Kokkos::abort; without this model those guards are invisible and
+   the guarded divisions are reported as divide-by-zero (e.g. CIDs
+   1663023, 1663121, 1663371, 1663376).  This is library code we cannot
+   annotate, hence a model is appropriate.
+------------------------------------------------------------------------- */
+
+namespace Kokkos {
+
+void abort(const char *const message);
+
+void abort(const char *const)
+{
+  __coverity_panic__();
+}
+
+}    // namespace Kokkos

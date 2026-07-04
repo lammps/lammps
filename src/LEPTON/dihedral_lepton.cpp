@@ -452,7 +452,7 @@ void DihedralLepton::read_restart(FILE *fp)
   }
   MPI_Bcast(&num, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxlen, 1, MPI_INT, 0, world);
-  if ((num < 0) || (maxlen < 0) || (maxlen > 65536))
+  if ((num < 0) || (num > 65536) || (maxlen < 0) || (maxlen > 65536))
     error->all(FLERR, "Invalid expression data in restart file");
 
   char *buf = new char[maxlen];

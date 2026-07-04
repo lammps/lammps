@@ -39,6 +39,11 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
 {
   options(narg - 9, &arg[9]);
 
+  // defaults, overwritten during parsing below
+
+  radiuslo = radiushi = 0.0;
+  rlostyle = rhistyle = CONSTANT;
+
   // check open face settings
 
   if (openflag)

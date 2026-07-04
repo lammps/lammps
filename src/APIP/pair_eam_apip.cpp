@@ -73,6 +73,7 @@ PairEAMAPIP::PairEAMAPIP(LAMMPS *lmp) : Pair(lmp)
 
   lambda_thermostat = true;
   lambda_la = true;
+  cutforcesq = 0.0;
 }
 
 /* ----------------------------------------------------------------------

@@ -152,7 +152,7 @@ void FixGranularMDR::setup_pre_force(int /*vflag*/)
       error->all(FLERR, Error::NOLASTLINE,
                  "Fix wall/gran/region must use an MDR normal model when using an MDR pair model");
 
-    norm_model2 = dynamic_cast<GranSubModNormalMDR *>(fix->model->normal_model);
+    norm_model2 = fix ? dynamic_cast<GranSubModNormalMDR *>(fix->model->normal_model) : nullptr;
 
     if (norm_model && norm_model2 && fabs(norm_model->get_emod() - norm_model2->get_emod()) > EPSILON)
       error->all(

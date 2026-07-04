@@ -1146,6 +1146,8 @@ void FixIMD::handle_step_v2() {
           break;
 
         case IMD_MDCOMM: {
+          if ((length < 0) || (length > num_coords))
+            error->one(FLERR, "Invalid IMD forces message length: {}", length);
           auto *imd_tags = new int32[length];
           auto *imd_fdat = new float[3*length];
           imd_recv_mdcomm(clientsock, length, imd_tags, imd_fdat);
@@ -1472,6 +1474,8 @@ void FixIMD::handle_client_input_v3() {
           break;
 
         case IMD_MDCOMM: {
+          if ((length < 0) || (length > num_coords))
+            error->one(FLERR, "Invalid IMD forces message length: {}", length);
           auto *imd_tags = new int32[length];
           auto *imd_fdat = new float[3*length];
           imd_recv_mdcomm(clientsock, length, imd_tags, imd_fdat);

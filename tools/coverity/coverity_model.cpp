@@ -25,8 +25,6 @@
    goes inert.
 ------------------------------------------------------------------------- */
 
-
-
 namespace LAMMPS_NS {
 
 // Must match the typedef in src/lmptype.h for the analyzed build.

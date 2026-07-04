@@ -51,12 +51,6 @@ static const char cite_fix_orient_eco[] =
   " url = {https://doi.org/10.1016/j.commatsci.2020.109774}\n"
   "}\n\n";
 
-struct FixOrientECO::Nbr {
-  double duchi;            // potential derivative
-  double real_phi[2][3];   // real part of wave function
-  double imag_phi[2][3];   // imaginary part of wave function
-};
-
 /* ---------------------------------------------------------------------- */
 
 FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :

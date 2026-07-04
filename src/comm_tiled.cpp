@@ -43,7 +43,16 @@ static constexpr int DELTA_PROCS = 16;
 
 /* ---------------------------------------------------------------------- */
 
-CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
+CommTiled::CommTiled(LAMMPS *lmp) :
+    Comm(lmp), nsendproc(nullptr), nrecvproc(nullptr), sendother(nullptr), recvother(nullptr),
+    sendself(nullptr), nprocmax(nullptr), sendproc(nullptr), recvproc(nullptr), sendnum(nullptr),
+    recvnum(nullptr), size_forward_recv(nullptr), firstrecv(nullptr), size_reverse_send(nullptr),
+    size_reverse_recv(nullptr), forward_recv_offset(nullptr), reverse_recv_offset(nullptr),
+    sendlist(nullptr), maxsendlist(nullptr), pbc_flag(nullptr), pbc(nullptr), sendbox(nullptr),
+    cutghostmulti(nullptr), sendbox_multi(nullptr), nexchproc(nullptr), nexchprocmax(nullptr),
+    exchproc(nullptr), exchnum(nullptr), buf_send(nullptr), buf_recv(nullptr), requests(nullptr),
+    rcbinfo(nullptr), overlap(nullptr), prd(nullptr), boxlo(nullptr), boxhi(nullptr),
+    sublo(nullptr), subhi(nullptr)
 {
   style = Comm::TILED;
   layout = Comm::LAYOUT_UNIFORM;

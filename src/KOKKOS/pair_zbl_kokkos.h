@@ -43,6 +43,8 @@ class PairZBLKokkos : public PairZBL {
   void init_style() override;
   double init_one(int, int) override;
 
+  class TuneKokkos* tuner;
+
  private:
   DAT::tdual_kkfloat_1d k_z;
   DAT::tdual_kkfloat_2d_dl k_d1a,k_d2a,k_d3a,k_d4a,k_zze,k_sw1,k_sw2,k_sw3,k_sw4,k_sw5;

@@ -44,8 +44,8 @@ static constexpr int PRNGSIZE = 98+2+3;
 /* ---------------------------------------------------------------------- */
 
 FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  vhold(nullptr), tstr(nullptr), id_temp(nullptr), random(nullptr)
+    Fix(lmp, narg, arg), vhold(nullptr), tstr(nullptr), id_temp(nullptr), temperature(nullptr),
+    random(nullptr)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix temp/csld command");
 
@@ -341,4 +341,11 @@ void *FixTempCSLD::extract(const char *str, int &dim)
     return &t_target;
   }
   return nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixTempCSLD::memory_usage()
+{
+  return (double) nmax * 3 * sizeof(double);    // vhold[nmax][3]
 }

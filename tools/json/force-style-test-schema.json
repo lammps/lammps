@@ -1,0 +1,258 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://download.lammps.org/json/force-style-test-schema.json",
+    "title": "JSON schema for LAMMPS force-style regression test reference files (unittest/force-styles)",
+    "description": "Version 0.1; last updated 2026-06-13",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "lammps_version": {
+            "type": "string",
+            "description": "LAMMPS version used to last update the reference data"
+        },
+        "date_generated": {
+            "type": "string",
+            "description": "date when the file was last updated"
+        },
+        "epsilon": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "base value for the relative precision required for tests to pass"
+        },
+        "skip_tests": {
+            "type": ["string", "null"],
+            "description": "space separated list of test fixtures to skip"
+        },
+        "tags": {
+            "type": ["string", "null"],
+            "description": "space separated list of tags classifying the test or adjusting fixture behavior"
+        },
+        "prerequisites": {
+            "type": "string",
+            "description": "list of style kind / style name pairs required to run the test"
+        },
+        "pre_commands": {
+            "type": ["string", "null"],
+            "description": "LAMMPS commands to be executed before the input template file is read (empty allowed)"
+        },
+        "post_commands": {
+            "type": ["string", "null"],
+            "description": "LAMMPS commands to be executed right before the actual tests (empty allowed)"
+        },
+        "input_file": {
+            "type": "string",
+            "description": "name of the LAMMPS input file template"
+        },
+        "input_coeffs": {
+            "type": "string",
+            "description": "name of the file with the force-field/group setup commands (test_fix_timestep only)"
+        },
+        "natoms": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "number of atoms in the input file template"
+        },
+        "pair_style": {
+            "type": "string",
+            "description": "arguments to the pair_style command to be tested"
+        },
+        "pair_coeff": {
+            "type": "string",
+            "description": "list of pair_coeff arguments to set parameters for the input template"
+        },
+        "init_vdwl": {
+            "type": "number",
+            "description": "non-Coulomb pair energy after \"run 0\""
+        },
+        "init_coul": {
+            "type": "number",
+            "description": "Coulomb pair energy after \"run 0\""
+        },
+        "run_vdwl": {
+            "type": "number",
+            "description": "non-Coulomb pair energy after \"run 4\""
+        },
+        "run_coul": {
+            "type": "number",
+            "description": "Coulomb pair energy after \"run 4\""
+        },
+        "bond_style": {
+            "type": "string",
+            "description": "arguments to the bond_style command to be tested"
+        },
+        "bond_coeff": {
+            "type": "string",
+            "description": "list of bond_coeff arguments to set parameters"
+        },
+        "angle_style": {
+            "type": "string",
+            "description": "arguments to the angle_style command to be tested"
+        },
+        "angle_coeff": {
+            "type": "string",
+            "description": "list of angle_coeff arguments to set parameters"
+        },
+        "dihedral_style": {
+            "type": "string",
+            "description": "arguments to the dihedral_style command to be tested"
+        },
+        "dihedral_coeff": {
+            "type": "string",
+            "description": "list of dihedral_coeff arguments to set parameters"
+        },
+        "improper_style": {
+            "type": "string",
+            "description": "arguments to the improper_style command to be tested"
+        },
+        "improper_coeff": {
+            "type": "string",
+            "description": "list of improper_coeff arguments to set parameters"
+        },
+        "equilibrium": {
+            "type": "string",
+            "description": "equilibrium distance (bond) or angle (angle) for each type"
+        },
+        "init_energy": {
+            "type": "number",
+            "description": "bonded interaction energy after \"run 0\""
+        },
+        "run_energy": {
+            "type": "number",
+            "description": "bonded interaction energy after \"run 4\""
+        },
+        "extract": {
+            "type": ["string", "null"],
+            "description": "list of keywords supported by the style's extract() method and their dimension (empty allowed)"
+        },
+        "init_stress": {
+            "type": "string",
+            "description": "stress tensor after \"run 0\""
+        },
+        "init_forces": {
+            "type": "string",
+            "description": "forces on atoms after \"run 0\""
+        },
+        "run_stress": {
+            "type": "string",
+            "description": "stress tensor after the run"
+        },
+        "run_forces": {
+            "type": "string",
+            "description": "forces on atoms after \"run 4\""
+        },
+        "run_pos": {
+            "type": "string",
+            "description": "per-atom positions after the run"
+        },
+        "run_vel": {
+            "type": "string",
+            "description": "per-atom velocities after the run"
+        },
+        "run_torque": {
+            "type": "string",
+            "description": "per-atom torques after the run, where applicable"
+        },
+        "global_scalar": {
+            "type": "number",
+            "description": "the global scalar output of the tested fix, if any"
+        },
+        "global_vector": {
+            "type": "string",
+            "description": "the global vector output of the tested fix, if any"
+        }
+    },
+    "required": [
+        "lammps_version",
+        "date_generated",
+        "epsilon",
+        "prerequisites",
+        "pre_commands",
+        "post_commands",
+        "input_file",
+        "natoms"
+    ],
+    "oneOf": [
+        {
+            "title": "test_pair_style reference",
+            "required": [
+                "pair_style",
+                "pair_coeff",
+                "init_vdwl",
+                "init_coul",
+                "run_vdwl",
+                "run_coul",
+                "extract",
+                "init_stress",
+                "init_forces",
+                "run_stress",
+                "run_forces"
+            ]
+        },
+        {
+            "title": "test_bond_style reference",
+            "required": [
+                "bond_style",
+                "bond_coeff",
+                "equilibrium",
+                "init_energy",
+                "run_energy",
+                "extract",
+                "init_stress",
+                "init_forces",
+                "run_stress",
+                "run_forces"
+            ]
+        },
+        {
+            "title": "test_angle_style reference",
+            "required": [
+                "angle_style",
+                "angle_coeff",
+                "equilibrium",
+                "init_energy",
+                "run_energy",
+                "extract",
+                "init_stress",
+                "init_forces",
+                "run_stress",
+                "run_forces"
+            ]
+        },
+        {
+            "title": "test_dihedral_style reference",
+            "required": [
+                "dihedral_style",
+                "dihedral_coeff",
+                "init_energy",
+                "run_energy",
+                "extract",
+                "init_stress",
+                "init_forces",
+                "run_stress",
+                "run_forces"
+            ]
+        },
+        {
+            "title": "test_improper_style reference",
+            "required": [
+                "improper_style",
+                "improper_coeff",
+                "init_energy",
+                "run_energy",
+                "extract",
+                "init_stress",
+                "init_forces",
+                "run_stress",
+                "run_forces"
+            ]
+        },
+        {
+            "title": "test_fix_timestep reference",
+            "required": [
+                "input_coeffs",
+                "run_pos",
+                "run_vel"
+            ]
+        }
+    ]
+}

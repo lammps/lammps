@@ -557,7 +557,7 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & VARIABLES) {
-    int nvar = input->variable->nvar;
+    int nvar = input->variable->get_nvar();
     fputs("\nVariable information:\n",out);
     for (int i=0; i < nvar; ++i)
       utils::print(out, get_variable_info(i));
@@ -1071,6 +1071,7 @@ bool Info::has_package(const std::string &package_name) {
 extern bool lmp_gpu_config(const std::string &, const std::string &);
 extern bool lmp_has_compatible_gpu_device();
 extern std::string lmp_gpu_device_info();
+extern void lmp_gpu_defer_device_clear(int);
 
 // we will only report compatible GPUs, i.e. when a GPU device is
 // available *and* supports the required floating point precision
@@ -1083,6 +1084,13 @@ std::string Info::get_gpu_device_info()
 {
   return lmp_gpu_device_info();
 }
+
+// defer (or restore) the GPU package device teardown. used only by the test
+// harness so the GPU package does not reset a device the KOKKOS package shares.
+void Info::gpu_defer_device_clear(int flag)
+{
+  lmp_gpu_defer_device_clear(flag);
+}
 #else
 bool Info::has_gpu_device()
 {
@@ -1091,6 +1099,25 @@ bool Info::has_gpu_device()
 std::string Info::get_gpu_device_info()
 {
   return "";
+}
+void Info::gpu_defer_device_clear(int)
+{
+}
+#endif
+
+#if defined(LMP_KOKKOS)
+extern bool lmp_has_compatible_kokkos_gpu();
+
+// report whether the KOKKOS package can access a compatible GPU device.
+// returns false for host-only KOKKOS builds or when no GPU is available.
+bool Info::has_kokkos_gpu_device()
+{
+  return lmp_has_compatible_kokkos_gpu();
+}
+#else
+bool Info::has_kokkos_gpu_device()
+{
+  return false;
 }
 #endif
 
@@ -1171,9 +1198,7 @@ bool Info::has_accelerator_feature(const std::string &package,
       else return false;
     }
     if (category == "api") {
-#if defined(LMP_INTEL_OFFLOAD)
-      if (setting == "phi") return true;
-#elif defined(_OPENMP)
+#if defined(_OPENMP)
       if (setting == "openmp") return true;
 #else
       if (setting == "serial") return true;
@@ -1239,7 +1264,6 @@ std::string Info::get_accelerator_info(const std::string &package)
   }
   if ((package.empty() || (package == "INTEL")) && has_package("INTEL")) {
     mesg += "INTEL package API:";
-    if (has_accelerator_feature("INTEL","api","phi"))      mesg += " Phi";
     if (has_accelerator_feature("INTEL","api","openmp"))   mesg += " OpenMP";
     mesg +=  "\nINTEL package precision:";
     if (has_accelerator_feature("INTEL","precision","single")) mesg += " single";
@@ -1407,40 +1431,20 @@ void Info::get_memory_info(double *meminfo)
 
 /* ---------------------------------------------------------------------- */
 
-char **Info::get_variable_names(int &num) {
-  num = input->variable->nvar;
-  return input->variable->names;
+std::vector<std::string> Info::get_variable_names(int &num) {
+  num = input->variable->get_nvar();
+  std::vector<std::string> names;
+  for (int i=0; i < num; ++i) {
+    const auto *n =input->variable->get_name(i);
+    names.emplace_back(n ? n : "(unknown)");
+  }
+  return names;
 }
 
 /* ---------------------------------------------------------------------- */
 
 std::string Info::get_variable_info(int num) {
-  int *style = input->variable->style;
-  char **names = input->variable->names;
-  char ***data = input->variable->data;
-  std::string text;
-  int ndata = 1;
-  if (style[num] == Variable::UNASSIGNED) {
-    text = fmt::format("Variable[{:3d}]: (deleted),        style = {:16}  def =", num,
-                       Variable::varstyles[style[num]] + ',');
-  } else {
-    text = fmt::format("Variable[{:3d}]: {:16}  style = {:16}  def =", num,
-                     std::string(names[num]) + ',', Variable::varstyles[style[num]] + ',');
-  }
-  if (style[num] == Variable::INTERNAL) {
-    text += fmt::format("{:.8}\n",input->variable->dvalue[num]);
-    return text;
-  }
-
-  if ((style[num] != Variable::LOOP) && (style[num] != Variable::ULOOP))
-    ndata = input->variable->num[num];
-  else
-    input->variable->retrieve(names[num]);
-
-  for (int j=0; j < ndata; ++j)
-    if (data[num][j]) text += fmt::format(" {}",data[num][j]);
-  text += "\n";
-  return text;
+  return input->variable->get_info(num);
 }
 
 /* ---------------------------------------------------------------------- */

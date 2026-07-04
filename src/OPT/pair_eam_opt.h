@@ -24,9 +24,7 @@ PairStyle(eam/opt,PairEAMOpt);
 
 namespace LAMMPS_NS {
 
-// use virtual public since this class is parent in multiple inheritance
-
-class PairEAMOpt : virtual public PairEAM {
+class PairEAMOpt : public PairEAM {
  public:
   PairEAMOpt(class LAMMPS *);
 

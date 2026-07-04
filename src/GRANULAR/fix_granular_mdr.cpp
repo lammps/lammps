@@ -52,12 +52,11 @@ enum { COMM_1, COMM_2 };
 
 /* ---------------------------------------------------------------------- */
 
-FixGranularMDR::FixGranularMDR(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixGranularMDR::FixGranularMDR(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), id_fix(nullptr), pair(nullptr), fix_history(nullptr)
 {
   comm_forward = 5;
   create_attribute = 1;
-
-  id_fix = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

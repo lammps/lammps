@@ -36,8 +36,8 @@ static constexpr double EPSILON_BLOCK = 1.0e-3;
 /* ---------------------------------------------------------------------- */
 
 AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) :
-    AtomVec(lmp), bonus(nullptr), bonus_super(nullptr), ellipsoid(nullptr), rmass(nullptr),
-    angmom(nullptr), quat_hold(nullptr)
+    AtomVec(lmp), bonus(nullptr), bonus_super(nullptr), ellipsoid(nullptr), radius(nullptr),
+    rmass(nullptr), angmom(nullptr), quat_hold(nullptr)
 {
   molecular = Atom::ATOMIC;
   bonus_flag = 1;
@@ -735,7 +735,6 @@ int AtomVecEllipsoid::pack_data_bonus(double *buf, int /*flag*/)
 {
   int i, j;
 
-  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int m = 0;

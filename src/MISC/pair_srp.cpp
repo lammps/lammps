@@ -71,7 +71,7 @@ int srp_instance = 0;
  set size of pair comms in constructor
  ---------------------------------------------------------------------- */
 
-PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
+PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), cut(nullptr), a0(nullptr), srp(nullptr)
 {
   writedata = 1;
   single_enable = 0;
@@ -731,4 +731,13 @@ void PairSRP::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&exclude,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairSRP::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) maxcount * 2 * sizeof(int);    // segment[maxcount][2]
+  return bytes;
 }

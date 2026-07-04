@@ -38,7 +38,9 @@ static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDExt::PairDPDExt(LAMMPS *lmp) : Pair(lmp)
+PairDPDExt::PairDPDExt(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), a0(nullptr), gamma(nullptr), gammaT(nullptr), sigma(nullptr),
+    sigmaT(nullptr), ws(nullptr), wsT(nullptr)
 {
   writedata = 1;
   random = nullptr;

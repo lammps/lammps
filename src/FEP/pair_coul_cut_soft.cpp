@@ -33,7 +33,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCutSoft::PairCoulCutSoft(LAMMPS *lmp) : Pair(lmp) {
+PairCoulCutSoft::PairCoulCutSoft(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), lambda(nullptr), lam1(nullptr), lam2(nullptr)
+{
   centroidstressflag = CENTROID_SAME;
 }
 

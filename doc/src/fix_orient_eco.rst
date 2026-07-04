@@ -1,7 +1,10 @@
 .. index:: fix orient/eco
+.. index:: fix orient/eco/omp
 
 fix orient/eco command
 ======================
+
+Accelerator Variants: *orient/eco/omp*
 
 
 .. parsed-literal::
@@ -118,6 +121,12 @@ the thermal masking value for each atom.  Both are described above.
 
 No parameter of this fix can be used with the start/stop keywords of
 the run command. This fix is not invoked during energy minimization.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

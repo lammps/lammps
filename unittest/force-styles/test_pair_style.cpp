@@ -858,10 +858,11 @@ std::vector<double> eatom_direct(LAMMPS *lmp, bool with_virial)
 
     lmp->update->eflag_atom  = lmp->update->ntimestep;
     lmp->update->eflag_global = lmp->update->ntimestep;
+    // request the same global-virial mode the integrator would use;
+    // per-atom virial support is not universal (e.g. pair rann)
     int vflag = 0;
     if (with_virial) {
-        vflag = VIRIAL_PAIR | VIRIAL_ATOM;
-        lmp->update->vflag_atom   = lmp->update->ntimestep;
+        vflag = lmp->force->pair->no_virial_fdotr_compute ? VIRIAL_PAIR : VIRIAL_FDOTR;
         lmp->update->vflag_global = lmp->update->ntimestep;
     }
     lmp->force->pair->compute(ENERGY_GLOBAL | ENERGY_ATOM, vflag);
@@ -894,11 +895,21 @@ void eatom_only_test(LAMMPS::argv args, const TestConfig &cfg)
     if (verbose) std::cout << output;
     if (!lmp) GTEST_SKIP();
 
+    // exception safety matters here: leaving the capturer active on a
+    // throw aborts the whole test program at the next captured section
     ::testing::internal::CaptureStdout();
-    lmp->input->one("compute peaonly all pe/atom pair");
-    lmp->input->one("run 0 post no");
-    auto reference = eatom_direct(lmp, true);
-    auto eonly     = eatom_direct(lmp, false);
+    std::vector<double> reference, eonly;
+    try {
+        lmp->input->one("compute peaonly all pe/atom pair");
+        lmp->input->one("run 0 post no");
+        reference = eatom_direct(lmp, true);
+        eonly     = eatom_direct(lmp, false);
+    } catch (std::exception &e) {
+        std::string errout = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << errout;
+        cleanup_lammps(lmp, cfg);
+        FAIL() << e.what();
+    }
     cleanup_lammps(lmp, cfg);
     ::testing::internal::GetCapturedStdout();
 

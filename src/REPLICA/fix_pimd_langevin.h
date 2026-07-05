@@ -99,7 +99,6 @@ class FixPIMDLangevin : public FixPIMDNVE {
 
   /* Langevin integration */
 
-  double dtv, dtf, dtv2, dtv3;
   double gamma, c1, c2, tau;
   double *tau_k, *c1_k, *c2_k;
   double pilescale;

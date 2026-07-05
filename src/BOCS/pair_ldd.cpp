@@ -77,7 +77,10 @@ constexpr char cite_pair_ldd2_c[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairLdd::PairLdd(LAMMPS *lmp) : Pair(lmp)
+PairLdd::PairLdd(LAMMPS *lmp) :
+    Pair(lmp), self_interaction(nullptr), ignore_pair(nullptr), ignore_me(nullptr),
+    bGradient(nullptr), Inds(nullptr), Potls(nullptr), GradPotls(nullptr), local_density(nullptr),
+    grad_density(nullptr), ld_energy(nullptr), ld_grad_energy(nullptr), total_energy(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_ldd1_c);
   if (lmp->citeme) lmp->citeme->add(cite_pair_ldd2_c);
@@ -94,18 +97,7 @@ PairLdd::PairLdd(LAMMPS *lmp) : Pair(lmp)
   comm_forward = 4 * atom->ntypes;
   comm_reverse = 4 * atom->ntypes;
 
-  // Initialize these to NULL
-  Inds = nullptr;
-  Potls = nullptr;
-  GradPotls = nullptr;
-
-  // per-atom local-density arrays owned by this pair style (see header)
   nmax = 0;
-  local_density = nullptr;
-  grad_density = nullptr;
-  ld_energy = nullptr;
-  ld_grad_energy = nullptr;
-  total_energy = nullptr;
 
   map = new int[atom->ntypes + 1];
 }
@@ -145,7 +137,6 @@ PairLdd::~PairLdd()
   memory->destroy(ld_energy);
   memory->destroy(ld_grad_energy);
   memory->destroy(total_energy);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -535,8 +526,7 @@ void PairLdd::coeff_ldd(int si, int sj, int narg, char **arg)
       if (si == sj)
         self_interaction[si][sj] = true;
       else
-        error->warning(FLERR,
-                       "ldd self interaction requested for distinct species {} {}; ignoring",
+        error->warning(FLERR, "ldd self interaction requested for distinct species {} {}; ignoring",
                        elements[si], elements[sj]);
     }
   }
@@ -851,7 +841,7 @@ void PairLdd::read_file(char *filename)
   }
 
   // track which ordered species pairs have been defined (duplicate/completeness checks)
-  std::vector<int> seen((std::size_t)nelements * nelements, 0);
+  std::vector<int> seen((std::size_t) nelements * nelements, 0);
 
   char line[MAXLINE];
   int done = 0;

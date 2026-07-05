@@ -37,7 +37,16 @@ static constexpr double SMALL =     0.0000001;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralClass2::DihedralClass2(LAMMPS *lmp) : Dihedral(lmp)
+DihedralClass2::DihedralClass2(LAMMPS *lmp) :
+    Dihedral(lmp), k1(nullptr), k2(nullptr), k3(nullptr), phi1(nullptr), phi2(nullptr),
+    phi3(nullptr), mbt_f1(nullptr), mbt_f2(nullptr), mbt_f3(nullptr), mbt_r0(nullptr),
+    ebt_f1_1(nullptr), ebt_f2_1(nullptr), ebt_f3_1(nullptr), ebt_r0_1(nullptr), ebt_f1_2(nullptr),
+    ebt_f2_2(nullptr), ebt_f3_2(nullptr), ebt_r0_2(nullptr), at_f1_1(nullptr), at_f2_1(nullptr),
+    at_f3_1(nullptr), at_theta0_1(nullptr), at_f1_2(nullptr), at_f2_2(nullptr), at_f3_2(nullptr),
+    at_theta0_2(nullptr), aat_k(nullptr), aat_theta0_1(nullptr), aat_theta0_2(nullptr),
+    bb13t_k(nullptr), bb13t_r10(nullptr), bb13t_r30(nullptr), setflag_d(nullptr),
+    setflag_mbt(nullptr), setflag_ebt(nullptr), setflag_at(nullptr), setflag_aat(nullptr),
+    setflag_bb13t(nullptr)
 {
   writedata = 1;
 }

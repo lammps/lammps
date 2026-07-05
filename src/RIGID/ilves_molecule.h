@@ -34,48 +34,47 @@
  *
  */
 
-namespace LAMMPS_NS {
-namespace ILVES {
+namespace LAMMPS_NS::ILVES {
 
 class Molecule {
-public:
-    struct Atoms {
-        // invmass[i] is 1/mass of the ith atom (borrowed; owned by the caller).
-        // The atom graph and atom count are construction-only and not retained.
-        const double *invmass;
-    } atoms;
+ public:
+  struct Atoms {
+    // invmass[i] is 1/mass of the ith atom (borrowed; owned by the caller).
+    // The atom graph and atom count are construction-only and not retained.
+    const double *invmass;
+  } atoms;
 
-    struct Bonds {
-        int num;       // The number of bonds in the molecule.
-        Graph graph;   // The bond graph of the molecule.
+  struct Bonds {
+    int num;        // The number of bonds in the molecule.
+    Graph graph;    // The bond graph of the molecule.
 
-        // GEOMETRY indices of the two atoms of each bond: the nearest periodic
-        // image (local or ghost) whose coordinates give the correct bond vector
-        // by raw subtraction at any box size.  Used for positions, increments,
-        // and the virial.  Example: bond 0 joins atom1[0] and atom2[0].
-        std::vector<int> atom1;
-        std::vector<int> atom2;
+    // GEOMETRY indices of the two atoms of each bond: the nearest periodic
+    // image (local or ghost) whose coordinates give the correct bond vector
+    // by raw subtraction at any box size.  Used for positions, increments,
+    // and the virial.  Example: bond 0 joins atom1[0] and atom2[0].
+    std::vector<int> atom1;
+    std::vector<int> atom2;
 
-        // NODE (canonical owner) indices of the same two atoms: an atom and its
-        // periodic ghost image share one node id, so a bond that wraps a
-        // periodic boundary stays a single edge and the constraint graph does
-        // not fragment.  Used to build the graph and to detect the shared atom
-        // when assembling the Jacobian (see Ilves::make_weights).  node1[k]
-        // pairs with atom1[k] (same physical atom), node2[k] with atom2[k].
-        std::vector<int> node1;
-        std::vector<int> node2;
+    // NODE (canonical owner) indices of the same two atoms: an atom and its
+    // periodic ghost image share one node id, so a bond that wraps a
+    // periodic boundary stays a single edge and the constraint graph does
+    // not fragment.  Used to build the graph and to detect the shared atom
+    // when assembling the Jacobian (see Ilves::make_weights).  node1[k]
+    // pairs with atom1[k] (same physical atom), node2[k] with atom2[k].
+    std::vector<int> node1;
+    std::vector<int> node2;
 
-        // The bond length squared of each bond.
-        std::vector<double> sigma2;
-        std::vector<double> invsigma2;
-    } bonds;
+    // The bond length squared of each bond.
+    std::vector<double> sigma2;
+    std::vector<double> invsigma2;
+  } bonds;
 
-    /**
+  /**
      * Default constructor is deleted to avoid errors.
      */
-    Molecule() = delete;
+  Molecule() = delete;
 
-    /**
+  /**
      * Constructs a Molecule that can be used by the ILVES constraint solver,
      * from a LAMMPS-built constraint list.
      *
@@ -93,11 +92,11 @@ public:
      * pointer into this vector, so it must be kept alive (and not reallocated)
      * for the Molecule's lifetime.
      */
-    Molecule(const std::vector<int> &catom1, const std::vector<int> &catom2,
-             const std::vector<int> &cnode1, const std::vector<int> &cnode2,
-             const std::vector<double> &cdist, const std::vector<double> &invmass);
+  Molecule(const std::vector<int> &catom1, const std::vector<int> &catom2,
+           const std::vector<int> &cnode1, const std::vector<int> &cnode2,
+           const std::vector<double> &cdist, const std::vector<double> &invmass);
 
-    /**
+  /**
      * Renumber the data of the Bonds structure given a permutation.
      * The permutation is given as in MATLAB. Example:
      *  p = [2, 1, 0] Means that
@@ -107,19 +106,18 @@ public:
      *
      * @param perm The permutation in MATLAB format.
      */
-    void renumber_bonds(const std::vector<int> &perm);
+  void renumber_bonds(const std::vector<int> &perm);
 
-    /**
+  /**
      * Estimate the memory used by the constraint topology (atom and bond
      * graphs plus the per-bond index and distance arrays).  The borrowed
      * inverse-mass array is owned by the caller and is not counted.
      *
      * @return The size of the topology storage in bytes.
      */
-    double memory_usage() const;
+  [[nodiscard]] double memory_usage() const;
 };
 
-}    // namespace ILVES
-}    // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS::ILVES
 
 #endif

@@ -44,7 +44,9 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
+GranularModel::GranularModel(LAMMPS *lmp) :
+    Pointers(lmp), sub_models{}, history(nullptr), xi(nullptr), xj(nullptr), vi(nullptr),
+    vj(nullptr), omegai(nullptr), omegaj(nullptr)
 {
   limit_damping = 0;
   synchronized_verlet = 0;

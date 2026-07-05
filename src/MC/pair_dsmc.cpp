@@ -33,7 +33,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairDSMC::PairDSMC(LAMMPS *lmp) : Pair(lmp)
+PairDSMC::PairDSMC(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), sigma(nullptr), particle_list(nullptr), first(nullptr),
+    number(nullptr), V_sigma_max(nullptr)
 {
   single_enable = 0;
 

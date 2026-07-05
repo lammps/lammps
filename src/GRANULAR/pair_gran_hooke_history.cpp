@@ -37,7 +37,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
+PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) :
+    Pair(lmp), onerad_dynamic(nullptr), onerad_frozen(nullptr), maxrad_dynamic(nullptr),
+    maxrad_frozen(nullptr), fix_rigid(nullptr)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;

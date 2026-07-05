@@ -41,7 +41,18 @@ using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
 
-PairOxdnaHbond::PairOxdnaHbond(LAMMPS *lmp) : Pair(lmp)
+PairOxdnaHbond::PairOxdnaHbond(LAMMPS *lmp) :
+    Pair(lmp), epsilon_hb(nullptr), a_hb(nullptr), cut_hb_0(nullptr), cut_hb_c(nullptr),
+    cut_hb_lo(nullptr), cut_hb_hi(nullptr), cut_hb_lc(nullptr), cut_hb_hc(nullptr),
+    b_hb_lo(nullptr), b_hb_hi(nullptr), shift_hb(nullptr), cutsq_hb_hc(nullptr), a_hb1(nullptr),
+    theta_hb1_0(nullptr), dtheta_hb1_ast(nullptr), b_hb1(nullptr), dtheta_hb1_c(nullptr),
+    a_hb2(nullptr), theta_hb2_0(nullptr), dtheta_hb2_ast(nullptr), b_hb2(nullptr),
+    dtheta_hb2_c(nullptr), a_hb3(nullptr), theta_hb3_0(nullptr), dtheta_hb3_ast(nullptr),
+    b_hb3(nullptr), dtheta_hb3_c(nullptr), a_hb4(nullptr), theta_hb4_0(nullptr),
+    dtheta_hb4_ast(nullptr), b_hb4(nullptr), dtheta_hb4_c(nullptr), a_hb7(nullptr),
+    theta_hb7_0(nullptr), dtheta_hb7_ast(nullptr), b_hb7(nullptr), dtheta_hb7_c(nullptr),
+    a_hb8(nullptr), theta_hb8_0(nullptr), dtheta_hb8_ast(nullptr), b_hb8(nullptr),
+    dtheta_hb8_c(nullptr), nxyz_xtrct(nullptr), fix_lrf(nullptr)
 {
   single_enable = 0;
   writedata = 0;

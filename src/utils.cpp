@@ -39,12 +39,12 @@
 #include <stdexcept>
 
 namespace {
-/** Match text against a (simplified) regular expression
-   * (regexp will be compiled automatically). */
+/* Match text against a (simplified) regular expression
+   (regexp will be compiled automatically). */
 int re_match(const char *text, const char *pattern);
 
-/** Find sub-string that matches a (simplified) regular expression
-   * (regexp will be compiled automatically). */
+/* Find sub-string that matches a (simplified) regular expression
+   (regexp will be compiled automatically). */
 int re_find(const char *text, const char *pattern, int *matchlen);
 
 ////////////////////////////////////////////////////////////////////////
@@ -841,12 +841,15 @@ void utils::bounds(const char *file, int line, const std::string &str,
   }
 }
 
+/// \cond DOXYGEN_EXCLUDE
+// explicit instantiations (documented via the template declaration in utils.h)
 template void utils::bounds<>(const char *, int, const std::string &,
                               bigint, bigint, int &, int &, Error *, int);
 template void utils::bounds<>(const char *, int, const std::string &,
                               bigint, bigint, long &, long &, Error *, int);
 template void utils::bounds<>(const char *, int, const std::string &,
                               bigint, bigint, long long &, long long &, Error *, int);
+/// \endcond
 
 // clang-format on
 /* ----------------------------------------------------------------------
@@ -874,12 +877,15 @@ void utils::bounds_typelabel(const char *file, int line, const std::string &str,
     utils::bounds(file, line, str, nmin, nmax, nlo, nhi, lmp->error);
 }
 
+/// \cond DOXYGEN_EXCLUDE
+// explicit instantiations (documented via the template declaration in utils.h)
 template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
                                         int &, int &, LAMMPS *, int);
 template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
                                         long &, long &, LAMMPS *, int);
 template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
                                         long long &, long long &, LAMMPS *, int);
+/// \endcond
 
 /* -------------------------------------------------------------------------
    Expand list of arguments in arg to earg if arg contains wildcards
@@ -1658,6 +1664,8 @@ template <typename T> std::string join_impl(const std::vector<T> &values, const 
 }    // namespace
 
 // specializations
+/// \cond DOXYGEN_EXCLUDE
+// (documented via the template declaration in utils.h)
 template <> std::string utils::join<int>(const std::vector<int> &values, const std::string &sep)
 {
   return join_impl<int>(values, sep);
@@ -1705,6 +1713,7 @@ std::string utils::join<const char *>(const std::vector<const char *> &values,
 {
   return join_impl<const char *>(values, sep);
 }
+/// \endcond
 
 // clang-format on
 

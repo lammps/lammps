@@ -1,6 +1,6 @@
 ---
 lammps_version: 30 Mar 2026
-tags: granular
+tags: granular unstable
 date_generated: Fri May 29 20:04:18 2026
 epsilon: 5e-09
 skip_tests:

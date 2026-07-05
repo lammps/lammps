@@ -207,7 +207,7 @@ CMake build
    -D GPU_API=value             # value = opencl (default) or cuda or hip
    -D GPU_PREC=value            # precision setting
                                 # value = double or mixed (default) or single
-   -D GPU_ARCH=value            # primary GPU hardware choice for all GPU_API backends
+   -D GPU_ARCH=value            # primary GPU hardware choice for all GPU_API back ends
                                 # value = sm_XX for cuda and hip/nvcc (see below),
                                 # gfx<XXX> for hip/amd, or spirv for hip/spirv
                                 # defaults: sm_75 (cuda, hip/nvcc), gfx906 (hip/amd),
@@ -255,10 +255,10 @@ LAMMPS must be compiled with ``-DFFT_SINGLE`` to use PPPM with GPU acceleration
 or GPU acceleration should be disabled for PPPM (e.g. suffix off or ``pair/only``
 as described in the LAMMPS documentation).
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 ``GPU_ARCH`` is the canonical architecture setting for all ``GPU_API``
-backends.  The backend-specific ``HIP_ARCH`` (for ``GPU_API=hip``)
+back ends.  The back end specific ``HIP_ARCH`` (for ``GPU_API=hip``)
 variable is still accepted for backward compatibility, but its use is
 deprecated and prints a warning.
 
@@ -343,7 +343,7 @@ is built with ``-D BUILD_OMP=on`` this will also be enabled.
 
 .. note::
 
-   Some Clang-based toolchains - in particular ``hipcc`` from ROCm - do not
+   Some Clang-based tool chains - in particular ``hipcc`` from ROCm - do not
    ship the ``omp.h`` header in the compiler's own resource directory.  When
    building with ``-D BUILD_OMP=on`` and such a compiler, host code that
    includes ``<omp.h>`` would fail to compile even though the ``-fopenmp``

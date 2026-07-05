@@ -36,7 +36,8 @@ enum { POINT, SPHERE };
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecTri::AtomVecTri(LAMMPS *lmp) :
+    AtomVec(lmp), tri(nullptr), radius(nullptr), rmass(nullptr), omega(nullptr), angmom(nullptr)
 {
   molecular = Atom::ATOMIC;
   bonus_flag = 1;

@@ -140,7 +140,7 @@ new owning processors.
    All of these will typically lead to bad dynamics and/or generate error
    messages.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 Atoms that end up outside of non-periodic boundaries as a result of this
 command are now handled according to the :doc:`thermo_modify lost

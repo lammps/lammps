@@ -35,7 +35,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairEIM::PairEIM(LAMMPS *lmp) : Pair(lmp)
+PairEIM::PairEIM(LAMMPS *lmp) :
+    Pair(lmp), type2Fij(nullptr), type2Gij(nullptr), type2phiij(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;

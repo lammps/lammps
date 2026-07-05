@@ -79,7 +79,10 @@ static constexpr char SMTBQ_SEPARATORS[] = "' \t\n\r";
 
 /* ---------------------------------------------------------------------- */
 
-PairSMTBQ::PairSMTBQ(LAMMPS *lmp) : Pair(lmp)
+PairSMTBQ::PairSMTBQ(LAMMPS *lmp) :
+    Pair(lmp), esm(nullptr), fafbOxOxSurf(nullptr), dfafbOxOxSurf(nullptr), fafbTiOxSurf(nullptr),
+    dfafbTiOxSurf(nullptr), Zsm(nullptr), fafbOxOxBB(nullptr), dfafbOxOxBB(nullptr),
+    fafbTiOxBB(nullptr), dfafbTiOxBB(nullptr), NCo(nullptr), hybrid(nullptr), pages(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nproc);

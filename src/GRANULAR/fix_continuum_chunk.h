@@ -59,12 +59,10 @@ class FixContinuumChunk : public Fix {
   int normcount, iwindow, window_limit;
 
   int nchunk, maxchunk;
+  int *nlayers;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
   int lockforever;
-
-  int nchunk, *nlayers;
-
 
   bigint filepos;
 
@@ -89,7 +87,8 @@ class FixContinuumChunk : public Fix {
   inline double calc_w_int(double*, double*) const;
   void add_tensor_component(char *, int);
   void add_vector_component(char *, int);
-  int stencil_to_index(int, int, int) const;
+  int stencil_to_index(int, int, int, int) const;
+  void build_stencil();
 };
 
 }    // namespace LAMMPS_NS

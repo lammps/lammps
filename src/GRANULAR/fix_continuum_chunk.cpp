@@ -448,9 +448,6 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // initializations
 
-  nlayers = cchunk->get_nlayers();
-  nchunk = cchunk->get_nchunk();
-
   irepeat = 0;
   iwindow = window_limit = 0;
   normcount = 0;
@@ -644,6 +641,7 @@ void FixContinuumChunk::end_of_step()
   if (irepeat == 0) {
     if (cchunk->computeflag) modify->clearstep_compute();
     nchunk = cchunk->setup_chunks();
+    build_stencil();
     if (cchunk->computeflag) {
       modify->addstep_compute(ntimestep + nevery);
       modify->addstep_compute(ntimestep + nfreq);
@@ -665,37 +663,12 @@ void FixContinuumChunk::end_of_step()
   // geometry could change, e.g. for NPT simulation
 
   cchunk->setup_chunks();
+  build_stencil();
   int ncoord = cchunk->ncoord;
   double **coord = cchunk->coord;
   int reducedflag = cchunk->get_reducedflag();
   int *cdim = cchunk->get_dim();
   double *delta = cchunk->get_delta();
-
-  // calculate stencil
-  stencil.clear();
-  int stencil_size[3] = {0, 0, 0};
-  double width[3], nchunkmax;
-
-  MathExtra::copy3(delta, width);
-  if (reducedflag)
-    for (int a = 0; a < ncoord; a++) width[cdim[a]] *= domain->prd[cdim[a]];
-
-  for (int a = 0; a < ncoord; a++)
-    stencil_size[cdim[a]] = ceil(w_cut / width[cdim[a]]);
-
-  for (int nx = -stencil_size[0]; nx <= stencil_size[0]; nx++) {
-    for (int ny = -stencil_size[1]; ny <= stencil_size[1]; ny++) {
-      for (int nz = -stencil_size[2]; nz <= stencil_size[2]; nz++) {
-        double dx = nx * width[0];
-        double dy = ny * width[1];
-        double dz = nz * width[2];
-        double r_sq = dx*dx + dy*dy + dz*dz;
-        if (r_sq <= w_cut_sq) {
-          stencil.push_back(std::tuple<int,int,int>(nx,ny,nz));
-        }
-      }
-    }
-  }
 
   // zero out arrays for one sample
 
@@ -725,7 +698,7 @@ void FixContinuumChunk::end_of_step()
   int a, b, itype, style, component, field_index, jboundary;
   double w, wc, mi, voli, r, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair;
   double f_norm, w_int_tmp;
-  double coordx[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3];
+  double coordx[3], xbin0[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3];
   double dx_pair[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3];
 
   double **x = atom->x;
@@ -768,13 +741,13 @@ void FixContinuumChunk::end_of_step()
         continue;
 
       // x[i] is default so won't contribute unless binned in that coord
-      MathExtra::copy3(x[i], xbin);
+      MathExtra::copy3(x[i], xbin0);
       for (a = 0; a < ncoord; a++) {
         if (reducedflag) {
           domain->lamda2x(coord[m], coordx);
-          xbin[cdim[a]] = coordx[a];
+          xbin0[cdim[a]] = coordx[a];
         } else {
-          xbin[cdim[a]] = coord[m][a];
+          xbin0[cdim[a]] = coord[m][a];
         }
       }
 
@@ -785,136 +758,142 @@ void FixContinuumChunk::end_of_step()
       if (dim == 3)
         voli *= 4.0 * THIRD * radius[i];
 
-      MathExtra::sub3(x[i], xbin, dx_atom_bin);
-      rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
+      for (auto &stencil_offset : stencil) {
+        xbin[0] = xbin0[0] + std::get<0>(stencil_offset) * delta[0];
+        xbin[1] = xbin0[1] + std::get<1>(stencil_offset) * delta[1];
+        xbin[2] = xbin0[2] + std::get<2>(stencil_offset) * delta[2];
 
-      //if (rsq_atom_bin > w_cut_sq) continue;
-      w = calc_w(sqrt(rsq_atom_bin));
+        MathExtra::sub3(x[i], xbin, dx_atom_bin);
+        rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
 
-      // contributions from single atoms (excluding boundary)
+        //if (rsq_atom_bin > w_cut_sq) continue;
+        w = calc_w(sqrt(rsq_atom_bin));
 
-      field_index = 0;
-      for (auto &val : values) {
-        style = val.first;
-        component = val.second;
+        // contributions from single atoms (excluding boundary)
 
-        a = component % 3;
-        b = (component - a) / 3;
+        field_index = 0;
+        for (auto &val : values) {
+          style = val.first;
+          component = val.second;
 
-        if (style == DENSITY) {
-          values_one[m][field_index] += mi * w;
-        } else if (style == VOLFRAC) {
-          values_one[m][field_index] += voli * w;
-        } else if (style == MOMENTUM) {
-          values_one[m][field_index] += mi * v[i][component] * w;
-        } else if (style == STRESS || style == STRESSKE) {
-          values_one[m][field_index] -= mi * v[i][a] * v[i][b] * w;
+          a = component % 3;
+          b = (component - a) / 3;
+
+          if (style == DENSITY) {
+            values_one[m][field_index] += mi * w;
+          } else if (style == VOLFRAC) {
+            values_one[m][field_index] += voli * w;
+          } else if (style == MOMENTUM) {
+            values_one[m][field_index] += mi * v[i][component] * w;
+          } else if (style == STRESS || style == STRESSKE) {
+            values_one[m][field_index] -= mi * v[i][a] * v[i][b] * w;
+          }
+
+          // Fix boundary corrections from Weinhart et al. 2012
+          if (boundaryflag && (style == STRESS || style == STRESSCON)) {
+            for (auto wall_fix : wall_fixes) {
+              array_atom_fix = wall_fix->array_atom;
+
+              // Skip if not in contact
+              if (array_atom_fix[i][0] != 1.0) continue;
+              f_wall[0] = array_atom_fix[i][1];
+              f_wall[1] = array_atom_fix[i][2];
+              f_wall[2] = array_atom_fix[i][3];
+              xcont[0] = array_atom_fix[i][4];
+              xcont[1] = array_atom_fix[i][5];
+              xcont[2] = array_atom_fix[i][6];
+
+              MathExtra::sub3(x[i], xcont, dx_atom_cont); // a in Weinhart et al.
+              w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont);
+
+              values_one[m][field_index] -= f_wall[a] * dx_atom_cont[b] * w_int_tmp;
+            }
+          }
+
+          field_index++;
         }
 
-        // Fix boundary corrections from Weinhart et al. 2012
-        if (boundaryflag && (style == STRESS || style == STRESSCON)) {
-          for (auto wall_fix : wall_fixes) {
-            array_atom_fix = wall_fix->array_atom;
+        // contributions from pairs of atoms
 
-            // Skip if not in contact
-            if (array_atom_fix[i][0] != 1.0) continue;
-            f_wall[0] = array_atom_fix[i][1];
-            f_wall[1] = array_atom_fix[i][2];
-            f_wall[2] = array_atom_fix[i][3];
-            xcont[0] = array_atom_fix[i][4];
-            xcont[1] = array_atom_fix[i][5];
-            xcont[2] = array_atom_fix[i][6];
+        if (calculate_pair) {
+          jlist = firstneigh[i];
+          jnum = numneigh[i];
+          for (jj = 0; jj < jnum; jj++) {
+            j = jlist[jj];
+            j &= NEIGHMASK;
 
-            MathExtra::sub3(x[i], xcont, dx_atom_cont); // a in Weinhart et al.
-            w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont);
+            if (!mask[j] & groupbit) continue;
 
-            values_one[m][field_index] -= f_wall[a] * dx_atom_cont[b] * w_int_tmp;
-          }
-        }
+            if (boundary_group_flag && (mask[j] & boundary_groupbit))
+              jboundary = 1;
+            else
+              jboundary = 0;
 
-        field_index++;
-      }
+            MathExtra::sub3(x[i], x[j], dx_pair);
+            rsq_pair = MathExtra::lensq3(dx_pair);
+            r_pair = sqrt(rsq_pair);
+            pair->single(i, j, itype, type[j], rsq_pair, 1.0, 1.0, f_norm);
 
-      // contributions from pairs of atoms
-
-      if (calculate_pair) {
-        jlist = firstneigh[i];
-        jnum = numneigh[i];
-        for (jj = 0; jj < jnum; jj++) {
-          j = jlist[jj];
-          j &= NEIGHMASK;
-
-          if (!mask[j] & groupbit) continue;
-
-          if (boundary_group_flag && (mask[j] & boundary_groupbit))
-            jboundary = 1;
-          else
-            jboundary = 0;
-
-          MathExtra::sub3(x[i], x[j], dx_pair);
-          rsq_pair = MathExtra::lensq3(dx_pair);
-          r_pair = sqrt(rsq_pair);
-          pair->single(i, j, itype, type[j], rsq_pair, 1.0, 1.0, f_norm);
-
-          MathExtra::scale3(f_norm / r_pair, dx_pair, f_pair);
-          if (pstyle == GRANULAR) {
-            // add tangential forces
-            f_pair[0] += force->pair->svector[0];
-            f_pair[1] += force->pair->svector[1];
-            f_pair[2] += force->pair->svector[2];
-          }
-
-          if (MathExtra::lensq3(f_pair) == 0.0)
-            continue;
-
-          if (jboundary) {
-            // Calculate contact point
-            MathExtra::add3(x[i], x[j], xcont);
-            MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
-            MathExtra::scale3(0.5, xcont);
-
-            // Calculate distance to chunk CoM w/ missing dims
-            MathExtra::copy3(xcont, xbin2);
-            for (a = 0; a < ncoord; a++)
-              xbin2[cdim[a]] = xbin[cdim[a]];
-            MathExtra::sub3(xbin2, xcont, dx_bin_cont);
-
-            rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
-            //if (rsq_cont_bin > w_cut_sq)
-            //  continue;
-
-            // May not need both kernel + line integral, but only on boundaries
-            wc = calc_w(sqrt(rsq_cont_bin));
-
-            MathExtra::sub3(x[i], xcont, dx_atom_cont); // a in Weinhart et al.
-            w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont);
-          } else {
-            w_int_tmp = calc_w_int(dx_atom_bin, dx_pair);
-          }
-
-          field_index = 0;
-          for (auto &val : values) {
-            style = val.first;
-            component = val.second;
-
-            a = component % 3;
-            b = (component - a) / 3;
-
-            if (style == STRESS || style == STRESSCON) {
-              if (jboundary) {
-                values_one[m][field_index] -= f_pair[a] * dx_atom_cont[b] * w_int_tmp;
-              } else {
-                values_one[m][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
-              }
-            } else if (style == IFD) {
-              if (!jboundary) continue;
-              values_one[m][field_index] -= f_pair[a] * wc;
-            } else if (style == FABRIC) {
-              if (jboundary) continue;
-              values_one[m][field_index] += voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
+            MathExtra::scale3(f_norm / r_pair, dx_pair, f_pair);
+            if (pstyle == GRANULAR) {
+              // add tangential forces
+              f_pair[0] += force->pair->svector[0];
+              f_pair[1] += force->pair->svector[1];
+              f_pair[2] += force->pair->svector[2];
             }
 
-            field_index++;
+            if (MathExtra::lensq3(f_pair) == 0.0)
+              continue;
+
+            if (jboundary) {
+              // Calculate contact point
+              MathExtra::add3(x[i], x[j], xcont);
+              MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
+              MathExtra::scale3(0.5, xcont);
+
+              // Calculate distance to chunk CoM w/ missing dims
+              MathExtra::copy3(xcont, xbin2);
+              for (a = 0; a < ncoord; a++)
+                xbin2[cdim[a]] = xbin[cdim[a]];
+              MathExtra::sub3(xbin2, xcont, dx_bin_cont);
+
+              rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
+              //if (rsq_cont_bin > w_cut_sq)
+              //  continue;
+
+              // May not need both kernel + line integral, but only on boundaries
+              wc = calc_w(sqrt(rsq_cont_bin));
+
+              MathExtra::sub3(x[i], xcont, dx_atom_cont); // a in Weinhart et al.
+              w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont);
+            } else {
+              w_int_tmp = calc_w_int(dx_atom_bin, dx_pair);
+            }
+
+            field_index = 0;
+            for (auto &val : values) {
+              style = val.first;
+              component = val.second;
+
+              a = component % 3;
+              b = (component - a) / 3;
+
+              if (style == STRESS || style == STRESSCON) {
+                if (jboundary) {
+                  values_one[m][field_index] -= f_pair[a] * dx_atom_cont[b] * w_int_tmp;
+                } else {
+                  values_one[m][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
+                }
+              } else if (style == IFD) {
+                if (!jboundary) continue;
+                values_one[m][field_index] -= f_pair[a] * wc;
+              } else if (style == FABRIC) {
+                if (jboundary) continue;
+                values_one[m][field_index] += voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
+              }
+
+              field_index++;
+            }
           }
         }
       }
@@ -983,13 +962,13 @@ void FixContinuumChunk::end_of_step()
 
           m = ichunk[i] - 1;
 
-          MathExtra::copy3(x[i], xbin);
+          MathExtra::copy3(x[i], xbin0);
           for (a = 0; a < ncoord; a++) {
             if (reducedflag) {
               domain->lamda2x(coord[m], coordx);
-              xbin[cdim[a]] = coordx[a];
+              xbin0[cdim[a]] = coordx[a];
             } else {
-              xbin[cdim[a]] = coord[m][a];
+              xbin0[cdim[a]] = coord[m][a];
             }
           }
 
@@ -997,33 +976,39 @@ void FixContinuumChunk::end_of_step()
           if (rmass) mi = rmass[i];
           else mi = mass[itype];
 
-          MathExtra::sub3(x[i], xbin, dx_atom_bin);
-          rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
+          for (auto &stencil_offset : stencil) {
+            xbin[0] = xbin0[0] + std::get<0>(stencil_offset) * delta[0];
+            xbin[1] = xbin0[1] + std::get<1>(stencil_offset) * delta[1];
+            xbin[2] = xbin0[2] + std::get<2>(stencil_offset) * delta[2];
 
-          if (rsq_atom_bin > w_cut_sq) continue;
-          dw = calc_dw(rsq_atom_bin); // sans dx factor
+            MathExtra::sub3(x[i], xbin, dx_atom_bin);
+            rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
 
-          field_index = 0;
-          for (auto &val : values) {
-            style = val.first;
-            component = val.second;
+            if (rsq_atom_bin > w_cut_sq) continue;
+            dw = calc_dw(rsq_atom_bin); // sans dx factor
 
-            a = component % 3;
-            b = (component - a) / 3;
+            field_index = 0;
+            for (auto &val : values) {
+              style = val.first;
+              component = val.second;
 
-            if (style == MGRAD) {
-              values_one[m][field_index] += voli * (momentum_sum_now[m][a] - mi * v[i][a]) * dx_atom_bin[b] * dw;
-            } else if (style == VGRAD) {
-              if (density_sum_now[m] != 0.0) {
-                vbin = momentum_sum_now[m][a] / density_sum_now[m];
-              } else{
-                vbin = 0.0;
+              a = component % 3;
+              b = (component - a) / 3;
+
+              if (style == MGRAD) {
+                values_one[m][field_index] += voli * (momentum_sum_now[m][a] - mi * v[i][a]) * dx_atom_bin[b] * dw;
+              } else if (style == VGRAD) {
+                if (density_sum_now[m] != 0.0) {
+                  vbin = momentum_sum_now[m][a] / density_sum_now[m];
+                } else{
+                  vbin = 0.0;
+                }
+
+                values_one[m][field_index] += voli * (vbin - v[i][a]) * dx_atom_bin[b] * dw;
               }
 
-              values_one[m][field_index] += voli * (vbin - v[i][a]) * dx_atom_bin[b] * dw;
+              field_index++;
             }
-
-            field_index++;
           }
         }
       }
@@ -1458,4 +1443,42 @@ int FixContinuumChunk::stencil_to_index(int origin_bin, int dx, int dy, int dz) 
     return -1;
 
   return new_bin;
+}
+
+/* ----------------------------------------------------------------------*/
+
+void FixContinuumChunk::build_stencil()
+{
+
+  // calculate stencil
+  stencil.clear();
+  int stencil_size[3] = {0, 0, 0};
+  double width[3], nchunkmax;
+
+  nlayers = cchunk->get_nlayers();
+  double *delta = cchunk->get_delta();
+  int *cdim = cchunk->get_dim();
+  int reducedflag = cchunk->get_reducedflag();
+  int ncoord = cchunk->ncoord;
+
+  MathExtra::copy3(delta, width);
+  if (reducedflag)
+    for (int a = 0; a < ncoord; a++) width[cdim[a]] *= domain->prd[cdim[a]];
+
+  for (int a = 0; a < ncoord; a++)
+    stencil_size[cdim[a]] = ceil(w_cut / width[cdim[a]]);
+
+  for (int nx = -stencil_size[0]; nx <= stencil_size[0]; nx++) {
+    for (int ny = -stencil_size[1]; ny <= stencil_size[1]; ny++) {
+      for (int nz = -stencil_size[2]; nz <= stencil_size[2]; nz++) {
+        double dx = nx * width[0];
+        double dy = ny * width[1];
+        double dz = nz * width[2];
+        double r_sq = dx*dx + dy*dy + dz*dz;
+        if (r_sq <= w_cut_sq) {
+          stencil.push_back(std::tuple<int,int,int>(nx,ny,nz));
+        }
+      }
+    }
+  }
 }

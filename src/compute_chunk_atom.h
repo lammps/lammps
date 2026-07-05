@@ -54,7 +54,6 @@ class ComputeChunkAtom : public Compute {
   int *get_dim() { return dim; }
   double *get_delta() { return delta; }
   int *get_nlayers() { return nlayers; }
-  int get_nchunk() { return nchunk; }
 
  private:
   int which, binflag;

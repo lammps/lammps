@@ -1,5 +1,6 @@
 .. index:: fix pimd/langevin
 .. index:: fix pimd/nvt
+.. index:: fix pimd/nvt/validated
 .. index:: fix pimd/langevin/bosonic
 .. index:: fix pimd/nvt/bosonic
 
@@ -8,6 +9,9 @@ fix pimd/langevin command
 
 fix pimd/nvt command
 ====================
+
+fix pimd/nvt/validated command
+==============================
 
 fix pimd/langevin/bosonic command
 =================================
@@ -23,7 +27,7 @@ Syntax
    fix ID group-ID style keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *pimd/langevin* or *pimd/nvt* or *pimd/langevin/bosonic* or *pimd/nvt/bosonic* = style name of this fix command
+* style = *pimd/langevin* or *pimd/nvt* or *pimd/nvt/validated* or *pimd/langevin/bosonic* or *pimd/nvt/bosonic* = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keywords for style *pimd/nvt*
 
@@ -80,6 +84,14 @@ Description
 
 Fix pimd was renamed to fix *pimd/nvt* and fix *pimd/langevin* was added.
 
+.. versionadded:: TBD
+
+   The ``pimd/nvt/validated`` fix style is a backward-compatibility alias
+   for :doc:`fix pimd/nvt <fix_pimd>`.  Both style names share the same
+   implementation.  The ``fix pimd/nvt`` style is preferred for new input
+   scripts, but ``fix pimd/nvt/validated`` continues to work in existing
+   scripts.
+
 These fix commands perform quantum molecular dynamics simulations based
 on the Feynman path-integral to include effects of tunneling and
 zero-point motion.  In this formalism, the isomorphism of a quantum
@@ -90,6 +102,13 @@ configurations from the canonical ensemble :ref:`(Feynman) <Feynman>`.
 .. versionadded:: 2Apr2025
 
    Fix *pimd/langevin/bosonic* and *pimd/nvt/bosonic* were added.
+
+.. deprecated:: TBD
+
+   The *pimd/nvt/bosonic* fix style is deprecated and no longer
+   functional.  Users should migrate to
+   :doc:`fix pimd/langevin/bosonic <fix_pimd>` for bosonic PIMD
+   simulations.
 
 Fix *pimd/nvt* and fix *pimd/langevin* simulate *distinguishable* quantum particles.
 Simulations of bosons, including exchange effects, are supported with the

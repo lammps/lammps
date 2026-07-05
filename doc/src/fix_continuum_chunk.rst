@@ -25,12 +25,17 @@ Syntax
 
        *density* = density field
        *volume/fraction* = volume fraction field
-       *v/a* = a-component of the velocity field
+       *velocity/a* = a-component of the velocity field
+       *velocity/grad/ab* = ab-component of the velocity gradient field
+       *momentum/a* = a-component of the momentum field
+       *momentum/grad/ab* = ab-component of the momentum gradient field
+       *strain/rate/ab* = ab-component of the strain rate field
        *boundary/force/a* = a-component of the boundary force density
        *stress/ab* = ab-component of the total stress field
        *stress/ke/ab* = ab-component of the kinetic stress field
        *stress/contacts/ab* = ab-component of the contacts stress field
        *fabric/ab* = ab-component of the fabric tensor field
+       *temperature* = granular temperature field
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *ave* or *boundary/atom* or *boundary/fix* or *file* or *append* or *overwrite* or *format* or *title1* or *title2* or *title3*
@@ -215,10 +220,13 @@ The *momentum* field is given by
 
    \sum_i m_i v_{i,a} W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
 
-where :math:`v_{i,a}` is the :math:`a`-component of the atom velocity.
+where :math:`v_{i,a}` is the :math:`a`-component of the atom velocity. The
+*momentum/grad* field is then calculated using a finite difference approximation
+between neighboring chunks.
 
 The *velocity* field is calculated as the ratio of the *momentum* and *density*
-fields.
+fields. The *velocity/grad* field is then calculated using a finite difference
+approximation between neighboring chunks.
 
 The *boundary/force* field is the interaction force density of boundaries as
 defined in :ref:`(Weinhart)`. It is calculated as
@@ -261,24 +269,7 @@ The *fabric* field is defined as
 
 where :math:`V_i` is the volume of the atom in 3D and area in 2D.
 
-TBD: The *momentum/grad* field is defined as
-
-.. math::
-
-   \sum_i V_i (p_{c,a} - m_i v_{i,a}) \grad_b W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
-
-where :math:`p_{c,a}` is the :math:`a`-component of the *momentum* field and :math:`\grad_b W` is the :math:`b`-component of the of the gradient
-of the kernel.
-
-TBD: The *velocity/grad* field is defined as
-
-.. math::
-
-   \sum_i V_i (v_{c,a} - v_{i,a}) \grad_b W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
-
-where :math:`v_{c,a}` is the :math:`a`-component of the *velocity* field.
-
-TBD: The *strain/rate* is defined as
+The *strain/rate* is defined as
 
 .. math::
 
@@ -286,6 +277,16 @@ TBD: The *strain/rate* is defined as
 
 where :math:`\grad_{ab} v` is the :math:`ab` component of the *velocity/grad*
 field.
+
+The *temperature* is a measure of the local granular temperature calculated as
+
+.. math::
+
+   \sum_i m_i (v_{i,a} - v_c{a})^2 W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
+
+where :math:`v_c` is the average velocity of the chunk defined by the *velocity*
+option above.
+
 
 ----------
 

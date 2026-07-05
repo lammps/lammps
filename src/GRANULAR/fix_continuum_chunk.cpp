@@ -151,6 +151,7 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
   calculate_pair = 0;
   calculate_grad = 0;
   index_density = -1;
+  index_temp = -1;
   for (int a = 0; a < 3; a++) {
     index_momentum[a] = -1;
     for (int b = 0; b < 3; b++) {
@@ -212,6 +213,7 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "temperature") == 0) {
       values.push_back(std::make_pair(TEMPERATURE, -1));
       labels.push_back("temperature");
+      index_temp = values.size() - 1;
       need_density = 1;
       need_momentum = 1;
     } else {
@@ -446,6 +448,9 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // initializations
 
+  nlayers = cchunk->get_nlayers();
+  nchunk = cchunk->get_nchunk();
+
   irepeat = 0;
   iwindow = window_limit = 0;
   normcount = 0;
@@ -666,13 +671,30 @@ void FixContinuumChunk::end_of_step()
   int *cdim = cchunk->get_dim();
   double *delta = cchunk->get_delta();
 
-  double width;
-  for (m = 0; m < ncoord; m++) {
-    width = delta[m];
-    if (reducedflag)
-      width *= domain->prd[cdim[m]];
-    if (0.5 * width < w_cut)
-      error->all(FLERR, "Chunk half width {} (box units) smaller than specified cutoff {}", 0.5 * width, w_cut);
+  // calculate stencil
+  stencil.clear();
+  int stencil_size[3] = {0, 0, 0};
+  double width[3], nchunkmax;
+
+  MathExtra::copy3(delta, width);
+  if (reducedflag)
+    for (int a = 0; a < ncoord; a++) width[cdim[a]] *= domain->prd[cdim[a]];
+
+  for (int a = 0; a < ncoord; a++)
+    stencil_size[cdim[a]] = ceil(w_cut / width[cdim[a]]);
+
+  for (int nx = -stencil_size[0]; nx <= stencil_size[0]; nx++) {
+    for (int ny = -stencil_size[1]; ny <= stencil_size[1]; ny++) {
+      for (int nz = -stencil_size[2]; nz <= stencil_size[2]; nz++) {
+        double dx = nx * width[0];
+        double dy = ny * width[1];
+        double dz = nz * width[2];
+        double r_sq = dx*dx + dy*dy + dz*dz;
+        if (r_sq <= w_cut_sq) {
+          stencil.push_back(std::tuple<int,int,int>(nx,ny,nz));
+        }
+      }
+    }
   }
 
   // zero out arrays for one sample
@@ -899,7 +921,7 @@ void FixContinuumChunk::end_of_step()
     }
   }
 
-  if (calculate_grad) {
+  if (calculate_grad || index_temp != -1) {
 
     // Copy intermediate values and sum across processors (will repeat later)
     for (m = 0; m < nchunk; m++) {
@@ -918,61 +940,91 @@ void FixContinuumChunk::end_of_step()
     MPI_Allreduce(&momentum_one[0][0], &momentum_sum_now[0][0], nchunk * 3,
                 MPI_DOUBLE, MPI_SUM, world);
 
-    double dw, vbin;
-    for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit && ichunk[i] > 0) {
-        if (boundary_group_flag && (mask[i] & boundary_groupbit)) continue;
 
-        itype = type[i];
-        if (rmass) mi = rmass[i];
-        else mi = mass[itype];
-        voli = MY_PI * radius[i] * radius[i];
-        if (dim == 3)
-        voli *= 4.0 * THIRD * radius[i];
+    if (index_temp != -1) {
+      double dtemp, vtemp[3];
+      for (i = 0; i < nlocal; i++) {
+        if (mask[i] & groupbit && ichunk[i] > 0) {
+          m = ichunk[i] - 1;
 
-        m = ichunk[i] - 1;
+          MathExtra::sub3(x[i], xbin, dx_atom_bin);
+          rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
+          w = calc_w(sqrt(rsq_atom_bin));
 
-        MathExtra::copy3(x[i], xbin);
-        for (a = 0; a < ncoord; a++) {
-          if (reducedflag) {
-            domain->lamda2x(coord[m], coordx);
-            xbin[cdim[a]] = coordx[a];
-          } else {
-            xbin[cdim[a]] = coord[m][a];
-          }
+          dtemp = values_sum[m][index_density];
+          vtemp[0] = values_sum[m][index_momentum[0]];
+          vtemp[1] = values_sum[m][index_momentum[1]];
+          vtemp[2] = values_sum[m][index_momentum[2]];
+          if (dtemp != 0.0)
+            MathExtra::scale3(1.0 / dtemp, vtemp);
+
+          MathExtra::sub3(vtemp, v[i], vtemp);
+          itype = type[i];
+          if (rmass) mi = rmass[i];
+          else mi = mass[itype];
+
+          values_one[m][index_temp] += 0.5 * mi * MathExtra::lensq3(vtemp) * w;
         }
+      }
+    }
 
-        itype = type[i];
-        if (rmass) mi = rmass[i];
-        else mi = mass[itype];
+    double dw, vbin;
+    if (calculate_grad) {
+      for (i = 0; i < nlocal; i++) {
+        if (mask[i] & groupbit && ichunk[i] > 0) {
+          if (boundary_group_flag && (mask[i] & boundary_groupbit)) continue;
 
-        MathExtra::sub3(x[i], xbin, dx_atom_bin);
-        rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
+          itype = type[i];
+          if (rmass) mi = rmass[i];
+          else mi = mass[itype];
+          voli = MY_PI * radius[i] * radius[i];
+          if (dim == 3)
+          voli *= 4.0 * THIRD * radius[i];
 
-        if (rsq_atom_bin > w_cut_sq) continue;
-        dw = calc_dw(rsq_atom_bin); // sans dx factor
+          m = ichunk[i] - 1;
 
-        field_index = 0;
-        for (auto &val : values) {
-          style = val.first;
-          component = val.second;
+          MathExtra::copy3(x[i], xbin);
+          for (a = 0; a < ncoord; a++) {
+            if (reducedflag) {
+              domain->lamda2x(coord[m], coordx);
+              xbin[cdim[a]] = coordx[a];
+            } else {
+              xbin[cdim[a]] = coord[m][a];
+            }
+          }
 
-          a = component % 3;
-          b = (component - a) / 3;
+          itype = type[i];
+          if (rmass) mi = rmass[i];
+          else mi = mass[itype];
 
-          if (style == MGRAD) {
-            values_one[m][field_index] += voli * (momentum_sum_now[m][a] - mi * v[i][a]) * dx_atom_bin[b] * dw;
-          } else if (style == VGRAD) {
-            if (density_sum_now[m] != 0.0) {
-              vbin = momentum_sum_now[m][a] / density_sum_now[m];
-            } else{
-              vbin = 0.0;
+          MathExtra::sub3(x[i], xbin, dx_atom_bin);
+          rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
+
+          if (rsq_atom_bin > w_cut_sq) continue;
+          dw = calc_dw(rsq_atom_bin); // sans dx factor
+
+          field_index = 0;
+          for (auto &val : values) {
+            style = val.first;
+            component = val.second;
+
+            a = component % 3;
+            b = (component - a) / 3;
+
+            if (style == MGRAD) {
+              values_one[m][field_index] += voli * (momentum_sum_now[m][a] - mi * v[i][a]) * dx_atom_bin[b] * dw;
+            } else if (style == VGRAD) {
+              if (density_sum_now[m] != 0.0) {
+                vbin = momentum_sum_now[m][a] / density_sum_now[m];
+              } else{
+                vbin = 0.0;
+              }
+
+              values_one[m][field_index] += voli * (vbin - v[i][a]) * dx_atom_bin[b] * dw;
             }
 
-            values_one[m][field_index] += voli * (vbin - v[i][a]) * dx_atom_bin[b] * dw;
+            field_index++;
           }
-
-          field_index++;
         }
       }
     }
@@ -1021,7 +1073,7 @@ void FixContinuumChunk::end_of_step()
 
   // Calculate trivially derived values
 
-  double dtemp, mtemp, mtemp2;
+  double dtemp, mtemp, mtemp2, vtemp[3];
   for (m = 0; m < nchunk; m++) {
     field_index = 0;
     for (auto &val : values) {
@@ -1395,4 +1447,15 @@ void FixContinuumChunk::add_vector_component(char *option, int variable)
     if (variable == MOMENTUM)
         index_momentum[index] = values.size() - 1;
   }
+}
+
+/* ----------------------------------------------------------------------*/
+
+int FixContinuumChunk::stencil_to_index(int origin_bin, int dx, int dy, int dz) const
+{
+  int new_bin = origin_bin + dx + dy * nlayers[0] + dz * nlayers[0] * nlayers[1];
+  if (new_bin < 0 || new_bin >= nchunk)
+    return -1;
+
+  return new_bin;
 }

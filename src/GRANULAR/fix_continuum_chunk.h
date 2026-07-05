@@ -39,11 +39,12 @@ class FixContinuumChunk : public Fix {
  private:
   std::vector<std::pair<int, int>> values;
   std::vector<std::string> labels;
+  std::vector<std::tuple<int, int, int>> stencil;
 
   int dim, bin_dim, pstyle, calculate_pair, calculate_grad;
   int need_density, need_momentum, need_vgrad;
   int boundary_group_flag, boundary_groupbit;
-  int index_density, index_momentum[3], index_vgrad[3][3];
+  int index_temp, index_density, index_momentum[3], index_vgrad[3][3];
   double w_cut, w_cut_sq, w_sd, w_sd_sq, w_scale, w_offset;
 
   int nvalues, nskip, nrepeat, nfreq, irepeat;
@@ -61,6 +62,9 @@ class FixContinuumChunk : public Fix {
   char *idchunk;
   class ComputeChunkAtom *cchunk;
   int lockforever;
+
+  int nchunk, *nlayers;
+
 
   bigint filepos;
 
@@ -80,11 +84,12 @@ class FixContinuumChunk : public Fix {
 
   void allocate();
   bigint nextvalid();
-  inline double calc_w(const double) const ;
-  inline double calc_dw(const double) const ;
-  inline double calc_w_int(double*, double*) const ;
+  inline double calc_w(const double) const;
+  inline double calc_dw(const double) const;
+  inline double calc_w_int(double*, double*) const;
   void add_tensor_component(char *, int);
   void add_vector_component(char *, int);
+  int stencil_to_index(int, int, int) const;
 };
 
 }    // namespace LAMMPS_NS

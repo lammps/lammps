@@ -11,6 +11,15 @@
 
 #include "lammps.h"
 #include "platform.h"
+#include "atom.h"
+#include "comm.h"
+#include "modify.h"
+#include "update.h"
+#include "universe.h"
+
+#define protected public
+#include "../../src/REPLICA/fix_pimd_langevin.h"
+#undef protected
 
 #include "../testing/core.h"
 #include "gtest/gtest.h"
@@ -34,6 +43,147 @@ namespace {
 using pimd_langevin_test::fix_value;
 using pimd_langevin_test::fix_vector;
 using pimd_langevin_test::fix_vector_size;
+
+LAMMPS *as_lammps(void *lmp)
+{
+  return static_cast<LAMMPS *>(lmp);
+}
+
+int check_finite_scalar(double value, const char *name, const char *stage, int rank, bigint step)
+{
+  if (!std::isfinite(value)) {
+    printf("FAIL: stage=%s name=%s rank=%d step=%lld value=%.15e\n",
+           stage, name, rank, static_cast<long long>(step), value);
+    fflush(stdout);
+    return 0;
+  }
+  return 1;
+}
+
+int check_finite_atom_array(double **values, int nlocal, const char *name, const char *stage, int rank, bigint step)
+{
+  int ok = 1;
+  for (int i = 0; i < nlocal && ok; ++i) {
+    for (int j = 0; j < 3 && ok; ++j) {
+      if (!std::isfinite(values[i][j])) {
+        printf("FAIL: stage=%s name=%s atom=%d dim=%d rank=%d step=%lld\n",
+               stage, name, i, j, rank, static_cast<long long>(step));
+        fflush(stdout);
+        ok = 0;
+      }
+    }
+  }
+  return ok;
+}
+
+bool check_langevin_stage_collective(void *lmp, const char *stage, bool require_forces = true)
+{
+  auto *inst = as_lammps(lmp);
+  int rank_global = -1;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank_global);
+
+  int local_ok = 1;
+
+  if (!inst || !inst->atom) {
+    local_ok = 0;
+  }
+  if (inst && inst->atom) {
+    const int rank = inst->universe ? inst->universe->me : -1;
+    const bigint step = inst->update ? inst->update->ntimestep : -1;
+
+    if (!check_finite_atom_array(inst->atom->x, inst->atom->nlocal, "atom->x", stage, rank, step))
+      local_ok = 0;
+    if (!check_finite_atom_array(inst->atom->v, inst->atom->nlocal, "atom->v", stage, rank, step))
+      local_ok = 0;
+    if (require_forces) {
+      if (!check_finite_atom_array(inst->atom->f, inst->atom->nlocal, "atom->f", stage, rank, step))
+        local_ok = 0;
+    }
+
+    auto *fix = dynamic_cast<FixPIMDLangevin *>(inst->modify->get_fix_by_id("cp"));
+    if (!fix) {
+      printf("FAIL: stage=%s no fix 'cp' found rank=%d step=%lld\n",
+             stage, rank, static_cast<long long>(step));
+      fflush(stdout);
+      local_ok = 0;
+    } else {
+      if (!check_finite_scalar(fix->ke_bead, "ke_bead", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->se_bead, "se_bead", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->pe_bead, "pe_bead", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->tote, "tote", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->t_prim, "t_prim", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->t_vir, "t_vir", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->t_cv, "t_cv", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->p_prim, "p_prim", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->p_md, "p_md", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->p_cv, "p_cv", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->kt, "kt", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->beta, "beta", stage, rank, step)) local_ok = 0;
+      if (!check_finite_scalar(fix->Lan_temp, "Lan_temp", stage, rank, step)) local_ok = 0;
+      if (fix->pstat_flag) {
+        if (!check_finite_scalar(fix->omega_np, "omega_np", stage, rank, step)) local_ok = 0;
+        if (!check_finite_scalar(fix->fbond, "fbond", stage, rank, step)) local_ok = 0;
+        if (!check_finite_scalar(fix->beta_np, "beta_np", stage, rank, step)) local_ok = 0;
+        for (int i = 0; i < 6; ++i) {
+          if (!check_finite_scalar(fix->vw[i], "vw", stage, rank, step)) local_ok = 0;
+        }
+      }
+      if (fix->tau_k) {
+        for (int i = 0; i < fix->np; ++i)
+          if (!check_finite_scalar(fix->tau_k[i], "tau_k", stage, rank, step)) local_ok = 0;
+      }
+      if (fix->c1_k) {
+        for (int i = 0; i < fix->np; ++i)
+          if (!check_finite_scalar(fix->c1_k[i], "c1_k", stage, rank, step)) local_ok = 0;
+      }
+      if (fix->c2_k) {
+        for (int i = 0; i < fix->np; ++i)
+          if (!check_finite_scalar(fix->c2_k[i], "c2_k", stage, rank, step)) local_ok = 0;
+      }
+    }
+  }
+
+  int global_ok = 0;
+  MPI_Allreduce(&local_ok, &global_ok, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+
+  if (!global_ok) {
+    printf("COLLECTIVE FAILURE at stage=%s rank=%d\n", stage, rank_global);
+    fflush(stdout);
+  }
+  return global_ok != 0;
+}
+
+bool check_stage_without_fix_collective(void *lmp, const char *stage)
+{
+  auto *inst = as_lammps(lmp);
+  int rank_global = -1;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank_global);
+
+  int local_ok = 1;
+  if (!inst || !inst->atom) {
+    local_ok = 0;
+  } else {
+    const int rank = inst->universe ? inst->universe->me : -1;
+    const bigint step = inst->update ? inst->update->ntimestep : -1;
+    if (!check_finite_atom_array(inst->atom->x, inst->atom->nlocal, "atom->x", stage, rank, step))
+      local_ok = 0;
+    if (!check_finite_atom_array(inst->atom->v, inst->atom->nlocal, "atom->v", stage, rank, step))
+      local_ok = 0;
+    if (!check_finite_atom_array(inst->atom->f, inst->atom->nlocal, "atom->f", stage, rank, step))
+      local_ok = 0;
+  }
+
+  int global_ok = 0;
+  MPI_Allreduce(&local_ok, &global_ok, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
+
+  if (!global_ok) {
+    int rank_global = -1;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank_global);
+    printf("COLLECTIVE FAILURE at stage=%s rank=%d\n", stage, rank_global);
+    fflush(stdout);
+  }
+  return global_ok != 0;
+}
 
 bool has_exact_procs(int expected_procs)
 {
@@ -171,7 +321,9 @@ struct PartitionedLammpsHandle {
 
   ~PartitionedLammpsHandle()
   {
-    if (lmp) lammps_close(lmp);
+    if (lmp) {
+      lammps_close(lmp);
+    }
   }
 };
 
@@ -452,17 +604,28 @@ TEST(FixPIMDLangevinRestartTest, NMPIMDNVTRestartContinuation)
   ASSERT_NE(handle.lmp, nullptr);
   RestartFileGuard restart_guard{unique_restart_prefix("pimd_langevin_nmpimd_nvt.restart"), 2};
 
+  ASSERT_TRUE(check_stage_without_fix_collective(handle.lmp, "after_open"));
   setup_partition_zero_pair_system(handle.lmp);
   lammps_command(handle.lmp, "variable beadid world 01 02");
   lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble nvt integrator baoab "
                      "temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
-  lammps_command(handle.lmp, "run 2 post no");
+  ASSERT_TRUE(check_langevin_stage_collective(handle.lmp, "after_first_fix", false));
+  lammps_command(handle.lmp, "run 0 post no");
+  ASSERT_TRUE(check_langevin_stage_collective(handle.lmp, "after_run0"));
+  lammps_command(handle.lmp, "run 1 post no");
+  ASSERT_TRUE(check_langevin_stage_collective(handle.lmp, "after_run1"));
+  lammps_command(handle.lmp, "run 1 post no");
+  ASSERT_TRUE(check_langevin_stage_collective(handle.lmp, "after_run2"));
   lammps_command(handle.lmp, fmt::format("write_restart {}.${{beadid}}", restart_guard.prefix).c_str());
   lammps_command(handle.lmp, "clear");
   lammps_command(handle.lmp, fmt::format("read_restart {}.${{beadid}}", restart_guard.prefix).c_str());
   lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble nvt integrator baoab "
                      "temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
+  ASSERT_TRUE(check_langevin_stage_collective(handle.lmp, "after_second_fix", false));
+  lammps_command(handle.lmp, "run 0 post no");
+  ASSERT_TRUE(check_langevin_stage_collective(handle.lmp, "after_restart_run0"));
   lammps_command(handle.lmp, "run 1 post no");
+  ASSERT_TRUE(check_langevin_stage_collective(handle.lmp, "after_restart_run1"));
 
   EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
   expect_all_finite(handle.lmp, "cp");

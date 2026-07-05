@@ -5,6 +5,13 @@ fix tprpmd command
 
 .. versionadded:: TBD
 
+.. note::
+
+   The ``tprpmd`` fix style is a backward-compatibility alias for
+   :doc:`fix pimd/uvt <fix_pimd_uvt>`.  Both style names share the same
+   implementation.  The ``fix pimd/uvt`` style is preferred for new input
+   scripts, but ``fix tprpmd`` continues to work in existing scripts.
+
 Syntax
 """"""
 
@@ -30,7 +37,8 @@ Examples
 Description
 """""""""""
 
-``fix tprpmd`` implements thermostatted ring-polymer molecular dynamics
+``fix tprpmd`` is a backward-compatibility alias for :doc:`fix pimd/uvt <fix_pimd_uvt>`.
+It implements thermostatted ring-polymer molecular dynamics
 with a constant-potential electronic degree of freedom.  The path-integral
 replicas are distributed across LAMMPS partitions, so the number of beads
 is set implicitly by ``universe->nworlds`` and the job must be launched
@@ -107,5 +115,5 @@ LAMMPS was built with that package.  See the :doc:`Build package
 Related commands
 """"""""""""""""
 
-:doc:`fix pimd <fix_pimd>`, :doc:`fix uvt <fix_uvt>`,
+:doc:`fix pimd <fix_pimd>`, :doc:`fix pimd/uvt <fix_pimd_uvt>`,
 :doc:`read_restart <read_restart>`, :doc:`run_style <run_style>`

@@ -47,10 +47,11 @@ enum{IGNORE,WARN,ERROR};
 /* ---------------------------------------------------------------------- */
 
 FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg), blist(nullptr), biascoeff(nullptr), numbond(nullptr),
-  maxhalf(nullptr), eligible(nullptr), maxhalfstrain(nullptr), old2now(nullptr),
-  tagold(nullptr), xold(nullptr), maxstrain(nullptr), maxstrain_domain(nullptr),
-  biasflag(nullptr), bias(nullptr), cpage(nullptr), clist(nullptr), numcoeff(nullptr)
+    FixHyper(lmp, narg, arg), listfull(nullptr), listhalf(nullptr), blist(nullptr),
+    biascoeff(nullptr), numbond(nullptr), maxhalf(nullptr), eligible(nullptr),
+    maxhalfstrain(nullptr), old2now(nullptr), tagold(nullptr), xold(nullptr), maxstrain(nullptr),
+    maxstrain_domain(nullptr), biasflag(nullptr), bias(nullptr), cpage(nullptr), clist(nullptr),
+    numcoeff(nullptr)
 {
   // error checks
 

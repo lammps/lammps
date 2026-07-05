@@ -4,6 +4,10 @@ add_executable(test_tokenizer test_tokenizer.cpp)
 target_link_libraries(test_tokenizer PRIVATE lammps GTest::GMockMain)
 add_test(NAME Tokenizer COMMAND test_tokenizer)
 
+add_executable(test_stl_reader test_stl_reader.cpp)
+target_link_libraries(test_stl_reader PRIVATE lammps GTest::GMockMain)
+add_test(NAME STLReader COMMAND test_stl_reader)
+
 add_executable(test_mempool test_mempool.cpp)
 target_link_libraries(test_mempool PRIVATE lammps GTest::GMockMain)
 add_test(NAME MemPool COMMAND test_mempool)
@@ -79,7 +83,7 @@ add_test(NAME MathEigen COMMAND test_math_eigen_impl 10 5)
 # -----------------------------------------------------------------------------
 if(PKG_KSPACE)
   # Build test_fft3d executable
-  add_executable(test_fft3d test_fft3d.cpp ../force-styles/error_stats.cpp)
+  add_executable(test_fft3d test_fft3d.cpp ../error_stats.cpp)
   target_link_libraries(test_fft3d PRIVATE lammps GTest::GMockMain)
   target_include_directories(test_fft3d PRIVATE ${LAMMPS_SOURCE_DIR})
 
@@ -120,7 +124,7 @@ endif()
 # -----------------------------------------------------------------------------
 if(PKG_KSPACE AND PKG_KOKKOS)
   # Build test_fft3d_kokkos executable
-  add_executable(test_fft3d_kokkos test_fft3d_kokkos.cpp ../force-styles/error_stats.cpp)
+  add_executable(test_fft3d_kokkos test_fft3d_kokkos.cpp ../error_stats.cpp)
   target_link_libraries(test_fft3d_kokkos PRIVATE lammps GTest::GMockMain Kokkos::kokkos)
   target_include_directories(test_fft3d_kokkos PRIVATE ${LAMMPS_SOURCE_DIR} ${LAMMPS_SOURCE_DIR}/KSPACE)
 

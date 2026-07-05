@@ -61,6 +61,7 @@ gives those details.
    * :ref:`GPU <PKG-GPU>`
    * :ref:`GRAPHICS <PKG-GRAPHICS>`
    * :ref:`GRANULAR <PKG-GRANULAR>`
+   * :ref:`GRANSURF <PKG-GRANSURF>`
    * :ref:`H5MD <PKG-H5MD>`
    * :ref:`INTEL <PKG-INTEL>`
    * :ref:`INTERLAYER <PKG-INTERLAYER>`
@@ -1065,6 +1066,7 @@ package in ``tools/fep``; see its ``README`` file.
 * :doc:`compute fep <compute_fep>`
 * :doc:`pair_style \*/soft <pair_fep_soft>`
 * :doc:`pair_style coul/cut/soft/gapsys <pair_fep_soft>`
+* :doc:`pair_style lj/cut/soft/gapsys <pair_fep_soft>`
 * ``examples/PACKAGES/fep``
 * tools/fep/README
 * tools/fep
@@ -1177,6 +1179,32 @@ potentials.
 
 ----------
 
+.. _PKG-GRANSURF:
+
+GRANSURF package
+----------------
+
+**Contents:**
+
+Granular surfaces consisting of triangles (3d) or line segments (2d).
+These interact with finite-size granular particles as static or moving
+boundary conditions and support the same kind of interaction models as
+granular pair styles do for particle/particle interactions.  The
+collection of triangles or lines can be "global" with each processor
+storing all of them.  Or it can be "local" where the triangles/lines
+are distributed across processors.
+
+**Supporting info:**
+
+* src/GRANSURF: filenames -> commands
+* :doc:`Howto granular surfaces <Howto_granular_surfaces>`
+* :doc:`fix surface/global <fix_surface_global>`
+* :doc:`fix surface/local <fix_surface_local>`
+* :doc:`pair_style surf/granular <pair_surf_granular>`
+* examples/gransurf
+
+----------
+
 .. _PKG-H5MD:
 
 H5MD package
@@ -1219,7 +1247,7 @@ INTEL package
 **Contents:**
 
 Dozens of pair, fix, bond, angle, dihedral, improper, and kspace styles
-which are optimized for Intel CPUs and KNLs (Knights Landing).  All of
+which are optimized for Intel CPUs.  All of
 them have an "intel" in their style name.  The :doc:`INTEL package
 <Speed_intel>` page gives details of what hardware and compilers are
 required on your system, and how to build and use this package.  Its
@@ -1637,8 +1665,8 @@ MC package
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand canonical
-MC (GCMC), semi-grand canonical MC (SGCMC), or similar processes in
-conjunction with molecular dynamics (MD).
+MC (GCMC), semi-grand canonical MC (SGCMC), Gibbs ensemble MC (GEMC)
+or similar processes in conjunction with molecular dynamics (MD).
 
 **Supporting info:**
 
@@ -1650,9 +1678,10 @@ conjunction with molecular dynamics (MD).
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix gemc <fix_gemc>`
 * :doc:`fix hmc <fix_hmc>`
 * :doc:`fix mol/swap <fix_mol_swap>`
-* :doc:`fix neighbo/swap <fix_neighbor_swap>`
+* :doc:`fix neighbor/swap <fix_neighbor_swap>`
 * :doc:`fix sgcmc <fix_sgcmc>`
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`
@@ -1890,7 +1919,7 @@ your system.
 This package has :ref:`specific installation instructions <ml-runner>` on the
 :doc:`Build extras <Build_extras>` page.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 **Supporting info:**
 

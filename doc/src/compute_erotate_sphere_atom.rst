@@ -1,7 +1,10 @@
 .. index:: compute erotate/sphere/atom
+.. index:: compute erotate/sphere/atom/omp
 
 compute erotate/sphere/atom command
 ===================================
+
+Accelerator Variants: *erotate/sphere/atom/omp*
 
 Syntax
 """"""
@@ -48,6 +51,12 @@ the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-atom vector values will be in energy :doc:`units <units>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

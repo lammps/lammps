@@ -425,7 +425,7 @@ void FixIPI::initial_integrate(int /*vflag*/)
   }
 
   // compute PE. makes sure that it will be evaluated at next step
-  modify->compute[modify->find_compute("thermo_pe")]->invoked_scalar = -1;
+  modify->get_compute_by_id("thermo_pe")->invoked_scalar = -1;
   modify->addstep_compute_all(update->ntimestep+1);
 
   hasdata=1;

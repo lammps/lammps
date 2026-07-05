@@ -117,6 +117,7 @@ accelerated styles exist.
 * :doc:`agni <pair_agni>` - AGNI machine-learning potential
 * :doc:`aip/water/2dm <pair_aip_water_2dm>` - anisotropic interfacial potential for water in 2d geometries
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
+* :doc:`airebo/bc <pair_airebo>` - AIREBO with bond-centric P_CC (Hur and Stuart)
 * :doc:`airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
 * :doc:`amoeba <pair_amoeba>` -
 * :doc:`atm <pair_atm>` - Axilrod-Teller-Muto potential
@@ -124,6 +125,8 @@ accelerated styles exist.
 * :doc:`body/nparticle <pair_body_nparticle>` - interactions between body particles
 * :doc:`body/rounded/polygon <pair_body_rounded_polygon>` - granular-style 2d polygon potential
 * :doc:`body/rounded/polyhedron <pair_body_rounded_polyhedron>` - granular-style 3d polyhedron potential
+* :doc:`bondval <pair_bondval>` - Bond-Valence potential
+* :doc:`bondval/vec <pair_bondval>` - Bond-Valence vector potential
 * :doc:`bop <pair_bop>` - BOP potential of Pettifor
 * :doc:`born <pair_born>` - Born-Mayer-Huggins potential
 * :doc:`born/coul/dsf <pair_born>` - Born with damped-shifted-force model
@@ -266,6 +269,7 @@ accelerated styles exist.
 * :doc:`lj/cut/dipole/cut <pair_dipole>` - point dipoles with cutoff
 * :doc:`lj/cut/dipole/long <pair_dipole>` - point dipoles with long-range Ewald
 * :doc:`lj/cut/soft <pair_fep_soft>` - LJ with a soft core
+* :doc:`lj/cut/soft/gapsys <pair_fep_soft>` - LJ potential with a soft core with continuous force and first derivative of force
 * :doc:`lj/cut/sphere <pair_lj_cut_sphere>` - LJ where per-atom radius is used as LJ sigma
 * :doc:`lj/cut/thole/long <pair_thole>` - LJ with Coulomb with thole damping
 * :doc:`lj/cut/tip4p/cut <pair_lj_cut_tip4p>` - LJ with cutoff Coulomb for TIP4P water
@@ -393,6 +397,7 @@ accelerated styles exist.
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -
 * :doc:`srp/react <pair_srp>` -
+* :doc:`surf/granular <pair_surf_granular>` - line/triangle interactions with granular spheres
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
 * :doc:`sw/angle/table <pair_sw_angle_table>` - Stillinger-Weber potential with tabulated angular term
 * :doc:`sw/mod <pair_sw>` - modified Stillinger-Weber 3-body potential

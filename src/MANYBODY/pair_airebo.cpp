@@ -51,8 +51,9 @@ const char *style[3] = {"airebo", "rebo", "airebo/morse"};
 
 /* ---------------------------------------------------------------------- */
 
-PairAIREBO::PairAIREBO(LAMMPS *lmp)
-  : Pair(lmp), variant(AIREBO)
+PairAIREBO::PairAIREBO(LAMMPS *lmp) :
+    Pair(lmp), variant(AIREBO), cutljsq(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
+    lj4(nullptr), closestdistsq(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -60,6 +61,7 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp)
   ghostneigh = 1;
   ljflag = torflag = 1;
   morseflag = 0;
+  bcflag = 0;
 
   nextra = 3;
   pvector = new double[nextra];
@@ -1332,9 +1334,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3], double rijmag, double 
   PijS = 0.0;
   dN2[0] = 0.0;
   dN2[1] = 0.0;
-  PijS = PijSpline(NijC,NijH,itype,jtype,dN2);
+  PijS = Pij_eval(NijC,NijH,NjiC,NjiH,itype,jtype,dN2);
   pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmp = -0.5*cube(pij);
+  const double dN2PIJ_bc[2] = {dN2[0], dN2[1]};   // saved for bond-centric cross force
 
   // pij forces
 
@@ -1477,9 +1480,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3], double rijmag, double 
   PjiS = 0.0;
   dN2[0] = 0.0;
   dN2[1] = 0.0;
-  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2);
+  PjiS = Pij_eval(NjiC,NjiH,NijC,NijH,jtype,itype,dN2);
   pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmp = -0.5*cube(pji);
+  const double dN2PJI_bc[2] = {dN2[0], dN2[1]};   // saved for bond-centric cross force
 
   REBO_neighs = REBO_firstneigh[j];
   for (l = 0; l < REBO_numneigh[j]; l++) {
@@ -1581,6 +1585,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3], double rijmag, double 
       }
     }
   }
+
+  // bond-centric P cross forces (no-op for atom-centric P; see header)
+  bondorder_Pij_cross(i,j,itype,jtype,VA,-0.5*cube(pij),-0.5*cube(pji),
+                      dN2PIJ_bc,dN2PJI_bc,f);
 
   // evaluate Nij conj
 
@@ -2078,6 +2086,71 @@ double PairAIREBO::bondorder(int i, int j, double rij[3], double rijmag, double 
 }
 
 /* ----------------------------------------------------------------------
+   bond-centric P cross force.
+
+   For a bond-averaged P (see Pij_eval / AIREBO-BC) the P_CC correction
+   depends on the coordination on both sides of the i-j bond and appears in
+   both pij and pji.  The atom-centric P-coordination forces in bondorder()
+   and bondorderLJ() then leave out two contributions:
+     - the pji term acting on i's neighbors k, and
+     - the pij term acting on j's neighbors l.
+   Each is a pairwise central force along the i-k (resp. j-l) bond carried by
+   the coordination cutoff derivative dwik (resp. dwjl); it is tallied with
+   v_tally2 exactly like the LJ coordination forces.  For stock atom-centric
+   P, Pij_bond_averaged() is false and this is a no-op, so AIREBO/REBO/
+   AIREBO-M forces, energies and stresses are unchanged.
+------------------------------------------------------------------------- */
+
+void PairAIREBO::bondorder_Pij_cross(int i, int j, int itype, int jtype, double VA,
+                                     double tmppij, double tmppji, const double dN2PIJ[2],
+                                     const double dN2PJI[2], double **f)
+{
+  if (!Pij_bond_averaged(itype,jtype)) return;
+
+  double **x = atom->x;
+  int *type = atom->type;
+  int *REBO_neighs;
+  int k,l,atomk,atoml,ktype,ltype;
+  double rik[3],rjl[3],rikmag,rjlmag,dwik,dwjl,tmp2;
+
+  // pji term: P-force on i's neighbors k (cutoff derivative on the i-k bond)
+
+  REBO_neighs = REBO_firstneigh[i];
+  for (k = 0; k < REBO_numneigh[i]; k++) {
+    atomk = REBO_neighs[k];
+    if (atomk == j) continue;
+    ktype = map[type[atomk]];
+    rik[0] = x[i][0]-x[atomk][0];
+    rik[1] = x[i][1]-x[atomk][1];
+    rik[2] = x[i][2]-x[atomk][2];
+    rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
+    Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
+    tmp2 = VA*0.5*(tmppji*dN2PJI[ktype]*dwik)/rikmag;
+    f[i][0] -= tmp2*rik[0];     f[i][1] -= tmp2*rik[1];     f[i][2] -= tmp2*rik[2];
+    f[atomk][0] += tmp2*rik[0]; f[atomk][1] += tmp2*rik[1]; f[atomk][2] += tmp2*rik[2];
+    if (vflag_either) v_tally2(i,atomk,-tmp2,rik);
+  }
+
+  // pij term: P-force on j's neighbors l (cutoff derivative on the j-l bond)
+
+  REBO_neighs = REBO_firstneigh[j];
+  for (l = 0; l < REBO_numneigh[j]; l++) {
+    atoml = REBO_neighs[l];
+    if (atoml == i) continue;
+    ltype = map[type[atoml]];
+    rjl[0] = x[j][0]-x[atoml][0];
+    rjl[1] = x[j][1]-x[atoml][1];
+    rjl[2] = x[j][2]-x[atoml][2];
+    rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
+    Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
+    tmp2 = VA*0.5*(tmppij*dN2PIJ[ltype]*dwjl)/rjlmag;
+    f[j][0] -= tmp2*rjl[0];     f[j][1] -= tmp2*rjl[1];     f[j][2] -= tmp2*rjl[2];
+    f[atoml][0] += tmp2*rjl[0]; f[atoml][1] += tmp2*rjl[1]; f[atoml][2] += tmp2*rjl[2];
+    if (vflag_either) v_tally2(j,atoml,-tmp2,rjl);
+  }
+}
+
+/* ----------------------------------------------------------------------
    Bij* function
 -------------------------------------------------------------------------
 
@@ -2198,7 +2271,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double /* rij_mod */[3], double rij
   PijS = 0.0;
   dN2PIJ[0] = 0.0;
   dN2PIJ[1] = 0.0;
-  PijS = PijSpline(NijC,NijH,itype,jtype,dN2PIJ);
+  PijS = Pij_eval(NijC,NijH,NjiC,NjiH,itype,jtype,dN2PIJ);
   pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmppij = -.5*cube(pij);
   tmp3pij = tmp3;
@@ -2239,7 +2312,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double /* rij_mod */[3], double rij
   PjiS = 0.0;
   dN2PJI[0] = 0.0;
   dN2PJI[1] = 0.0;
-  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2PJI);
+  PjiS = Pij_eval(NjiC,NjiH,NijC,NijH,jtype,itype,dN2PJI);
   pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmppji = -.5*cube(pji);
   tmp3pji = tmp3;
@@ -2545,6 +2618,9 @@ double PairAIREBO::bondorderLJ(int i, int j, double /* rij_mod */[3], double rij
         }
       }
     }
+
+    // bond-centric P cross forces (no-op for atom-centric P; see header)
+    bondorder_Pij_cross(i,j,itype,jtype,VA,tmppij,tmppji,dN2PIJ,dN2PJI,f);
 
     // piRC forces
 
@@ -3132,6 +3208,39 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
   dN2[1] = 0.0;
   Pij = 0.0;
 
+  // bond-centric P_CC (AIREBO-BC): evaluate on the half-integer grid.  NijC,
+  // NijH arrive here as the *bond-averaged* coordination numbers (averaged in
+  // Pij_eval()).  The grid is stored in doubled-coordinate index space: cell
+  // (mC,mH) spans [mC,mC+1]x[mH,mH+1] with mC=2*N_C, mH=2*N_H, so we evaluate
+  // at u=2*NijC, v=2*NijH.  Derivative scaling (matches the Fortran): the force
+  // code expects dP/dN_ij; with bond averaging dP/dN_ij = (dP/dNbar)(1/2), and
+  // since u=2*Nbar, dP/dNbar = 2(dP/du), so dP/dN_ij = dP/du is returned
+  // UNSCALED.  Every other case (C-H, H-x) falls through to the stock code.
+
+  if (bcflag && typei == 0 && typej == 0) {
+    if (NijC < pCCdom_bc[0][0]) NijC = pCCdom_bc[0][0];
+    if (NijC > pCCdom_bc[0][1]) NijC = pCCdom_bc[0][1];
+    if (NijH < pCCdom_bc[1][0]) NijH = pCCdom_bc[1][0];
+    if (NijH > pCCdom_bc[1][1]) NijH = pCCdom_bc[1][1];
+
+    const double u = 2.0 * NijC;   // doubled coordinate
+    const double v = 2.0 * NijH;
+
+    x = (int) floor(u);
+    y = (int) floor(v);
+
+    if (fabs(u - floor(u)) < TOL && fabs(v - floor(v)) < TOL) {
+      Pij    = PCCf_bc[x][y];      // exactly on a half-integer knot
+      dN2[0] = PCCdfdx_bc[x][y];   // derivatives at knots are zero
+      dN2[1] = PCCdfdy_bc[x][y];
+    } else {
+      if (u == 2.0 * pCCdom_bc[0][1]) --x;   // upper edge belongs to last cell
+      if (v == 2.0 * pCCdom_bc[1][1]) --y;
+      Pij = Spbicubic(u, v, pCC_bc[x][y], dN2);   // dN2 = dP/du, dP/dv (unscaled)
+    }
+    return Pij;
+  }
+
   if (typei == 1) return Pij;
 
   if (typej == 0) {
@@ -3177,6 +3286,36 @@ double PairAIREBO::PijSpline(double NijC, double NijH, int typei, int typej,
     }
   }
   return Pij;
+}
+
+/* ----------------------------------------------------------------------
+   read the bond-centric P_CC knots (AIREBO-BC) that follow the standard
+   AIREBO data.  A no-op unless bcflag is set.  Called from read_file() on
+   rank 0 with the reader positioned just past the Tij section.  File format:
+   an integer count N, then N triples "mC mH value" with mC=2*N_C, mH=2*N_H
+   (integer indices 0..6), read with next_dvector so the three tokens on a
+   line are taken together (next_int/next_double are line-oriented).
+------------------------------------------------------------------------- */
+
+void PairAIREBO::read_file_extra(PotentialFileReader &reader)
+{
+  if (!bcflag) return;
+
+  for (int i = 0; i < 7; i++)
+    for (int j = 0; j < 7; j++) PCCf_bc[i][j] = 0.0;
+
+  int nbc = reader.next_int();
+  if (nbc < 0 || nbc > 49)
+    error->one(FLERR, "AIREBO-BC pCC knot count out of range: {}", nbc);
+  std::vector<double> bcvals(3 * nbc);
+  reader.next_dvector(bcvals.data(), 3 * nbc);
+  for (int n = 0; n < nbc; n++) {
+    int mC = lround(bcvals[3*n]);
+    int mH = lround(bcvals[3*n+1]);
+    if (mC < 0 || mC > 6 || mH < 0 || mH > 6)
+      error->one(FLERR, "AIREBO-BC pCC knot index out of range: {} {}", mC, mH);
+    PCCf_bc[mC][mH] = bcvals[3*n+2];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -3633,6 +3772,11 @@ void PairAIREBO::read_file(char *filename)
           }
         }
       }
+
+      // hook for derived classes to read any additional parameter sections
+      // that follow the standard AIREBO/REBO data (default: no-op)
+      current_section = "derived-class extra parameters";
+      read_file_extra(reader);
     } catch (TokenizerException &e) {
       error->one(FLERR, "reading {} section in {} file\nREASON: {}\n",
                  current_section, potential_name, e.what());
@@ -4451,6 +4595,35 @@ void PairAIREBO::spline_init()
         FILL_KNOTS_TRI(y3, Tdfdz)
         Sptricubic_patch_coeffs(nC, nC+1, nH, nH+1, nConj, nConj+1, y, y1, y2, y3, &Tijc[nC][nH][nConj][0]);
         #undef FILL_KNOTS_TRI
+      }
+    }
+  }
+
+  // bond-centric P_CC patches (AIREBO-BC).  The knot values were read on rank 0
+  // in read_file_extra(); broadcast them and build the bicubic patches on the
+  // half-integer grid (6x6 cells, cell (mC,mH) spans index coords [mC,mC+1] x
+  // [mH,mH+1]; knot derivatives are zero).  A no-op for stock AIREBO.
+
+  if (bcflag) {
+    MPI_Bcast(&PCCf_bc[0][0], 49, MPI_DOUBLE, 0, world);
+
+    for (i = 0; i < 7; i++) {
+      for (j = 0; j < 7; j++) {
+        PCCdfdx_bc[i][j] = 0.0;
+        PCCdfdy_bc[i][j] = 0.0;
+      }
+    }
+    pCCdom_bc[0][0] = 0.0;  pCCdom_bc[0][1] = 3.0;   // N_C in [0,3]
+    pCCdom_bc[1][0] = 0.0;  pCCdom_bc[1][1] = 3.0;   // N_H in [0,3]
+
+    for (int mH = 0; mH < 6; mH++) {
+      for (int mC = 0; mC < 6; mC++) {
+        double y[4] = {0}, y1[4] = {0}, y2[4] = {0};
+        y[0] = PCCf_bc[mC][mH];
+        y[1] = PCCf_bc[mC][mH+1];
+        y[2] = PCCf_bc[mC+1][mH];
+        y[3] = PCCf_bc[mC+1][mH+1];
+        Spbicubic_patch_coeffs(mC, mC+1, mH, mH+1, y, y1, y2, &pCC_bc[mC][mH][0]);
       }
     }
   }

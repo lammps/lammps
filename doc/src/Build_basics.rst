@@ -250,7 +250,7 @@ LAMMPS.
       provided that can be loaded with
       ``-C ../cmake/presets/clang.cmake``.  Similarly,
       ``-C ../cmake/presets/intel.cmake`` should switch the compiler
-      toolchain to the legacy Intel compilers, ``-C ../cmake/presets/oneapi.cmake``
+      tool chain to the legacy Intel compilers, ``-C ../cmake/presets/oneapi.cmake``
       will switch to the LLVM based oneAPI Intel compilers,
       ``-C ../cmake/presets/pgi.cmake`` will switch the compiler to the PGI compilers,
       and ``-C ../cmake/presets/nvhpc.cmake`` will switch to the NVHPC compilers.
@@ -327,7 +327,6 @@ LAMMPS.
             Makefile.opt                   # OPT package
             Makefile.omp                   # OPENMP package
             Makefile.intel_cpu             # INTEL package for CPUs
-            Makefile.intel_coprocessor     # INTEL package for KNLs
             Makefile.gpu                   # GPU package
 
 ----------

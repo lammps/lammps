@@ -1,0 +1,57 @@
+---
+lammps_version: 30 Mar 2026
+tags: granular
+date_generated: Fri May 29 19:15:55 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  pair granular
+pre_commands: ! |
+  units lj
+  dimension 3
+  boundary f f f
+  atom_style sphere
+  region box block -2.0 2.0 -2.0 2.0 -2.0 2.0 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 0.0 0.0 units box
+  create_atoms 1 single ${sep} 0.0 0.0 units box
+  set group all diameter ${diam} density ${dens}
+  comm_modify vel yes
+  neighbor 0.3 bin
+  timestep 1.0e-4
+post_commands: ! |
+  fix integr all nve/sphere
+input_file:
+natoms: 2
+variables: ! |
+  diam 1.0
+  dens 1.0
+  emod 1000.0
+  ndamp 0.0
+  poiss 0.3
+  coh 10.0
+  reff 0.25
+  sep 0.99999
+pair_style: granular
+pair_coeff: ! |
+  * * dmt ${emod} ${ndamp} ${poiss} ${coh} tangential linear_nohistory 0.0 0.0
+run_segments: ! |-
+  0
+analytic_enable: yes
+analytic_model: pulloff_dmt
+analytic_tol: 0.001
+analytic_segment: 0
+run_pos: ! |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  9.9999000000000005e-01  0.0000000000000000e+00  0.0000000000000000e+00
+run_vel: ! |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+run_torque: ! |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+run_omega: ! |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+...

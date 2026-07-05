@@ -233,6 +233,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`Howto granular <Howto_granular>`
      - pour
      - no
+   * - :ref:`GRANSURF <PKG-GRANSURF>`
+     - surfaces for granular systems
+     - :doc:`Howto granular surfaces <Howto_granular_surfaces>`
+     - gransurf
+     - no
    * - :ref:`GRAPHICS <PKG-GRAPHICS>`
      - generate graphics output
      - :doc:`Howto_viz`
@@ -244,7 +249,7 @@ whether an extra library is needed to build and use the package:
      - n/a
      - ext
    * - :ref:`INTEL <PKG-INTEL>`
-     - optimized Intel CPU and KNL styles
+     - optimized Intel CPU styles
      - :doc:`Speed intel <Speed_intel>`
      - `Benchmarks <https://www.lammps.org/bench.html>`_
      - no

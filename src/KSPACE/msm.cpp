@@ -131,8 +131,19 @@ void MSM::init()
   if (!atom->q_flag)
     error->all(FLERR, Error::NOLASTLINE, "Kspace style requires atom attribute q");
 
-  if ((slabflag == 1) && (me == 0))
-    error->warning(FLERR, "Slab correction not needed for MSM");
+  // MSM is a true non-periodic method: it handles non-periodic boundaries
+  // natively via the 'boundary' command, so the EW3DC slab correction is
+  // meaningless for MSM and is ignored.  The reset must run on all MPI ranks
+  // (not just rank 0): the shared KSpace::x2lamdaT() scales the z component by
+  // slab_volfactor when slabflag == 1, so a rank-dependent slab_volfactor would
+  // corrupt the parallel triclinic reciprocal-space transform.
+
+  if (slabflag == 1) {
+    if (me == 0)
+      error->warning(FLERR, "Slab correction not needed for MSM and will be ignored");
+    slabflag = 0;
+    slab_volfactor = 1.0;
+  }
 
   if ((order < 4) || (order > 10) || (order%2 != 0))
     error->all(FLERR, Error::NOLASTLINE, "MSM order must be 4, 6, 8, or 10");
@@ -3402,13 +3413,40 @@ double MSM::memory_usage()
 {
   double bytes = 0;
 
-  // NOTE: Stan, fill in other memory allocations here
+  // per-atom grid assignment
+  bytes += (double) nmax * 3 * sizeof(double);    // part2grid[nmax][3]
 
-  // all Grid3d bufs
+  // per-level charge and energy grids
+  for (int n = 0; n < levels; n++) {
+    if (!active_flag[n]) continue;
+    double nbrick = (double)(nxhi_out[n]-nxlo_out[n]+1) *
+                   (nyhi_out[n]-nylo_out[n]+1) *
+                   (nzhi_out[n]-nzlo_out[n]+1);
+    bytes += 2.0 * nbrick * sizeof(double);    // qgrid + egrid
+    if (peratom_allocate_flag)
+      bytes += 6.0 * nbrick * sizeof(double);  // v0..v5 grids
+  }
 
+  // direct-space lookup tables: g + v0..v5 (7 arrays)
+  if (g_direct) bytes += (double) levels * nmax_direct * 7 * sizeof(double);
+
+  // direct-space top-level tables (same structure, top level = levels-1)
+  if (g_direct_top && levels > 0) {
+    int n = levels - 1;
+    int nx_top = betax[n] - alpha[n];
+    int ny_top = betay[n] - alpha[n];
+    int nz_top = betaz[n] - alpha[n];
+    int nx = 2*nx_top + 1;
+    int ny = 2*ny_top + 1;
+    int nz = 2*nz_top + 1;
+    double nmax_top = (double) 8*(nx+1)*(ny+1)*(nz+1);
+    bytes += nmax_top * 7 * sizeof(double);
+  }
+
+  // Grid3d communication buffers
   bytes += (double)(ngcall_buf1 + ngcall_buf2) * npergrid * sizeof(double);
 
-  for (int n=0; n<levels; n++)
+  for (int n = 0; n < levels; n++)
     if (active_flag[n])
       bytes += (double)(ngc_buf1[n] + ngc_buf2[n]) * npergrid * sizeof(double);
 

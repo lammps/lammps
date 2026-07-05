@@ -503,7 +503,15 @@ void PairMEAMSWSpline::unpack_reverse_comm(int /*n*/, int * /*list*/, double * /
 ------------------------------------------------------------------------- */
 double PairMEAMSWSpline::memory_usage()
 {
-  return nmax * sizeof(double);        // The Uprime_values array.
+  double bytes = (double) nmax * sizeof(double);    // Uprime_values array
+  bytes += phi.memory_usage();
+  bytes += rho.memory_usage();
+  bytes += f.memory_usage();
+  bytes += U.memory_usage();
+  bytes += g.memory_usage();
+  bytes += F.memory_usage();
+  bytes += G.memory_usage();
+  return bytes;
 }
 
 

@@ -284,7 +284,7 @@ class Neighbor : protected Pointers {
   int copymode;
 
   virtual void init_cutneighsq_kokkos(int) {}
-  virtual void create_kokkos_list(int) {}
+  virtual void create_kokkos_list(int);
   virtual void init_ex_type_kokkos(int) {}
   virtual void init_ex_bit_kokkos() {}
   virtual void init_ex_mol_bit_kokkos() {}
@@ -358,6 +358,7 @@ namespace NeighConst {
     REQ_NEWTON_ON = 1 << 8,
     REQ_NEWTON_OFF = 1 << 9,
     REQ_SSA = 1 << 10,
+    REQ_ONESIDED = 1 << 11
   };
 }    // namespace NeighConst
 

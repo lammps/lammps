@@ -64,3 +64,7 @@ src/Makefile.package.settings-e
 /test
 /dev
 .Rhistory
+
+# Claude code generated/maintained files
+/CLAUDE.md
+/plans

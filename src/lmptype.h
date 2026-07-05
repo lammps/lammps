@@ -54,14 +54,19 @@
 
 // LMP_REGISTRY_CONST: const-qualifier for file-scope style-registration tables
 // (committed *_register.cpp files that hold arrays of host-only factory function
-// pointers).  In a GPU-enabled Kokkos build every translation unit is also
-// compiled for the device, where clang implicitly shadows file-scope "const"
-// objects into device memory -- which drags the host-only factory functions
-// into device code and fails to link.  These tables are only ever read by host
-// runtime code, so the qualifier is dropped in that case.  LMP_KOKKOS_GPU is set
-// as a global compile definition by the build system (cmake KOKKOS package).
+// pointers).  When a translation unit is also compiled for a GPU device, clang
+// and nvcc implicitly shadow file-scope "const" objects into device memory --
+// which drags the host-only factory functions into device code and fails to
+// link.  These tables are only ever read by host runtime code, so the qualifier
+// is dropped in that case.  This happens (a) in a GPU-enabled Kokkos build,
+// where LMP_KOKKOS_GPU is set as a global compile definition by the build
+// system (cmake KOKKOS package), and (b) whenever the C++ compiler itself is a
+// CUDA or HIP compiler driver (e.g. a GPU package HIP build with hipcc as
+// CMAKE_CXX_COMPILER), which is detected via the compiler's language-mode
+// macros: __HIP__ (clang compiling HIP), __CUDACC__ (nvcc), __CUDA__ (clang
+// compiling CUDA).
 
-#ifdef LMP_KOKKOS_GPU
+#if defined(LMP_KOKKOS_GPU) || defined(__HIP__) || defined(__CUDACC__) || defined(__CUDA__)
 #define LMP_REGISTRY_CONST
 #else
 #define LMP_REGISTRY_CONST const

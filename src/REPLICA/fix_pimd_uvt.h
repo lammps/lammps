@@ -14,6 +14,7 @@
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(pimd/uvt,FixPIMDUVT);
+FixStyle(tprpmd,FixPIMDUVT);
 // clang-format on
 #else
 

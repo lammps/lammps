@@ -35,7 +35,7 @@ enum { UVT = 1 };
 /* ---------------------------------------------------------------------- */
 
 FixPIMDUVT::FixPIMDUVT(LAMMPS *lmp, int narg, char **arg) :
-    FixPIMDNVTValidated(lmp, narg, arg, true), ustat_flag(1), mu(-3.5), Ne(nullptr),
+    FixPIMDNVT(lmp, narg, arg, true), ustat_flag(1), mu(-3.5), Ne(nullptr),
     Ne_dot(nullptr), Ne_mass(nullptr), u_start(0.0), u_stop(0.0), u_current(0.0),
     u_target(0.0), u_freq(0.0), u_period(0.0), dedn_name(nullptr), dedn_which(ArgInfo::NONE),
     dedn_index(0), dedn_var(-1), dedn_compute(nullptr), dedn_fix(nullptr), dedn_current(0.0)
@@ -129,7 +129,7 @@ void FixPIMDUVT::finish_uvt_constructor_setup()
 
 void FixPIMDUVT::setup_subclass_state()
 {
-  FixPIMDNVTValidated::setup_subclass_state();
+  FixPIMDNVT::setup_subclass_state();
   resolve_dedn_source();
   u_freq = 1.0 / u_period;
   *Ne_mass = tdof * force->boltz * temp / (u_freq * u_freq);

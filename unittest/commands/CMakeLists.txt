@@ -50,13 +50,13 @@ if(PKG_REPLICA)
   add_mpi_test(NAME FixPIMDNVEPartition NUM_PROCS 2
                COMMAND $<TARGET_FILE:test_fix_pimd_nve> --gtest_filter=FixPIMDNVEMPI.*)
 
-  add_executable(test_fix_pimd_nvt_validated test_fix_pimd_nvt_validated.cpp)
-  target_link_libraries(test_fix_pimd_nvt_validated PRIVATE lammps GTest::GMock)
-  add_test(NAME FixPIMDNVTValidated
-           COMMAND test_fix_pimd_nvt_validated --gtest_filter=FixPIMDNVTValidatedSerialTest.*)
-  add_mpi_test(NAME FixPIMDNVTValidatedPartition NUM_PROCS 2
-               COMMAND $<TARGET_FILE:test_fix_pimd_nvt_validated>
-                       --gtest_filter=FixPIMDNVTValidatedMPI.*)
+  add_executable(test_fix_pimd_nvt test_fix_pimd_nvt.cpp)
+  target_link_libraries(test_fix_pimd_nvt PRIVATE lammps GTest::GMock)
+  add_test(NAME FixPIMDNVTSerial
+           COMMAND test_fix_pimd_nvt --gtest_filter=FixPIMDNVTSerialTest.*)
+  add_mpi_test(NAME FixPIMDNVTMPI NUM_PROCS 2
+               COMMAND $<TARGET_FILE:test_fix_pimd_nvt>
+                       --gtest_filter=FixPIMDNVTMPI.*)
 
   add_executable(test_fix_pimd_uvt test_fix_pimd_uvt.cpp)
   target_link_libraries(test_fix_pimd_uvt PRIVATE lammps GTest::GMock)

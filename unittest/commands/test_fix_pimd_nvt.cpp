@@ -24,7 +24,7 @@ bool verbose = false;
 
 namespace LAMMPS_NS {
 
-class FixPIMDNVTValidatedSerialTest : public LAMMPSTest {
+class FixPIMDNVTSerialTest : public LAMMPSTest {
  protected:
   void setup_zero_pair_system()
   {
@@ -45,9 +45,10 @@ class FixPIMDNVTValidatedSerialTest : public LAMMPSTest {
     command("timestep 0.005");
   }
 
-  void setup_nuclear_fix(const char *method = "tp-rpmd")
+  void setup_nuclear_fix(const char *style, const char *method = "tp-rpmd")
   {
-    command(std::string("fix cp all pimd/nvt/validated method ") + method +
+    command(std::string("fix cp all ") + style +
+            " method " + method +
             " ensemble nvt thermostat NHC temp 1.0 Tdamp 0.5 "
             "tchain 3 tloop 1");
   }
@@ -58,10 +59,39 @@ class FixPIMDNVTValidatedSerialTest : public LAMMPSTest {
   }
 };
 
-TEST_F(FixPIMDNVTValidatedSerialTest, P1StandaloneRunProducesNuclearState)
+TEST_F(FixPIMDNVTSerialTest, AliasStyleParsesAndRuns)
 {
   setup_zero_pair_system();
-  setup_nuclear_fix("tp-pimd");
+  setup_nuclear_fix("pimd/nvt/validated");
+  command("run 0 post no");
+  for (int i = 0; i < pimd_test::nuclear_vector_size(); ++i) {
+    EXPECT_TRUE(std::isfinite(fix_value("cp", i))) << "index=" << i;
+  }
+}
+
+TEST_F(FixPIMDNVTSerialTest, AliasMatchesPIMDNVTOutputs)
+{
+  const int vector_size = pimd_test::nuclear_vector_size();
+
+  setup_zero_pair_system();
+  setup_nuclear_fix("pimd/nvt/validated");
+  command("run 0 post no");
+  auto alias_values = std::vector<double>(vector_size);
+  for (int i = 0; i < vector_size; ++i) alias_values[i] = fix_value("cp", i);
+
+  command("clear");
+  setup_zero_pair_system();
+  setup_nuclear_fix("pimd/nvt");
+  command("run 0 post no");
+  for (int i = 0; i < vector_size; ++i) {
+    EXPECT_NEAR(fix_value("cp", i), alias_values[i], 1.0e-12) << "index=" << i;
+  }
+}
+
+TEST_F(FixPIMDNVTSerialTest, P1StandaloneRunProducesNuclearState)
+{
+  setup_zero_pair_system();
+  setup_nuclear_fix("pimd/nvt", "tp-pimd");
   command("run 20 post no");
 
   for (int i = 0; i < pimd_test::nuclear_vector_size(); ++i) {
@@ -71,29 +101,29 @@ TEST_F(FixPIMDNVTValidatedSerialTest, P1StandaloneRunProducesNuclearState)
   EXPECT_TRUE(std::isfinite(fix_value("cp", 13)));
 }
 
-TEST_F(FixPIMDNVTValidatedSerialTest, RestartRestoresNuclearState)
+TEST_F(FixPIMDNVTSerialTest, RestartRestoresNuclearState)
 {
   std::vector<double> before(pimd_test::nuclear_vector_size());
 
   setup_zero_pair_system();
-  setup_nuclear_fix("tp-rpmd");
+  setup_nuclear_fix("pimd/nvt", "tp-rpmd");
   command("run 20 post no");
 
   for (int i = 0; i < static_cast<int>(before.size()); ++i) before[i] = fix_value("cp", i);
 
-  command("write_restart pimd_nvt_validated.restart");
+  command("write_restart pimd_nvt.restart");
   command("clear");
-  command("read_restart pimd_nvt_validated.restart");
-  setup_nuclear_fix("tp-rpmd");
+  command("read_restart pimd_nvt.restart");
+  setup_nuclear_fix("pimd/nvt", "tp-rpmd");
   command("run 0 post no");
-  platform::unlink("pimd_nvt_validated.restart");
+  platform::unlink("pimd_nvt.restart");
 
   for (int i = 0; i < static_cast<int>(before.size()); ++i) {
     EXPECT_NEAR(fix_value("cp", i), before[i], 1.0e-10) << "index=" << i;
   }
 }
 
-TEST(FixPIMDNVTValidatedMPI, PartitionedRunExercisesBeadExpansion)
+TEST(FixPIMDNVTMPI, PartitionedRunExercisesBeadExpansion)
 {
   int nprocs = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
@@ -128,7 +158,7 @@ TEST(FixPIMDNVTValidatedMPI, PartitionedRunExercisesBeadExpansion)
   command("variable beadshift universe 0.0 0.15");
   command("displace_atoms all move ${beadshift} 0.0 0.0 units box");
   command("velocity all create 0.8 97531 mom yes rot no dist gaussian");
-  command("fix cp all pimd/nvt/validated method tp-pimd ensemble nvt thermostat NHC temp 0.8 "
+  command("fix cp all pimd/nvt method tp-pimd ensemble nvt thermostat NHC temp 0.8 "
           "Tdamp 0.2 tchain 3 tloop 1");
   command("run 1 post no");
 
@@ -139,7 +169,7 @@ TEST(FixPIMDNVTValidatedMPI, PartitionedRunExercisesBeadExpansion)
   lammps_close(lmp);
 }
 
-TEST(FixPIMDNVTValidatedMPI, TPRPMDCentroidThermostatIsSuppressed)
+TEST(FixPIMDNVTMPI, TPRPMDCentroidThermostatIsSuppressed)
 {
   int nprocs = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
@@ -177,7 +207,7 @@ TEST(FixPIMDNVTValidatedMPI, TPRPMDCentroidThermostatIsSuppressed)
   command("variable beadshift universe 0.0 0.15");
   command("displace_atoms all move ${beadshift} 0.0 0.0 units box");
   command("velocity all create 0.8 97531 mom yes rot no dist gaussian");
-  command("fix cp all pimd/nvt/validated method tp-rpmd ensemble nvt thermostat NHC temp 0.8 "
+  command("fix cp all pimd/nvt method tp-rpmd ensemble nvt thermostat NHC temp 0.8 "
           "Tdamp 0.2 tchain 3 tloop 1");
   command("run 10");
 

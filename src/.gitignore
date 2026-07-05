@@ -1839,8 +1839,6 @@
 /fix_alchemy.h
 /fix_pimd_nvt.cpp
 /fix_pimd_nvt.h
-/fix_pimd_nvt_bosonic.cpp
-/fix_pimd_nvt_bosonic.h
 /fix_qbmsst.cpp
 /fix_qbmsst.h
 /fix_qtb.cpp

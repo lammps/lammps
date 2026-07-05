@@ -22,13 +22,13 @@ FixStyle(tprpmd,FixPIMDUVT);
 #define LMP_FIX_PIMD_UVT_H
 
 #include "arg_info.h"
-#include "fix_pimd_nvt_validated.h"
+#include "fix_pimd_nvt.h"
 
 namespace LAMMPS_NS {
 
 class Fix;
 
-class FixPIMDUVT : public FixPIMDNVTValidated {
+class FixPIMDUVT : public FixPIMDNVT {
  public:
   FixPIMDUVT(class LAMMPS *, int, char **);
   ~FixPIMDUVT() override;

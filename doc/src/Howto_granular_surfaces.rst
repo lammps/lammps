@@ -419,7 +419,7 @@ unchecked surface with the largest overlap and repeats the process.
 .. figure:: img/gransurf_consistent_side.png
             :figwidth: 33%
             :align: right
-            :target: _images/consistent_side.png
+            :target: _images/gransurf_consistent_side.png
 
 Next, LAMMPS clusters all contacted and connected lines/triangles into
 distinct composite sets each consisting of mutually flat line/triangle

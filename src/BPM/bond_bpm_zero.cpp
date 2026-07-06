@@ -47,8 +47,8 @@ BondBPMZero::BondBPMZero(LAMMPS *_lmp) :
   //   Here toggled by a placeholder setting to demonstrate an arbitrary calculation
   manybody_flag = 0;
 
-  update_flag = 0; // Whether stored values can evolve
-  nhistory = 1; // Number of values stored per bond
+  update_flag = 0;    // Whether stored values can evolve
+  nhistory = 1;       // Number of values stored per bond
   id_fix_bond_history = utils::strdup("HISTORY_BPM_ZERO");
 
   single_extra = 1;
@@ -256,8 +256,7 @@ void BondBPMZero::allocate()
 
 void BondBPMZero::coeff(int narg, char **arg)
 {
-  if (narg != 2)
-    error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
+  if (narg != 2) error->all(FLERR, "Incorrect args for bond coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -307,8 +306,7 @@ void BondBPMZero::settings(int narg, char **arg)
   for (std::size_t i = 0; i < leftover_iarg.size(); i++) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "manybody") == 0) {
-      if (iarg + 1 >= narg)
-        utils::missing_cmd_args(FLERR, "bond_style bpm/zero manybody", error);
+      if (iarg + 1 >= narg) utils::missing_cmd_args(FLERR, "bond_style bpm/zero manybody", error);
       manybody_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
 
       // Set communication size to avoid overloading buffers
@@ -372,9 +370,7 @@ void BondBPMZero::write_restart_settings(FILE *fp)
 
 void BondBPMZero::read_restart_settings(FILE *fp)
 {
-  if (comm->me == 0) {
-    utils::sfread(FLERR, &manybody_flag, sizeof(int), 1, fp, nullptr, error);
-  }
+  if (comm->me == 0) utils::sfread(FLERR, &manybody_flag, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&manybody_flag, 1, MPI_INT, 0, world);
 }
 
@@ -408,9 +404,7 @@ int BondBPMZero::pack_reverse_comm(int n, int first, double *buf)
   int m = 0;
   double *manybody = atom->dvector[index_manybody];
   int last = first + n;
-  for (int i = first; i < last; i++) {
-    buf[m++] = manybody[i];
-  }
+  for (int i = first; i < last; i++) buf[m++] = manybody[i];
   return m;
 }
 
@@ -446,7 +440,5 @@ void BondBPMZero::unpack_forward_comm(int n, int first, double *buf)
   int m = 0;
   double *manybody = atom->dvector[index_manybody];
   int last = first + n;
-  for (int i = first; i < last; i++) {
-    manybody[i] = buf[m++];
-  }
+  for (int i = first; i < last; i++) manybody[i] = buf[m++];
 }

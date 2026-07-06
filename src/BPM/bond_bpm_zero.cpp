@@ -380,7 +380,7 @@ void BondBPMZero::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondBPMZero::single(int type, double rsq, int i, int j, double &fforce)
+double BondBPMZero::single(int type, double /*rsq*/, int i, int j, double &fforce)
 {
   if (type <= 0) return 0.0;
 

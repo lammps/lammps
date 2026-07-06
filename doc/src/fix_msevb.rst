@@ -177,9 +177,9 @@ off-diagonal coupling elements :math:`C_{i,j}` are described in the Coupling
 section below.
 
 The diagonal shift :math:`\epsilon_i` is not applied by this fix.  A per-species
-diabatic energy offset -- necessary so that reactions operate on potential
+diabatic energy offset is necessary so that reactions operate on potential
 energy surfaces of comparable magnitude, since the internal energy of a molecule
-is arbitrary in classical mechanics -- is instead supplied externally by adding
+is arbitrary in classical mechanics. It is instead supplied externally by adding
 a :doc:`pair_style template/offset <pair_template_offset>` to the force field.
 Because each EVB state's energy is evaluated through the normal pair pipeline,
 the offset for whatever species that state's topology contains is already folded

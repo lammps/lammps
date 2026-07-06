@@ -863,6 +863,7 @@ dh
 dhex
 di
 dia
+diabatic
 diag
 diagonalization
 diagonalize

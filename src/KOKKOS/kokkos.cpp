@@ -507,6 +507,15 @@ void KokkosLMP::accelerator(int narg, char **arg)
 {
   if (lmp->citeme) lmp->citeme->add(cite_kokkos_package);
 
+  // unless set with the neigh/thread option, neigh_thread may have been
+  // enabled by the small-system heuristic in pair_compute_neighlist(), which
+  // is only valid for the run it was made for.  discard that state here so it
+  // cannot conflict with the settings of this package command (e.g. after a
+  // clear command re-applies the package defaults and command line options,
+  // "newton on" would be rejected because of the stale neigh_thread setting)
+
+  if (!neigh_thread_set) neigh_thread = 0;
+
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {

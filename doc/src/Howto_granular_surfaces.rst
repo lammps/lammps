@@ -1,7 +1,7 @@
 Granular surfaces
 =================
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 As explained on the :doc:`Howto granular <Howto_granular>` doc page,
 granular systems are composed of finite-size spherical or aspherical

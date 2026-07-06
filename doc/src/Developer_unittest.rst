@@ -890,7 +890,7 @@ of the potentials and differences in compilers.
 Tests for granular (DEM) models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The ``unittest/granular`` folder contains a YAML-driven test suite for
 discrete element method (DEM) / granular models, built in the same spirit
@@ -898,7 +898,7 @@ as the force-style tests above but specialized for time-resolved
 trajectories of small granular systems.
 
 Currently, there are 11 test programs. This set of unit tests is still a
-work-in-progress and the tests have not yet been throroughly vetted. Tests
+work-in-progress and the tests have not yet been thoroughly vetted. Tests
 may be added, updated, or removed. The first six test programs,
 ``test_dem_01`` through ``test_dem_06``, reproduce the test surface of the
 MFiX-DEM verification studies of :ref:`Garg et al. <dem_Garg2012>` (the

@@ -38,7 +38,8 @@ static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *_lmp) : PairLJCutCoulLong(_lmp)
+PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *_lmp) :
+    PairLJCutCoulLong(_lmp), avec(nullptr)
 {
   ewaldflag = pppmflag = 0;
   msmflag = 1;

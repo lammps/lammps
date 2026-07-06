@@ -42,7 +42,10 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
+PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) :
+    Pair(lmp), epsilon(nullptr), sigma(nullptr), eps14(nullptr), sigma14(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), lj14_1(nullptr), lj14_2(nullptr),
+    lj14_3(nullptr), lj14_4(nullptr)
 {
   respa_enable = 1;
   ewaldflag = pppmflag = 1;

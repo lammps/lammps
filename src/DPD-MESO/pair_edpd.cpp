@@ -62,7 +62,9 @@ static const char cite_pair_edpd[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairEDPD::PairEDPD(LAMMPS *lmp) : Pair(lmp)
+PairEDPD::PairEDPD(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cutT(nullptr), a0(nullptr), gamma(nullptr), power(nullptr),
+    slope(nullptr), kappa(nullptr), powerT(nullptr), sc(nullptr), kc(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_edpd);
   writedata = 1;

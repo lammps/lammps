@@ -35,7 +35,7 @@ static constexpr double SMALL =     0.001;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp)
+DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp), nterms(nullptr)
 {
   writedata = 1;
   a = nullptr;

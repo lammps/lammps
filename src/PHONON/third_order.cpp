@@ -48,7 +48,9 @@ enum{REGULAR,ESKM};
 
 /* ---------------------------------------------------------------------- */
 
-ThirdOrder::ThirdOrder(LAMMPS *lmp) : Command(lmp), fp(nullptr)
+ThirdOrder::ThirdOrder(LAMMPS *lmp) :
+    Command(lmp), groupmap(nullptr), list(nullptr), ijnum(nullptr), neighbortags(nullptr),
+    fp(nullptr)
 {
   external_force_clear = 1;
 }

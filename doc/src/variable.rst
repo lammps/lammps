@@ -227,7 +227,7 @@ from the list of active variables, and is thus available to be
 re-defined in a subsequent variable command.  The *delete* style does
 the same thing.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 .. admonition:: Auto-deleted variables can lead to problems
    :class: warning

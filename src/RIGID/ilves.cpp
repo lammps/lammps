@@ -25,15 +25,13 @@
 #include <algorithm>
 #include <cmath>
 
-namespace LAMMPS_NS {
-namespace ILVES {
+namespace LAMMPS_NS::ILVES {
 
 Ilves::Ilves(LAMMPS *const _lmp, const std::vector<int> &catom1, const std::vector<int> &catom2,
              const std::vector<int> &cnode1, const std::vector<int> &cnode2,
-             const std::vector<double> &cdist, const std::vector<double> &invmass) :
-    lmp(_lmp)
+             const std::vector<double> &cdist, const std::vector<double> &invmass) : lmp(_lmp)
 {
-  mol = std::unique_ptr<Molecule>(new Molecule(catom1, catom2, cnode1, cnode2, cdist, invmass));
+  mol = std::make_unique<Molecule>(catom1, catom2, cnode1, cnode2, cdist, invmass);
 
   // reference bond vectors x_ab and predicted bond vectors xprime_ab; both are
   // needed to assemble the exact-Newton Jacobian (which uses r != s)
@@ -43,8 +41,7 @@ Ilves::Ilves(LAMMPS *const _lmp, const std::vector<int> &catom1, const std::vect
   // build the sparse direct solver for the constraint connectivity; it computes
   // a fill-reducing reordering, returned in solver_perm
   std::vector<int> solver_perm;
-  solver = std::unique_ptr<SparseDirectSolver>(
-      new SparseDirectSolver(mol->bonds.graph, solver_perm));
+  solver = std::make_unique<SparseDirectSolver>(mol->bonds.graph, solver_perm);
 
   // apply the fill-reducing permutation the solver computed to the bond data
   // (the bond graph itself is no longer needed once the solver is built)
@@ -259,5 +256,4 @@ double Ilves::memory_usage() const
   return bytes;
 }
 
-}    // namespace ILVES
-}    // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS::ILVES

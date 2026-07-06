@@ -182,7 +182,7 @@ void DumpMolfile::write()
     cell[0] = domain->xprd;
     cell[1] = domain->yprd;
     cell[2] = domain->zprd;
-    cell[3] = cell[4] = cell[5] = 90.0f;
+    cell[3] = cell[4] = cell[5] = 90.0F;
   }
 
   // nme = # of dump lines this proc will contribute to dump

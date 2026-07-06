@@ -196,8 +196,8 @@ bigint ReaderMolfile::read_header(double box[3][3], int &boxinfo, int &triclinic
 
   if (!is_smalldiff(cell[0]*cell[1]*cell[2], 0.0f)) {
     boxinfo = 1;
-    if (is_smalldiff(cell[3],90.0f) && is_smalldiff(cell[4],90.0f) &&
-        is_smalldiff(cell[5],90.0f)) {
+    if (is_smalldiff(cell[3],90.0F) && is_smalldiff(cell[4],90.0F) &&
+        is_smalldiff(cell[5],90.0F)) {
 
       triclinic = 0;
 

@@ -22,6 +22,8 @@
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
+#include "force.h"
+#include "kspace.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "special.h"
@@ -235,6 +237,15 @@ bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp)
     sync_before_neighbor_build();
     neighbor->build(1);
   }
+
+  // Charges changed during the transfer — refresh PPPM's cached qsqsum so the
+  // committed reference's kspace self-energy reflects the new charges.  The
+  // daughter/excess-state paths already do this (apply_per_partition_state_changes,
+  // compute_excess_states); without it here the new reference keeps the pre-
+  // transfer qsqsum and its energy is wrong by the self-energy difference, so the
+  // same configuration gets a different energy as reference vs daughter and energy
+  // is not conserved across the commit.
+  if (force->kspace) force->kspace->qsum_qsq(0);
 
   // Re-snapshot so the reference includes updated specials
   snapshot_reference_topology();

@@ -26,8 +26,8 @@
 
 #include <cmath>
 using namespace LAMMPS_NS;
-typedef MolfileInterface MFI;
 using namespace MathConst;
+using MFI = MolfileInterface;
 
 static constexpr double SMALL = 1.0e-6;
 

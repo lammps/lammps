@@ -36,6 +36,7 @@
 #define DEBUG 0
 
 extern "C" {
+  // NOLINTBEGIN
   typedef int (*initfunc)();
   typedef int (*regfunc)(void *, vmdplugin_register_cb);
   typedef int (*finifunc)();
@@ -57,6 +58,7 @@ extern "C" {
     }
     return 0;
   }
+  // NOLINTEND
 
   /* periodic table of elements for translation of ordinal to atom type */
   static const char *pte_label[] = {

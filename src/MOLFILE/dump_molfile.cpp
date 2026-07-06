@@ -32,7 +32,7 @@
 #include "molfile_interface.h"
 
 using namespace LAMMPS_NS;
-typedef MolfileInterface MFI;
+using MFI = MolfileInterface;
 
 // syntax:
 // dump <id> <groupid> molfile <every> <filename> <type> [<path>]

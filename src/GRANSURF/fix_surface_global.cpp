@@ -110,19 +110,19 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix surface/global input", error);
       if (strcmp(arg[iarg+1],"mol") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix surface/global input mol", error);
-        extract_from_molecule(arg[iarg+2],&hash,npoints,maxpoints,points,nlines,lines,ntris,tris);
+        extract_from_molecule(arg[iarg+2],hash,npoints,maxpoints,points,nlines,lines,ntris,tris);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"stl") == 0) {
         if (iarg+5 > narg) utils::missing_cmd_args(FLERR, "fix surface/global input stl", error);
         int stype = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         int smol = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
-        extract_from_stlfile(arg[iarg+4],stype,(tagint) smol,&hash,npoints,maxpoints,points,ntris,tris);
+        extract_from_stlfile(arg[iarg+4],stype,(tagint) smol,hash,npoints,maxpoints,points,ntris,tris);
         iarg += 5;
       } else error->all(FLERR, iarg+1, "Unknown fix surface/global input keyword: {}", arg[iarg+1]);
     } else break;
-
     ninput++;
   }
+  hash.clear();     // free memory
 
   if (ninput == 0)
     error->all(FLERR, 2, "Fix surface/global command requires using the input keyword");
@@ -1187,7 +1187,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
   int itype, jtype, external_flag, priority;
   double xtmp, ytmp, ztmp, radi, delx, dely, delz, meff;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  int *touch, **firstflag, touch_flag;
+  int *touch, **firstflag;
   double rsq, rsq_com, rmag, radsum, max_overlap, dot;
   double x_min_image[3], norm[3], dr[3], contact[3], ds[3], xc[3], vc[3], omegac[3];
   double *forces, *torquesi, *history, *allhistory, **firsthistory;
@@ -1497,7 +1497,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
       }
 
       // guaranteed in contact, but need to calculate intermediate variables
-      touch_flag = model->check_contact();
+      model->check_contact();
 
       if (use_history) {
         // Check if another flat contact has a stored history

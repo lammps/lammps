@@ -300,8 +300,7 @@ void FixSurfaceLocal::post_constructor()
     lines = nullptr;
     tris = nullptr;
 
-    std::map<std::tuple<double, double, double, int>, int> *hash =
-        new std::map<std::tuple<double, double, double, int>, int>();
+    std::map<std::tuple<double, double, double, int>, int> hash;
 
     for (int i = 0; i < ninput; i++) {
       int mode = input_modes[i];
@@ -325,8 +324,7 @@ void FixSurfaceLocal::post_constructor()
         extract_from_stlfile(sourceID, stype, smol, hash, npoints, maxpoints, points, ntris, tris);
       }
     }
-
-    delete hash;
+    hash.clear();    // free memory
 
     memory->sfree(input_modes);
     for (int i = 0; i < ninput; i++) delete[] input_sources[i];

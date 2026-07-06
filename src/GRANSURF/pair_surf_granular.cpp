@@ -131,7 +131,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
     if (fix_rigid) {
       int tmp;
       int *body = (int *) fix_rigid->extract("body", tmp);
-      double *mass_body = (double *) fix_rigid->extract("masstotal", tmp);
+      auto *mass_body = (double *) fix_rigid->extract("masstotal", tmp);
       if (atom->nmax > nmax) {
         memory->destroy(mass_rigid);
         nmax = atom->nmax;
@@ -259,7 +259,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
         corner = corners[tri[j]];
         jflag = SurfExtra::overlap_sphere_tri(x[i], radi, &corner[0], &corner[3], &corner[6],
                                               &corner[9], contact, dr, rsq);
-      }
+      } else jflag = 0;         // should not happen but set to make static code analysis happy
 
       // unset non-touching neighbors
 

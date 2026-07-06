@@ -94,7 +94,7 @@ extern "C" {
     /* Fr */ 223.0F, 226.0F, 227.0F, 232.0381F, 231.03588F, 238.02891F,
     /* Np */ 237.0F, 244.0F, 243.0F, 247.0F, 247.0F, 251.0F, 252.0F, 257.0F,
     /* Md */ 258.0F, 259.0F, 262.0F, 261.0F, 262.0F, 266.0F, 264.0F, 269.0F,
-    /* Mt */ 268.0F, 271.0F, 272.0f
+    /* Mt */ 268.0F, 271.0F, 272.0F
   };
 
   /*
@@ -126,7 +126,7 @@ extern "C" {
     /* Fr */ 2.0F, 2.0F, 2.0F, 2.0F, 2.0F, 1.86F,
     /* Np */ 2.0F, 2.0F, 2.0F, 2.0F, 2.0F, 2.0F, 2.0F, 2.0F,
     /* Md */ 2.0F, 2.0F, 2.0F, 2.0F, 2.0F, 2.0F, 2.0F, 2.0F,
-    /* Mt */ 2.0F, 2.0F, 2.0f
+    /* Mt */ 2.0F, 2.0F, 2.0F
   };
 
   /* lookup functions */
@@ -508,12 +508,12 @@ int MolfileInterface::timestep(float *coords, float *vels,
       t->beta = cell[4];
       t->gamma = cell[5];
     } else {
-      t->A = 0.0f;
-      t->B = 0.0f;
-      t->C = 0.0f;
-      t->alpha = 90.0f;
-      t->beta = 90.0f;
-      t->gamma = 90.0f;
+      t->A = 0.0F;
+      t->B = 0.0F;
+      t->C = 0.0F;
+      t->alpha = 90.0F;
+      t->beta = 90.0F;
+      t->gamma = 90.0F;
     }
 
     if (simtime)
@@ -530,12 +530,12 @@ int MolfileInterface::timestep(float *coords, float *vels,
     } else {
       t->coords = coords;
       t->velocities = vels;
-      t->A = 0.0f;
-      t->B = 0.0f;
-      t->C = 0.0f;
-      t->alpha = 90.0f;
-      t->beta = 90.0f;
-      t->gamma = 90.0f;
+      t->A = 0.0F;
+      t->B = 0.0F;
+      t->C = 0.0F;
+      t->alpha = 90.0F;
+      t->beta = 90.0F;
+      t->gamma = 90.0F;
       t->physical_time = 0.0;
       rv = p->read_next_timestep(_ptr, _natoms, t);
       if (cell != nullptr) {
@@ -571,7 +571,7 @@ int MolfileInterface::timestep(float *coords, float *vels,
 // single precision floating point props
 static float read_float_property(molfile_atom_t &a, const int propid)
 {
-  float prop = 0.0f;
+  float prop = 0.0F;
   int iprop = 0;
   PROPUPDATE(MolfileInterface::P_OCCP,occupancy,prop);
   PROPUPDATE(MolfileInterface::P_BFAC,bfactor,prop);

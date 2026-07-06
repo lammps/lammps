@@ -293,24 +293,9 @@ void FixMSEVB::compute_excess_states()
       double b_eng = (ipartition == b) ? eng : 0.0;
       MPI_Bcast(&b_eng, 1, MPI_DOUBLE, b, samerank);
       epot[b_state] = b_eng;
-      double offset = 0.0;
-      if (sites[b_sk].n_components > 0) {
-        for (int ci = 0; ci < sites[b_sk].n_components; ci++) {
-          int comp = sites[b_sk].components[ci];
-          const int comp_len = sites[comp].chain_len;
-          for (int d = 0; d < comp_len; d++)
-            offset += rxndefs[chain_rxn_flat[comp * max_shells + d]].energy_offset;
-        }
-      } else {
-        for (int d = 0; d < sites[b_sk].chain_len; d++)
-          offset += rxndefs[chain_rxn_flat[b_sk * max_shells + d]].energy_offset;
-      }
-      // Serial-state diagonals are written here, overwriting build_hamiltonian's
-      // value, so they must include the same reference per-species offset that
-      // build_hamiltonian applies to every diagonal (otherwise serial states
-      // are shifted relative to parallel ones and results depend on partition
-      // count).
-      hamiltonian[b_state * ns + b_state] = b_eng + reference_offset + offset;
+      // Serial-state diagonal = that state's total potential energy (any species
+      // offset is already in epot via pair_style template/offset).
+      hamiltonian[b_state * ns + b_state] = b_eng;
 
       // Store excess forces in compact buffer (replaces dH_all diagonal)
       sync_forces_to_host();
@@ -658,24 +643,9 @@ void FixMSEVB::compute_excess_energies()
       double b_eng = (ipartition == b) ? eng : 0.0;
       MPI_Bcast(&b_eng, 1, MPI_DOUBLE, b, samerank);
       epot[b_state] = b_eng;
-      double offset = 0.0;
-      if (sites[b_sk].n_components > 0) {
-        for (int ci = 0; ci < sites[b_sk].n_components; ci++) {
-          int comp = sites[b_sk].components[ci];
-          const int comp_len = sites[comp].chain_len;
-          for (int d = 0; d < comp_len; d++)
-            offset += rxndefs[chain_rxn_flat[comp * max_shells + d]].energy_offset;
-        }
-      } else {
-        for (int d = 0; d < sites[b_sk].chain_len; d++)
-          offset += rxndefs[chain_rxn_flat[b_sk * max_shells + d]].energy_offset;
-      }
-      // Serial-state diagonals are written here, overwriting build_hamiltonian's
-      // value, so they must include the same reference per-species offset that
-      // build_hamiltonian applies to every diagonal (otherwise serial states
-      // are shifted relative to parallel ones and results depend on partition
-      // count).
-      hamiltonian[b_state * ns + b_state] = b_eng + reference_offset + offset;
+      // Serial-state diagonal = that state's total potential energy (any species
+      // offset is already in epot via pair_style template/offset).
+      hamiltonian[b_state * ns + b_state] = b_eng;
     }
 
     // 8. Compute coupling (scalar only — no dH needed)
@@ -1008,35 +978,13 @@ void FixMSEVB::build_hamiltonian()
 {
   const int ns = nstates;
 
-  // Seed the reference (state 0) per-species offset once, from a census of the
-  // initial reference.  Thereafter reference_offset is advanced only on commit
-  // (do_permanent_transfer), so it stays constant between reactions.
-  if (!reference_offset_valid) {
-    reference_offset = compute_reference_offset();
-    reference_offset_valid = 1;
-  }
-
   for (int i = 0; i < ns * ns; i++) hamiltonian[i] = 0.0;
 
-  for (int i = 0; i < ns; i++) {
-    // Per-species diagonal offset: reference_offset counts the species present
-    // in the reference; the per-state term below adds offset(post)-offset(pre)
-    // for each fragment this state flips relative to the reference, so the total
-    // equals sum of offset(species) over the fragments present in state i.
-    double offset = 0.0;
-    if (i > 0 && (i - 1) < nsites) {
-      const int sk = i - 1;
-      const auto &site = sites[sk];
-      if (site.n_components > 0) {
-        for (int ci = 0; ci < site.n_components; ci++)
-          offset += rxndefs[sites[site.components[ci]].rxn_idx].energy_offset;
-      } else {
-        for (int d = 0; d < site.chain_len; d++)
-          offset += rxndefs[chain_rxn_flat[sk * max_shells + d]].energy_offset;
-      }
-    }
-    hamiltonian[i * ns + i] = epot[i] + reference_offset + offset;
-  }
+  // Each diagonal is the total potential energy of that state's topology.  Any
+  // per-species diabatic energy shift is supplied externally by adding a
+  // pair_style template/offset to the force field, so it is already included in
+  // epot[i] for every state -- the fix itself carries no offset bookkeeping.
+  for (int i = 0; i < ns; i++) hamiltonian[i * ns + i] = epot[i];
 }
 
 /* ----------------------------------------------------------------------

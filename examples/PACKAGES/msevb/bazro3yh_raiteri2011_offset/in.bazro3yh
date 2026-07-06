@@ -13,11 +13,15 @@ molecule pre3   pre3.mol
 molecule post3  post3.mol
 molecule pre4   pre4.mol
 molecule post4  post4.mol
+molecule o4 o4.mol
+
+# Per-species diabatic offset, applied as an ordinary pair interaction (see
+# pair_style template/offset, added to the hybrid/overlay list in ff.lmp):
+# a constant energy for every O4 in the system.  Decoupled from fix msevb.
+pair_coeff * * template/offset o4 0.843
 
 fix evb all msevb         &
   coupling geometry/gaussian lambda 0.7998 zeta 16  &
-  species post2 offset 0.843  &
-  species post3 offset -0.843 &
   reaction pre1 post1 react.map 1.9 taper 1.7 &
   reaction pre2 post2 react.map 1.9 taper 1.7 &
   reaction pre3 post3 react.map 1.9 taper 1.7 &

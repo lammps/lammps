@@ -56,7 +56,7 @@ bond_coeff   2      23.008000      0.985357
 variable rmin  equal  8.
 variable rmax  equal 10.
 
-pair_style hybrid/overlay buck/mdf ${rmin} ${rmax} lennard/mdf ${rmin} ${rmax} coul/long ${rmax}
+pair_style hybrid/overlay buck/mdf ${rmin} ${rmax} lennard/mdf ${rmin} ${rmax} coul/long ${rmax} template/offset
 
 ##############################################################################################
 # Buckingham interaction potentials

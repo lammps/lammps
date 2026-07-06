@@ -141,26 +141,6 @@ bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp)
   }
   int sk = max_state - 1;
 
-  // Advance the reference per-species offset by the offset this committing state
-  // carried relative to the old reference (same sum build_hamiltonian applies to
-  // state max_state).  After the commit the new reference is this state, so its
-  // diagonal offset must equal what it had as a daughter -> add the difference.
-  // Done on every partition (reference_offset feeds build_hamiltonian on all),
-  // using the site/chain data that is identical across partitions.
-  {
-    double d_off = 0.0;
-    const auto &site = sites[sk];
-    if (site.n_components > 0) {
-      for (int ci = 0; ci < site.n_components; ci++)
-        d_off += rxndefs[sites[site.components[ci]].rxn_idx].energy_offset;
-    } else {
-      for (int d = 0; d < site.chain_len; d++)
-        d_off += rxndefs[chain_rxn_flat[sk * max_shells + d]].energy_offset;
-    }
-    reference_offset += d_off;
-    reference_offset_valid = 1;
-  }
-
   // Commit: apply every step in the chain to partition 0's topology.
   if (ipartition == 0) {
     if (sites[sk].n_components > 0) {

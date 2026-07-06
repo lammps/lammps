@@ -22,7 +22,6 @@ FixStyle(msevb,FixMSEVB);
 
 #include "fix.h"
 
-#include <map>
 #include <string>
 #include <vector>
 
@@ -75,9 +74,6 @@ class FixMSEVB : public Fix {
     double coupling_a, coupling_b;
     double coupling_taper;
 
-    // Per-reaction energy offset added to diagonal Hamiltonian element
-    double energy_offset;
-
     // Per-reaction shell depth; -1 = inherit global default
     int shells;
 
@@ -122,7 +118,7 @@ class FixMSEVB : public Fix {
         type_H(0), type_Y(0), type_X(-1), cutoff_sq(0.0), coupling_set(false),
         coupling_type(COUPLING_NONE), coupling_lambda(0.0), coupling_zeta(0.0), coupling_v12(0.0),
         coupling_alpha(0.0), coupling_gamma_v(0.0), coupling_a(0.0), coupling_b(0.0),
-        coupling_taper(0.0), energy_offset(0.0), shells(-1), pre_mol(nullptr), post_mol(nullptr),
+        coupling_taper(0.0), shells(-1), pre_mol(nullptr), post_mol(nullptr),
         glove_n(0), ibonding(-1), jbonding(-1), ix_bonding(-1)
     {
     }
@@ -289,25 +285,6 @@ class FixMSEVB : public Fix {
   double coupling_a, coupling_b;
   double coupling_taper;
   int coupling_enabled;
-
-  // ---- Per-species diagonal offsets -----------------------------------
-  // Absolute energy offset for each reactive-complex species, keyed by the
-  // molecule-template id given to the 'species <id> offset <val>' keyword.
-  // Species without an entry contribute 0.  Every diagonal Hamiltonian element
-  // gets delta(species) added once per fragment of that species present in the
-  // state (see ReactionDef::energy_offset for the daughter/parent difference,
-  // and reference_offset for the state-0 baseline).
-  std::map<std::string, double> species_offset;
-
-  // Cached sum of delta over the distinct reactive complexes present in the
-  // current reference (state 0).  Added to *every* diagonal so the reference is
-  // treated like any other state.  Held constant between permanent transfers:
-  // seeded once by a census of the initial reference (compute_reference_offset)
-  // and thereafter shifted by exactly delta(post)-delta(pre) whenever a
-  // reaction commits, so it never fluctuates as complexes cross the cutoff.
-  double reference_offset;
-  int reference_offset_valid;    // 0 until the initial census has run
-  double compute_reference_offset();
 
   // ---- Fermi-Dirac ----------------------------------------------------
   int fermi_dirac_enabled;

@@ -87,8 +87,7 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
     temp_compute(nullptr), press_compute(nullptr), enumerate_product_states(0),
     fermi_dirac_enabled(0), fd_temperature(0.0), fd_RT(0.0), max_shells(1), file_flag(false),
     file_every(0), fpout(nullptr), json_init(0), reactive_group_bit(0), scf_topology(false),
-    scf_max_iter(10), min_terminate(false), reference_offset(0.0), reference_offset_valid(0),
-    max_states(0)
+    scf_max_iter(10), min_terminate(false), max_states(0)
 {
   force_reneighbor = 1;
 
@@ -262,12 +261,6 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
           if (iarg + 1 >= narg) error->universe_all(FLERR, "Fix msevb: missing value for taper");
           rxndefs.back().coupling_taper = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
           iarg += 2;
-        } else if (strcmp(arg[iarg], "offset") == 0) {
-          error->universe_all(
-              FLERR,
-              "Fix msevb: the per-reaction 'offset' keyword has been removed; give an absolute "
-              "per-species offset with 'species <mol-id> offset <value>' instead (the reaction "
-              "offset is then derived as offset(post) - offset(pre))");
         } else if (strcmp(arg[iarg], "shells") == 0) {
           if (iarg + 1 >= narg)
             error->universe_all(FLERR, "Fix msevb: missing value for per-reaction shells");
@@ -283,16 +276,6 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 1 >= narg) error->universe_all(FLERR, "Fix msevb: missing value for taper");
       coupling_taper = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg], "species") == 0) {
-      // species <mol-id> offset <value>: absolute diagonal offset for every
-      // fragment of that reactive-complex species, in any state it appears in.
-      if (iarg + 3 >= narg)
-        error->universe_all(FLERR, "Fix msevb: species requires '<mol-id> offset <value>'");
-      if (strcmp(arg[iarg + 2], "offset") != 0)
-        error->universe_all(
-            FLERR, "Fix msevb: species keyword syntax is 'species <mol-id> offset <value>'");
-      species_offset[arg[iarg + 1]] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-      iarg += 4;
     } else if (strcmp(arg[iarg], "product_states") == 0) {
       enumerate_product_states = 1;
       iarg += 1;
@@ -704,37 +687,8 @@ void FixMSEVB::init()
     // capacities allocated at read_data time (extra/*/per/atom).
     check_reaction_topology_limits(rd);
 
-    // Derive the daughter/parent diagonal offset from the absolute per-species
-    // offsets: applying this reaction converts a fragment from pre_mol to
-    // post_mol, so the state gains offset(post) and loses offset(pre).
-    {
-      auto get = [&](const std::string &id) {
-        auto it = species_offset.find(id);
-        return (it == species_offset.end()) ? 0.0 : it->second;
-      };
-      rd.energy_offset = get(rd.post_mol_id) - get(rd.pre_mol_id);
-    }
-
     rd.glove_n = rd.pre_mol->natoms;
     glove_nmax = MAX(glove_nmax, rd.glove_n);
-  }
-
-  // Sanity-check the 'species' offsets: every id must name a molecule template
-  // that participates in a reaction, or the offset silently does nothing.
-  if (universe->me == 0) {
-    for (const auto &kv : species_offset) {
-      bool used = false;
-      for (const auto &rd : rxndefs)
-        if (rd.pre_mol_id == kv.first || rd.post_mol_id == kv.first) {
-          used = true;
-          break;
-        }
-      if (!used)
-        error->warning(FLERR,
-                       fmt::format("Fix msevb: species offset given for '{}', which is not used as "
-                                   "a pre- or post-reaction template; the offset has no effect",
-                                   kv.first));
-    }
   }
 
   if (reaction_enabled && ipartition == 0) neighbor->add_request(this, NeighConst::REQ_FULL);
@@ -1027,8 +981,6 @@ void FixMSEVB::setup(int vflag)
       msg += fmt::format("    {:<17}H={}  X={}  Y={}\n", "atom types:", rd.type_H, rd.type_X,
                          rd.type_Y);
       msg += fmt::format("    {:<17}{}\n", "shells:", rd.shells);
-      if (rd.energy_offset != 0.0)
-        msg += fmt::format("    {:<17}{:.6f} eV\n", "energy offset:", rd.energy_offset);
 
       // Coupling
       const char *src = rd.coupling_set ? "per-reaction" : "global";

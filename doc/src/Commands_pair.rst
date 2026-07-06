@@ -311,6 +311,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`table (gko) <pair_table>`
    * :doc:`table/rx (k) <pair_table_rx>`
    * :doc:`tdpd <pair_mesodpd>`
+   * :doc:`template/offset <pair_template_offset>`
    * :doc:`tersoff (giko) <pair_tersoff>`
    * :doc:`tersoff/mod (gko) <pair_tersoff_mod>`
    * :doc:`tersoff/mod/c (o) <pair_tersoff_mod>`

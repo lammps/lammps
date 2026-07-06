@@ -464,6 +464,12 @@ void FixMSEVB::compute_excess_states()
   {
     Special special_obj(lmp);
     special_obj.build(true);
+    // Excess-state evaluation changed the charges (and thus qsqsum) via the
+    // per-batch qsum_qsq() above; restoring the reference topology must also
+    // restore the reference qsqsum, otherwise partition 0 keeps the last excess
+    // state's qsqsum and the reference kspace self-energy is wrong on the next
+    // step.
+    if (force->kspace) force->kspace->qsum_qsq(0);
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
@@ -802,6 +808,10 @@ void FixMSEVB::compute_excess_energies()
   {
     Special special_obj(lmp);
     special_obj.build(true);
+    // Restore the reference qsqsum too (excess-state evaluation changed the
+    // charges); otherwise partition 0 keeps the last excess state's qsqsum and
+    // the reference kspace self-energy is wrong on the next step.
+    if (force->kspace) force->kspace->qsum_qsq(0);
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
@@ -956,6 +966,10 @@ void FixMSEVB::apply_excess_forces()
   {
     Special special_obj(lmp);
     special_obj.build(true);
+    // Restore the reference qsqsum too (excess-state evaluation changed the
+    // charges); otherwise partition 0 keeps the last excess state's qsqsum and
+    // the reference kspace self-energy is wrong on the next step.
+    if (force->kspace) force->kspace->qsum_qsq(0);
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();

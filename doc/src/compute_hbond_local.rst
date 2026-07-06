@@ -64,7 +64,7 @@ Please see the following diagram for a visualization of the
 different assignments and parameters.
 
 .. image:: JPG/hbond-diagram.png
-   :width: 75%
+   :width: 80%
 
 The following values can be computed and output.
 

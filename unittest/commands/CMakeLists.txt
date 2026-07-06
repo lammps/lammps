@@ -4,11 +4,26 @@ add_executable(test_simple_commands test_simple_commands.cpp)
 add_library(noplugin MODULE noplugin.cpp)
 set_target_properties(noplugin PROPERTIES PREFIX "" SUFFIX ".so")
 
-# tests for the plugin command require the PLUGIN package
+# tests for the plugin command require the PLUGIN package.
+# With a STATIC LAMMPS library the plugins must be built without embedding a
+# full copy of LAMMPS (loading such a plugin corrupts memory and aborts at
+# program exit, see the comment in examples/plugins/CMakeLists.txt), which
+# requires the COMPILE_ONLY generator expression from CMake 3.27; the test
+# executable must then export its symbols so the loaded plugins can resolve
+# them.  Windows is not affected and keeps linking the full library.
 if(PKG_PLUGIN)
-  add_subdirectory(${LAMMPS_DIR}/examples/plugins ${CMAKE_BINARY_DIR}/build-plugins)
-  add_dependencies(test_simple_commands plugins noplugin)
-  target_compile_definitions(test_simple_commands PRIVATE -DLMP_PLUGIN)
+  if(BUILD_SHARED_LIBS OR (CMAKE_VERSION VERSION_GREATER_EQUAL 3.27)
+     OR (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
+    add_subdirectory(${LAMMPS_DIR}/examples/plugins ${CMAKE_BINARY_DIR}/build-plugins)
+    add_dependencies(test_simple_commands plugins noplugin)
+    target_compile_definitions(test_simple_commands PRIVATE -DLMP_PLUGIN)
+    if((NOT BUILD_SHARED_LIBS) AND (NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows")))
+      set_target_properties(test_simple_commands PROPERTIES ENABLE_EXPORTS TRUE)
+    endif()
+  else()
+    message(WARNING "Skipping tests for the plugin command: they require "
+      "CMake 3.27 or later or setting BUILD_SHARED_LIBS=on")
+  endif()
 endif()
 
 target_link_libraries(test_simple_commands PRIVATE lammps GTest::GMock)

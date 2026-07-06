@@ -424,7 +424,7 @@ void PairRuNNer::compute(int eflag, int vflag)
       // It is completely reallocated if the global
       // number of atoms changed. Otherwise, only the ordering
       // of atoms is updated.
-      runner_interface_reinitialize_electrostatics(&natoms, &xyz_global[0], z_global.data());
+      runner_interface_reinitialize_electrostatics(&natoms, xyz_global.data(), z_global.data());
     }
 
     if (nnp_generation == 3) {
@@ -448,7 +448,7 @@ void PairRuNNer::compute(int eflag, int vflag)
         if (rank == 0) {
           // Calculate long-range electrostatics on root using the global structure.
           runner_interface_evaluate_electrostatics_3g_part_1(
-              &natoms, &xyz_global[0], &total_charge, lattice, &lperiodic, &q_global[0],
+            &natoms, xyz_global.data(), &total_charge, lattice, &lperiodic, q_global.data(),
               &runner_elec_energy, elec_force_global.data(), de_dq_global.data(),
               runner_elec_d_energy_d_strain);
         }

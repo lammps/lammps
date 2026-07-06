@@ -712,7 +712,7 @@ void PairRuNNer::compute(int eflag, int vflag)
   for (i = 0; i < num_committee_members; i++) pvector[i] = committee_energy[i] / cfenergy;
 
   // Charges if charge atom style is used
-  if (q != NULL) {
+  if (q != nullptr) {
     // The q array does not seem to get reset to zero every timestep by LAMMPS
     memset(q, 0, nmax * (sizeof *q));
     for (ii = 0; ii < nall; ii++) {

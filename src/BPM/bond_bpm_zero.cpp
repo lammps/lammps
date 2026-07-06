@@ -380,7 +380,7 @@ double BondBPMZero::single(int type, double /*rsq*/, int i, int j, double &fforc
 {
   if (type <= 0) return 0.0;
 
-  double r0;
+  double r0 = 0.0;
   for (int n = 0; n < atom->num_bond[i]; n++) {
     if (atom->bond_atom[i][n] == atom->tag[j]) r0 = fix_bond_history->get_atom_value(i, n, 0);
   }

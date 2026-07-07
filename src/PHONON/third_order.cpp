@@ -415,6 +415,13 @@ void ThirdOrder::calculateMatrix()
   delete [] dynmat;
   delete [] fdynmat;
 
+  if (neighbortags) {
+    memory->sfree(neighbortags[0]);
+    memory->sfree(neighbortags);
+    neighbortags = nullptr;
+  }
+  memory->destroy(ijnum);
+
   if (screen && me == 0)
     fprintf(screen,"Finished Calculating Third Order Tensor\n");
 }

@@ -42,6 +42,7 @@ class PairLJCutTIP4PCutKokkos : public PairTIP4PKokkos<DeviceType,PairLJCutTIP4P
   PairLJCutTIP4PCutKokkos(class LAMMPS *lmp) : Base(lmp) {}
 
   void compute(int, int) override;
+  double init_one(int, int) override;
 
   using Base::operator();
 
@@ -50,25 +51,24 @@ class PairLJCutTIP4PCutKokkos : public PairTIP4PKokkos<DeviceType,PairLJCutTIP4P
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairLJCutTIP4PCutCompute<EVFLAG>, const int&, EV_FLOAT&) const;
 
- protected:
-  // standard pairwise (LJ) energy/virial tally for a half neighbor list
+  template<int EVFLAG>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void ev_tally(EV_FLOAT &ev, const int &i, const int &j, const KK_FLOAT &evdwl,
-                const KK_FLOAT &fpair, const KK_FLOAT &delx, const KK_FLOAT &dely,
-                const KK_FLOAT &delz) const;
+  void operator()(TagPairLJCutTIP4PCutCompute<EVFLAG>, const int&) const;
 
-  // per-type-pair LJ coefficients (device)
+ protected:
+  // per-type-pair LJ coefficients (device); re-synced when init_one() ran
   typename AT::t_kkfloat_2d d_lj1, d_lj2, d_lj3, d_lj4, d_offset, d_cut_ljsq;
+  int lj_coeffs_synced = 0;
 
   using Base::x; using Base::f; using Base::q; using Base::type;
   using Base::d_newsite; using Base::d_hneigh; using Base::d_h_missing;
   using Base::d_neighbors; using Base::d_numneigh; using Base::d_ilist;
-  using Base::d_eatom; using Base::d_vatom;
-  using Base::m_typeO; using Base::m_alphaO; using Base::m_alphaH;
+  using Base::m_typeO;
   using Base::m_cut_coulsq; using Base::m_cut_coulsqplus;
   using Base::qqrd2e; using Base::special_coul; using Base::special_lj;
-  using Base::sbmask; using Base::ev_tally_tip4p;
+  using Base::sbmask; using Base::ev_tally_tip4p; using Base::apply_site_force;
+  using Base::ev_tally;
 };
 
 }    // namespace LAMMPS_NS

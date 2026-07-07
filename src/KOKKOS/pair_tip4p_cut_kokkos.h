@@ -51,14 +51,19 @@ class PairTIP4PCutKokkos : public PairTIP4PKokkos<DeviceType,PairTIP4PCut> {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTIP4PCutCompute<EVFLAG>, const int&, EV_FLOAT&) const;
 
+  template<int EVFLAG>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairTIP4PCutCompute<EVFLAG>, const int&) const;
+
  protected:
-  using Base::x; using Base::f; using Base::q; using Base::type;
+  using Base::x; using Base::q; using Base::type;
   using Base::d_newsite; using Base::d_hneigh; using Base::d_h_missing;
   using Base::d_neighbors; using Base::d_numneigh; using Base::d_ilist;
-  using Base::m_typeO; using Base::m_alphaO; using Base::m_alphaH;
+  using Base::m_typeO;
   using Base::m_cut_coulsq; using Base::m_cut_coulsqplus;
   using Base::qqrd2e; using Base::special_coul;
-  using Base::sbmask; using Base::ev_tally_tip4p;
+  using Base::sbmask; using Base::ev_tally_tip4p; using Base::apply_site_force;
 };
 
 }    // namespace LAMMPS_NS

@@ -24,8 +24,13 @@
        as the CPU styles' lazy find_M()) and set d_h_missing, which
        finalize() turns into the "TIP4P hydrogen is missing" error,
      - a device closest_image(),
+     - apply_site_force() (per-side M-site force redistribution, virial and
+       tally-list bookkeeping used by every interaction kernel),
      - ev_tally_tip4p() (the key-based global/per-atom energy/virial split for
-       the off-atom charge site), and
+       the off-atom charge site) and the standard pairwise ev_tally() for the
+       LJ part of the lj/cut variants,
+     - the long-range Coulomb machinery for the *long variants (init_tables(),
+       prepare_coul_long(), device coul_long()), and
      - prepare()/finalize() helpers for the common compute() setup/teardown.
 
    Each concrete style keeps only its own main interaction kernel (LJ on/off,
@@ -38,6 +43,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
@@ -117,20 +123,58 @@ class PairTIP4PKokkos : public PairCPUBase {
   // find the periodic image of j closest to i (walks the sametag chain)
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int closest_image(const int i, int j) const
+  int closest_image(const int i, const int j) const
   {
-    if (j < 0) return j;
-    const KK_FLOAT xi0 = x(i,0), xi1 = x(i,1), xi2 = x(i,2);
-    int closest = j;
-    KK_FLOAT delx = xi0 - x(j,0), dely = xi1 - x(j,1), delz = xi2 - x(j,2);
-    KK_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
-    while (d_sametag[j] >= 0) {
-      j = d_sametag[j];
-      delx = xi0 - x(j,0); dely = xi1 - x(j,1); delz = xi2 - x(j,2);
-      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-      if (rsq < rsqmin) { rsqmin = rsq; closest = j; }
+    return AtomKokkos::closest_image_kokkos(i,j,x,d_sametag);
+  }
+
+  // apply the Coulomb force with prefactor cforce (sign folded in by the
+  // caller: +cforce for the i side, -cforce for the j side) acting on the
+  // charge site of atom idx along (delx,dely,delz).  For an O atom the force
+  // acts on the off-atom M site and is redistributed onto O and its two H
+  // atoms.  Accumulates the absolute-position virial in v and records the
+  // participating atoms in vlist/n and the O-topology code in key for
+  // ev_tally_tip4p().
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void apply_site_force(const int idx, const int iH1, const int iH2, const bool isO,
+                        const KK_FLOAT delx, const KK_FLOAT dely, const KK_FLOAT delz,
+                        const KK_FLOAT cforce, const bool do_virial, const int keyinc,
+                        int &n, int &key, int (&vlist)[6], KK_ACC_FLOAT (&v)[6]) const
+  {
+    if (!isO) {
+      Kokkos::atomic_add(&f(idx,0), (KK_ACC_FLOAT)(delx*cforce));
+      Kokkos::atomic_add(&f(idx,1), (KK_ACC_FLOAT)(dely*cforce));
+      Kokkos::atomic_add(&f(idx,2), (KK_ACC_FLOAT)(delz*cforce));
+      if (do_virial) {
+        v[0] += x(idx,0)*delx*cforce; v[1] += x(idx,1)*dely*cforce; v[2] += x(idx,2)*delz*cforce;
+        v[3] += x(idx,0)*dely*cforce; v[4] += x(idx,0)*delz*cforce; v[5] += x(idx,1)*delz*cforce;
+      }
+      vlist[n++] = idx;
+    } else {
+      key += keyinc;
+      const KK_FLOAT fdx = delx*cforce, fdy = dely*cforce, fdz = delz*cforce;
+      const KK_ACC_FLOAT fOx = fdx*m_alphaO, fOy = fdy*m_alphaO, fOz = fdz*m_alphaO;
+      const KK_ACC_FLOAT fHx = fdx*m_alphaH, fHy = fdy*m_alphaH, fHz = fdz*m_alphaH;
+      Kokkos::atomic_add(&f(idx,0), (KK_ACC_FLOAT)fOx);
+      Kokkos::atomic_add(&f(idx,1), (KK_ACC_FLOAT)fOy);
+      Kokkos::atomic_add(&f(idx,2), (KK_ACC_FLOAT)fOz);
+      Kokkos::atomic_add(&f(iH1,0), (KK_ACC_FLOAT)fHx);
+      Kokkos::atomic_add(&f(iH1,1), (KK_ACC_FLOAT)fHy);
+      Kokkos::atomic_add(&f(iH1,2), (KK_ACC_FLOAT)fHz);
+      Kokkos::atomic_add(&f(iH2,0), (KK_ACC_FLOAT)fHx);
+      Kokkos::atomic_add(&f(iH2,1), (KK_ACC_FLOAT)fHy);
+      Kokkos::atomic_add(&f(iH2,2), (KK_ACC_FLOAT)fHz);
+      if (do_virial) {
+        v[0] += x(idx,0)*fOx + x(iH1,0)*fHx + x(iH2,0)*fHx;
+        v[1] += x(idx,1)*fOy + x(iH1,1)*fHy + x(iH2,1)*fHy;
+        v[2] += x(idx,2)*fOz + x(iH1,2)*fHz + x(iH2,2)*fHz;
+        v[3] += x(idx,0)*fOy + x(iH1,0)*fHy + x(iH2,0)*fHy;
+        v[4] += x(idx,0)*fOz + x(iH1,0)*fHz + x(iH2,0)*fHz;
+        v[5] += x(idx,1)*fOz + x(iH1,1)*fHz + x(iH2,1)*fHz;
+      }
+      vlist[n++] = idx; vlist[n++] = iH1; vlist[n++] = iH2;
     }
-    return closest;
   }
 
   // global/per-atom energy and virial tally for one M-site interaction.
@@ -201,6 +245,135 @@ class PairTIP4PKokkos : public PairCPUBase {
     }
   }
 
+  // standard pairwise (LJ) energy/virial tally for a half neighbor list,
+  // used by the styles that add LJ interactions on the real atom positions
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void ev_tally(EV_FLOAT &ev, const int &i, const int &j, const KK_FLOAT &evdwl,
+                const KK_FLOAT &fpair, const KK_FLOAT &delx, const KK_FLOAT &dely,
+                const KK_FLOAT &delz) const
+  {
+    if (this->eflag_global) ev.evdwl += evdwl;
+    if (this->eflag_atom) {
+      Kokkos::atomic_add(&d_eatom[i], (KK_ACC_FLOAT)((KK_FLOAT)0.5*evdwl));
+      Kokkos::atomic_add(&d_eatom[j], (KK_ACC_FLOAT)((KK_FLOAT)0.5*evdwl));
+    }
+    if (this->vflag_global || this->vflag_atom) {
+      const KK_FLOAT v0 = delx*delx*fpair;
+      const KK_FLOAT v1 = dely*dely*fpair;
+      const KK_FLOAT v2 = delz*delz*fpair;
+      const KK_FLOAT v3 = delx*dely*fpair;
+      const KK_FLOAT v4 = delx*delz*fpair;
+      const KK_FLOAT v5 = dely*delz*fpair;
+      if (this->vflag_global) {
+        ev.v[0] += v0; ev.v[1] += v1; ev.v[2] += v2;
+        ev.v[3] += v3; ev.v[4] += v4; ev.v[5] += v5;
+      }
+      if (this->vflag_atom) {
+        Kokkos::atomic_add(&d_vatom(i,0), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v0));
+        Kokkos::atomic_add(&d_vatom(i,1), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v1));
+        Kokkos::atomic_add(&d_vatom(i,2), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v2));
+        Kokkos::atomic_add(&d_vatom(i,3), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v3));
+        Kokkos::atomic_add(&d_vatom(i,4), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v4));
+        Kokkos::atomic_add(&d_vatom(i,5), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v5));
+        Kokkos::atomic_add(&d_vatom(j,0), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v0));
+        Kokkos::atomic_add(&d_vatom(j,1), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v1));
+        Kokkos::atomic_add(&d_vatom(j,2), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v2));
+        Kokkos::atomic_add(&d_vatom(j,3), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v3));
+        Kokkos::atomic_add(&d_vatom(j,4), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v4));
+        Kokkos::atomic_add(&d_vatom(j,5), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v5));
+      }
+    }
+  }
+
+  // ----- long-range (Ewald) Coulomb machinery, used by the *long styles only
+
+  // copy the coulomb interpolation tables to the device
+  void init_tables(double cut_coul, double *cut_respa) override
+  {
+    Pair::init_tables(cut_coul,cut_respa);
+
+    typedef typename AT::t_kkfloat_1d table_type;
+    typedef HAT::t_kkfloat_1d host_table_type;
+
+    int ntable = 1;
+    for (int i = 0; i < this->ncoultablebits; i++) ntable *= 2;
+
+    tabinnersq_kk = static_cast<KK_FLOAT>(this->tabinnersq);
+
+    auto copy_table = [&](double *src, table_type &dst) {
+      host_table_type h_table("HostTable",ntable);
+      table_type d_table("DeviceTable",ntable);
+      for (int i = 0; i < ntable; i++) h_table(i) = static_cast<KK_FLOAT>(src[i]);
+      Kokkos::deep_copy(d_table,h_table);
+      dst = d_table;
+    };
+
+    copy_table(this->rtable,d_rtable);   copy_table(this->drtable,d_drtable);
+    copy_table(this->ftable,d_ftable);   copy_table(this->dftable,d_dftable);
+    copy_table(this->ctable,d_ctable);   copy_table(this->dctable,d_dctable);
+    copy_table(this->etable,d_etable);   copy_table(this->detable,d_detable);
+  }
+
+  // compute() prologue: bind the Ewald parameters not handled by prepare().
+  // only instantiated by the *long styles (references their g_ewald member)
+  void prepare_coul_long()
+  {
+    g_ewald_kk = static_cast<KK_FLOAT>(this->g_ewald);
+    m_ncoultablebits = this->ncoultablebits;
+    m_ncoulmask = this->ncoulmask;
+    m_ncoulshiftbits = this->ncoulshiftbits;
+  }
+
+  // long-range Coulomb force prefactor at squared distance rsq, and the
+  // pairwise energy if want_ecoul is set: analytic erfc() for close pairs
+  // (or when tables are disabled), coulomb interpolation tables otherwise
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  KK_FLOAT coul_long(const KK_FLOAT rsq, const KK_FLOAT qtmp, const KK_FLOAT qj,
+                     const KK_FLOAT factor_coul, const bool want_ecoul, KK_FLOAT &ecoul) const
+  {
+    const KK_FLOAT r2inv = (KK_FLOAT)1.0 / rsq;
+    KK_FLOAT cforce;
+    if (!m_ncoultablebits || rsq <= tabinnersq_kk) {
+      const KK_FLOAT r = Kokkos::sqrt(rsq);
+      const KK_FLOAT grij = g_ewald_kk * r;
+      const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
+      const KK_FLOAT t = (KK_FLOAT)1.0 / ((KK_FLOAT)1.0 + (KK_FLOAT)EwaldConst::EWALD_P*grij);
+      const KK_FLOAT erfc = t*((KK_FLOAT)EwaldConst::A1+t*((KK_FLOAT)EwaldConst::A2+
+                            t*((KK_FLOAT)EwaldConst::A3+t*((KK_FLOAT)EwaldConst::A4+
+                            t*(KK_FLOAT)EwaldConst::A5))))*expm2;
+      const KK_FLOAT prefactor = qqrd2e * qtmp * qj / r;
+      KK_FLOAT forcecoul = prefactor * (erfc + (KK_FLOAT)EwaldConst::EWALD_F*grij*expm2);
+      if (factor_coul < (KK_FLOAT)1.0) forcecoul -= ((KK_FLOAT)1.0-factor_coul)*prefactor;
+      cforce = forcecoul * r2inv;
+      if (want_ecoul) {
+        ecoul = prefactor * erfc;
+        if (factor_coul < (KK_FLOAT)1.0) ecoul -= ((KK_FLOAT)1.0-factor_coul)*prefactor;
+      }
+    } else {
+      typename Pair::union_int_float_t rsq_lookup;
+      rsq_lookup.f = rsq;
+      const int itable = (rsq_lookup.i & m_ncoulmask) >> m_ncoulshiftbits;
+      const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+      const KK_FLOAT tbl = d_ftable[itable] + fraction*d_dftable[itable];
+      KK_FLOAT forcecoul = qtmp * qj * tbl;
+      KK_FLOAT prefactor = 0.0;
+      if (factor_coul < (KK_FLOAT)1.0) {
+        const KK_FLOAT ctbl = d_ctable[itable] + fraction*d_dctable[itable];
+        prefactor = qtmp * qj * ctbl;
+        forcecoul -= ((KK_FLOAT)1.0-factor_coul)*prefactor;
+      }
+      cforce = forcecoul * r2inv;
+      if (want_ecoul) {
+        const KK_FLOAT etbl = d_etable[itable] + fraction*d_detable[itable];
+        ecoul = qtmp * qj * etbl;
+        if (factor_coul < (KK_FLOAT)1.0) ecoul -= ((KK_FLOAT)1.0-factor_coul)*prefactor;
+      }
+    }
+    return cforce;
+  }
+
   // common compute() setup: sync atom data, bind device views, cache TIP4P
   // parameters and the atom map, (re)allocate the M-site scratch and per-atom
   // energy/virial arrays.  Returns the number of owned atoms (inum).
@@ -222,7 +395,6 @@ class PairTIP4PKokkos : public PairCPUBase {
 
     nlocal = this->atom->nlocal;
     nall = this->atom->nlocal + this->atom->nghost;
-    newton_pair = this->force->newton_pair;
     qqrd2e = this->force->qqrd2e;
     for (int i = 0; i < 4; i++) {
       special_coul[i] = this->force->special_coul[i];
@@ -323,7 +495,6 @@ class PairTIP4PKokkos : public PairCPUBase {
   DAT::tdual_int_1d k_map_array;
   dual_hash_type k_map_hash;
 
-  int newton_pair, neighflag;
   int nlocal, nall, eflag, vflag;
 
   KK_FLOAT special_coul[4];
@@ -332,6 +503,13 @@ class PairTIP4PKokkos : public PairCPUBase {
   KK_FLOAT m_alpha, m_alphaO, m_alphaH;
   KK_FLOAT m_cut_coulsq, m_cut_coulsqplus;
   int m_typeO, m_typeH;
+
+  // Ewald real-space + optional coulomb interpolation tables (device),
+  // filled by init_tables()/prepare_coul_long() for the *long styles only
+  typename AT::t_kkfloat_1d d_rtable, d_drtable, d_ftable, d_dftable,
+                            d_ctable, d_dctable, d_etable, d_detable;
+  KK_FLOAT g_ewald_kk, tabinnersq_kk;
+  int m_ncoultablebits, m_ncoulmask, m_ncoulshiftbits;
 };
 
 }    // namespace LAMMPS_NS

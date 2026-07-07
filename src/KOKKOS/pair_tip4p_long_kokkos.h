@@ -42,7 +42,6 @@ class PairTIP4PLongKokkos : public PairTIP4PKokkos<DeviceType,PairTIP4PLong> {
   PairTIP4PLongKokkos(class LAMMPS *lmp) : Base(lmp) {}
 
   void compute(int, int) override;
-  void init_tables(double cut_coul, double *cut_respa) override;
 
   using Base::operator();
 
@@ -51,20 +50,20 @@ class PairTIP4PLongKokkos : public PairTIP4PKokkos<DeviceType,PairTIP4PLong> {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTIP4PLongCompute<EVFLAG>, const int&, EV_FLOAT&) const;
 
- protected:
-  // Ewald real-space + optional coulomb interpolation tables (device)
-  typename AT::t_kkfloat_1d d_rtable, d_drtable, d_ftable, d_dftable,
-                            d_ctable, d_dctable, d_etable, d_detable;
-  KK_FLOAT g_ewald_kk, tabinnersq_kk;
-  int m_ncoultablebits, m_ncoulmask, m_ncoulshiftbits;
+  template<int EVFLAG>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairTIP4PLongCompute<EVFLAG>, const int&) const;
 
-  using Base::x; using Base::f; using Base::q; using Base::type;
+ protected:
+  using Base::x; using Base::q; using Base::type;
   using Base::d_newsite; using Base::d_hneigh; using Base::d_h_missing;
   using Base::d_neighbors; using Base::d_numneigh; using Base::d_ilist;
-  using Base::m_typeO; using Base::m_alphaO; using Base::m_alphaH;
+  using Base::m_typeO;
   using Base::m_cut_coulsq; using Base::m_cut_coulsqplus;
   using Base::qqrd2e; using Base::special_coul;
-  using Base::sbmask; using Base::ev_tally_tip4p;
+  using Base::sbmask; using Base::ev_tally_tip4p; using Base::apply_site_force;
+  using Base::coul_long;
 };
 
 }    // namespace LAMMPS_NS

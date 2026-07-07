@@ -23,6 +23,7 @@ KSpaceStyle(pppm/tip4p/kk/host,PPPMTIP4PKokkos<LMPHostType>);
 #ifndef LMP_PPPM_TIP4P_KOKKOS_H
 #define LMP_PPPM_TIP4P_KOKKOS_H
 
+#include "atom_kokkos.h"
 #include "pppm_kokkos.h"
 #include <Kokkos_UnorderedMap.hpp>
 
@@ -112,20 +113,9 @@ class PPPMTIP4PKokkos : public PPPMKokkos<DeviceType> {
   // find the periodic image of j closest to i (orthogonal box only)
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int closest_image(const int i, int j) const
+  int closest_image(const int i, const int j) const
   {
-    if (j < 0) return j;
-    const KK_FLOAT xi0 = x(i,0), xi1 = x(i,1), xi2 = x(i,2);
-    int closest = j;
-    KK_FLOAT delx = xi0 - x(j,0), dely = xi1 - x(j,1), delz = xi2 - x(j,2);
-    KK_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
-    while (d_sametag[j] >= 0) {
-      j = d_sametag[j];
-      delx = xi0 - x(j,0); dely = xi1 - x(j,1); delz = xi2 - x(j,2);
-      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-      if (rsq < rsqmin) { rsqmin = rsq; closest = j; }
-    }
-    return closest;
+    return AtomKokkos::closest_image_kokkos(i,j,x,d_sametag);
   }
 
   // TIP4P device state

@@ -759,9 +759,15 @@ void FixContinuumChunk::end_of_step()
         voli *= 4.0 * THIRD * radius[i];
 
       for (auto &stencil_offset : stencil) {
-        xbin[0] = xbin0[0] + std::get<0>(stencil_offset) * delta[0];
-        xbin[1] = xbin0[1] + std::get<1>(stencil_offset) * delta[1];
-        xbin[2] = xbin0[2] + std::get<2>(stencil_offset) * delta[2];
+        dx = std::get<0>(stencil_offset);
+        dy = std::get<1>(stencil_offset);
+        dz = std::get<2>(stencil_offset);
+        xbin[0] = xbin0[0] + dx * delta[0];
+        xbin[1] = xbin0[1] + dy * delta[1];
+        xbin[2] = xbin0[2] + dz * delta[2];
+
+        m = ichunk[i] - 1;
+        m = stencil_to_index(m, dx, dy, dz);
 
         MathExtra::sub3(x[i], xbin, dx_atom_bin);
         rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
@@ -977,15 +983,21 @@ void FixContinuumChunk::end_of_step()
           else mi = mass[itype];
 
           for (auto &stencil_offset : stencil) {
-            xbin[0] = xbin0[0] + std::get<0>(stencil_offset) * delta[0];
-            xbin[1] = xbin0[1] + std::get<1>(stencil_offset) * delta[1];
-            xbin[2] = xbin0[2] + std::get<2>(stencil_offset) * delta[2];
+            dx = std::get<0>(stencil_offset);
+            dy = std::get<1>(stencil_offset);
+            dz = std::get<2>(stencil_offset);
+            xbin[0] = xbin0[0] + dx * delta[0];
+            xbin[1] = xbin0[1] + dy * delta[1];
+            xbin[2] = xbin0[2] + dz * delta[2];
+
+            m = ichunk[i] - 1;
+            m = stencil_to_index(m, dx, dy, dz);
 
             MathExtra::sub3(x[i], xbin, dx_atom_bin);
             rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
 
             if (rsq_atom_bin > w_cut_sq) continue;
-            dw = calc_dw(rsq_atom_bin); // sans dx factor
+            dw = calc_dw(sqrt(rsq_atom_bin)); // sans dx factor
 
             field_index = 0;
             for (auto &val : values) {

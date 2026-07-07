@@ -86,8 +86,8 @@ void PairLJCutTIP4PCutKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, c
 {
   if (this->eflag_global) ev.evdwl += evdwl;
   if (this->eflag_atom) {
-    Kokkos::atomic_add(&d_eatom[i], (KK_ACC_FLOAT)(0.5*evdwl));
-    Kokkos::atomic_add(&d_eatom[j], (KK_ACC_FLOAT)(0.5*evdwl));
+    Kokkos::atomic_add(&d_eatom[i], (KK_ACC_FLOAT)((KK_FLOAT)0.5*evdwl));
+    Kokkos::atomic_add(&d_eatom[j], (KK_ACC_FLOAT)((KK_FLOAT)0.5*evdwl));
   }
   if (this->vflag_global || this->vflag_atom) {
     const KK_FLOAT v0 = delx*delx*fpair;
@@ -101,18 +101,18 @@ void PairLJCutTIP4PCutKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, c
       ev.v[3] += v3; ev.v[4] += v4; ev.v[5] += v5;
     }
     if (this->vflag_atom) {
-      Kokkos::atomic_add(&d_vatom(i,0), (KK_ACC_FLOAT)(0.5*v0));
-      Kokkos::atomic_add(&d_vatom(i,1), (KK_ACC_FLOAT)(0.5*v1));
-      Kokkos::atomic_add(&d_vatom(i,2), (KK_ACC_FLOAT)(0.5*v2));
-      Kokkos::atomic_add(&d_vatom(i,3), (KK_ACC_FLOAT)(0.5*v3));
-      Kokkos::atomic_add(&d_vatom(i,4), (KK_ACC_FLOAT)(0.5*v4));
-      Kokkos::atomic_add(&d_vatom(i,5), (KK_ACC_FLOAT)(0.5*v5));
-      Kokkos::atomic_add(&d_vatom(j,0), (KK_ACC_FLOAT)(0.5*v0));
-      Kokkos::atomic_add(&d_vatom(j,1), (KK_ACC_FLOAT)(0.5*v1));
-      Kokkos::atomic_add(&d_vatom(j,2), (KK_ACC_FLOAT)(0.5*v2));
-      Kokkos::atomic_add(&d_vatom(j,3), (KK_ACC_FLOAT)(0.5*v3));
-      Kokkos::atomic_add(&d_vatom(j,4), (KK_ACC_FLOAT)(0.5*v4));
-      Kokkos::atomic_add(&d_vatom(j,5), (KK_ACC_FLOAT)(0.5*v5));
+      Kokkos::atomic_add(&d_vatom(i,0), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v0));
+      Kokkos::atomic_add(&d_vatom(i,1), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v1));
+      Kokkos::atomic_add(&d_vatom(i,2), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v2));
+      Kokkos::atomic_add(&d_vatom(i,3), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v3));
+      Kokkos::atomic_add(&d_vatom(i,4), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v4));
+      Kokkos::atomic_add(&d_vatom(i,5), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v5));
+      Kokkos::atomic_add(&d_vatom(j,0), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v0));
+      Kokkos::atomic_add(&d_vatom(j,1), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v1));
+      Kokkos::atomic_add(&d_vatom(j,2), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v2));
+      Kokkos::atomic_add(&d_vatom(j,3), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v3));
+      Kokkos::atomic_add(&d_vatom(j,4), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v4));
+      Kokkos::atomic_add(&d_vatom(j,5), (KK_ACC_FLOAT)((KK_FLOAT)0.5*v5));
     }
   }
 }
@@ -140,6 +140,7 @@ void PairLJCutTIP4PCutKokkos<DeviceType>::operator()(TagPairLJCutTIP4PCutCompute
   if (itype == m_typeO) {
     iH1 = d_hneigh(i,0);
     iH2 = d_hneigh(i,1);
+    if (iH1 < 0) { d_h_missing() = 1; return; }
     x1[0] = d_newsite(i,0); x1[1] = d_newsite(i,1); x1[2] = d_newsite(i,2);
   } else {
     x1[0] = xtmp; x1[1] = ytmp; x1[2] = ztmp;
@@ -191,6 +192,7 @@ void PairLJCutTIP4PCutKokkos<DeviceType>::operator()(TagPairLJCutTIP4PCutCompute
       if (jtype == m_typeO) {
         jH1 = d_hneigh(j,0);
         jH2 = d_hneigh(j,1);
+        if (jH1 < 0) { d_h_missing() = 1; continue; }
         x2[0] = d_newsite(j,0); x2[1] = d_newsite(j,1); x2[2] = d_newsite(j,2);
       } else {
         x2[0] = x(j,0); x2[1] = x(j,1); x2[2] = x(j,2);
@@ -208,7 +210,7 @@ void PairLJCutTIP4PCutKokkos<DeviceType>::operator()(TagPairLJCutTIP4PCutCompute
     const KK_FLOAT cforce = factor_coul * forcecoul * r2inv;
 
     int n = 0, key = 0, vlist[6];
-    KK_FLOAT v[6] = {0,0,0,0,0,0};
+    KK_ACC_FLOAT v[6] = {0,0,0,0,0,0};
 
     if (itype != m_typeO) {
       Kokkos::atomic_add(&f(i,0), (KK_ACC_FLOAT)(delx*cforce));
@@ -222,8 +224,8 @@ void PairLJCutTIP4PCutKokkos<DeviceType>::operator()(TagPairLJCutTIP4PCutCompute
     } else {
       key++;
       const KK_FLOAT fdx = delx*cforce, fdy = dely*cforce, fdz = delz*cforce;
-      const KK_FLOAT fOx = fdx*(1.0-m_alpha), fOy = fdy*(1.0-m_alpha), fOz = fdz*(1.0-m_alpha);
-      const KK_FLOAT fHx = 0.5*m_alpha*fdx, fHy = 0.5*m_alpha*fdy, fHz = 0.5*m_alpha*fdz;
+      const KK_ACC_FLOAT fOx = fdx*m_alphaO, fOy = fdy*m_alphaO, fOz = fdz*m_alphaO;
+      const KK_ACC_FLOAT fHx = fdx*m_alphaH, fHy = fdy*m_alphaH, fHz = fdz*m_alphaH;
       Kokkos::atomic_add(&f(i,0), (KK_ACC_FLOAT)fOx);
       Kokkos::atomic_add(&f(i,1), (KK_ACC_FLOAT)fOy);
       Kokkos::atomic_add(&f(i,2), (KK_ACC_FLOAT)fOz);
@@ -256,8 +258,8 @@ void PairLJCutTIP4PCutKokkos<DeviceType>::operator()(TagPairLJCutTIP4PCutCompute
     } else {
       key += 2;
       const KK_FLOAT fdx = -delx*cforce, fdy = -dely*cforce, fdz = -delz*cforce;
-      const KK_FLOAT fOx = fdx*(1.0-m_alpha), fOy = fdy*(1.0-m_alpha), fOz = fdz*(1.0-m_alpha);
-      const KK_FLOAT fHx = 0.5*m_alpha*fdx, fHy = 0.5*m_alpha*fdy, fHz = 0.5*m_alpha*fdz;
+      const KK_ACC_FLOAT fOx = fdx*m_alphaO, fOy = fdy*m_alphaO, fOz = fdz*m_alphaO;
+      const KK_ACC_FLOAT fHx = fdx*m_alphaH, fHy = fdy*m_alphaH, fHz = fdz*m_alphaH;
       Kokkos::atomic_add(&f(j,0), (KK_ACC_FLOAT)fOx);
       Kokkos::atomic_add(&f(j,1), (KK_ACC_FLOAT)fOy);
       Kokkos::atomic_add(&f(j,2), (KK_ACC_FLOAT)fOz);

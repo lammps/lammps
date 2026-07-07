@@ -62,10 +62,10 @@ class PairLJCutTIP4PCutKokkos : public PairTIP4PKokkos<DeviceType,PairLJCutTIP4P
   typename AT::t_kkfloat_2d d_lj1, d_lj2, d_lj3, d_lj4, d_offset, d_cut_ljsq;
 
   using Base::x; using Base::f; using Base::q; using Base::type;
-  using Base::d_newsite; using Base::d_hneigh;
+  using Base::d_newsite; using Base::d_hneigh; using Base::d_h_missing;
   using Base::d_neighbors; using Base::d_numneigh; using Base::d_ilist;
   using Base::d_eatom; using Base::d_vatom;
-  using Base::m_typeO; using Base::m_alpha;
+  using Base::m_typeO; using Base::m_alphaO; using Base::m_alphaH;
   using Base::m_cut_coulsq; using Base::m_cut_coulsqplus;
   using Base::qqrd2e; using Base::special_coul; using Base::special_lj;
   using Base::sbmask; using Base::ev_tally_tip4p;

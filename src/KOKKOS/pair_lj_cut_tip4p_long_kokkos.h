@@ -69,10 +69,10 @@ class PairLJCutTIP4PLongKokkos : public PairTIP4PKokkos<DeviceType,PairLJCutTIP4
   int m_ncoultablebits, m_ncoulmask, m_ncoulshiftbits;
 
   using Base::x; using Base::f; using Base::q; using Base::type;
-  using Base::d_newsite; using Base::d_hneigh;
+  using Base::d_newsite; using Base::d_hneigh; using Base::d_h_missing;
   using Base::d_neighbors; using Base::d_numneigh; using Base::d_ilist;
   using Base::d_eatom; using Base::d_vatom;
-  using Base::m_typeO; using Base::m_alpha;
+  using Base::m_typeO; using Base::m_alphaO; using Base::m_alphaH;
   using Base::m_cut_coulsq; using Base::m_cut_coulsqplus;
   using Base::qqrd2e; using Base::special_coul; using Base::special_lj;
   using Base::sbmask; using Base::ev_tally_tip4p;

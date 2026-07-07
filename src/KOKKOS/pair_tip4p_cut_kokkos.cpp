@@ -64,6 +64,7 @@ void PairTIP4PCutKokkos<DeviceType>::operator()(TagPairTIP4PCutCompute<EVFLAG>,
   if (itype == m_typeO) {
     iH1 = d_hneigh(i,0);
     iH2 = d_hneigh(i,1);
+    if (iH1 < 0) { d_h_missing() = 1; return; }
     x1[0] = d_newsite(i,0); x1[1] = d_newsite(i,1); x1[2] = d_newsite(i,2);
   } else {
     x1[0] = xtmp; x1[1] = ytmp; x1[2] = ztmp;
@@ -90,6 +91,7 @@ void PairTIP4PCutKokkos<DeviceType>::operator()(TagPairTIP4PCutCompute<EVFLAG>,
       if (jtype == m_typeO) {
         jH1 = d_hneigh(j,0);
         jH2 = d_hneigh(j,1);
+        if (jH1 < 0) { d_h_missing() = 1; continue; }
         x2[0] = d_newsite(j,0); x2[1] = d_newsite(j,1); x2[2] = d_newsite(j,2);
       } else {
         x2[0] = x(j,0); x2[1] = x(j,1); x2[2] = x(j,2);
@@ -107,7 +109,7 @@ void PairTIP4PCutKokkos<DeviceType>::operator()(TagPairTIP4PCutCompute<EVFLAG>,
     const KK_FLOAT cforce = factor_coul * forcecoul * r2inv;
 
     int n = 0, key = 0, vlist[6];
-    KK_FLOAT v[6] = {0,0,0,0,0,0};
+    KK_ACC_FLOAT v[6] = {0,0,0,0,0,0};
 
     if (itype != m_typeO) {
       Kokkos::atomic_add(&f(i,0), (KK_ACC_FLOAT)(delx*cforce));
@@ -121,8 +123,8 @@ void PairTIP4PCutKokkos<DeviceType>::operator()(TagPairTIP4PCutCompute<EVFLAG>,
     } else {
       key++;
       const KK_FLOAT fdx = delx*cforce, fdy = dely*cforce, fdz = delz*cforce;
-      const KK_FLOAT fOx = fdx*(1.0-m_alpha), fOy = fdy*(1.0-m_alpha), fOz = fdz*(1.0-m_alpha);
-      const KK_FLOAT fHx = 0.5*m_alpha*fdx, fHy = 0.5*m_alpha*fdy, fHz = 0.5*m_alpha*fdz;
+      const KK_ACC_FLOAT fOx = fdx*m_alphaO, fOy = fdy*m_alphaO, fOz = fdz*m_alphaO;
+      const KK_ACC_FLOAT fHx = fdx*m_alphaH, fHy = fdy*m_alphaH, fHz = fdz*m_alphaH;
       Kokkos::atomic_add(&f(i,0), (KK_ACC_FLOAT)fOx);
       Kokkos::atomic_add(&f(i,1), (KK_ACC_FLOAT)fOy);
       Kokkos::atomic_add(&f(i,2), (KK_ACC_FLOAT)fOz);
@@ -155,8 +157,8 @@ void PairTIP4PCutKokkos<DeviceType>::operator()(TagPairTIP4PCutCompute<EVFLAG>,
     } else {
       key += 2;
       const KK_FLOAT fdx = -delx*cforce, fdy = -dely*cforce, fdz = -delz*cforce;
-      const KK_FLOAT fOx = fdx*(1.0-m_alpha), fOy = fdy*(1.0-m_alpha), fOz = fdz*(1.0-m_alpha);
-      const KK_FLOAT fHx = 0.5*m_alpha*fdx, fHy = 0.5*m_alpha*fdy, fHz = 0.5*m_alpha*fdz;
+      const KK_ACC_FLOAT fOx = fdx*m_alphaO, fOy = fdy*m_alphaO, fOz = fdz*m_alphaO;
+      const KK_ACC_FLOAT fHx = fdx*m_alphaH, fHy = fdy*m_alphaH, fHz = fdz*m_alphaH;
       Kokkos::atomic_add(&f(j,0), (KK_ACC_FLOAT)fOx);
       Kokkos::atomic_add(&f(j,1), (KK_ACC_FLOAT)fOy);
       Kokkos::atomic_add(&f(j,2), (KK_ACC_FLOAT)fOz);

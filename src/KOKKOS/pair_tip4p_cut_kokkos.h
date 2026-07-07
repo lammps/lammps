@@ -53,9 +53,9 @@ class PairTIP4PCutKokkos : public PairTIP4PKokkos<DeviceType,PairTIP4PCut> {
 
  protected:
   using Base::x; using Base::f; using Base::q; using Base::type;
-  using Base::d_newsite; using Base::d_hneigh;
+  using Base::d_newsite; using Base::d_hneigh; using Base::d_h_missing;
   using Base::d_neighbors; using Base::d_numneigh; using Base::d_ilist;
-  using Base::m_typeO; using Base::m_alpha;
+  using Base::m_typeO; using Base::m_alphaO; using Base::m_alphaH;
   using Base::m_cut_coulsq; using Base::m_cut_coulsqplus;
   using Base::qqrd2e; using Base::special_coul;
   using Base::sbmask; using Base::ev_tally_tip4p;

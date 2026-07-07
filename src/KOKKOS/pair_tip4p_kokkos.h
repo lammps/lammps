@@ -18,7 +18,11 @@
    PairTIP4PKokkos<DeviceType,PairCPUBase> derives from the corresponding CPU
    base class and provides the parts every TIP4P pair style needs:
      - the per-O M (virtual charge) site pre-kernel (find the two H atoms by
-       tag on device, closest_image them, compute the M-site position),
+       tag on device, closest_image them, compute the M-site position).
+       A missing H is recorded as d_hneigh(i,0) = -1; the compute kernels
+       check that sentinel where the M site is actually used (same semantics
+       as the CPU styles' lazy find_M()) and set d_h_missing, which
+       finalize() turns into the "TIP4P hydrogen is missing" error,
      - a device closest_image(),
      - ev_tally_tip4p() (the key-based global/per-atom energy/virial split for
        the off-atom charge site), and
@@ -33,6 +37,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "error.h"
 #include "force.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
@@ -63,6 +68,7 @@ class PairTIP4PKokkos : public PairCPUBase {
     this->datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
     // TIP4P tallies the virial explicitly (charge site is off-atom)
     this->no_virial_fdotr_compute = 1;
+    k_h_missing = DAT::tdual_int_scalar("pair:tip4p_h_missing");
   }
 
   ~PairTIP4PKokkos() override
@@ -132,61 +138,64 @@ class PairTIP4PKokkos : public PairCPUBase {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally_tip4p(EV_FLOAT &ev, const int &key, const int (&vlist)[6],
-                      const KK_FLOAT (&v)[6], const KK_FLOAT &ecoul) const
+                      const KK_ACC_FLOAT (&v)[6], const KK_FLOAT &ecoul) const
   {
     if (this->eflag_global) ev.ecoul += ecoul;
     if (this->vflag_global)
       for (int k = 0; k < 6; k++) ev.v[k] += v[k];
 
     if (this->eflag_atom) {
-      const KK_FLOAT a = m_alpha;
+      const KK_FLOAT eO = (KK_FLOAT)0.5*ecoul*m_alphaO;
+      const KK_FLOAT eH = (KK_FLOAT)0.5*ecoul*m_alphaH;
+      const KK_FLOAT eA = (KK_FLOAT)0.5*ecoul;
       if (key == 0) {
-        Kokkos::atomic_add(&d_eatom[vlist[0]], (KK_ACC_FLOAT)(0.5*ecoul));
-        Kokkos::atomic_add(&d_eatom[vlist[1]], (KK_ACC_FLOAT)(0.5*ecoul));
+        Kokkos::atomic_add(&d_eatom[vlist[0]], (KK_ACC_FLOAT)eA);
+        Kokkos::atomic_add(&d_eatom[vlist[1]], (KK_ACC_FLOAT)eA);
       } else if (key == 1) {
-        Kokkos::atomic_add(&d_eatom[vlist[0]], (KK_ACC_FLOAT)(0.5*ecoul*(1.0-a)));
-        Kokkos::atomic_add(&d_eatom[vlist[1]], (KK_ACC_FLOAT)(0.25*ecoul*a));
-        Kokkos::atomic_add(&d_eatom[vlist[2]], (KK_ACC_FLOAT)(0.25*ecoul*a));
-        Kokkos::atomic_add(&d_eatom[vlist[3]], (KK_ACC_FLOAT)(0.5*ecoul));
+        Kokkos::atomic_add(&d_eatom[vlist[0]], (KK_ACC_FLOAT)eO);
+        Kokkos::atomic_add(&d_eatom[vlist[1]], (KK_ACC_FLOAT)eH);
+        Kokkos::atomic_add(&d_eatom[vlist[2]], (KK_ACC_FLOAT)eH);
+        Kokkos::atomic_add(&d_eatom[vlist[3]], (KK_ACC_FLOAT)eA);
       } else if (key == 2) {
-        Kokkos::atomic_add(&d_eatom[vlist[0]], (KK_ACC_FLOAT)(0.5*ecoul));
-        Kokkos::atomic_add(&d_eatom[vlist[1]], (KK_ACC_FLOAT)(0.5*ecoul*(1.0-a)));
-        Kokkos::atomic_add(&d_eatom[vlist[2]], (KK_ACC_FLOAT)(0.25*ecoul*a));
-        Kokkos::atomic_add(&d_eatom[vlist[3]], (KK_ACC_FLOAT)(0.25*ecoul*a));
+        Kokkos::atomic_add(&d_eatom[vlist[0]], (KK_ACC_FLOAT)eA);
+        Kokkos::atomic_add(&d_eatom[vlist[1]], (KK_ACC_FLOAT)eO);
+        Kokkos::atomic_add(&d_eatom[vlist[2]], (KK_ACC_FLOAT)eH);
+        Kokkos::atomic_add(&d_eatom[vlist[3]], (KK_ACC_FLOAT)eH);
       } else {
-        Kokkos::atomic_add(&d_eatom[vlist[0]], (KK_ACC_FLOAT)(0.5*ecoul*(1.0-a)));
-        Kokkos::atomic_add(&d_eatom[vlist[1]], (KK_ACC_FLOAT)(0.25*ecoul*a));
-        Kokkos::atomic_add(&d_eatom[vlist[2]], (KK_ACC_FLOAT)(0.25*ecoul*a));
-        Kokkos::atomic_add(&d_eatom[vlist[3]], (KK_ACC_FLOAT)(0.5*ecoul*(1.0-a)));
-        Kokkos::atomic_add(&d_eatom[vlist[4]], (KK_ACC_FLOAT)(0.25*ecoul*a));
-        Kokkos::atomic_add(&d_eatom[vlist[5]], (KK_ACC_FLOAT)(0.25*ecoul*a));
+        Kokkos::atomic_add(&d_eatom[vlist[0]], (KK_ACC_FLOAT)eO);
+        Kokkos::atomic_add(&d_eatom[vlist[1]], (KK_ACC_FLOAT)eH);
+        Kokkos::atomic_add(&d_eatom[vlist[2]], (KK_ACC_FLOAT)eH);
+        Kokkos::atomic_add(&d_eatom[vlist[3]], (KK_ACC_FLOAT)eO);
+        Kokkos::atomic_add(&d_eatom[vlist[4]], (KK_ACC_FLOAT)eH);
+        Kokkos::atomic_add(&d_eatom[vlist[5]], (KK_ACC_FLOAT)eH);
       }
     }
 
     if (this->vflag_atom) {
-      const KK_FLOAT a = m_alpha;
       for (int k = 0; k < 6; k++) {
-        const KK_FLOAT vk = v[k];
+        const KK_ACC_FLOAT vO = (KK_FLOAT)0.5*v[k]*m_alphaO;
+        const KK_ACC_FLOAT vH = (KK_FLOAT)0.5*v[k]*m_alphaH;
+        const KK_ACC_FLOAT vA = (KK_FLOAT)0.5*v[k];
         if (key == 0) {
-          Kokkos::atomic_add(&d_vatom(vlist[0],k), (KK_ACC_FLOAT)(0.5*vk));
-          Kokkos::atomic_add(&d_vatom(vlist[1],k), (KK_ACC_FLOAT)(0.5*vk));
+          Kokkos::atomic_add(&d_vatom(vlist[0],k), vA);
+          Kokkos::atomic_add(&d_vatom(vlist[1],k), vA);
         } else if (key == 1) {
-          Kokkos::atomic_add(&d_vatom(vlist[0],k), (KK_ACC_FLOAT)(0.5*vk*(1.0-a)));
-          Kokkos::atomic_add(&d_vatom(vlist[1],k), (KK_ACC_FLOAT)(0.25*vk*a));
-          Kokkos::atomic_add(&d_vatom(vlist[2],k), (KK_ACC_FLOAT)(0.25*vk*a));
-          Kokkos::atomic_add(&d_vatom(vlist[3],k), (KK_ACC_FLOAT)(0.5*vk));
+          Kokkos::atomic_add(&d_vatom(vlist[0],k), vO);
+          Kokkos::atomic_add(&d_vatom(vlist[1],k), vH);
+          Kokkos::atomic_add(&d_vatom(vlist[2],k), vH);
+          Kokkos::atomic_add(&d_vatom(vlist[3],k), vA);
         } else if (key == 2) {
-          Kokkos::atomic_add(&d_vatom(vlist[0],k), (KK_ACC_FLOAT)(0.5*vk));
-          Kokkos::atomic_add(&d_vatom(vlist[1],k), (KK_ACC_FLOAT)(0.5*vk*(1.0-a)));
-          Kokkos::atomic_add(&d_vatom(vlist[2],k), (KK_ACC_FLOAT)(0.25*vk*a));
-          Kokkos::atomic_add(&d_vatom(vlist[3],k), (KK_ACC_FLOAT)(0.25*vk*a));
+          Kokkos::atomic_add(&d_vatom(vlist[0],k), vA);
+          Kokkos::atomic_add(&d_vatom(vlist[1],k), vO);
+          Kokkos::atomic_add(&d_vatom(vlist[2],k), vH);
+          Kokkos::atomic_add(&d_vatom(vlist[3],k), vH);
         } else {
-          Kokkos::atomic_add(&d_vatom(vlist[0],k), (KK_ACC_FLOAT)(0.5*vk*(1.0-a)));
-          Kokkos::atomic_add(&d_vatom(vlist[1],k), (KK_ACC_FLOAT)(0.25*vk*a));
-          Kokkos::atomic_add(&d_vatom(vlist[2],k), (KK_ACC_FLOAT)(0.25*vk*a));
-          Kokkos::atomic_add(&d_vatom(vlist[3],k), (KK_ACC_FLOAT)(0.5*vk*(1.0-a)));
-          Kokkos::atomic_add(&d_vatom(vlist[4],k), (KK_ACC_FLOAT)(0.25*vk*a));
-          Kokkos::atomic_add(&d_vatom(vlist[5],k), (KK_ACC_FLOAT)(0.25*vk*a));
+          Kokkos::atomic_add(&d_vatom(vlist[0],k), vO);
+          Kokkos::atomic_add(&d_vatom(vlist[1],k), vH);
+          Kokkos::atomic_add(&d_vatom(vlist[2],k), vH);
+          Kokkos::atomic_add(&d_vatom(vlist[3],k), vO);
+          Kokkos::atomic_add(&d_vatom(vlist[4],k), vH);
+          Kokkos::atomic_add(&d_vatom(vlist[5],k), vH);
         }
       }
     }
@@ -221,6 +230,9 @@ class PairTIP4PKokkos : public PairCPUBase {
     }
 
     m_alpha = this->alpha;
+    // shares of the M-site force redistributed onto O and each H
+    m_alphaO = 1.0 - this->alpha;
+    m_alphaH = 0.5 * this->alpha;
     m_typeO = this->typeO;
     m_typeH = this->typeH;
     m_cut_coulsq = this->cut_coulsq;
@@ -240,6 +252,12 @@ class PairTIP4PKokkos : public PairCPUBase {
       d_hneigh  = typename AT::t_int_1d_3("tip4p/kk:hneigh", this->atom->nmax);
     }
 
+    // reset the missing-hydrogen flag, checked in finalize()
+    k_h_missing.view_host()() = 0;
+    k_h_missing.modify_host();
+    k_h_missing.template sync<DeviceType>();
+    d_h_missing = k_h_missing.template view<DeviceType>();
+
     if (this->eflag_atom) {
       this->memoryKK->destroy_kokkos(k_eatom, this->eatom);
       this->memoryKK->create_kokkos(k_eatom, this->eatom, this->maxeatom, "pair:eatom");
@@ -258,10 +276,16 @@ class PairTIP4PKokkos : public PairCPUBase {
     return this->list->inum;
   }
 
-  // common compute() teardown: accumulate global coulomb energy and virial,
-  // sync per-atom arrays back to the host, mark modified atom data
+  // common compute() teardown: stop on missing H atoms, accumulate global
+  // coulomb energy and virial, sync per-atom arrays back to the host,
+  // mark modified atom data
   void finalize(const EV_FLOAT &ev)
   {
+    k_h_missing.template modify<DeviceType>();
+    k_h_missing.sync_host();
+    if (k_h_missing.view_host()())
+      this->error->one(FLERR,"TIP4P hydrogen is missing");
+
     if (this->eflag_global) this->eng_coul += ev.ecoul;
     if (this->vflag_global) {
       this->virial[0] += ev.v[0]; this->virial[1] += ev.v[1]; this->virial[2] += ev.v[2];
@@ -282,6 +306,10 @@ class PairTIP4PKokkos : public PairCPUBase {
   typename AT::t_kkfloat_1d_3 d_newsite;
   typename AT::t_int_1d_3 d_hneigh;
 
+  // set on device when a compute kernel needs an M site with a missing H
+  DAT::tdual_int_scalar k_h_missing;
+  typename AT::t_int_scalar d_h_missing;
+
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
@@ -301,7 +329,7 @@ class PairTIP4PKokkos : public PairCPUBase {
   KK_FLOAT special_coul[4];
   KK_FLOAT special_lj[4];
   KK_FLOAT qqrd2e;
-  KK_FLOAT m_alpha;
+  KK_FLOAT m_alpha, m_alphaO, m_alphaH;
   KK_FLOAT m_cut_coulsq, m_cut_coulsqplus;
   int m_typeO, m_typeH;
 };

@@ -2456,6 +2456,7 @@ metadata
 metadynamics
 Metadynamics
 metallicity
+metastable
 Methfessel
 methine
 Metin
@@ -3255,6 +3256,7 @@ polyhedra
 Polym
 polymorph
 polymorphism
+polymorphs
 Ponder
 Ponte
 popen
@@ -4023,6 +4025,7 @@ symd
 symmetrization
 symmetrize
 symmetrized
+symmetrizing
 Synechococcus
 sys
 sysdim

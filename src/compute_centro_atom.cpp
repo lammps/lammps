@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), distsq(nullptr), nearest(nullptr), centro(nullptr)
+    Compute(lmp, narg, arg), distsq(nullptr), nearest(nullptr), list(nullptr), centro(nullptr)
 {
   if (narg < 4 || narg > 6) error->all(FLERR, "Illegal compute centro/atom command");
 

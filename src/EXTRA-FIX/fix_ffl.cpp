@@ -49,7 +49,8 @@ enum {NO_FLIP, FLIP_RESCALE, FLIP_HARD, FLIP_SOFT};
 
 /* ---------------------------------------------------------------------- */
 
-FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), step_respa(nullptr), vaux(nullptr)
 {
   if (narg < 7)
     error->all(FLERR,"Illegal fix ffl command. Expecting: fix <fix-ID>"

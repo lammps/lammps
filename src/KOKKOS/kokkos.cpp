@@ -42,6 +42,15 @@
 #endif
 #endif
 
+// vendor runtime headers for the GPU device probe below
+#if defined(KOKKOS_ENABLE_CUDA)
+#include <cuda_runtime.h>
+#elif defined(KOKKOS_ENABLE_HIP)
+#include <hip/hip_runtime.h>
+#elif defined(KOKKOS_ENABLE_SYCL)
+#include <sycl/sycl.hpp>
+#endif
+
 using namespace LAMMPS_NS;
 
 static const char cite_kokkos_package[] =
@@ -57,6 +66,40 @@ static const char cite_kokkos_package[] =
 
 int KokkosLMP::is_finalized = 0;
 int KokkosLMP::init_ngpus = 0;
+
+/* ----------------------------------------------------------------------
+   probe at runtime whether a compatible GPU device is present and usable
+   without initializing the KOKKOS package (which would abort for a GPU
+   backend when no device is available).  The vendor runtime device-count
+   queries return an error code instead of aborting, so this is safe to
+   call before deciding to enable the KOKKOS package, e.g. for skipping
+   tests gracefully.  Returns false for host-only KOKKOS builds.
+   This mirrors lmp_has_compatible_gpu_device() of the GPU package and is
+   wrapped by Info::has_kokkos_gpu_device().
+------------------------------------------------------------------------- */
+
+bool lmp_has_compatible_kokkos_gpu()
+{
+#if defined(KOKKOS_ENABLE_CUDA)
+  int ndev = 0;
+  if (cudaGetDeviceCount(&ndev) != cudaSuccess) return false;
+  return ndev > 0;
+#elif defined(KOKKOS_ENABLE_HIP)
+  int ndev = 0;
+  if (hipGetDeviceCount(&ndev) != hipSuccess) return false;
+  return ndev > 0;
+#elif defined(KOKKOS_ENABLE_SYCL)
+  try {
+    return !sycl::device::get_devices(sycl::info::device_type::gpu).empty();
+  } catch (...) {
+    return false;
+  }
+#else
+  // host-only KOKKOS build (Serial/OpenMP/Pthreads) or a GPU backend
+  // without a runtime device probe (e.g. OpenMPTarget)
+  return false;
+#endif
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -463,6 +506,15 @@ void KokkosLMP::finalize()
 void KokkosLMP::accelerator(int narg, char **arg)
 {
   if (lmp->citeme) lmp->citeme->add(cite_kokkos_package);
+
+  // unless set with the neigh/thread option, neigh_thread may have been
+  // enabled by the small-system heuristic in pair_compute_neighlist(), which
+  // is only valid for the run it was made for.  discard that state here so it
+  // cannot conflict with the settings of this package command (e.g. after a
+  // clear command re-applies the package defaults and command line options,
+  // "newton on" would be rejected because of the stale neigh_thread setting)
+
+  if (!neigh_thread_set) neigh_thread = 0;
 
   int iarg = 0;
   while (iarg < narg) {

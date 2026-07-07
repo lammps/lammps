@@ -53,6 +53,14 @@ const char *device=0;
 #include "device_cubin.h"
 #endif
 
+// When set, defer the GPU device teardown: clear_device() skips deleting the
+// UCL_Device (which would reset the whole GPU device). This is used only by the
+// unit test harness so the GPU package does not reset a device that the KOKKOS
+// package is also using -- that reset invalidates the KOKKOS device context and
+// crashes at Kokkos::finalize(). The device is reclaimed at process exit.
+// Toggled through lmp_gpu_defer_device_clear().
+static bool lal_defer_device_clear = false;
+
 namespace LAMMPS_AL {
 #define DeviceT Device<numtyp, acctyp>
 
@@ -1048,7 +1056,7 @@ void DeviceT::clear_device() {
     delete dev_program;
     _compiled=false;
   }
-  if (_device_init) {
+  if (_device_init && !lal_defer_device_clear) {
     delete gpu;
     _device_init=false;
   }
@@ -1230,6 +1238,12 @@ int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
 
 void lmp_clear_device() {
   global_device.clear_device();
+}
+
+// defer (flag != 0) or restore (flag == 0) the GPU device teardown.
+// see the comment on lal_defer_device_clear above. test-harness use only.
+void lmp_gpu_defer_device_clear(int flag) {
+  lal_defer_device_clear = (flag != 0);
 }
 
 double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,

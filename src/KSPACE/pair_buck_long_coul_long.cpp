@@ -41,7 +41,10 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
+PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) :
+    Pair(lmp), cut_buck(nullptr), cut_buck_read(nullptr), cut_bucksq(nullptr),
+    buck_a_read(nullptr), buck_a(nullptr), buck_c_read(nullptr), buck_c(nullptr), buck1(nullptr),
+    buck2(nullptr), buck_rho_read(nullptr), buck_rho(nullptr), rhoinv(nullptr), offset(nullptr)
 {
   dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;

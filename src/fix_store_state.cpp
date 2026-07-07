@@ -705,7 +705,7 @@ void FixStoreState::end_of_step()
   if (cfv_any && nevery) {
     bigint nextstep;
     if (historyflag && nfreq_history > nevery*nrepeat_history && update->ntimestep % nfreq_history)
-      nextstep = update->ntimestep + nfreq_history - nevery*(nrepeat_history-1);
+      nextstep = update->ntimestep + nfreq_history - (bigint)nevery*(nrepeat_history-1);
     else
       nextstep = (update->ntimestep/nevery)*nevery + nevery;
     modify->addstep_compute(nextstep);

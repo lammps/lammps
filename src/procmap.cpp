@@ -38,7 +38,8 @@ static constexpr int MAXLINE = 128;
 
 /* ---------------------------------------------------------------------- */
 
-ProcMap::ProcMap(LAMMPS *lmp) : Pointers(lmp) {}
+ProcMap::ProcMap(LAMMPS *lmp) : Pointers(lmp), cmap(nullptr)
+{}
 
 /* ----------------------------------------------------------------------
    create a one-level 3d grid of procs

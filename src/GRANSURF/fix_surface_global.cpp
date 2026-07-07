@@ -500,8 +500,8 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
   memory->sfree(motions);
   delete[] mol2motion;
 
-  deletelist;
-  deletelisthistory;
+  delete list;
+  delete listhistory;
   delete[] zeroes;
   delete[] tstr;
 

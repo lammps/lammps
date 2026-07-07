@@ -49,8 +49,8 @@ static constexpr int DELTA_RVOUS = 1024;    // must be >= 8
 
 enum { INTERNAL = 0, EXTERNAL, UNCONNECTED };
 
-static constexpr double FLATTHRESH =
-    0.00015230484360876085;        // = 1.0-cos(MY_PI/180.0); = 1 degree
+// = 1.0-cos(MY_PI/180.0); = 1 degree
+static constexpr double FLATTHRESH = 0.00015230484360876085;
 static constexpr int RVOUS = 1;    // 0 for irregular, 1 for all2all
 
 enum { MOLTEMPLATE, STLFILE };

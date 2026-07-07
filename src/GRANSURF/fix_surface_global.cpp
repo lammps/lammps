@@ -63,7 +63,8 @@ enum{LINEAR,WIGGLE,ROTATE,TRANSROT,VARIABLE};
 enum{INTERNAL = 0,EXTERNAL,UNCONNECTED};
 enum{NSQ, BIN};
 
-static constexpr double FLATTHRESH = 0.00015230484360876085; // = 1.0-cos(MY_PI/180.0); = 1 degree
+// = 1.0-cos(MY_PI/180.0); = 1 degree
+static constexpr double FLATTHRESH = 0.00015230484360876085;
 static constexpr int DELTAMODEL = 4;
 static constexpr int DELTAMOTION = 4;
 static constexpr int MAXSURFTYPE = 1024;  // limit for # of surf types
@@ -273,6 +274,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"temperature") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix surface/global temperature", error);
+      delete[] tstr;
       if (utils::strmatch(arg[iarg+1], "^v_")) {
         tstr = utils::strdup(arg[iarg+1] + 2);
       } else {
@@ -433,8 +435,8 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
   for (int i = 0; i < nmodel; i++) delete models[i];
   memory->sfree(models);
 
-  for (int i = 1; i <= atom->ntypes; i++) delete [] types2model[i];
-  delete [] types2model;
+  for (int i = 1; i <= atom->ntypes; i++) delete[] types2model[i];
+  delete[] types2model;
 
   memory->destroy(neigh_p1);
   memory->destroy(neigh_p2);
@@ -486,22 +488,22 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
 
   for (int i = 0; i < nmotion; i++) {
     if (motions[i].mstyle == VARIABLE) {
-      delete [] motions[i].xvarstr;
-      delete [] motions[i].yvarstr;
-      delete [] motions[i].zvarstr;
-      delete [] motions[i].vxvarstr;
-      delete [] motions[i].vyvarstr;
-      delete [] motions[i].vzvarstr;
+      delete[] motions[i].xvarstr;
+      delete[] motions[i].yvarstr;
+      delete[] motions[i].zvarstr;
+      delete[] motions[i].vxvarstr;
+      delete[] motions[i].vyvarstr;
+      delete[] motions[i].vzvarstr;
     }
   }
 
   memory->sfree(motions);
-  delete [] mol2motion;
+  delete[] mol2motion;
 
-  delete list;
-  delete listhistory;
-  delete [] zeroes;
-  delete [] tstr;
+  deletelist;
+  deletelisthistory;
+  delete[] zeroes;
+  delete[] tstr;
 
   delete nb;
   delete ns;
@@ -1643,7 +1645,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
         next_reneighbor = -1;
       }
 
-      delete [] smols;
+      delete[] smols;
       return 3;
     }
 
@@ -1747,7 +1749,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
     utils::logmesg(lmp,"Fix_modify move:\n");
     utils::logmesg(lmp,"  turned on motion for {} surfs\n", count);
 
-    delete [] smols;
+    delete[] smols;
     return 2 + styleargs;
   }
 

@@ -2,7 +2,7 @@
 lammps_version: 29 Aug 2024
 date_generated: Tue Oct  1 13:00:12 2024
 epsilon: 4e-14
-skip_tests:
+skip_tests: kokkos_gpu
 prerequisites: ! |
   atom full
   fix wall/region
@@ -14,6 +14,7 @@ post_commands: ! |
   fix test solute wall/region box lj1043 1.0 1.0 2.5
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |2-
    0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00

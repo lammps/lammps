@@ -28,7 +28,8 @@ static constexpr int EXTRA = 1000;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralHybrid::DihedralHybrid(LAMMPS *lmp) : Dihedral(lmp)
+DihedralHybrid::DihedralHybrid(LAMMPS *lmp) :
+    Dihedral(lmp), styles(nullptr), keywords(nullptr), map(nullptr)
 {
   writedata = 0;
   nstyles = 0;

@@ -404,7 +404,7 @@ by checking the output of ``ctest -N``.
 
 Some of the force style tests are rather slow to run and some are very
 sensitive to small differences like CPU architecture, compiler
-toolchain, compiler optimization.  Those tests are flagged with a "slow"
+tool chain, compiler optimization.  Those tests are flagged with a "slow"
 and/or "unstable" label, and thus those tests can be selectively
 excluded with the ``-LE`` flag to ``ctest`` (see description of the most
 commonly used ``ctest`` flags) or specifically selected using the ``-L``
@@ -662,14 +662,6 @@ commands like the following:
 .. code-block:: bash
 
    clang-format -i some_file.cpp
-
-
-The following target are available for both, GNU make and CMake:
-
-.. code-block:: bash
-
-   make format-src       # apply clang-format to all files in src and the package folders
-   make format-tests     # apply clang-format to all files in the unittest tree
 
 ----------
 

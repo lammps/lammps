@@ -67,8 +67,8 @@ static const char cite_nonaffine_d2min[] =
 /* ---------------------------------------------------------------------- */
 
 FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_fix(nullptr), fix(nullptr), D2min(nullptr), X(nullptr), Y(nullptr),
-  F(nullptr), norm(nullptr), singular(nullptr)
+    Fix(lmp, narg, arg), id_fix(nullptr), fix(nullptr), D2min(nullptr), X(nullptr), Y(nullptr),
+    F(nullptr), norm(nullptr), singular(nullptr), list(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
 
@@ -77,6 +77,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
 
   reference_timestep = update_timestep = offset_timestep = -1;
   z_min = 0;
+  intensive_d2min = 1;
 
   int iarg = 4;
   if (strcmp(arg[iarg], "integrated") == 0) {
@@ -129,6 +130,12 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
       z_min = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (z_min < 0) error->all(FLERR, "Minimum coordination must be positive");
       iarg += 2;
+    } else if (strcmp(arg[iarg], "intensive/d2min") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
+      intensive_d2min = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      if (nad_style != D2MIN)
+        error->all(FLERR, "Can only specify extensive/intensive d2min with style d2min");
+      iarg += 1;
     } else error->all(FLERR,"Illegal keyword {} in fix nonaffine/displacement", arg[iarg]);
   }
 
@@ -605,7 +612,8 @@ void FixNonaffineDisplacement::calculate_D2Min()
       continue;
     }
 
-    D2min[i] /= norm[i];
+    if (intensive_d2min)
+      D2min[i] /= norm[i];
 
     for (j = 0; j < 3; j++)
       for (k = 0; k < 3; k++)
@@ -800,4 +808,17 @@ void FixNonaffineDisplacement::grow_arrays(int nmax_new)
     memory->create(norm, nmax, "fix_nonaffine_displacement:norm");
     memory->create(singular, nmax, "fix_nonaffine_displacement:singular");
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixNonaffineDisplacement::memory_usage()
+{
+  double bytes = (double) nmax * size_peratom_cols * sizeof(double);    // array_atom
+  if (nad_style == D2MIN) {
+    bytes += (double) nmax * 3 * 3 * 3 * sizeof(double);    // X + Y + F[nmax][3][3]
+    bytes += (double) nmax * sizeof(double);                 // D2min[nmax]
+    bytes += (double) nmax * 2 * sizeof(int);                // norm + singular[nmax]
+  }
+  return bytes;
 }

@@ -60,7 +60,8 @@ static constexpr int DELAYSTEP = 5;
 /* ---------------------------------------------------------------------- */
 
 MinSpinLBFGS::MinSpinLBFGS(LAMMPS *lmp) :
-  Min(lmp), g_old(nullptr), g_cur(nullptr), p_s(nullptr), rho(nullptr), ds(nullptr), dy(nullptr), sp_copy(nullptr)
+    Min(lmp), spvec(nullptr), fmvec(nullptr), g_old(nullptr), g_cur(nullptr), p_s(nullptr),
+    rho(nullptr), ds(nullptr), dy(nullptr), sp_copy(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_lbfgs);
   nlocal_max = 0;
@@ -718,6 +719,17 @@ int MinSpinLBFGS::adescent(double phi_0, double phi_j) {
   else
     return 0;
 }
+
+double MinSpinLBFGS::memory_usage()
+{
+  double bytes = (double) 3 * nlocal_max * 3 * sizeof(double);     // g_old + g_cur + p_s [3*nlocal_max]
+  bytes += (double) num_mem * 2 * 3 * nlocal_max * sizeof(double); // ds + dy [num_mem][3*nlocal_max]
+  bytes += (double) num_mem * sizeof(double);                       // rho[num_mem]
+  if (sp_copy) bytes += (double) nlocal_max * 3 * sizeof(double);  // sp_copy[nlocal_max][3]
+  return bytes;
+}
+
+/* ---------------------------------------------------------------------- */
 
 double MinSpinLBFGS::maximum_rotation(double *p)
 {

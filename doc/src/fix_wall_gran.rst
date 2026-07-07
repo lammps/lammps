@@ -107,12 +107,21 @@ NULL is used for *Kt*, then a default value is used where *Kt* = 2/7
 *Kn*\ .  If a NULL is used for *gamma_t*, then a default value is used
 where *gamma_t* = 1/2 *gamma_n*.
 
+.. versionchanged:: 4Jul2026
+
+.. note::
+
+   In versions of LAMMPS between 28Mar23 and Jun26, the gran/hooke tangential
+   friction calculation accidentally included an extra factor of the contact
+   radius. The granular models or KOKKOS versions were not affected.
+
 All the model choices for cohesion, tangential friction, rolling
 friction and twisting friction supported by the :doc:`pair_style granular <pair_granular>` through its *pair_coeff* command are also
 supported for walls. These are discussed in greater detail on the doc
 page for :doc:`pair_style granular <pair_granular>`.
 
 .. note::
+
    When *fstyle* *granular* is specified, the associated *fstyle_params* are taken as
    those for a wall/particle interaction. For example, for the *hertz/material* normal
    contact model with :math:`E = 960` and :math:`\nu = 0.2`, the effective Young's

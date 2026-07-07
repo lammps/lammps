@@ -98,7 +98,9 @@ Related commands
 
 :doc:`smd/triangle_mesh_vertices <compute_smd_triangle_vertices>`,
 :doc:`smd/move_tri_surf <fix_smd_move_triangulated_surface>`,
-:doc:`smd/tri_surface <pair_smd_triangulated_surface>`
+:doc:`smd/tri_surface <pair_smd_triangulated_surface>`,
+:doc:`fix surface/global <fix_surface_global>`,
+:doc:`fix surface/local <fix_surface_local>`
 
 Default
 """""""

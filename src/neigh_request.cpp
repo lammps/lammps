@@ -22,7 +22,7 @@ using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
-NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
+NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp), requestor(nullptr)
 {
   // default ID = 0
 
@@ -277,6 +277,7 @@ void NeighRequest::apply_flags(int flags)
   if (flags & REQ_RESPA_INOUT) { respainner = respaouter = 1; }
   if (flags & REQ_RESPA_ALL)   { respainner = respamiddle = respaouter = 1; }
   if (flags & REQ_SSA)         { ssa = 1; }
+  if (flags & REQ_ONESIDED)    { granonesided = 1; }
   // clang-format on
 }
 

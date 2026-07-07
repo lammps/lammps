@@ -151,9 +151,9 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
   if (GHOST)
     nall += atom->nghost;
 
-  int nbor_block_size = 0;
-  if (lmp->kokkos->nbor_block_size_set)
-    nbor_block_size = lmp->kokkos->nbor_block_size;
+  int nbor_chunk_size = 0;
+  if (lmp->kokkos->nbor_chunk_size_set)
+    nbor_chunk_size = lmp->kokkos->nbor_chunk_size;
 
   if (nall == 0) {
     list->inum = 0;
@@ -296,12 +296,12 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
         if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
           int team_size = atoms_per_bin*factor;
           int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-          if (team_size <= team_size_max && nbor_block_size == 0) {
+          if (team_size <= team_size_max && nbor_chunk_size == 0) {
             Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
             Kokkos::parallel_for(config, f);
           } else { // fall back to flat method
             f.sharedsize = 0;
-            Kokkos::RangePolicy<DeviceType > config(0,nall,Kokkos::ChunkSize(nbor_block_size));
+            Kokkos::RangePolicy<DeviceType > config(0,nall,Kokkos::ChunkSize(nbor_chunk_size));
             Kokkos::parallel_for(config, f);
           }
         } else

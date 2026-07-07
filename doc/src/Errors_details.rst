@@ -481,8 +481,13 @@ can occur when some atoms move rapidly apart with shrink-wrap boundaries
 or when a fix (like fix deform or a barostat) excessively grows the
 simulation box.  This can also happen if the largest pair-wise cutoff is
 small.  In this case, the error can be avoided by using the
-:doc:`neigh_modify command <neigh_modify>` to set the bin width to a
-suitably large value.
+:doc:`neigh_modify command <neigh_modify>` to either (a) set the bin width
+to a suitably large value or (b) use a hash table to store the bins for
+each atom. The latter option currently only supports the
+:doc:`multi <neighbor>` neighbor style and is intended for systems where
+there is a low particle density and a small cutoff. Namely, systems with
+very large ratios of minimum to maximum particle sizes/cutoffs. This may
+require adjustment of :doc:`atom sort settings <atom_modify>`.
 
 .. _err0010:
 

@@ -44,8 +44,7 @@ static constexpr int PRNGSIZE = 98+2+3;
 /* ---------------------------------------------------------------------- */
 
 FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  tstr(nullptr), id_temp(nullptr), random(nullptr)
+    Fix(lmp, narg, arg), tstr(nullptr), id_temp(nullptr), temperature(nullptr), random(nullptr)
 {
   if (narg != 7) error->all(FLERR,"Incorrect number of arguments for fix {} command", style);
 
@@ -159,8 +158,7 @@ void FixTempCSVR::end_of_step()
     modify->clearstep_compute();
     t_target = input->variable->compute_equal(tvar);
     if (t_target < 0.0)
-      error->one(FLERR, "Fix {} variable {} returned negative temperature",
-                 style, input->variable->names[tvar]);
+      error->one(FLERR, "Fix {} variable {} returned negative temperature", style, tstr);
     modify->addstep_compute(update->ntimestep + nevery);
   }
 

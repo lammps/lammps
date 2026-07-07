@@ -365,8 +365,8 @@ static inline void monomial_interp_1d(int nnodes, std::vector<double> &fn_v,
 
   std::vector<double> newton_coeffs = fn_v;
 
-  if ((int)coeff.size() != dof * nnodes) coeff.resize(dof * nnodes);
-  coeff.assign(dof * nnodes, 0.0);
+  if ((int)coeff.size() != dof * nnodes) coeff.resize((std::size_t)dof * nnodes);
+  coeff.assign((std::size_t)dof * nnodes, 0.0);
 
   // Turner, L. R.. “Inverse of the Vandermonde matrix with applications.” (1966)
   for (int idof = 0; idof < dof; ++idof) {
@@ -392,7 +392,7 @@ static inline void cheb_basis_1d(int order, const std::vector<double> &x, std::v
                                  double a = 0, double b = 1)
 {
   int n = x.size();
-  if ((int) y.size() != order * n) y.resize(order * n);
+  if ((int) y.size() != order * n) y.resize((std::size_t)order * n);
 
   if (order > 0) {
     for (int i = 0; i < n; i++) y[i] = 1.0;
@@ -424,7 +424,7 @@ static void cheb_interp_1d(int order, std::vector<double> &fn_v, std::vector<dou
   std::vector<double> &p = precomp[order];
 
   int dof = fn_v.size() / order;
-  if ((int) coeff.size() != dof * order) coeff.resize(dof * order);
+  if ((int) coeff.size() != dof * order) coeff.resize((std::size_t)dof * order);
 
   const double inv_order = 1.0 / static_cast<double>(order);
   const double two_inv_order = 2.0 * inv_order;
@@ -432,7 +432,7 @@ static void cheb_interp_1d(int order, std::vector<double> &fn_v, std::vector<dou
     const int base = id * order;
     for (int k = 0; k < order; ++k) {
       double sum = 0.0;
-      const double *pk = &p[k * order];
+      const double *pk = &p[(std::size_t)k * order];
       for (int j = 0; j < order; ++j) sum += fn_v[base + j] * pk[j];
       coeff[base + k] = (k == 0) ? (sum * inv_order) : (sum * two_inv_order);
     }
@@ -1012,7 +1012,7 @@ void force_poly(double tol_coeff, const double &c, std::vector<double> &coeffs)
   };
 
   int dof = 1;
-  std::vector<double> fn_v(dof * order);
+  std::vector<double> fn_v((std::size_t)dof * order);
   for (int idof = 0; idof < dof; idof++) {
     for (int i = 0; i < order; i++) { fn_v[idof * order + i] = f(c0, c, nodes[i]); }
   }
@@ -1034,12 +1034,12 @@ void force_poly(double tol_coeff, const double &c, std::vector<double> &coeffs)
     }
   }
 
-  coeffs.resize(dof * max_order, 0.0);
+  coeffs.resize((std::size_t)dof * max_order, 0.0);
 
   std::vector<double> coeffs_tmp(max_order);
   int nnodes = (int) max_order;    // * 1.75;
   cheb_nodes_1d(nnodes, nodes, -1.0, 1.0);
-  fn_v.resize(dof * nnodes);
+  fn_v.resize((std::size_t)dof * nnodes);
 
   for (int i = 0; i < nnodes; i++) { fn_v[i] = f(c0, c, nodes[i]); }
 
@@ -1065,7 +1065,7 @@ void energy_poly(double tol_coeff, const double &c, std::vector<double> &coeffs)
   };
 
   int dof = 1;
-  std::vector<double> fn_v(dof * order);
+  std::vector<double> fn_v((std::size_t)dof * order);
   for (int idof = 0; idof < dof; idof++) {
     for (int i = 0; i < order; i++) { fn_v[idof * order + i] = f(c0, c, nodes[i]); }
   }
@@ -1087,12 +1087,12 @@ void energy_poly(double tol_coeff, const double &c, std::vector<double> &coeffs)
     }
   }
 
-  coeffs.resize(dof * max_order, 0.0);
+  coeffs.resize((std::size_t)dof * max_order, 0.0);
 
-  std::vector<double> coeffs_tmp(dof * max_order);
+  std::vector<double> coeffs_tmp((std::size_t)dof * max_order);
   int nnodes = (int) max_order;    // * 1.75;
   cheb_nodes_1d(nnodes, nodes, -1.0, 1.0);
-  fn_v.resize(dof * nnodes);
+  fn_v.resize((std::size_t)dof * nnodes);
   for (int i = 0; i < nnodes; i++) fn_v[i] = f(c0, c, nodes[i]);
 
   monomial_interp_1d(nnodes, fn_v, coeffs_tmp, -1.0, 1.0);
@@ -1125,7 +1125,7 @@ void fourier_poly(double tol_coeff, const double &c, double &lambda,
   };
 
   int dof = 1;
-  std::vector<double> fn_v(dof * order);
+  std::vector<double> fn_v((std::size_t)dof * order);
   for (int idof = 0; idof < dof; idof++) {
     for (int i = 0; i < order; i++) { fn_v[idof * order + i] = f(lambda, c0, c, nodes[i]); }
   }
@@ -1148,12 +1148,12 @@ void fourier_poly(double tol_coeff, const double &c, double &lambda,
     }
   }
 
-  coeffs.resize(dof * max_order, 0.0);
+  coeffs.resize((std::size_t)dof * max_order, 0.0);
 
-  std::vector<double> coeffs_tmp(dof * max_order);
+  std::vector<double> coeffs_tmp((std::size_t)dof * max_order);
   int nnodes = (int) max_order;    // * 1.75;
   cheb_nodes_1d(nnodes, nodes, -1.0, 1.0);
-  fn_v.resize(dof * nnodes);
+  fn_v.resize((std::size_t)dof * nnodes);
   for (int i = 0; i < nnodes; i++) fn_v[i] = f(lambda, c0, c, nodes[i]);
 
   monomial_interp_1d(nnodes, fn_v, coeffs_tmp, -1.0, 1.0);
@@ -1184,7 +1184,7 @@ void spread_fourier_poly(double tol_coeff, const double &c, double &lambda,
   };
 
   int dof = 1;
-  std::vector<double> fn_v(dof * order);
+  std::vector<double> fn_v((std::size_t)dof * order);
   for (int idof = 0; idof < dof; idof++) {
     for (int i = 0; i < order; i++) { fn_v[idof * order + i] = f(lambda, c, nodes[i]); }
   }
@@ -1207,12 +1207,12 @@ void spread_fourier_poly(double tol_coeff, const double &c, double &lambda,
     }
   }
 
-  coeffs.resize(dof * max_order, 0.0);
-  std::vector<double> coeffs_tmp(dof * max_order);
+  coeffs.resize((std::size_t)dof * max_order, 0.0);
+  std::vector<double> coeffs_tmp((std::size_t)dof * max_order);
   int nnodes = (int) max_order;    // * 1.75;
   //monomial_nodes_1d(nnodes, nodes, 0, 1);
   cheb_nodes_1d(nnodes, nodes, -1.0, 1.0);
-  fn_v.resize(dof * nnodes);
+  fn_v.resize((std::size_t)dof * nnodes);
   for (int i = 0; i < nnodes; i++) { fn_v[i] = f(lambda, c, nodes[i]); }
 
   //monomial_interp_1d(max_order, nnodes, fn_v, coeffs_tmp);
@@ -1236,7 +1236,7 @@ void spread_real_poly(int P, double tol_coeff, const double &c,
     return val;
   };
   int dof = P;
-  std::vector<double> fn_v(dof * order);
+  std::vector<double> fn_v((std::size_t)dof * order);
   for (int idof = 0; idof < dof; idof++) {
     for (int i = 0; i < order; i++) { fn_v[idof * order + i] = f(P, idof, c, nodes[i]); }
   }
@@ -1258,12 +1258,12 @@ void spread_real_poly(int P, double tol_coeff, const double &c,
     }
   }
 
-  coeffs.resize(dof * max_order, 0.0);
+  coeffs.resize((std::size_t)dof * max_order, 0.0);
 
   int nnodes = (int) max_order;    // * 1.75;
   //monomial_nodes_1d(nnodes, nodes, -0.5, 0.5);
   cheb_nodes_1d(nnodes, nodes, -0.5, 0.5);    // use Chebyshev nodes for better accuracy
-  fn_v.resize(dof * nnodes);          // sample Chebyshev points > order (polynomial interpolation)
+  fn_v.resize((std::size_t)dof * nnodes);          // sample Chebyshev points > order (polynomial interpolation)
   for (int iP = 0; iP < P; iP++) {    // loop over P
     for (int i = 0; i < nnodes; i++) {    // loop over nodes
       fn_v[iP * nnodes + i] =
@@ -1271,7 +1271,7 @@ void spread_real_poly(int P, double tol_coeff, const double &c,
     }
   }
 
-  std::vector<double> coeffs_tmp(P * order);    // coefficients for each P, order polynomial
+  std::vector<double> coeffs_tmp((std::size_t)P * order);    // coefficients for each P, order polynomial
   //monomial_interp_1d(max_order, nnodes, fn_v, coeffs_tmp, -0.5,
   //0.5);    // interpolate each polynomial for each P
   monomial_interp_1d(nnodes, fn_v, coeffs_tmp, -0.5,

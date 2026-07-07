@@ -15,7 +15,9 @@
 .. index:: pair_style lj/charmm/coul/msm
 .. index:: pair_style lj/charmm/coul/msm/omp
 .. index:: pair_style lj/charmmfsw/coul/charmmfsh
+.. index:: pair_style lj/charmmfsw/coul/charmmfsh/omp
 .. index:: pair_style lj/charmmfsw/coul/long
+.. index:: pair_style lj/charmmfsw/coul/long/omp
 .. index:: pair_style lj/charmmfsw/coul/long/kk
 
 pair_style lj/charmm/coul/charmm command
@@ -41,10 +43,12 @@ Accelerator Variants: *lj/charmm/coul/msm/omp*
 pair_style lj/charmmfsw/coul/charmmfsh command
 ==============================================
 
+Accelerator Variants: *lj/charmmfsw/coul/charmmfsh/omp*
+
 pair_style lj/charmmfsw/coul/long command
 =========================================
 
-Accelerator Variants: *lj/charmmfsw/coul/long/kk*
+Accelerator Variants: *lj/charmmfsw/coul/long/kk*, *lj/charmmfsw/coul/long/omp*
 
 Syntax
 """"""

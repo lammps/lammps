@@ -1,9 +1,10 @@
 ---
 lammps_version: 17 Apr 2024
-tags:
+tags: single_thread
 date_generated: Tue Jun 18 21:32:14 2024
 epsilon: 5e-13
-skip_tests: gpu intel kokkos_omp single
+skip_tests: gpu intel kokkos_omp kokkos_gpu single
+
 prerequisites: ! |
   atom full
   pair dpd/coul/slater/long

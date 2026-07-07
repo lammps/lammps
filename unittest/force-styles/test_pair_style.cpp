@@ -149,6 +149,10 @@ void run_lammps(LAMMPS *lmp, const TestConfig &cfg)
         command("fix 1 all nve/asphere");
         command("compute etemp all temp/asphere");
         command("thermo_modify temp etemp");
+    } else if (std::find(cfg.tags.begin(), cfg.tags.end(), "spin") != cfg.tags.end()) {
+        // spin systems must define "fix nve/spin" in the yaml post_commands so it is
+        // present in all test stages: the spin pair styles compute the mechanical
+        // forces only when the fix is present (they take its "lattice" setting).
     } else {
         command("fix 1 all nve");
     }
@@ -293,6 +297,18 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     }
     writer.emit_block("init_forces", block);
 
+    // init_mag_forces (only for atom_style spin)
+    if (lmp->atom->sp_flag) {
+        block.clear();
+        auto *fm = lmp->atom->fm;
+        for (int i = 1; i <= natoms; ++i) {
+            const int j = lmp->atom->map(i);
+            block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, fm[j][0], fm[j][1],
+                                 fm[j][2]);
+        }
+        writer.emit_block("init_mag_forces", block);
+    }
+
     // do a few steps of MD
     run_lammps(lmp, config);
 
@@ -318,6 +334,18 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
     }
     writer.emit_block("run_forces", block);
+
+    // run_mag_forces (only for atom_style spin)
+    if (lmp->atom->sp_flag) {
+        block.clear();
+        auto *fm = lmp->atom->fm;
+        for (int i = 1; i <= natoms; ++i) {
+            const int j = lmp->atom->map(i);
+            block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, fm[j][0], fm[j][1],
+                                 fm[j][2]);
+        }
+        writer.emit_block("run_mag_forces", block);
+    }
 
     cleanup_lammps(lmp, config);
 }
@@ -365,6 +393,8 @@ TEST(PairStyle, plain)
     auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("init_mag_forces (newton on)", lmp->atom, test_config.init_mag_forces,
+                      epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, epsilon);
 
     ErrorStats stats;
@@ -378,6 +408,8 @@ TEST(PairStyle, plain)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (newton on)", lmp->atom, test_config.run_mag_forces,
+                      5 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, epsilon);
 
     stats.reset();
@@ -407,6 +439,8 @@ TEST(PairStyle, plain)
         pair = lmp->force->pair;
 
         EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
+                          epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,
                       3 * epsilon);
 
@@ -420,6 +454,8 @@ TEST(PairStyle, plain)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+        EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
+                          5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, epsilon);
 
         stats.reset();
@@ -440,6 +476,7 @@ TEST(PairStyle, plain)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("restart_forces", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("restart_mag_forces", lmp->atom, test_config.init_mag_forces, epsilon);
     EXPECT_STRESS("restart_stress", pair->virial, test_config.init_stress, epsilon);
 
     stats.reset();
@@ -456,6 +493,7 @@ TEST(PairStyle, plain)
         pair = lmp->force->pair;
 
         EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, epsilon);
         EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, epsilon);
 
         stats.reset();
@@ -470,6 +508,7 @@ TEST(PairStyle, plain)
 
     pair = lmp->force->pair;
     EXPECT_FORCES("data_forces", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("data_mag_forces", lmp->atom, test_config.init_mag_forces, epsilon);
     EXPECT_STRESS("data_stress", pair->virial, test_config.init_stress, epsilon);
 
     stats.reset();
@@ -520,8 +559,9 @@ TEST(PairStyle, omp)
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
                          "-pk",       "omp",  "4",    "-sf",   "omp"};
 
-    // cannot run dpd styles with more than 1 thread due to using multiple pRNGs
-    if (utils::strmatch(test_config.pair_style, "^dpd")) args[8] = "1";
+    // styles tagged "single_thread" (e.g. dpd, which uses multiple pRNGs) cannot
+    // run with more than one thread in the test
+    if (test_config.has_tag("single_thread")) args[8] = "1";
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
@@ -562,6 +602,8 @@ TEST(PairStyle, omp)
     ErrorStats stats;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("init_mag_forces (newton on)", lmp->atom, test_config.init_mag_forces,
+                      epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -574,6 +616,8 @@ TEST(PairStyle, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (newton on)", lmp->atom, test_config.run_mag_forces,
+                      5 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -584,22 +628,24 @@ TEST(PairStyle, omp)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    pair = lmp->force->pair;
+
     // skip over these tests if newton pair is forced to be on
     if (lmp->force->newton_pair == 0) {
 
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        try {
-            lmp = init_lammps(args, test_config, false);
-        } catch (std::exception &e) {
-            if (!verbose) ::testing::internal::GetCapturedStdout();
-            FAIL() << e.what();
-        }
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-
-        pair = lmp->force->pair;
-
-        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, epsilon);
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
+                          epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,
                       10 * epsilon);
 
@@ -613,6 +659,8 @@ TEST(PairStyle, omp)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+        EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
+                          5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress,
                       10 * epsilon);
 
@@ -632,6 +680,7 @@ TEST(PairStyle, omp)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -644,39 +693,16 @@ TEST(PairStyle, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
-TEST(PairStyle, kokkos_omp)
+// precision of the KOKKOS package as selected with -D KOKKOS_PREC at compile time
+static std::string kokkos_precision()
 {
-    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
-    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
-    // test either OpenMP or Serial
-    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial") &&
-        !Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
-        GTEST_SKIP();
-    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
-    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
-        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
-        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
-        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
-    }
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "mixed")) return "mixed";
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "single")) return "single";
+    return "double";
+}
 
-    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
-                         "-k",        "on",   "t",    "4",     "-sf",    "kk"};
-    // fall back to serial if openmp is not available
-    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[9] = "1";
-
-    // cannot run dpd styles in plain or hybrid with more than 1 thread due to using multiple pRNGs
-    if (utils::strmatch(test_config.pair_style, "^dpd") ||
-        utils::strmatch(test_config.pair_style, " dpd"))
-        args[9] = "1";
-    // cannot run snap styles in plain or hybrid with more than 1 thread due to implementation
-    if (utils::strmatch(test_config.pair_style, "^snap") ||
-        utils::strmatch(test_config.pair_style, " snap"))
-        args[9] = "1";
-    // cannot run pace styles in plain or hybrid with more than 1 thread due to implementation
-    if (utils::strmatch(test_config.pair_style, "^pace") ||
-        utils::strmatch(test_config.pair_style, " pace"))
-        args[9] = "1";
-
+static void run_kokkos_test(LAMMPS::argv &args)
+{
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
     try {
@@ -707,6 +733,12 @@ TEST(PairStyle, kokkos_omp)
 
     // relax error a bit for KOKKOS package
     double epsilon = 5.0 * test_config.epsilon;
+    // relax error a lot for reduced precision KOKKOS builds
+    const std::string kk_precision = kokkos_precision();
+    if (kk_precision == "mixed")
+        epsilon *= 2.0e9;
+    else if (kk_precision == "single")
+        epsilon *= 1.0e10;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)
     if (lmp->force->kspace && lmp->force->kspace->compute_flag)
@@ -716,6 +748,8 @@ TEST(PairStyle, kokkos_omp)
     ErrorStats stats;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("init_mag_forces (newton on)", lmp->atom, test_config.init_mag_forces,
+                      epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -728,6 +762,8 @@ TEST(PairStyle, kokkos_omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (newton on)", lmp->atom, test_config.run_mag_forces,
+                      5 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -738,21 +774,24 @@ TEST(PairStyle, kokkos_omp)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    pair = lmp->force->pair;
+
     // skip over these tests if newton pair is forced to be on
     if (lmp->force->newton_pair == 0) {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        try {
-            lmp = init_lammps(args, test_config, false);
-        } catch (std::exception &e) {
-            if (!verbose) ::testing::internal::GetCapturedStdout();
-            FAIL() << e.what();
-        }
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-
-        pair = lmp->force->pair;
 
         EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
+                          epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,
                       10 * epsilon);
 
@@ -766,6 +805,8 @@ TEST(PairStyle, kokkos_omp)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+        EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
+                          5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress,
                       10 * epsilon);
 
@@ -785,6 +826,7 @@ TEST(PairStyle, kokkos_omp)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -795,6 +837,90 @@ TEST(PairStyle, kokkos_omp)
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
+}
+
+TEST(PairStyle, kokkos_omp)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_omp_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires the OpenMP backend of KOKKOS
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        GTEST_SKIP() << "KOKKOS OpenMP backend not enabled";
+    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
+    }
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",        "on",   "t",    "4",     "-sf",    "kk"};
+
+    // some styles cannot run with more than one thread in the test (dpd uses
+    // multiple pRNGs, snap and pace due to their implementation); these are
+    // flagged with the "single_thread" tag in their YAML file
+    if (test_config.has_tag("single_thread")) args[9] = "1";
+
+    run_kokkos_test(args);
+};
+
+TEST(PairStyle, kokkos_serial)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_serial_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires the KOKKOS package compiled with only the Serial backend: when the
+    // OpenMP (or a GPU) backend is enabled, the host execution space is not Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial"))
+        GTEST_SKIP() << "KOKKOS Serial backend not enabled";
+    if (Info::has_accelerator_feature("KOKKOS", "api", "openmp") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "pthreads"))
+        GTEST_SKIP() << "Cannot test KOKKOS/Serial with threading support enabled";
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/Serial with GPU support enabled";
+    }
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",        "on",   "t",    "1",     "-sf",    "kk"};
+
+    run_kokkos_test(args);
+};
+
+TEST(PairStyle, kokkos_gpu)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_gpu_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires a GPU backend of the KOKKOS package
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "cuda") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "hip") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "sycl"))
+        GTEST_SKIP() << "KOKKOS GPU backend not enabled";
+    // transparently skip when no compatible GPU device is present
+    if (!Info::has_kokkos_gpu_device())
+        GTEST_SKIP() << "No compatible GPU device available";
+
+    // use a half neighbor list with newton on so the GPU kernels run the way the
+    // input templates expect; the GPU default is "neigh full" + newton off, which
+    // (a) the templates do not use and (b) would make the package set newton off
+    // at startup, so a later "newton on" after the box exists would error out
+    LAMMPS::argv args = {"PairStyle", "-log", "none",   "-echo",  "screen", "-nocite", "-k",
+                         "on",        "g",    "1",      "-sf",    "kk",     "-pk",     "kokkos",
+                         "neigh",     "half", "newton", "on"};
+
+    run_kokkos_test(args);
 };
 
 TEST(PairStyle, gpu)
@@ -808,6 +934,17 @@ TEST(PairStyle, gpu)
     if (utils::strmatch(test_config.basename, ".*pppm.*") &&
         (Info::has_accelerator_feature("GPU", "precision", "single")) &&
         (!Info::has_fft_single_support()))
+        GTEST_SKIP();
+
+    // some GPU pair styles do not support single and/or mixed precision GPU mode
+    // (e.g. born/coul/long/cs/gpu errors out in single precision). Their tests are
+    // tagged "gpu_no_single" / "gpu_no_mixed" and skipped when the GPU package is
+    // compiled for that precision.
+    if (test_config.has_tag("gpu_no_single") &&
+        Info::has_accelerator_feature("GPU", "precision", "single"))
+        GTEST_SKIP();
+    if (test_config.has_tag("gpu_no_mixed") &&
+        Info::has_accelerator_feature("GPU", "precision", "mixed"))
         GTEST_SKIP();
 
     LAMMPS::argv args_neigh   = {"PairStyle", "-log",    "none", "-echo",
@@ -868,6 +1005,8 @@ TEST(PairStyle, gpu)
     auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
+                      epsilon);
     EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -880,6 +1019,8 @@ TEST(PairStyle, gpu)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
+                      5 * epsilon);
     EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -904,8 +1045,9 @@ TEST(PairStyle, intel)
                          "-pk",       "intel", "0",    "mode",  "double", "omp",
                          "4",         "lrt",   "no",   "-sf",   "intel"};
 
-    // cannot use more than 1 thread for dpd styles due to pRNG
-    if (utils::strmatch(test_config.pair_style, "^dpd")) args[12] = "1";
+    // styles tagged "single_thread" (e.g. dpd, due to its pRNG) cannot use more
+    // than one thread in the test
+    if (test_config.has_tag("single_thread")) args[12] = "1";
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
@@ -1032,6 +1174,8 @@ TEST(PairStyle, opt)
     auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
+                      epsilon);
     EXPECT_STRESS("init_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -1061,6 +1205,7 @@ TEST(PairStyle, opt)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();

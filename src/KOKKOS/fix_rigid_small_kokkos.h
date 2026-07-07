@@ -15,7 +15,7 @@
 // clang-format off
 FixStyle(rigid/small/kk,FixRigidSmallKokkos<LMPDeviceType>);
 FixStyle(rigid/small/kk/device,FixRigidSmallKokkos<LMPDeviceType>);
-FixStyle(rigid/small/host,FixRigidSmallKokkos<LMPHostType>);
+FixStyle(rigid/small/kk/host,FixRigidSmallKokkos<LMPHostType>);
 // clang-format on
 #else
 

@@ -24,6 +24,7 @@
 #include "domain.h"
 #include "error.h"
 #include "memory.h"
+#include "modify.h"
 #include "respa.h"
 #include "symmetry_group.h"
 #include "update.h"
@@ -152,6 +153,50 @@ void FixSymmetry::init()
   memory->grow(vsum_global, 3 * n_orbits, "symmetry:vsum_global");
   memory->grow(xasym_local, 3 * n_orbits, "symmetry:xasym_local");
   memory->grow(xasym_global, 3 * n_orbits, "symmetry:xasym_global");
+
+  warn_conflicting_fixes();
+}
+
+/* ----------------------------------------------------------------------
+   Warn if any atom constrained by this fix is also controlled by a fix
+   that enforces its own rigid-body or fixed bond/angle geometry (rigid,
+   shake, rattle, ilves). Both constraint schemes independently overwrite
+   the forces, velocities, and/or positions of the shared atoms every step
+   with no coordination, so they interfere. This is only a problem when the
+   two act on overlapping atoms, so we check for an actual shared atom (an
+   orbit atom that is also in the other fix's group) rather than the mere
+   presence of such a fix.
+------------------------------------------------------------------------- */
+
+void FixSymmetry::warn_conflicting_fixes()
+{
+  const int *mask = atom->mask;
+  const tagint *tag = atom->tag;
+  const int nlocal = atom->nlocal;
+
+  for (auto *fix : modify->get_fix_list()) {
+    if (fix == this) continue;
+    std::string s = fix->style;
+    if (!(utils::strmatch(s, "^rigid") || utils::strmatch(s, "^shake") ||
+          utils::strmatch(s, "^rattle") || utils::strmatch(s, "^ilves")))
+      continue;
+
+    // count local orbit atoms that are also in the other fix's group
+    const int gbit = fix->groupbit;
+    bigint nshared = 0;
+    for (int i = 0; i < nlocal; ++i)
+      if ((mask[i] & gbit) && (tag_info.find(tag[i]) != tag_info.end())) ++nshared;
+
+    bigint nshared_all = 0;
+    MPI_Allreduce(&nshared, &nshared_all, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+
+    if ((nshared_all > 0) && (comm->me == 0))
+      error->warning(FLERR,
+                     "Fix symmetry and fix {} (style {}) both constrain {} shared "
+                     "atom(s); the two constraint schemes are applied independently "
+                     "and will interfere. See the fix symmetry doc page.",
+                     fix->id, s, nshared_all);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

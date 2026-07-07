@@ -65,6 +65,7 @@ class FixSymmetry : public Fix {
   void validate_box();
   void build_orbit_map();
   void wyckoff_project_locals();
+  void warn_conflicting_fixes();
 };
 
 }    // namespace LAMMPS_NS

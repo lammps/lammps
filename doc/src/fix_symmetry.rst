@@ -323,6 +323,22 @@ When using :doc:`fix npt <fix_nh>` or :doc:`fix box/relax
 *tri*) that preserves the Bravais lattice type; the fix does not project
 box deformation onto the symmetric subspace.
 
+.. warning::
+
+   Do not apply fix symmetry to atoms that are at the same time
+   controlled by another fix which enforces its own rigid-body
+   constraints or fixed bond and angle geometries, such as :doc:`fix
+   rigid and its variants <fix_rigid>`, :doc:`fix shake <fix_shake>`,
+   :doc:`fix rattle <fix_shake>`, or :doc:`fix ilves <fix_ilves>`.  Fix
+   symmetry and each of those constraint algorithms independently
+   overwrite the forces, velocities, and/or positions of the affected
+   atoms every step with no coordination between them, so they interfere
+   and neither the rigid geometry nor the imposed symmetry is reliably
+   maintained.  There is no automatic check for this overlap.  Combining
+   such fixes with fix symmetry is only safe when they act on disjoint
+   sets of atoms; atoms not listed in the symmetry file are left
+   untouched by fix symmetry.
+
 ----------
 
 Related commands
@@ -330,7 +346,8 @@ Related commands
 
 :doc:`fix manifoldforce <fix_manifoldforce>`,
 :doc:`fix rigid <fix_rigid>`,
-:doc:`fix shake <fix_shake>`
+:doc:`fix shake <fix_shake>`,
+:doc:`fix ilves <fix_ilves>`
 
 Default
 """""""

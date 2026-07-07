@@ -88,6 +88,7 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny) :
   copy_remap.npack = copy_remap.nunpack = 0;
   copy_remap.packlist = copy_remap.unpacklist = nullptr;
 
+  adjacent = 1;
   layout_grid = comm->layout;
 }
 
@@ -135,6 +136,7 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int ixlo, int ixhi
   // layout_grid = how this grid instance is distributed across procs
   // depends on comm->layout at time this Grid2d instance is created
 
+  adjacent = 1;
   layout_grid = comm->layout;
 
   // additional intialization

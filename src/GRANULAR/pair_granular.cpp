@@ -56,6 +56,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
   svector = new double[single_extra];
 
   neighprev = 0;
+  freeze_group_bit = 0;
   nmax = 0;
   mass_rigid = nullptr;
 

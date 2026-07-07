@@ -116,6 +116,7 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
                "Compute pressure/bocs requires temperature ID to include kinetic energy");
 
   vector = new double[size_vector];
+  dimension = domain->dimension;
   nvirial = 0;
   vptr = nullptr;
 

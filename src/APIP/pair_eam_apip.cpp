@@ -61,6 +61,8 @@ PairEAMAPIP::PairEAMAPIP(LAMMPS *lmp) : Pair(lmp)
   z2r = nullptr;
   scale = nullptr;
 
+  nrho = nr = nfrho = nrhor = nz2r = 0;
+  dr = rdr = drho = rdrho = 0.0;
   rhomax = rhomin = 0.0;
 
   frho_spline = nullptr;

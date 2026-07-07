@@ -141,6 +141,9 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   // H matrix
 
+  ilist = jlist = numneigh = nullptr;
+  firstneigh = nullptr;
+  H.n = H.m = 0;
   H.firstnbr = nullptr;
   H.numnbrs = nullptr;
   H.jlist = nullptr;

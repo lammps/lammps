@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ThrData::ThrData(int tid, Timer *t) :
-    vatom_pair(nullptr), vatom_bond(nullptr), vatom_angle(nullptr), vatom_dihed(nullptr),
+    eatom_pair(nullptr), eatom_bond(nullptr), eatom_angle(nullptr), eatom_dihed(nullptr),
+    eatom_imprp(nullptr), eatom_kspce(nullptr), vatom_pair(nullptr), vatom_bond(nullptr), vatom_angle(nullptr), vatom_dihed(nullptr),
     vatom_imprp(nullptr), vatom_kspce(nullptr), cvatom_pair(nullptr), cvatom_angle(nullptr), cvatom_dihed(nullptr), cvatom_imprp(nullptr),
     _f(nullptr), _torque(nullptr), _erforce(nullptr), _de(nullptr), _drho(nullptr), _mu(nullptr),
     _lambda(nullptr), _rhoB(nullptr), _D_values(nullptr), _rho(nullptr), _fp(nullptr),

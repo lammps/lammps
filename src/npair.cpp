@@ -36,6 +36,7 @@ NPair::NPair(LAMMPS *lmp) :
 {
   last_build = -1;
   flag_same_multi = nullptr;
+  flag_half_multi = nullptr;
   mycutneighsq = nullptr;
   molecular = atom->molecular;
   copymode = 0;

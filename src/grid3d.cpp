@@ -90,6 +90,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
   copy_remap.npack = copy_remap.nunpack = 0;
   copy_remap.packlist = copy_remap.unpacklist = nullptr;
 
+  adjacent = 1;
   layout_grid = comm->layout;
 }
 
@@ -144,6 +145,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
   // layout_grid = how this grid instance is distributed across procs
   // depends on comm->layout at time this Grid3d instance is created
 
+  adjacent = 1;
   layout_grid = comm->layout;
 
   // additional intialization

@@ -139,6 +139,9 @@ void CommTiled::init_pointers()
   box_other = nullptr;
   box_touch = nullptr;
   point_drop = nullptr;
+
+  maxsend = maxrecv = 0;
+  maxoverlap = 0;
 }
 
 /* ----------------------------------------------------------------------

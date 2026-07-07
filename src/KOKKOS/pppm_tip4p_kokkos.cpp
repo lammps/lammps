@@ -496,7 +496,8 @@ void PPPMTIP4PKokkos<DeviceType>::operator()(TagPPPMTIP4P_fieldforce_peratom, co
 }
 
 /* ----------------------------------------------------------------------
-   slab correction with M-site dipole; force redistributed onto O + 2H
+   slab correction with all terms evaluated at the M site;
+   per-atom energy and force redistributed onto O + 2H
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -514,13 +515,13 @@ void PPPMTIP4PKokkos<DeviceType>::slabcorr()
 
   MPI_Allreduce(&dipole,&this->dipole_all,1,MPI_DOUBLE,MPI_SUM,this->world);
 
-  // dipole_r2 (uses real O position, identical to base)
+  // dipole_r2 (also evaluated at the M site for O atoms)
 
   this->dipole_r2 = 0.0;
   if (this->eflag_atom || fabs(this->qsum) > SMALL) {
     double dipole_r2 = 0.0;
     this->copymode = 1;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPPPM_slabcorr2>(0,this->nlocal),*this,dipole_r2);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPPPMTIP4P_slabcorr2>(0,this->nlocal),*this,dipole_r2);
     this->copymode = 0;
 
     double tmp;
@@ -537,12 +538,12 @@ void PPPMTIP4PKokkos<DeviceType>::slabcorr()
 
   if (this->eflag_global) this->energy += this->qscale * e_slabcorr;
 
-  // per-atom energy (uses real O position, identical to base)
+  // per-atom energy, evaluated at the M site and redistributed onto O + 2H
 
   if (this->eflag_atom) {
     this->efact = this->qscale * MY_2PI/this->volume;
     this->copymode = 1;
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_slabcorr3>(0,this->nlocal),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPMTIP4P_slabcorr3>(0,this->nlocal),*this);
     this->copymode = 0;
   }
 
@@ -566,9 +567,37 @@ void PPPMTIP4PKokkos<DeviceType>::operator()(TagPPPMTIP4P_slabcorr1, const int &
 template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
+void PPPMTIP4PKokkos<DeviceType>::operator()(TagPPPMTIP4P_slabcorr2, const int &i, double &dipole_r2) const
+{
+  const double zM = static_cast<double>(d_xM(i,2));
+  dipole_r2 += static_cast<double>(q[i])*zM*zM;
+}
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PPPMTIP4PKokkos<DeviceType>::operator()(TagPPPMTIP4P_slabcorr3, const int &i) const
+{
+  const double zM = static_cast<double>(d_xM(i,2));
+  const double e_pa = efact * static_cast<double>(q[i])*(zM*dipole_all -
+    0.5*(dipole_r2 + qsum*zM*zM) - qsum*zprd_slab*zprd_slab/12.0);
+  if (d_type(i) != typeO_kk) {
+    Kokkos::atomic_add(&d_eatom[i], static_cast<KK_ACC_FLOAT>(e_pa));
+  } else {
+    const double a = static_cast<double>(alpha_kk);
+    Kokkos::atomic_add(&d_eatom[i],        static_cast<KK_ACC_FLOAT>(e_pa*(1.0-a)));
+    Kokkos::atomic_add(&d_eatom[d_iH1(i)], static_cast<KK_ACC_FLOAT>(0.5*a*e_pa));
+    Kokkos::atomic_add(&d_eatom[d_iH2(i)], static_cast<KK_ACC_FLOAT>(0.5*a*e_pa));
+  }
+}
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
 void PPPMTIP4PKokkos<DeviceType>::operator()(TagPPPMTIP4P_slabcorr4, const int &i) const
 {
-  const double z_i = static_cast<double>(x(i,2));
+  // d_xM holds the M site for O atoms and the atom position otherwise
+  const double z_i = static_cast<double>(d_xM(i,2));
   const double q_i = static_cast<double>(q[i]);
   const double fzi = ffact * q_i*(dipole_all - qsum*z_i);
   if (d_type(i) != typeO_kk) {

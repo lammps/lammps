@@ -40,6 +40,8 @@ struct TagPPPMTIP4P_make_rho{};
 struct TagPPPMTIP4P_fieldforce_ik{};
 struct TagPPPMTIP4P_fieldforce_peratom{};
 struct TagPPPMTIP4P_slabcorr1{};
+struct TagPPPMTIP4P_slabcorr2{};
+struct TagPPPMTIP4P_slabcorr3{};
 struct TagPPPMTIP4P_slabcorr4{};
 
 template<class DeviceType>
@@ -84,6 +86,14 @@ class PPPMTIP4PKokkos : public PPPMKokkos<DeviceType> {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPPPMTIP4P_slabcorr1, const int&, double&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPPPMTIP4P_slabcorr2, const int&, double&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPPPMTIP4P_slabcorr3, const int&) const;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -154,7 +164,8 @@ class PPPMTIP4PKokkos : public PPPMKokkos<DeviceType> {
   using Base::nyhi_out; using Base::nzlo_out; using Base::nzhi_out;
   using Base::ngrid; using Base::ix; using Base::iy; using Base::nlocal;
   using Base::slabflag; using Base::eflag_atom; using Base::vflag_atom;
-  using Base::qsum; using Base::dipole_all; using Base::zprd_slab; using Base::ffact;
+  using Base::qsum; using Base::dipole_all; using Base::dipole_r2;
+  using Base::zprd_slab; using Base::efact; using Base::ffact;
   using Base::numx_out; using Base::numy_out; using Base::numz_out;
 };
 

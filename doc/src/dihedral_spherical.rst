@@ -29,7 +29,8 @@ Description
 
 The *spherical* dihedral style uses the potential:
 
-.. image:: JPG/dihedral_spherical_angles.jpg
+.. image:: JPG/dihedral_spherical_angles.png
+   :width: 50%
    :align: center
 
 .. math::

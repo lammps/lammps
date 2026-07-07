@@ -42,6 +42,42 @@ NPair::NPair(LAMMPS *lmp) :
   copymode = 0;
   cutoff_custom = 0.0;
   execution_space = Host;
+
+  // the members below hold copies of neighbor/bin/stencil settings that
+  // copy_neighbor_info(), copy_bin_info(), and copy_stencil_info() fill in
+  // before each build; zero them so instances never carry indeterminate values
+
+  istyle = 0;
+  includegroup = exclude = 0;
+  skin = 0.0;
+  cutneighsq = cutneighghostsq = nullptr;
+  cut_inner_sq = cut_middle_sq = cut_middle_inside_sq = 0.0;
+  bboxlo = bboxhi = nullptr;
+  ncollections = 0;
+  cutcollectionsq = nullptr;
+  nex_type = nex_group = nex_mol = 0;
+  ex1_type = ex2_type = nullptr;
+  ex_type = nullptr;
+  ex1_group = ex2_group = nullptr;
+  ex1_bit = ex2_bit = nullptr;
+  ex_mol_bit = ex_mol_group = ex_mol_intra = nullptr;
+  special_flag = nullptr;
+
+  nbinx = nbiny = nbinz = 0;
+  mbins = mbinx = mbiny = mbinz = 0;
+  mbinxlo = mbinylo = mbinzlo = 0;
+  bininvx = bininvy = bininvz = 0.0;
+  binhead = nullptr;
+  bin_hash = 0;
+  nbinx_multi = nbiny_multi = nbinz_multi = nullptr;
+  mbins_multi = nullptr;
+  mbinx_multi = mbiny_multi = mbinz_multi = nullptr;
+  mbinxlo_multi = mbinylo_multi = mbinzlo_multi = nullptr;
+  bininvx_multi = bininvy_multi = bininvz_multi = nullptr;
+  binhead_multi = nullptr;
+
+  nstencil = 0;
+  stencilxyz = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

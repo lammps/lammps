@@ -142,6 +142,11 @@ void CommTiled::init_pointers()
 
   maxsend = maxrecv = 0;
   maxoverlap = 0;
+  nswap = 0;
+  noverlap = 0;
+  smaxone = rmaxone = 0;
+  smaxall = rmaxall = 0;
+  maxrequest = 0;
 }
 
 /* ----------------------------------------------------------------------

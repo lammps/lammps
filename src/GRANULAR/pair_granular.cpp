@@ -86,6 +86,8 @@ id_history = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR") + std::to_strin
 
   cutoff_global = -1.0;
   fix_history = nullptr;
+  models_list = nullptr;
+  nmodels = maxmodels = 0;
   fix_dummy = dynamic_cast<FixDummy *>(modify->add_fix(fmt::format("{} all DUMMY", id_dummy)));
 }
 

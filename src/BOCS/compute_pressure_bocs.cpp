@@ -117,6 +117,9 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
 
   vector = new double[size_vector];
   dimension = domain->dimension;
+  boltz = force->boltz;
+  nktv2p = force->nktv2p;
+  inv_volume = 0.0;
   nvirial = 0;
   vptr = nullptr;
 

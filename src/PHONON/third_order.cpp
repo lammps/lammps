@@ -415,11 +415,7 @@ void ThirdOrder::calculateMatrix()
   delete [] dynmat;
   delete [] fdynmat;
 
-  if (neighbortags) {
-    memory->sfree(neighbortags[0]);
-    memory->sfree(neighbortags);
-    neighbortags = nullptr;
-  }
+  memory->destroy(neighbortags);
   memory->destroy(ijnum);
 
   if (screen && me == 0)
@@ -779,24 +775,11 @@ void ThirdOrder::getNeighbortags() {
     ijnum[i] = sum;
   }
 
-  sum = 0;
-  for (bigint i=0; i<=natoms-1; i++) {
-    sum += ijnum[i];
-  }
-
-  free (neighbortags);
+  memory->sfree(neighbortags);
   memory->sfree(datarecv);
-  nbytes = ((bigint) sizeof(bigint)) * sum;
-  datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
-  nbytes = ((bigint) sizeof(bigint *)) * natoms;
-  neighbortags = (bigint **) memory->smalloc(nbytes, "thirdorder:neighbortags");
-  memset(&datarecv[0],0,sum*sizeof(bigint));
-
-  n = 0;
-  for (bigint i = 0; i < natoms; i++) {
-    neighbortags[i] = &datarecv[n];
-    n += ijnum[i];
-  }
+  memory->create_ragged(neighbortags, natoms, ijnum, "thirdorder:neighbortags");
+  for (bigint i = 0; i < natoms; i++)
+    memset(neighbortags[i], 0, ijnum[i]*sizeof(bigint));
 
   for (bigint i = 0; i < natoms; i++) {
     int m = 0;
@@ -821,7 +804,7 @@ void ThirdOrder::getNeighbortags() {
   }
 
   memory->sfree(data);
-  free (firsttags);
+  memory->sfree(firsttags);
   free (ijnumproc);
   free (temptags);
 }

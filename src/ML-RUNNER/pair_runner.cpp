@@ -170,6 +170,21 @@ PairRuNNer::PairRuNNer(LAMMPS *lmp) :
   nnp_generation = 0;
   num_committee_members = 0;
 
+  // settings() and the RuNNer potential files assign these before use;
+  // mirror the settings() defaults so they never carry indeterminate values
+
+  cflength = cfenergy = 1.0;
+  luse_prev_q = false;
+  lwrite_f_comm = lwrite_q_comm = false;
+  lcheck_extrap = false;
+  max_extrap = 0;
+  lshow_ew = false;
+  sum_ew_freq = reset_ew_freq = 0;
+  cutoff = 0.0;
+  total_charge = 0.0;
+  lhirshfeld_vdw = false;
+  ltwo_body = false;
+
   if (atom->natoms > MAXSMALLINT / 4) error->all(FLERR, "Too many total atoms");
 }
 

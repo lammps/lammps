@@ -65,6 +65,15 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny) :
 
   noverlap_list = maxoverlap_list = 0;
 
+  // owned/ghost cell bounds are assigned in setup_grid() and ghost_grid();
+  // zero them so the instance never carries indeterminate values
+
+  inxlo = inxhi = inylo = inyhi = 0;
+  outxlo = outxhi = outylo = outyhi = 0;
+  fullxlo = fullxhi = fullylo = fullyhi = 0;
+  procxlo = procxhi = procylo = procyhi = 0;
+  ghostxlo = ghostxhi = ghostylo = ghostyhi = 0;
+
   // default settings, can be overridden by set() methods
   // these affect assignment of owned and ghost cells
 
@@ -132,6 +141,22 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int ixlo, int ixhi
   outxhi = oxhi;
   outylo = oylo;
   outyhi = oyhi;
+
+  // these settings are only used by setup_grid(), which must not be
+  // called with this constructor; assign the same defaults as above
+
+  maxdist = 0.0;
+  stencil_grid_lo = stencil_grid_hi = 0;
+  stencil_atom_lo = stencil_atom_hi = 0;
+  shift_grid = 0.5;
+  shift_atom_lo = shift_atom_hi = 0.0;
+  yextra = 0;
+  yfactor = 1.0;
+
+  // ghost plane counts are only assigned in ghost_grid(), which this
+  // constructor does not invoke
+
+  ghostxlo = ghostxhi = ghostylo = ghostyhi = 0;
 
   // layout_grid = how this grid instance is distributed across procs
   // depends on comm->layout at time this Grid2d instance is created

@@ -155,6 +155,8 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
+  reaxflag = 0;
+  nlevels_respa = 1;
 
   s_hist = t_hist = nullptr;
   dist_cutoff_sq = 0.0;

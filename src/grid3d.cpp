@@ -67,6 +67,15 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
 
   noverlap_list = maxoverlap_list = 0;
 
+  // owned/ghost cell bounds are assigned in setup_grid() and ghost_grid();
+  // zero them so the instance never carries indeterminate values
+
+  inxlo = inxhi = inylo = inyhi = inzlo = inzhi = 0;
+  outxlo = outxhi = outylo = outyhi = outzlo = outzhi = 0;
+  fullxlo = fullxhi = fullylo = fullyhi = fullzlo = fullzhi = 0;
+  procxlo = procxhi = procylo = procyhi = proczlo = proczhi = 0;
+  ghostxlo = ghostxhi = ghostylo = ghostyhi = ghostzlo = ghostzhi = 0;
+
   // default settings, can be overridden by set() methods
   // these affect assignment of owned and ghost cells
 
@@ -141,6 +150,22 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
   outyhi = oyhi;
   outzlo = ozlo;
   outzhi = ozhi;
+
+  // these settings are only used by setup_grid(), which must not be
+  // called with this constructor; assign the same defaults as above
+
+  maxdist = 0.0;
+  stencil_grid_lo = stencil_grid_hi = 0;
+  stencil_atom_lo = stencil_atom_hi = 0;
+  shift_grid = 0.5;
+  shift_atom_lo = shift_atom_hi = 0.0;
+  zextra = 0;
+  zfactor = 1.0;
+
+  // ghost plane counts are only assigned in ghost_grid(), which this
+  // constructor does not invoke
+
+  ghostxlo = ghostxhi = ghostylo = ghostyhi = ghostzlo = ghostzhi = 0;
 
   // layout_grid = how this grid instance is distributed across procs
   // depends on comm->layout at time this Grid3d instance is created

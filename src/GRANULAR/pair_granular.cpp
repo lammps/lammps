@@ -750,7 +750,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   model->history_update = 0; // Don't update history
 
   // If history is needed
-  double *history,*allhistory;
+  double *history = nullptr, *allhistory = nullptr;
   int jnum = list->numneigh[i];
   int *jlist = list->firstneigh[i];
   if (use_history) {

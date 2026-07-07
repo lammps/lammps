@@ -151,6 +151,29 @@ pseudo-inverse used for the projection is pre-computed at init from a
 Jacobi eigen- decomposition of :math:`B = \sum_k (R_k - I)^T (R_k - I)`
 over the stabilizer ops.
 
+.. |sym_inv| image:: JPG/fix-symmetry-orbit-inversion.png
+   :width: 24%
+.. |sym_mir| image:: JPG/fix-symmetry-orbit-mirror.png
+   :width: 24%
+.. |sym_r3| image:: JPG/fix-symmetry-orbit-3fold.png
+   :width: 24%
+.. |sym_r4| image:: JPG/fix-symmetry-orbit-4fold.png
+   :width: 24%
+
+|sym_inv|  |sym_mir|  |sym_r3|  |sym_r4|
+
+The figures above show how *fix symmetry* treats orbits for four example
+operators.  In each panel the asymmetric representative A (amber) and
+its images (B, C, D, blue) are related by the operator - an inversion
+center, a mirror plane, a 3-fold rotation axis, or a 4-fold rotation
+axis.  In each timestep the fix maps the images' forces and velocities
+back onto A through the operator, inverses, averages them, and
+redistributes the symmetric result, so each image carries the operator
+applied to A's force and velocity (arrows); image positions are
+re-folded from A the same way. An orbit contains one image per
+non-identity operator, so its size is the group order (2, 2, 3, and 4
+here).
+
 ----------
 
 Symmetry-data file format

@@ -1191,6 +1191,7 @@ void FixRigidSmall::deform(int flag)
 void FixRigidSmall::set_xv()
 {
   int xbox,ybox,zbox;
+  double xy,xz,yz;
   double ione[3],exone[3],eyone[3],ezone[3],p[3][3];
 
   double xprd = domain->xprd;

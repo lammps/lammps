@@ -62,26 +62,24 @@ Ordinary molecular dynamics almost never preserves an exact
 crystallographic symmetry: thermal fluctuations and round-off break it
 within a few steps, and the trajectory drifts to whatever nearby
 lower-symmetry arrangement the forces prefer. This fix instead makes the
-space group an *input* and keeps every configuration exactly symmetric
-throughout the run. It is the dynamical counterpart of the
+space group an *input setting* and keeps every configuration exactly
+symmetric throughout the run.  It is the dynamical counterpart of the
 symmetry-constrained structure searches common in crystallography, and
 differs from a harmonic *symmetry restraint* (which merely biases the
 system to stay near symmetric) in that no symmetry-breaking motion is
 possible at all.
 
-The method was introduced for **crystal-structure prediction and
-enumeration** :ref:`(Cox) <Cox2022>`. Because there is a finite number of
-space groups, one can run the same system under each candidate group and
-relax it to obtain the symmetric structure compatible with that group;
-comparing the resulting energies (and testing which structures survive a
-subsequent *unconstrained* run) identifies stable and metastable
-polymorphs. Cox and White used this to enumerate an atlas of 2D
-Lennard-Jones crystals across all planar groups. Other suggested uses are
+The method used by the fix was introduced for crystal-structure
+prediction and enumeration in :ref:`(Cox) <Cox2022>`.  Because there is
+a finite number of space groups, one can run the same system under each
+candidate group and relax it to obtain the symmetric structure
+compatible with that group; comparing the resulting energies (and
+testing which structures survive a subsequent *unconstrained* run)
+identifies stable and metastable polymorphs.  Other suggested uses are
 modeling highly symmetric biological assemblies and, more generally, any
-study in which a particular symmetry is to be imposed by construction --
-for example to hold a crystal in a chosen symmetry while measuring a
-property, or to prevent a metastable structure from collapsing during
-equilibration. Symmetric MD is a special case of *objective molecular
+study in which a particular symmetry is to be imposed by construction,
+for instance to prevent a metastable structure from collapsing during
+equilibration.  Symmetric MD is a special case of *objective molecular
 dynamics*.
 
 A practical workflow is: build the fully symmetric unit cell, run under
@@ -94,36 +92,30 @@ Parallel efficiency and system size
 
 Unlike the `symd <https://github.com/whitead/symd>`_ reference engine,
 which integrates only the asymmetric unit and treats the images as
-non-integrated ghost particles, this fix keeps the **entire unit cell as
-ordinary, fully integrated LAMMPS atoms** and re-imposes the symmetry
-every step by symmetrizing their forces, velocities, and positions. The
+non-integrated ghost particles, this fix keeps the *entire unit cell* as
+ordinary, fully integrated LAMMPS atoms and re-imposes the symmetry
+every step by symmetrizing their forces, velocities, and positions.  The
 constraint that results is the same, but the bookkeeping fits LAMMPS's
 domain decomposition without special-casing the images in the neighbor
 lists, force kernels, or communication.
 
 The fix works unchanged in serial and in parallel and adds very little
-overhead. Its per-step work is a local pass over the declared atoms plus
-three fixed-size ``MPI_Allreduce`` calls (the per-orbit force sum, the
-velocity sum, and the asymmetric-unit positions), each of length
-``3 * (number of orbits)`` -- that is, three doubles per atom in the
-*asymmetric unit*. That message size depends only on the size of the
-asymmetric unit; it does **not** grow with the total number of atoms or
-with the number of MPI ranks, and the fix introduces no pairwise or
-long-range communication of its own and never migrates atoms between
-ranks. An orbit whose representative and images are spread across
-different subdomains is handled correctly: each rank contributes the
-atoms it owns to the per-orbit sums and reads back the global result.
+overhead.  Its per-step work is a local pass over the declared atoms
+plus three fixed-size ``MPI_Allreduce`` calls (the per-orbit force sum,
+the velocity sum, and the asymmetric-unit positions).  The fix
+introduces no pairwise or long-range communication of its own and never
+migrates atoms between ranks. An orbit whose representative and images
+are spread across different subdomains is handled correctly: each rank
+contributes the atoms it owns to the per-orbit sums and reads back the
+global result.
 
-Consequently the fix is **not** restricted to tiny systems -- it runs at
+Consequently the fix is not restricted to tiny systems -- it runs at
 essentially the cost of unconstrained MD for the same atom count, and the
-dominant expense remains the normal force evaluation. The characteristic
+dominant expense remains the normal force evaluation.  The characteristic
 setups are nonetheless modest in size (one asymmetric unit tiled by the
 group order :math:`|G|`, so from a few up to some tens of atoms per unit
 cell in the reference study), but nothing in the implementation caps the
-system size. The only per-rank memory and communication that scales is
-the ``3 * (number of orbits)`` buffer, i.e. the size of the (inherently
-small) independent structure being constrained. Atoms not listed in the
-symmetry file are left completely untouched.
+system size.
 
 .. note::
 
@@ -133,29 +125,31 @@ symmetry file are left completely untouched.
    thermostats. The images move as rigid symmetry copies of their
    asymmetric representative, so the number of *independent* degrees of
    freedom is smaller than :math:`3N` -- it is :math:`D\,(n-1)` for a
-   general-position orbit set (with :math:`n` the asymmetric-unit size and
-   :math:`D` the dimensionality), reduced further by any Wyckoff-site
-   constraints :ref:`(Cox) <Cox2022>`. This fix does not subtract those
-   redundant and constrained degrees of freedom from the count LAMMPS uses
-   for temperature, so a thermostat controls the temperature of the full
-   tiled cell rather than of the independent coordinates; keep this in
-   mind when setting a target temperature. The examples therefore use
-   :doc:`fix nve <fix_nve>`.
+   general-position orbit set (with :math:`n` the asymmetric-unit size
+   and :math:`D` the dimensionality), reduced further by any
+   Wyckoff-site constraints :ref:`(Cox) <Cox2022>`.  This fix does not
+   subtract those redundant and constrained degrees of freedom from the
+   count LAMMPS uses for temperature, so a thermostat controls the
+   temperature of the full tiled cell rather than of the independent
+   coordinates; since this number does not change during a run, it can
+   be adjusted using :doc:`compute_modify extra/dof <compute_modify>`.
+   The provided examples avoid this issue and use :doc:`fix nve
+   <fix_nve>`.
 
 Special positions (Wyckoff sites)
 """""""""""""""""""""""""""""""""
 
 Atoms sitting on a special position (a mirror plane, axis, or inversion
 center) are invariant under one or more non-identity operators of the
-space group. To declare such an atom, set its orbit's *tags* slot at
+space group.  To declare such an atom, set its orbit's *tags* slot at
 every stabilizer-op index equal to the asymmetric tag and list those op
 indices in a per-orbit *site_symmetry* array (see the file-format
-section). Per step the fix then applies a Lagrange-multiplier projection
-that drives the asym atom's fractional position and velocity back onto
-the constraint subspace defined by its stabilizer. The pseudo-inverse
-used for the projection is pre-computed at init from a Jacobi eigen-
-decomposition of :math:`B = \sum_k (R_k - I)^T (R_k - I)` over the
-stabilizer ops.
+section).  Per step the fix then applies a Lagrange-multiplier
+projection that drives the asym atom's fractional position and velocity
+back onto the constraint subspace defined by its stabilizer.  The
+pseudo-inverse used for the projection is pre-computed at init from a
+Jacobi eigen- decomposition of :math:`B = \sum_k (R_k - I)^T (R_k - I)`
+over the stabilizer ops.
 
 ----------
 

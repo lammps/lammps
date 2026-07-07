@@ -529,7 +529,7 @@ void PPPMTIP4P::slabcorr()
     qsum*dipole_r2 - qsum*qsum*zprd_slab*zprd_slab/12.0)/volume;
   const double qscale = force->qqrd2e * scale;
 
-  if (eflag_global) energy_1 += qscale * e_slabcorr;
+  if (eflag_global) energy += qscale * e_slabcorr;
 
   // per-atom energy
 

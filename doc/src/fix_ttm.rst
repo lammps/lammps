@@ -2,6 +2,7 @@
 .. index:: fix ttm/grid
 .. index:: fix ttm/mod
 .. index:: fix ttm/thermal
+.. index:: fix ttm/cascade
 
 fix ttm command
 ===============
@@ -201,7 +202,7 @@ equation used here is almost the same as that in equation 6 of
 is explicitly represented, rather than being part of the specific heat
 parameter.
 
-Currently, only *ttm/cascade* allows the :math:`C_e` and 
+Currently, only *ttm/cascade* allows the :math:`C_e` and
 :math:`\kappa_e` to vary with temperature, while the other TTM fixes
 assume that none of the user-supplied parameters will vary with
 temperature. Note that :ref:`(Duffy) <Duffy>` used a tanh() functional
@@ -289,11 +290,11 @@ units setting in use, grid size and the current timestep.
 
 .. note::
 
-  The fix ttm/grid and fix ttm/cascade commands do not support the 
+  The fix ttm/grid and fix ttm/cascade commands do not support the
   *outfile* keyword. Instead you can use the :doc:`dump grid <dump>`
-  command to output the electronic temperature on the distributed 
+  command to output the electronic temperature on the distributed
   grid to a dump file or the :doc:`restart <restart>` command which
-  creates a file specific to the fix which the 
+  creates a file specific to the fix which the
   :doc:`read restart <read_restart>` command reads. The file has the
   same format as the file the *infile* option reads.
 
@@ -304,7 +305,7 @@ using the :doc:`compute chunk/atom <compute_chunk_atom>` command to
 create a 3d array of chunks consistent with the grid used by this fix.
 
 For the fix ttm/grid and fix ttm/cascade commands, the same thing can be
-done using the :doc:`fix ave/grid <fix_ave_grid>` command and its 
+done using the :doc:`fix ave/grid <fix_ave_grid>` command and its
 per-grid values can be output via the :doc:`dump grid <dump>` command.
 
 ----------
@@ -496,12 +497,12 @@ where
   \end{cases}
 
 In the other TTM fixes, all atoms are coupled to the electronic system
-regardless of their velocity or simulation time. To prevent 
+regardless of their velocity or simulation time. To prevent
 double-counting of energy transfer that occurs when fast-moving PKAs are
 simultaneously coupled to both electronic stopping and electron-ion
 friction coefficients, Fix *ttm/cascade* implements two different
-treatments of the electron-ion interactions 
-(see :ref:`(Rojano) <Rojano>`). 
+treatments of the electron-ion interactions
+(see :ref:`(Rojano) <Rojano>`).
 
 The *cutoff* keyword disables electron-ion interactions for fast-moving
 particles with velocities above the electronic stopping critical
@@ -522,7 +523,7 @@ energy transfer to the electronic subsystem.
   atomic temperature of each grid cell.
 
 Fix *ttm/cascade* also accounts for variations of :math:`C_e` and
-:math:`\kappa_e` with the electronic temperature. 
+:math:`\kappa_e` with the electronic temperature.
 
 The *cetab* keyword specifies a table file with :math:`C_e` as a
 function of the electronic temperature.
@@ -563,7 +564,7 @@ Restart, fix_modify, output, run start/stop, minimize info
 
 The fix ttm, fix ttm/mod, and fix ttm/thermal commands write the state
 of the electronic subsystem and the energy exchange between the subsystems
-to :doc:`binary restart files <restart>`.  The fix ttm/grid and 
+to :doc:`binary restart files <restart>`.  The fix ttm/grid and
 fix ttm/cascade commands do not yet support writing of their distributed
 grids to a restart file.
 
@@ -574,7 +575,7 @@ that the restart script must define the same size grid as the original
 script.
 
 The fix ttm/grid and fix ttm/cascade commands also output an auxiliary
-file each time a restart file is written, with the electron 
+file each time a restart file is written, with the electron
 temperatures for each grid cell.  The format of this file is the same
 as that read by the *infile* option explained above.  The filename is
 the same as the restart filename with ".ttm" appended.  This auxiliary
@@ -674,5 +675,5 @@ Plasma Phys., 53, 129-139 (2013).
 
 .. _Rojano:
 
-**(Rojano)** A Rojano, R J Hunt, J-P Crocombette and S T Murphy, 
+**(Rojano)** A Rojano, R J Hunt, J-P Crocombette and S T Murphy,
 J. Phys.: Condens. Matter, 36, 335901 (2024)

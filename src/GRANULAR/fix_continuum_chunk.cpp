@@ -1058,6 +1058,13 @@ void FixContinuumChunk::end_of_step()
       m1 = stencil_to_index(m, shift[0], shift[1], shift[2]);
       m2 = stencil_to_index(m, -shift[0], -shift[1], -shift[2]);
 
+      // Zero evaluation on boundaries
+      if (m1 == -1 || m2 == -1) {
+        values_sum[m][field_index] = 0.0;
+        field_index++;
+        continue;
+      }
+
       if (style == MGRAD) {
         values_sum[m][field_index] = (values_sum[m1][index_momentum[b]] - values_sum[m2][index_momentum[b]]) / (2.0 * delta[a]);
       } else if (style == VGRAD) {
@@ -1450,7 +1457,7 @@ int FixContinuumChunk::stencil_to_index(int origin_bin, int dx, int dy, int dz) 
   for (int a = 0; a < 3; a++) {
     if (!domain->periodicity[a]) {
       if (x[a] < 0 || x[a] >= nlayers[a])
-        error->one(FLERR, "Bad chunk index %d shifted by %d %d %d\n", origin_bin, dx, dy, dz);
+        return -1;
       continue;
     }
     while (x[a] < 0) x[a] += nlayers[a];

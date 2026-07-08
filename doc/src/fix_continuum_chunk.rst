@@ -222,11 +222,13 @@ The *momentum* field is given by
 
 where :math:`v_{i,a}` is the :math:`a`-component of the atom velocity. The
 *momentum/grad* field is then calculated using a finite difference approximation
-between neighboring chunks.
+between neighboring chunks. Gradient values are zero on bins that are adjacent to
+a nonperiodic boundary.
 
 The *velocity* field is calculated as the ratio of the *momentum* and *density*
 fields. The *velocity/grad* field is then calculated using a finite difference
-approximation between neighboring chunks.
+approximation between neighboring chunks. Gradient values are zero on bins that are
+adjacent to a nonperiodic boundary.
 
 The *boundary/force* field is the interaction force density of boundaries as
 defined in :ref:`(Weinhart)`. It is calculated as

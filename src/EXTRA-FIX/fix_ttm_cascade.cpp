@@ -18,7 +18,7 @@
                          Carolyn Phillips (University of Michigan)
 
                          ttm/cascade
-                         Andrés Rojano (Lancaster University)
+                         Andres Rojano (Lancaster University)
                          Samuel T. Murphy (Lancaster University)
 
 ------------------------------------------------------------------------- */
@@ -45,9 +45,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-static constexpr int MAXLINE = 256;
-static constexpr int CHUNK = 1024;
-
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
 
 static constexpr int OFFSET = 16384;
@@ -55,7 +52,7 @@ static constexpr int OFFSET = 16384;
 /* ---------------------------------------------------------------------- */
 
 FixTTMCascade::FixTTMCascade(LAMMPS *lmp, int narg, char **arg)
-    : FixTTMGrid(lmp, 13, arg) // 13 is to pass non-keyword arguments to FixTTM
+    : FixTTMGrid(lmp, (narg < 13 ? narg : 13), arg) // 13 is to pass non-keyword arguments to FixTTM
 {
   cutoff_active = false;
   offset_active = false;

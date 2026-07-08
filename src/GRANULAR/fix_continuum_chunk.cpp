@@ -913,6 +913,8 @@ void FixContinuumChunk::end_of_step()
     }
   }
 
+  // Calculate nontrivially derived values that require an intermediate MPI call
+
   if (index_temp != -1) {
 
     // Copy intermediate values and sum across processors (will repeat later)
@@ -963,10 +965,8 @@ void FixContinuumChunk::end_of_step()
           rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
           w = calc_w(sqrt(rsq_atom_bin));
 
-          dtemp = values_sum[m][index_density];
-          vtemp[0] = values_sum[m][index_momentum[0]];
-          vtemp[1] = values_sum[m][index_momentum[1]];
-          vtemp[2] = values_sum[m][index_momentum[2]];
+          dtemp = density_one[m];
+          MathExtra::copy3(momentum_one[m], vtemp);
           if (dtemp != 0.0)
             MathExtra::scale3(1.0 / dtemp, vtemp);
 
@@ -1448,7 +1448,11 @@ int FixContinuumChunk::stencil_to_index(int origin_bin, int dx, int dy, int dz) 
 
   // Wrap at PBC if relevant
   for (int a = 0; a < 3; a++) {
-    if (!domain->periodicity[a]) continue;
+    if (!domain->periodicity[a]) {
+      if (x[a] < 0 || x[a] >= nlayers[a])
+        error->one(FLERR, "Bad chunk index %d shifted by %d %d %d\n", origin_bin, dx, dy, dz);
+      continue;
+    }
     while (x[a] < 0) x[a] += nlayers[a];
     while (x[a] >= nlayers[a]) x[a] -= nlayers[a];
   }

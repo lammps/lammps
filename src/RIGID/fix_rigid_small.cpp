@@ -463,14 +463,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  maxlang = 0;
-  if (langflag) {
-    random = new RanMars(lmp,seed + comm->me);
-    maxlang = nlocal_body + nghost_body;
-    memory->create(langextra,maxlang,6,"rigid/small:langextra");
-    for(i = 0; i < maxlang; i++) langextra[i][0] = 0, langextra[i][1] = 0, langextra[i][2] = 0,
-                                   langextra[i][3] = 0, langextra[i][4] = 0, langextra[i][5] = 0;
-  }
+  if (langflag) random = new RanMars(lmp,seed + comm->me);
 
   // mass vector for granular pair styles
 
@@ -674,6 +667,16 @@ void FixRigidSmall::setup(int vflag)
 
   commflag = FINAL;
   comm->forward_comm(this,10);
+
+  // allocation of array of langevin forces and torques
+
+  maxlang = 0;
+  if (langflag) {
+    maxlang = nlocal_body + nghost_body;
+    memory->create(langextra,maxlang,6,"rigid/small:langextra");
+    for(i = 0; i < maxlang; i++) langextra[i][0] = 0, langextra[i][1] = 0, langextra[i][2] = 0,
+                                   langextra[i][3] = 0, langextra[i][4] = 0, langextra[i][5] = 0;
+  }
 
   // set velocity/rotation of atoms in rigid bodies
 

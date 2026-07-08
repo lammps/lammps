@@ -113,29 +113,39 @@ is stored only on the process whose subdomain contains its center.  The
 array can be written with the :doc:`dump local <dump>` command.
 
 The following excerpt from a displacement-cascade simulation in bcc iron
-(a primary knock-on atom has been given a high velocity in the steps
-before) follows the defect count on the fly and records the surviving
-defects without any post-processing:
+started by giving a 2 keV recoil to a primary knock-on atom (PKA) uses
+compute frenkel to count and visualize the created Frenkel pairs.
 
 .. code-block:: LAMMPS
 
-   lattice         bcc 2.8553                     # reference lattice for the WS analysis
-   compute         fr all frenkel
-   # live vacancy / interstitial / irregular-site count in the thermo output
-   thermo_style    custom step time temp c_fr[1] c_fr[2] c_fr[3]
-   # log the number of Frenkel pairs c_fr[1] versus time
-   variable        t equal time
-   fix             rec all ave/time 20 1 20 v_t c_fr[1] file frenkel.dat
-   # write the surviving defects (size, x, y, z) every 1000 steps
-   dump            dl all local 1000 defects.dump index c_fr[2] c_fr[3] c_fr[4] c_fr[5]
-   run             15000
+   lattice      bcc 2.8553                     # reference lattice for the WS analysis
+   compute      ke all ke/atom
+   compute      fr all frenkel
+   variable     vizstep index 100
+   variable     hot atom c_ke>0.5
+   variable     acol atom log(c_ke)
+   group        hot dynamic all var hot every ${vizstep}
 
-Here ``c_fr[1]`` in the :doc:`thermo_style <thermo_style>` and :doc:`fix
-ave/time <fix_ave_time>` commands refers to the *global* vector (the
-defect counts), while ``c_fr[2]`` ... ``c_fr[5]`` in the :doc:`dump local
-<dump>` command refer to the columns of the *local* array (defect size and
-position).
+   fix          spheres all graphics/objects ${vizstep} &
+                   sphere 1 32.0 10.0 0.0 2.0 &
+                   sphere 2 50.0 20.0 0.0 2.0
+   fix          label   all graphics/labels  ${vizstep} &
+                   text "Frenkel pairs: $(c_fr[1]:% 4.0f)    Simulation time: $(time:% 5.1f) ps" &
+                   400 50 0 size 30 &
+                colorscale viz "log(kinetic energy / eV)" 700 400 0 vertical length 600 tics 10 &
+                text "Vacancy" 280 185 0 size 30  &
+                text "Interstitial" 300 115 0 size 30
+   variable     acol atom log(c_ke)*v_hot
 
+   dump         viz hot image 100 frenkel-*.png v_acol type size 800 800 &
+                    zoom 2.0 view 70 30 center s 0.5 0.5 0.4 &
+                    shiny 0.2 fsaa yes box no 0.0 axes yes 0.5 0.05 &
+                    compute fr type 0 2 fix label type 1 0 fix spheres type 0 0
+
+   dump_modify  viz pad 6 backcolor black backcolor2 white element Fe Fe Fe O &
+                adiam * 2.5  color map2 0.342 0.062 0.429 color map3 0.736 0.216 0.330 &
+                amap -0.5 1 cf 0.0 3 min map2 0.5 map3 max pink &
+                acolor 1 steelblue acolor 2 darkgoldenrod
 
 .. |frenkel1| image:: JPG/frenkel-sim-0.2.png
    :width: 33%
@@ -149,15 +159,14 @@ position).
 
 |frenkel1|  |frenkel2|  |frenkel3|
 
-The images above are three snapshot images from a displacement cascade
-in bcc iron started by giving a 2 keV recoil to a primary knock-on atom
-(PKA). Shown atoms with elevated kinetic energy (small spheres, colored
-by their kinetic energy on a logarithmic scale) and the Frenkel pairs
-(larger spheres, blue: vacancies, yellow: interstitials).  The cascade
-of collisions spreads and briefly "melts" a small region (0.2 ps) whose
-kinetic energy then quickly dissipates into the surrounding crystal (1.0
-ps) and the system relaxes and lattice reconstructs so that only a small
-number of Frenkel pairs survive.
+The images above are three snapshot images created by the LAMMPS input
+from above.  Shown are atoms with elevated kinetic energy (smaller
+spheres, colored by their kinetic energy on a logarithmic scale) and the
+Frenkel pairs (larger spheres, blue: vacancies, yellow: interstitials).
+The cascade of collisions spreads and briefly "melts" a small region
+(0.2 ps) whose kinetic energy then quickly dissipates into the
+surrounding crystal (1.0 ps) and the system relaxes and the lattice
+reconstructs so that only a small number of Frenkel pairs survive.
 
 Dump image info
 """""""""""""""

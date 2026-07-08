@@ -45,6 +45,14 @@ two atoms holds an *interstitial*; a site with more than two atoms is
 counted as an interstitial and additionally flagged as *irregular*.
 Neighboring vacant or over-occupied sites are grouped into clusters.
 
+.. figure:: JPG/frenkel-diagram.png
+   :figwidth: 50%
+   :align: center
+
+   Schematic depiction of a Frenkel pair: an atom is displaced
+   from its lattice site leaving a vacancy and gets squeezed in
+   between the atoms of neighboring occupied lattice sites
+
 The search radii used to associate atoms with sites can be adjusted with
 the *drvac* and *drint* keywords of the :doc:`compute_modify
 <compute_modify>` command; by default they are derived from the lattice
@@ -128,6 +136,29 @@ defect counts), while ``c_fr[2]`` ... ``c_fr[5]`` in the :doc:`dump local
 <dump>` command refer to the columns of the *local* array (defect size and
 position).
 
+
+.. |frenkel1| image:: JPG/frenkel-sim-0.2.png
+   :width: 33%
+
+.. |frenkel2| image:: JPG/frenkel-sim-1.0.png
+   :width: 33%
+
+.. |frenkel3| image:: JPG/frenkel-sim-2.5.png
+   :width: 33%
+
+
+|frenkel1|  |frenkel2|  |frenkel3|
+
+The images above are three snapshot images from a displacement cascade
+in bcc iron started by giving a 2 keV recoil to a primary knock-on atom
+(PKA). Shown atoms with elevated kinetic energy (small spheres, colored
+by their kinetic energy on a logarithmic scale) and the Frenkel pairs
+(larger spheres, blue: vacancies, yellow: interstitials).  The cascade
+of collisions spreads and briefly "melts" a small region (0.2 ps) whose
+kinetic energy then quickly dissipates into the surrounding crystal (1.0
+ps) and the system relaxes and lattice reconstructs so that only a small
+number of Frenkel pairs survive.
+
 Dump image info
 """""""""""""""
 
@@ -157,9 +188,10 @@ and 2 reserved for the defect colors:
    dump    d all image 1000 defect.*.jpg type type adiam 0.5 compute fr type 0 0
    dump_modify d acolor 1 blue acolor 2 red acolor 3 gray atrans 3 0.1
 
-The *cflag1* setting is added to the sphere diameter (the compute does not
-know a meaningful radius, so it is set to 0; use a positive *cflag2*).
-The *cflag2* setting is currently unused for spheres.
+Each cluster sphere is drawn with a diameter of 0.6 lattice spacings.
+The *cflag2* setting is added to that diameter, which allows to enlarge
+the markers; the *cflag1* setting is not used for spheres.
+
 
 Restrictions
 """"""""""""

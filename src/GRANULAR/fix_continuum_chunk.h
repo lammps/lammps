@@ -42,9 +42,8 @@ class FixContinuumChunk : public Fix {
   std::vector<std::tuple<int, int, int>> stencil;
 
   int dim, bin_dim, pstyle, calculate_pair, calculate_grad;
-  int need_density, need_momentum, need_vgrad;
   int boundary_group_flag, boundary_groupbit;
-  int index_temp, index_density, index_momentum[3], index_vgrad[3][3];
+  int index_temp, index_density, index_momentum[3], index_velocity[3], index_vgrad[3][3];
   double w_cut, w_cut_sq, w_sd, w_sd_sq, w_scale, w_offset;
 
   int nvalues, nskip, nrepeat, nfreq, irepeat;
@@ -83,7 +82,6 @@ class FixContinuumChunk : public Fix {
   void allocate();
   bigint nextvalid();
   inline double calc_w(const double) const;
-  inline double calc_dw(const double) const;
   inline double calc_w_int(double*, double*) const;
   void add_tensor_component(char *, int);
   void add_vector_component(char *, int);

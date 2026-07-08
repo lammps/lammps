@@ -641,10 +641,14 @@ void FixRigidSmall::setup(int vflag)
     error->all(FLERR, Error::NOLASTLINE,
                "Rigid body extent {} > ghost atom cutoff - use comm_modify cutoff", maxextent);
 
+  // allocation of array of langevin forces and torques
+
   if (langflag && (nlocal_body > maxlang)) {
     memory->destroy(langextra);
-    maxlang = nlocal_body + nghost_body;
+    maxlang = nlocal_body;
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
+    for(i = 0; i < maxlang; i++) langextra[i][0] = 0, langextra[i][1] = 0, langextra[i][2] = 0,
+                                   langextra[i][3] = 0, langextra[i][4] = 0, langextra[i][5] = 0;
   }
 
   compute_forces_and_torques();
@@ -667,16 +671,6 @@ void FixRigidSmall::setup(int vflag)
 
   commflag = FINAL;
   comm->forward_comm(this,10);
-
-  // allocation of array of langevin forces and torques
-
-  maxlang = 0;
-  if (langflag) {
-    maxlang = nlocal_body + nghost_body;
-    memory->create(langextra,maxlang,6,"rigid/small:langextra");
-    for(i = 0; i < maxlang; i++) langextra[i][0] = 0, langextra[i][1] = 0, langextra[i][2] = 0,
-                                   langextra[i][3] = 0, langextra[i][4] = 0, langextra[i][5] = 0;
-  }
 
   // set velocity/rotation of atoms in rigid bodies
 
@@ -893,7 +887,7 @@ void FixRigidSmall::apply_langevin_thermostat()
 
   if (nlocal_body > maxlang) {
     memory->destroy(langextra);
-    maxlang = nlocal_body + nghost_body;
+    maxlang = nlocal_body;
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
   }
 
@@ -1376,7 +1370,8 @@ void FixRigidSmall::set_v()
       else massone = mass[type[i]];
       MathExtra::cross3( b->omega, delta, v_rot) ;
       MathExtra::cross3( b->omega, v_rot, acc_centr) ;
-      if(langflag) {
+      if(langflag && atom2body[i] < nlocal_body) {
+        // communicated forces/torques for ghost bodies do not contain langevin and gravity contributions
         langone = langextra[atom2body[i]];
         fc[0] = massone * ((b->fcm[0]-langone[0])/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
         fc[1] = massone * ((b->fcm[1]-langone[1])/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
@@ -1389,7 +1384,7 @@ void FixRigidSmall::set_v()
         else fc[2] = massone * (b->fcm[2]/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       }
 
-      if (id_gravity) {
+      if (id_gravity && atom2body[i] < nlocal_body) {
         fc[0] -= gvec[0]*massone;
         fc[1] -= gvec[1]*massone;
         fc[2] -= gvec[2]*massone;

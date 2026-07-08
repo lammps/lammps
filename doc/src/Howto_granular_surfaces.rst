@@ -20,28 +20,25 @@ particularly useful for defining a complex wall or boundary geometry.
 As described below, particle/surface interactions can be specified
 with similar options as those for particle/particle interactions.
 
-In the examples directory, several examples of these boundaries are
-found in the gransurf folder. In particular, this includes a
-screw feeder geometry where a cylindrical container is being fed a
-stream of granular particles from above which are conveyed forward
-using a rotating screw. An illustration is rendered in the below
-figure using the :doc:`dump image <dump_image>` command.
+.. |granex1| image:: img/gransurf_screwfeeder.png
+   :width: 49%
 
-.. figure:: img/gransurf_screwfeeder.png
-            :figwidth: 50%
-            :align: right
-            :target: _images/gransurf_screwfeeder.png
+.. |granex2| image:: img/gransurf_asteroid.png
+   :width: 49%
+
+|granex1|  |granex2|
+
+In the examples directory, several examples of these boundaries are
+found in the gransurf folder. In particular, this includes a screw
+feeder geometry where a cylindrical container is being fed a stream of
+granular particles from above which are conveyed forward using a
+rotating screw. An illustration is rendered in the figure above on the
+left figure using the :doc:`dump image <dump_image>` command.
 
 Furthermore, as another illustration of possible applications, an image
 is included of a complex geometry based on the actual shape of the
 Itokawa asteroid. Here, a surface is used to create a container which is
 filled by a polydisperse granular packing.
-
-.. figure:: img/gransurf_asteroid.png
-            :figwidth: 50%
-            :align: right
-            :target: _images/gransurf_asteroid.png
-
 
 ----------
 
@@ -202,7 +199,7 @@ center.  The 4 mixer blades are in the shape of a large X and are made
 to rotate using the :doc:`fix_modify <fix_modify>` command (see below).
 
 .. figure:: img/gransurf_mixer.png
-            :figwidth: 75%
+            :figwidth: 50%
             :align: right
             :target: _images/gransurf_mixer.png
 

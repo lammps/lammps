@@ -72,6 +72,13 @@ Notes for writing scenes:
   molecular systems with default `special_bonds 0 0 0` settings (bonded
   pairs are excluded from the neighbor list).  Test it on systems without
   a bond topology, or set `special_bonds lj/coul 1.0 1.0 1.0`.
+- `dump_modify btrans` only applies when bonds are *not* colored by atom:
+  with `bond atom ...` the two bond halves follow the transparency of
+  their respective atoms (`atrans`) instead.
+- Continuous color maps (`amap`/`bmap`/`gmap` styles `ca`/`cf`) require the
+  first entry value to be the literal `min` and the last to be `max`;
+  discrete maps (`da`/`df`) require a final catch-all `min max <color>`
+  entry.
 - Stochastic features are fine as long as they are seeded: SSAO and the
   region `points` draw style are reproducible.
 

@@ -424,20 +424,22 @@ void TestConfigReader::global_vector(const yaml_event_t &event)
 }
 
 
-void TestConfigReader::parse_rows(const yaml_event_t &event,
-                                  std::vector<std::vector<double>> &rows)
-{
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-    rows.clear();
+// parse a block of rows of white-space separated numbers into a
+// vector of vectors, so rows may have different numbers of columns
 
-    while (std::getline(data, line, '\n')) {
-        std::stringstream item(line);
-        std::vector<double> row;
-        double value;
-        while (item >> value)
-            row.push_back(value);
-        if (!row.empty()) rows.push_back(row);
+static void parse_rows(const yaml_event_t &event, std::vector<std::vector<double>> &rows)
+{
+    rows.clear();
+    for (const auto &line : Tokenizer(event_string(event), "\n").as_vector()) {
+        try {
+            ValueTokenizer values(line);
+            std::vector<double> row;
+            while (values.has_next())
+                row.push_back(values.next_double());
+            if (!row.empty()) rows.push_back(row);
+        } catch (TokenizerException &e) {
+            parse_error(e.what(), line);
+        }
     }
 }
 

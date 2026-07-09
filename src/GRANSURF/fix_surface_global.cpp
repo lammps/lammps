@@ -755,7 +755,7 @@ void FixSurfaceGlobal::init()
         jmotion = mol2motion[jmol];
         if (imotion != jmotion) ecount++;
       }
-      for (j = 0; j < nc1; j++) {
+      for (j = 0; j < nc2; j++) {
         jtri = connect3d[itri].neigh_c2[j];
         if (jtri < itri) continue;
         jmol = tris[jtri].mol;

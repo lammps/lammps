@@ -1015,9 +1015,8 @@ void PairSurfGranular::walk_connections2d(std::vector<int> &composite_surfs,
   std::set<int> to_add;
 
   // Find next closest surface
-  int j, n;
-  for (n = 0; n < contact_surfs.size(); n++) {
-    j = contact_surfs[n].index;
+  for (std::size_t n = 0; n < contact_surfs.size(); n++) {
+    auto j = contact_surfs[n].index;
 
     if (processed_contacts.find(j) == processed_contacts.end()) {
       to_walk.insert(j);
@@ -1026,7 +1025,7 @@ void PairSurfGranular::walk_connections2d(std::vector<int> &composite_surfs,
   }
 
   tagint ktag;
-  int k, m, jconnect, jflag, aflag, fflag, nconnect, nc, contact_at_joint;
+  int j, k, m, n, jconnect, jflag, aflag, fflag, nconnect, nc, contact_at_joint;
   while (!to_walk.empty()) {
     auto it = to_walk.begin();
     j = *it;
@@ -1105,8 +1104,8 @@ void PairSurfGranular::walk_connections3d(std::vector<int> &composite_surfs,
   std::set<int> to_add;
 
   // Find next closest surface
-  for (int n = 0; n < contact_surfs.size(); n++) {
-    int j = contact_surfs[n].index;
+  for (std::size_t n = 0; n < contact_surfs.size(); n++) {
+    auto j = contact_surfs[n].index;
 
     if (processed_contacts.find(j) == processed_contacts.end()) {
       to_walk.insert(j);
@@ -1308,7 +1307,7 @@ double PairSurfGranular::calculate_2d_forces(std::vector<int> &composite_surfs)
 
     max_dot = -2;
     ck = -1;
-    for (i = 0; i < contact_surfs[n].cindex.size(); i++) {
+    for (i = 0; i < (int) contact_surfs[n].cindex.size(); i++) {
       k = contact_surfs[n].cindex[i];
       m = contacts_map[k];
       dot = MathExtra::dot3(jnorm, contact_surfs[m].surf_norm);
@@ -1426,7 +1425,7 @@ double PairSurfGranular::calculate_3d_forces(std::vector<int> &composite_surfs)
     // If multiple constraints (e.g. a T), find which is closest aligned
     max_dot1 = max_dot2 = -2.0;
     contact_surfs[n].ck1 = contact_surfs[n].ck2 = -1;
-    for (i = 0; i < contact_surfs[n].cindex.size(); i++) {
+    for (i = 0; i < (int) contact_surfs[n].cindex.size(); i++) {
       k = contact_surfs[n].cindex[i];
       m = contacts_map[k];
       dot = MathExtra::dot3(jnorm, contact_surfs[m].surf_norm);

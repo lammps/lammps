@@ -55,6 +55,7 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) :
   hstr = nullptr;
 
   if (utils::strmatch(arg[4], "^v_")) {
+    delete[] hstr;
     hstr = utils::strdup(arg[4] + 2);
   } else {
     heat_input = utils::numeric(FLERR, arg[4], false, lmp);
@@ -69,6 +70,7 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix heat command");
       region = domain->get_region_by_id(arg[iarg + 1]);
       if (!region) error->all(FLERR, "Region {} for fix heat does not exist", arg[iarg + 1]);
+      delete[] idregion;
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else

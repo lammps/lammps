@@ -1529,7 +1529,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
     for (int i = 1; i <= maxsurfmol; i++) smols[i] = 0;
 
     auto fields = Tokenizer(arg[1], ",").as_vector();
-    for (int ifield = 0; ifield < fields.size(); ifield++) {
+    for (std::size_t ifield = 0; ifield < fields.size(); ifield++) {
       utils::bounds(FLERR, fields[ifield], 1, maxsurfmol, lo, hi, error);
       for (int i = lo; i <= hi; i++) smols[i] = 1;
     }
@@ -3476,7 +3476,7 @@ void FixSurfaceGlobal::prewalk_connections2d()
   int j = contact_surfs[0].index;
   to_walk[j] = contact_surfs[0].nside;
 
-  int k, n, m, nsidej, nsidek, nconnect, nc;
+  int k, n, m, nsidej, nsidek, nconnect;
   std::tuple<int, int> element;
   while (!to_walk.empty()) {
     auto it = to_walk.begin();
@@ -3518,7 +3518,7 @@ void FixSurfaceGlobal::prewalk_connections2d()
 
     // Check if there is another disconnected surf
     if (to_walk.empty()) {
-      for (nc = 0; nc < contact_surfs.size(); nc++) {
+      for (std::size_t nc = 0; nc < contact_surfs.size(); nc++) {
         j = contact_surfs[nc].index;
         if (walked.find(j) == walked.end())
           to_walk[j] = contact_surfs[nc].nside;
@@ -3537,7 +3537,7 @@ void FixSurfaceGlobal::prewalk_connections3d()
   int j = contact_surfs[0].index;
   to_walk[j] = contact_surfs[0].nside;
 
-  int k, n, m, nsidej, nsidek, nconnect, nc, ntotal;
+  int k, n, m, nsidej, nsidek, nc, nconnect, ntotal;
   std::tuple<int, int> element;
   while (!to_walk.empty()) {
     auto it = to_walk.begin();
@@ -3617,7 +3617,7 @@ void FixSurfaceGlobal::prewalk_connections3d()
 
     // Check if there is another disconnected surf
     if (to_walk.empty()) {
-      for (nc = 0; nc < contact_surfs.size(); nc++) {
+      for (nc = 0; nc < (int)contact_surfs.size(); nc++) {
         j = contact_surfs[nc].index;
         if (walked.find(j) == walked.end())
           to_walk[j] = contact_surfs[nc].nside;
@@ -3724,9 +3724,8 @@ void FixSurfaceGlobal::walk_connections3d(std::vector<int> &composite_surfs, std
   std::set<int> to_add;
 
   // Find next closest surface
-  int j, n;
-  for (n = 0; n < contact_surfs.size(); n++) {
-    j = contact_surfs[n].index;
+  for (std::size_t n = 0; n < contact_surfs.size(); n++) {
+    auto j = contact_surfs[n].index;
 
     if (processed_contacts.find(j) == processed_contacts.end()) {
       to_walk.insert(j);
@@ -3737,10 +3736,10 @@ void FixSurfaceGlobal::walk_connections3d(std::vector<int> &composite_surfs, std
   int k, m, jflag, aflag, fflag, which, nconnect, nc, ntotal, contact_at_joint;
   while (!to_walk.empty()) {
     auto it = to_walk.begin();
-    j = *it;
+    auto j = *it;
     to_walk.erase(it);
 
-    n = contacts_map[j];
+    auto n = contacts_map[j];
     processed_contacts.insert(j);
     composite_surfs.push_back(n);
     jflag = contact_surfs[n].flag;
@@ -3929,7 +3928,7 @@ double FixSurfaceGlobal::calculate_2d_forces(std::vector<int> &composite_surfs)
 
     max_dot = -2;
     ck = -1;
-    for (i = 0; i < contact_surfs[n].cindex.size(); i++) {
+    for (i = 0; i < (int) contact_surfs[n].cindex.size(); i++) {
       k = contact_surfs[n].cindex[i];
       m = contacts_map[k];
       dot = MathExtra::dot3(jnorm, contact_surfs[m].surf_norm);
@@ -4050,7 +4049,7 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> &composite_surfs)
     // If multiple constraints (e.g. a T), find which is closest aligned
     max_dot1 = max_dot2 = -2.0;
     contact_surfs[n].ck1 = contact_surfs[n].ck2 = -1;
-    for (i = 0; i < contact_surfs[n].cindex.size(); i++) {
+    for (i = 0; i < (int) contact_surfs[n].cindex.size(); i++) {
       k = contact_surfs[n].cindex[i];
       m = contacts_map[k];
       dot = MathExtra::dot3(jnorm, contact_surfs[m].surf_norm);

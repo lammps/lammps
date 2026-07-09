@@ -1409,9 +1409,9 @@ void ComputeFrenkel::construct_site_nlists()
 void ComputeFrenkel::put_sites_in_bins()
 {
   // Each site is assigned to a unique bin of width cutoff.
-  nlatbins[0] = ceil((domain->subhi[0] - domain->sublo[0]) / binwidth);
-  nlatbins[1] = ceil((domain->subhi[1] - domain->sublo[1]) / binwidth);
-  nlatbins[2] = ceil((domain->subhi[2] - domain->sublo[2]) / binwidth);
+  nlatbins[0] = MAX(1, (int) lround((domain->subhi[0] - domain->sublo[0]) / binwidth));
+  nlatbins[1] = MAX(1, (int) lround((domain->subhi[1] - domain->sublo[1]) / binwidth));
+  nlatbins[2] = MAX(1, (int) lround((domain->subhi[2] - domain->sublo[2]) / binwidth));
   nlatbins[3] = domain->lattice->nbasis * BIN_GROW_SIZE;    // can grow
 
   // Temporary array to store the index we're currently on

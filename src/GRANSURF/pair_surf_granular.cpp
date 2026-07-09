@@ -91,7 +91,7 @@ PairSurfGranular::~PairSurfGranular()
 
 void PairSurfGranular::compute(int eflag, int vflag)
 {
-  int a, m;
+  int m;
   int inum, jnum, itype, jtype;
   int jflag, external_flag, priority;
   double xtmp, ytmp, ztmp, radi, delx, dely, delz;
@@ -108,7 +108,6 @@ void PairSurfGranular::compute(int eflag, int vflag)
   int *touch, **firsttouch;
   double *history, *allhistory, **firsthistory;
 
-  bool touchflag = false;
   const bool history_update = update->setupflag == 0;
 
   class GranularModel *model;
@@ -430,7 +429,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
       }
 
       // guaranteed in contact, but need to calculate intermediate variables
-      touchflag = model->check_contact();
+      model->check_contact();
 
       if (use_history) {
         // Check if another flat contact has a stored history
@@ -1550,7 +1549,7 @@ double PairSurfGranular::calculate_3d_forces(std::vector<int> &composite_surfs)
   //    per-surf calculations
   // -----------------------------------
 
-  int pt, pt1, pt2, external1, external2, edge1_uc, edge2_uc;
+  int pt, pt1, pt2, external1, external2;
   double w_in_plane, dot1a, dot2a, dot1xp, dot2xp, dot1ip, dot2ip, w1_in_plane, w2_in_plane, w1, w2,
       wtmp;
   double line1[3], line2[3], dr_in_plane[3];
@@ -1672,8 +1671,6 @@ double PairSurfGranular::calculate_3d_forces(std::vector<int> &composite_surfs)
       MathExtra::zero3(fntot);
       w1_in_plane = 1.0;
       w2_in_plane = 1.0;
-      edge1_uc = 0;
-      edge2_uc = 0;
 
       // default, use dr w/o component along edge
       dot = MathExtra::dot3(dr, line1);
@@ -1708,7 +1705,6 @@ double PairSurfGranular::calculate_3d_forces(std::vector<int> &composite_surfs)
           dist = rmag * MathExtra::dot3(jnorm, dr);
           if (dist < rmag) w1_in_plane = MAX(0.0, MIN(1.0, dist / (rmag * (1.0 - w_connect))));
         }
-        edge1_uc = 1;
       }
 
       // ---------- Edge 2 ----------
@@ -1732,7 +1728,6 @@ double PairSurfGranular::calculate_3d_forces(std::vector<int> &composite_surfs)
           dist = rmag * MathExtra::dot3(jnorm, dr);
           if (dist < rmag) w2_in_plane = MAX(0.0, MIN(1.0, dist / (rmag * (1.0 - w_connect))));
         }
-        edge2_uc = 1;
       }
 
       // ---------- Interpolation ----------

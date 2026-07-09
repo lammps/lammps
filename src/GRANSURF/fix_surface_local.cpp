@@ -2019,7 +2019,7 @@ void FixSurfaceLocal::connectivity2d_local()
 
 void FixSurfaceLocal::connectivity3d_local()
 {
-  int k, m, n;
+  int m, n;
 
   avec_tri = (AtomVecTri *) atom->style_match("tri");
 

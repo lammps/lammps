@@ -26,7 +26,7 @@ pre_commands: |
   set type 2 charge  0.4
   velocity all create 100 4534624 loop geom
 post_commands: |
-  fix qeq all qeq/point/xlmd 1 6.0 1.0e-20 20 ${input_dir}/param.qeq2 warn no xldamp 0
+  fix qeq all qeq/point/xlmd 1 6.0 1.0e-20 20 ${input_dir}/param.qeq2 warn no xldamp 0 xlcg 1
 input_file: in.empty
 pair_style: buck/coul/cut 6.0
 pair_coeff: |

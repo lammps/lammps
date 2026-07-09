@@ -329,7 +329,7 @@ harmonic coupling, are propagated time-reversibly by a Verlet
 integrator alongside the atoms.  On each timestep they provide the
 initial guess for the iterative solver, which then applies only a small,
 fixed number of conjugate gradient iterations (keyword *xlcg*, default
-1) instead of iterating to *tolerance*\ .  This reduces the cost of the
+2) instead of iterating to *tolerance*\ .  This reduces the cost of the
 charge equilibration several-fold (typically 5x to 8x) while conserving
 the total energy far better than simply truncating or loosening the
 converged solve, which can heat up the system or become unstable within
@@ -339,17 +339,19 @@ By default, the auxiliary variables are propagated including a weak
 dissipation term of order 5 following :ref:`(Niklasson) <Niklasson2009>`.
 The order can be changed with the *xldamp* keyword: higher orders damp
 more weakly (and thus perturb the time-reversible dynamics less), lower
-orders damp more strongly.  A value of 0 selects the original, fully
-time-reversible scheme of :ref:`(Nomura) <Nomura2015>` without
-dissipation; in this case the *xlkappa* keyword may be used to change
-the coupling constant :math:`\kappa = \omega^2 \delta t^2` from its
-default value of 2.0.  The undamped propagation slowly accumulates
-numerical noise in the auxiliary variables, which can make long
-simulations (more than a few thousand steps) unstable, so *xldamp* 0 is
-mainly useful for validation studies.  Increasing *xlcg* to 2 improves
-the energy conservation substantially (close to that of fully converged
-solves in our tests) and is a good choice when the accuracy of the
-default settings is insufficient.
+orders damp more strongly (and thus bias the charges more).  A value of
+0 selects the original, fully time-reversible scheme of :ref:`(Nomura)
+<Nomura2015>` without dissipation; in this case the *xlkappa* keyword
+may be used to change the coupling constant :math:`\kappa = \omega^2
+\delta t^2` from its default value of 2.0.  The undamped propagation
+slowly accumulates numerical noise in the auxiliary variables, which
+makes long simulations (more than a few thousand steps) unstable, so
+*xldamp* 0 is mainly useful for validation studies.  With the default
+settings the energy conservation was close to that of fully converged
+solves in our tests.  Reducing *xlcg* to 1 reproduces the setting of
+:ref:`(Nomura) <Nomura2015>` and further reduces the cost, but with a
+smaller stability margin: deviations may accumulate unnoticed over
+many picoseconds before degrading the dynamics.
 
 The extended-Lagrangian propagation requires a valid history of
 previous solutions.  Whenever such a history is not available -- at the
@@ -414,7 +416,7 @@ Related commands
 Default
 """""""
 
-warn yes; for the *xlmd* styles additionally: xlcg 1, xldamp 5, xlkappa 2.0
+warn yes; for the *xlmd* styles additionally: xlcg 2, xldamp 5, xlkappa 2.0
 
 ----------
 

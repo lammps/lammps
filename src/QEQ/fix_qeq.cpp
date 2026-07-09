@@ -118,7 +118,9 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   // extended-Lagrangian charge propagation is selected via the fix style name
 
   xl_flag = utils::strmatch(style,"/xlmd") ? 1 : 0;
-  xl_ncg = 1;
+  xl_ncg = 2;     // 2 iterations keep the energy conservation close to converged
+                  // solves; 1 reproduces the original publication at less cost
+                  // but with a reduced stability margin in long runs
   xl_kdis = -1;   // -1 = keyword xldamp not used, resolved in finalize_xl()
   xl_kappa_set = 0;
   xl_kappa = 2.0;

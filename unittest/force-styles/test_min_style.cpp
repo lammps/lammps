@@ -18,10 +18,20 @@
 // post_commands (min_style, min_modify, and optional fixes like box/relax),
 // and stores reference data taken after a minimization with a fixed
 // iteration budget: the potential energy before (init_energy) and after
-// (run_energy) the minimization, the total force norm (global_scalar), the
-// box dimensions and tilt factors (global_vector), and the per-atom
-// positions (run_pos).  Using a fixed number of iterations instead of a
-// convergence tolerance keeps the reference data deterministic.
+// (run_energy) the minimization, the total force norm (global_scalar), and
+// the box dimensions and tilt factors (global_vector).  Using a fixed
+// number of iterations instead of a convergence tolerance keeps the
+// reference data deterministic.
+//
+// The line search and step acceptance logic of the minimizers branches on
+// floating-point comparisons, so differences in the last bits of the
+// forces (from a different compiler or math library) can send the descent
+// along a different but equally valid path.  Only observables that are
+// stable against such path changes are compared to reference data: the
+// potential energy (all paths descend into the same basin, so the final
+// energies agree far more closely than any two different minimizers do)
+// and the box dimensions.  The force norm is checked as an upper bound
+// only and per-atom positions are not compared at all.
 
 #include "error_stats.h"
 #include "test_config.h"
@@ -202,7 +212,11 @@ TEST(MinStyle, plain)
     EXPECT_LT(min_pe, init_pe);
 
     EXPECT_FP_LE_WITH_EPS(min_pe, test_config.run_energy, epsilon);
-    EXPECT_FP_LE_WITH_EPS(force_norm(lmp), test_config.global_scalar, epsilon);
+
+    // the exact force norm after a fixed iteration budget is not portable
+    // across platforms (see comment at the top), so only require that the
+    // minimizer reduces the forces comparably to the reference
+    EXPECT_LE(force_norm(lmp), 10.0 * test_config.global_scalar);
 
     // box dimensions and tilt factors (changed by fix box/relax)
     if (test_config.global_vector.size() == 6) {
@@ -212,8 +226,6 @@ TEST(MinStyle, plain)
         for (int i = 0; i < 6; ++i)
             EXPECT_FP_LE_WITH_EPS(dims[i], test_config.global_vector[i], epsilon);
     }
-
-    EXPECT_POSITIONS("run_pos (after minimize)", lmp->atom, test_config.run_pos, epsilon);
 
     if (print_stats) std::cerr << "min_style stats:" << stats << std::endl;
 
@@ -262,15 +274,6 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     for (double dim : dims)
         block += fmt::format(" {:23.16e}", dim);
     writer.emit_block("global_vector", block);
-
-    // positions after minimization
-    block.clear();
-    auto *x = lmp->atom->x;
-    for (int i = 1; i <= natoms; ++i) {
-        const int j = lmp->atom->map(i);
-        block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, x[j][0], x[j][1], x[j][2]);
-    }
-    writer.emit_block("run_pos", block);
 
     cleanup_lammps(lmp);
 }

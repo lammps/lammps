@@ -68,7 +68,6 @@ PairDispersionD3Kokkos<DeviceType>::PairDispersionD3Kokkos(LAMMPS *lmp) : PairDi
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -190,7 +189,6 @@ double PairDispersionD3Kokkos<DeviceType>::init_one(int i, int j)
   return cut;
 }
 
-
 /* ----------------------------------------------------------------------
    init pair style
 ------------------------------------------------------------------------- */
@@ -209,7 +207,6 @@ void PairDispersionD3Kokkos<DeviceType>::init_style()
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
-
 
 /* ----------------------------------------------------------------------
    allocate req. arrays
@@ -237,7 +234,6 @@ void PairDispersionD3Kokkos<DeviceType>::allocate()
   d_r0ab = k_r0ab.template view<DeviceType>();
   d_c6ab = k_c6ab.template view<DeviceType>();
 }
-
 
 /* ----------------------------------------------------------------------
    Coeff: read from pair_coeff
@@ -338,11 +334,9 @@ void PairDispersionD3Kokkos<DeviceType>::coeff(int narg, char **arg)
   free(atomic_numbers);
 }
 
-
 /* ----------------------------------------------------------------------
    Compute : energy, force, and stress (Required)
 ------------------------------------------------------------------------- */
-
 
 template<class DeviceType>
 void PairDispersionD3Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
@@ -387,13 +381,11 @@ void PairDispersionD3Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   special_lj[2] = force->special_lj[2];
   special_lj[3] = force->special_lj[3];
 
-
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
   inum = list->inum;
-
 
   if constexpr (std::is_same_v<DeviceType,LMPDeviceType>) {
     need_dup = false;
@@ -569,6 +561,8 @@ void PairDispersionD3Kokkos<DeviceType>::launch_kernel_A(EV_FLOAT &ev)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 template<int NEIGHFLAG>
 void PairDispersionD3Kokkos<DeviceType>::dispatch_kernel_A(EV_FLOAT &ev)
@@ -581,6 +575,8 @@ void PairDispersionD3Kokkos<DeviceType>::dispatch_kernel_A(EV_FLOAT &ev)
     else        launch_kernel_A<NEIGHFLAG, 0, 0>(ev);
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
@@ -613,6 +609,8 @@ void PairDispersionD3Kokkos<DeviceType>::launch_kernel_B(EV_FLOAT &ev)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 template<int NEIGHFLAG>
 void PairDispersionD3Kokkos<DeviceType>::dispatch_kernel_B(EV_FLOAT &ev)
@@ -626,11 +624,9 @@ void PairDispersionD3Kokkos<DeviceType>::dispatch_kernel_B(EV_FLOAT &ev)
   }
 }
 
-
 /* ----------------------------------------------------------------------
    Communication section
 ------------------------------------------------------------------------- */
-
 
 template<class DeviceType>
 int PairDispersionD3Kokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
@@ -654,6 +650,8 @@ int PairDispersionD3Kokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdu
   return n;
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 void PairDispersionD3Kokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first, DAT::tdual_double_1d &buf)
 {
@@ -674,6 +672,8 @@ void PairDispersionD3Kokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int f
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 template <class DeviceType>
 int PairDispersionD3Kokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first, DAT::tdual_double_1d &buf)
 {
@@ -692,6 +692,8 @@ int PairDispersionD3Kokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int firs
   }
   return n;
 }
+
+/* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
 void PairDispersionD3Kokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_int_1d k_recvlist, DAT::tdual_double_1d &buf)
@@ -745,6 +747,8 @@ int PairDispersionD3Kokkos<DeviceType>::pack_forward_comm(int n, int *list, doub
   return m;
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 void PairDispersionD3Kokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
@@ -769,6 +773,8 @@ void PairDispersionD3Kokkos<DeviceType>::unpack_forward_comm(int n, int first, d
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 int PairDispersionD3Kokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
@@ -786,6 +792,8 @@ int PairDispersionD3Kokkos<DeviceType>::pack_reverse_comm(int n, int first, doub
   }
   return m;
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairDispersionD3Kokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)

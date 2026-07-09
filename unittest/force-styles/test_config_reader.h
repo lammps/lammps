@@ -66,7 +66,13 @@ public:
     void run_energy(const yaml_event_t &event);
     void global_scalar(const yaml_event_t &event);
     void global_vector(const yaml_event_t &event);
+    void global_array(const yaml_event_t &event);
+    void peratom_data(const yaml_event_t &event);
+    void local_data(const yaml_event_t &event);
     void tags(const yaml_event_t &event);
+
+private:
+    void parse_rows(const yaml_event_t &event, std::vector<std::vector<double>> &rows);
 };
 
 #endif

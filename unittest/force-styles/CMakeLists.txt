@@ -255,6 +255,26 @@ foreach(TEST ${MIN_STYLE_TESTS})
   set_tests_properties(${TNAME} PROPERTIES LABELS "${TEST_TAGS}")
 endforeach()
 
+# tester for output data of compute and fix styles
+add_executable(test_output_style test_output_style.cpp)
+target_link_libraries(test_output_style PRIVATE lammps style_tests)
+target_include_directories(test_output_style PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
+
+# tests for the output data of compute styles and of reporting fixes
+file(GLOB OUTPUT_STYLE_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS
+     ${TEST_INPUT_FOLDER}/compute-*.yaml ${TEST_INPUT_FOLDER}/fix-output-*.yaml)
+foreach(TEST ${OUTPUT_STYLE_TESTS})
+  string(REGEX REPLACE "^.*tests.(.*)\.yaml" "OutputStyle:\\1" TNAME ${TEST})
+  extract_tags(TEST_TAGS ${TEST})
+  list(FIND TEST_TAGS "no${CMAKE_SYSTEM_NAME}" _SKIPME)
+  if(_SKIPME GREATER_EQUAL 0)
+    continue()
+  endif()
+  add_test(NAME ${TNAME} COMMAND test_output_style ${TEST})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "${FORCE_TEST_ENVIRONMENT}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "${TEST_TAGS}")
+endforeach()
+
 # dihedral style tester
 add_executable(test_dihedral_style test_dihedral_style.cpp)
 target_link_libraries(test_dihedral_style PRIVATE lammps style_tests)

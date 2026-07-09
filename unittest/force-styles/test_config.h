@@ -70,6 +70,11 @@ public:
     stress_t run_stress;
     double global_scalar;
     std::vector<double> global_vector;
+    // reference data for the output-style tester (test_output_style):
+    // global array, per-atom data (first column = atom tag), local data
+    std::vector<std::vector<double>> global_array;
+    std::vector<std::vector<double>> peratom_data;
+    std::vector<std::vector<double>> local_data;
     std::vector<coord_t> init_forces;
     std::vector<coord_t> run_forces;
     std::vector<coord_t> run_pos;
@@ -101,6 +106,9 @@ public:
         dihedral_coeff.clear();
         improper_coeff.clear();
         extract.clear();
+        global_array.clear();
+        peratom_data.clear();
+        local_data.clear();
         init_forces.clear();
         run_forces.clear();
         run_pos.clear();

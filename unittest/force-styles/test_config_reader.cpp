@@ -62,6 +62,9 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
 
     consumers["global_scalar"] = &TestConfigReader::global_scalar;
     consumers["global_vector"] = &TestConfigReader::global_vector;
+    consumers["global_array"]  = &TestConfigReader::global_array;
+    consumers["peratom_data"]  = &TestConfigReader::peratom_data;
+    consumers["local_data"]    = &TestConfigReader::local_data;
 
     consumers["bond_style"]     = &TestConfigReader::bond_style;
     consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
@@ -442,6 +445,39 @@ void TestConfigReader::global_vector(const yaml_event_t &event)
         data >> value;
         config.global_vector.push_back(value);
     }
+}
+
+
+void TestConfigReader::parse_rows(const yaml_event_t &event,
+                                  std::vector<std::vector<double>> &rows)
+{
+    std::stringstream data((char *)event.data.scalar.value);
+    std::string line;
+    rows.clear();
+
+    while (std::getline(data, line, '\n')) {
+        std::stringstream item(line);
+        std::vector<double> row;
+        double value;
+        while (item >> value)
+            row.push_back(value);
+        if (!row.empty()) rows.push_back(row);
+    }
+}
+
+void TestConfigReader::global_array(const yaml_event_t &event)
+{
+    parse_rows(event, config.global_array);
+}
+
+void TestConfigReader::peratom_data(const yaml_event_t &event)
+{
+    parse_rows(event, config.peratom_data);
+}
+
+void TestConfigReader::local_data(const yaml_event_t &event)
+{
+    parse_rows(event, config.local_data);
 }
 
 void TestConfigReader::tags(const yaml_event_t &event)

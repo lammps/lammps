@@ -81,7 +81,7 @@ void PairDispersionD3OMP::calc_coordination_number()
 
   // Begin parallel region, the central atoms indexed by ii are assigned to different threads.
   #if defined(_OPENMP)
-  #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED() \
+  #pragma omp parallel LMP_DEFAULT_NONE \
   firstprivate(inum,nthreads)
   #endif
   {

@@ -262,7 +262,7 @@ firstprivate(inum,nthreads,nall)
 
 /* ----------------------------------------------------------------------
    Modified from serial code to avoid race conditions
-   ---------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void PairDispersionD3OMP::get_dC6(int iat, int jat, double cni, double cnj, double c6_res[3])
 {

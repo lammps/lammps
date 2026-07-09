@@ -382,10 +382,13 @@ accelerated styles exist.
 * :doc:`qeq/dynamic <fix_qeq>` - charge equilibration via dynamic method
 * :doc:`qeq/fire <fix_qeq>` - charge equilibration via FIRE minimizer
 * :doc:`qeq/point <fix_qeq>` - charge equilibration via point method
+* :doc:`qeq/point/xlmd <fix_qeq>` - charge equilibration via point method with extended-Lagrangian propagation
 * :doc:`qeq/reaxff <fix_qeq_reaxff>` - charge equilibration for ReaxFF potential
 * :doc:`qeq/rel/reaxff <fix_qeq_rel_reaxff>` - charge equilibration for ReaxFF potential with alternate efield implementation
 * :doc:`qeq/shielded <fix_qeq>` - charge equilibration via shielded method
+* :doc:`qeq/shielded/xlmd <fix_qeq>` - charge equilibration via shielded method with extended-Lagrangian propagation
 * :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method
+* :doc:`qeq/slater/xlmd <fix_qeq>` - charge equilibration via Slater method with extended-Lagrangian propagation
 * :doc:`qmmm <fix_qmmm>` - functionality to enable a quantum mechanics/molecular mechanics coupling
 * :doc:`qtb <fix_qtb>` - implement quantum thermal bath scheme
 * :doc:`qtpie/reaxff <fix_qtpie_reaxff>` - apply QTPIE charge equilibration

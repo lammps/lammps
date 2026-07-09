@@ -36,6 +36,7 @@
 #include <cstdlib>  // for setenv
 #include <cstring>
 #include <unordered_map>
+#include <vector>
 
 #include "omp_compat.h"
 
@@ -122,7 +123,7 @@ void PairDispersionD3OMP::eval_coordination(int iifrom, int iito, ThrData * cons
   const int * const * const firstneigh = list->firstneigh;
 
   // Thread-local cn array to avoid race conditions
-  double *thr_cn = new double[atom->nmax]();  // Initialize to zero
+  auto thr_cn = std::vector<double>(atom->nmax);  // Initialize to zero
 
   for (int ii = iifrom; ii < iito; ii++) {
 
@@ -163,7 +164,6 @@ void PairDispersionD3OMP::eval_coordination(int iifrom, int iito, ThrData * cons
     #pragma omp atomic
     cn[i] += thr_cn[i];
   }
-  delete[] thr_cn;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -341,7 +341,7 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
   double evdwl = 0.0;
 
   // Thread-local dc6 array to avoid race conditions
-  double *thr_dc6 = new double[atom->nmax]();  // Initialize to zero. Consider if we can dodge this.
+  auto thr_dc6 = std::vector<double>(atom->nmax);  // Initialize to zero.
 
   // Loop over assigned atoms
   for (int ii = iifrom; ii < iito; ++ii) {
@@ -525,8 +525,6 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
     #pragma omp atomic
     dc6[i] += thr_dc6[i];
   }
-
-  delete[] thr_dc6;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -248,7 +248,11 @@ given by
 
 .. math::
 
-   -\sum_i m_i v_{i,a} v_{i,b} W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
+   -\sum_i m_i (v_{i,a} - v_{\mathrm{chunk},a}) (v_{i,b} - v_{\mathrm{chunk},b}) W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
+
+where :math:`v_{i,a}` is the :math:`a`-th component of the velocity of atom :math:`i` and
+:math:`v_{\mathrm{chunk},a}` is the :math:`a`-th component of the average velocity
+of the chunk defined by the *velocity* option above.
 
 The *stress/contacts* field is the contact force contribution to the stress
 and is given by
@@ -284,10 +288,10 @@ The *temperature* is a measure of the local granular temperature calculated as
 
 .. math::
 
-   \sum_i m_i (v_{i,a} - v_c{a})^2 W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
+   \sum_i m_i (v_{i,a} - v_{\mathrm{chunk},a})^2 W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
 
-where :math:`v_c` is the average velocity of the chunk defined by the *velocity*
-option above.
+where :math:`v_{\mathrm{chunk},a}` is the :math:`a`-th component of the average velocity
+of the chunk defined by the *velocity* option above.
 
 
 ----------

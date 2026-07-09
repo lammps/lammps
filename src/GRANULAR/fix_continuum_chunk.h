@@ -39,11 +39,16 @@ class FixContinuumChunk : public Fix {
  private:
   std::vector<std::pair<int, int>> values;
   std::vector<std::string> labels;
-  std::vector<std::tuple<int, int, int>> stencil;
 
-  int dim, bin_dim, pstyle, calculate_pair, calculate_grad;
+  struct StencilOffset {
+    int dn[3];     // index shifts along chunk axes 0, 1, 2
+    double dx[3];  // displacement shifts along spatial axes x, y, z
+  };
+  std::vector<StencilOffset> stencil;
+
+  int dim, bin_dim, pstyle, calculate_pair, calculate_2_loops;
   int boundary_group_flag, boundary_groupbit;
-  int index_temp, index_density, index_momentum[3], index_velocity[3], index_vgrad[3][3];
+  int index_density, index_momentum[3], index_velocity[3], index_vgrad[3][3];
   double w_cut, w_cut_sq, w_sd, w_sd_sq, w_scale, w_offset;
 
   int nvalues, nskip, nrepeat, nfreq, irepeat;
@@ -76,8 +81,8 @@ class FixContinuumChunk : public Fix {
   double *count_total, **count_list;
   double **values_total, ***values_list;
 
-  double *density_one, *density_sum_now;
-  double **momentum_one, **momentum_sum_now;
+  double *density_one, *density_sum;
+  double **momentum_one, **momentum_sum;
 
   void allocate();
   bigint nextvalid();
@@ -85,7 +90,7 @@ class FixContinuumChunk : public Fix {
   inline double calc_w_int(double*, double*) const;
   void add_tensor_component(char *, int);
   void add_vector_component(char *, int);
-  int stencil_to_index(int, int, int, int) const;
+  int shifted_bin(int, int *) const;
   void build_stencil();
 };
 

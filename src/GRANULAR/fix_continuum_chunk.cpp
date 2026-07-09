@@ -55,6 +55,8 @@ enum { SAMPLE, ALL };
 enum { NOSCALE, ATOM };
 enum { ONE, RUNNING, WINDOW };
 
+// Todo: Check boundary, kernel cut > chunk cut, stress, gran temp
+
 static const char cite_continuum[] =
     "Coarse-graining procedure: doi:10.1007/s10035-010-0181-z\n\n"
     "@Article{Goldhirsch2010,\n"
@@ -98,18 +100,16 @@ inline double FixContinuumChunk::calc_w_int(double *dr, double *rij) const
   double tmp = dr_dot_rij * dr_dot_rij - dr_sq * rij_sq + rij_sq * w_cut_sq;
   if (tmp < 0.0) return 0.0;
   tmp = sqrt(tmp);
-  double smin = MAX(0.0, (-dr_dot_rij - tmp) / rij_sq);
-  double smax = MIN(1.0, (-dr_dot_rij + tmp) / rij_sq);
+  double smin = MAX(0.0, (dr_dot_rij - tmp) / rij_sq);
+  double smax = MIN(1.0, (dr_dot_rij + tmp) / rij_sq);
 
   if (smin >= 1.0 || smax <= 0.0)
     return 0.0;
 
   double rij_mag = sqrt(rij_sq);
   tmp = MY_SQRT2 * rij_mag * w_sd;
-  double w_int = erf((rij_sq * smax + dr_dot_rij) / tmp) - erf((rij_sq * smin + dr_dot_rij) / tmp);
-  double w_int1 = w_int;
+  double w_int = erf((rij_sq * smax - dr_dot_rij) / tmp) - erf((rij_sq * smin - dr_dot_rij) / tmp);
   w_int *= exp((dr_dot_rij * dr_dot_rij - dr_sq * rij_sq) / (tmp * tmp));
-  double w_int2 = w_int;
   w_int *= sqrt(0.5 * MY_PI) * w_sd / rij_mag;
 
   return w_scale * w_int - w_offset * (smax - smin);
@@ -121,8 +121,8 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), nvalues(0), nrepeat(0), fp(nullptr), idchunk(nullptr), varatom(nullptr),
     count_one(nullptr), count_many(nullptr), count_sum(nullptr), values_one(nullptr),
     values_many(nullptr), values_sum(nullptr), count_total(nullptr), count_list(nullptr),
-    values_total(nullptr), values_list(nullptr), density_one(nullptr), density_sum_now(nullptr),
-    momentum_one(nullptr), momentum_sum_now(nullptr)
+    values_total(nullptr), values_list(nullptr), density_one(nullptr), density_sum(nullptr),
+    momentum_one(nullptr), momentum_sum(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix continuum/chunk", error);
 
@@ -144,9 +144,8 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
   int need_velocity = 0;
   int need_vgrad = 0;
   calculate_pair = 0;
-  calculate_grad = 0;
+  calculate_2_loops = 0;
   index_density = -1;
-  index_temp = -1;
   for (int a = 0; a < 3; a++) {
     index_momentum[a] = -1;
     index_velocity[a] = -1;
@@ -179,26 +178,32 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (utils::strmatch(arg[iarg], "^momentum/grad/")) {
       add_tensor_component(arg[iarg], MGRAD);
       need_momentum = 1;
-      calculate_grad = 1;
+      calculate_2_loops = 1;
     } else if (utils::strmatch(arg[iarg], "^velocity/grad/")) {
       add_tensor_component(arg[iarg], VGRAD);
       need_density = 1;
       need_momentum = 1;
       need_velocity = 1;
-      calculate_grad = 1;
+      calculate_2_loops = 1;
     } else if (utils::strmatch(arg[iarg], "^strain/rate/")) {
       add_tensor_component(arg[iarg], STRAINRATE);
       need_density = 1;
       need_momentum = 1;
       need_velocity = 1;
       need_vgrad = 1;
-      calculate_grad = 1;
+      calculate_2_loops = 1;
     } else if (utils::strmatch(arg[iarg], "^stress/.$") ||
                utils::strmatch(arg[iarg], "^stress/..$")) {
       add_tensor_component(arg[iarg], STRESS);
       calculate_pair = 1;
+      need_density = 1;
+      need_momentum = 1;
+      calculate_2_loops = 1;
     } else if (utils::strmatch(arg[iarg], "^stress/ke/")) {
       add_tensor_component(arg[iarg], STRESSKE);
+      need_density = 1;
+      need_momentum = 1;
+      calculate_2_loops = 1;
     } else if (utils::strmatch(arg[iarg], "^stress/contacts/")) {
       add_tensor_component(arg[iarg], STRESSCON);
       calculate_pair = 1;
@@ -211,9 +216,9 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "temperature") == 0) {
       values.push_back(std::make_pair(TEMPERATURE, -1));
       labels.push_back("temperature");
-      index_temp = values.size() - 1;
       need_density = 1;
       need_momentum = 1;
+      calculate_2_loops = 1;
     } else {
       break;
     }
@@ -507,9 +512,9 @@ FixContinuumChunk::~FixContinuumChunk()
   memory->destroy(values_list);
 
   memory->destroy(density_one);
-  memory->destroy(density_sum_now);
+  memory->destroy(density_sum);
   memory->destroy(momentum_one);
-  memory->destroy(momentum_sum_now);
+  memory->destroy(momentum_sum);
 
   // decrement lock counter in compute chunk/atom, it if still exists
 
@@ -703,11 +708,11 @@ void FixContinuumChunk::end_of_step()
   // sum within each chunk, only include atoms in fix group
   // compute/fix/variable may invoke computes so wrap with clear/add
 
-  int a, b, dx, dy, dz, itype, style, component, field_index, jboundary;
+  int a, b, itype, style, component, field_index, jboundary;
   double w, wc, mi, voli, r, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair;
   double f_norm, w_int_tmp;
   double coordx[3], xbin0[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3];
-  double dx_pair[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3];
+  double dx_pair[3], dx_pair_filtered[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -767,14 +772,12 @@ void FixContinuumChunk::end_of_step()
         voli *= 4.0 * THIRD * radius[i];
 
       for (auto &stencil_offset : stencil) {
-        dx = std::get<0>(stencil_offset);
-        dy = std::get<1>(stencil_offset);
-        dz = std::get<2>(stencil_offset);
-        xbin[0] = xbin0[0] + dx * delta[0];
-        xbin[1] = xbin0[1] + dy * delta[1];
-        xbin[2] = xbin0[2] + dz * delta[2];
+        xbin[0] = xbin0[0] + stencil_offset.dx[0];
+        xbin[1] = xbin0[1] + stencil_offset.dx[1];
+        xbin[2] = xbin0[2] + stencil_offset.dx[2];
 
-        mtmp = stencil_to_index(m, dx, dy, dz);
+        mtmp = shifted_bin(m, stencil_offset.dn);
+        if (mtmp == -1) continue; // skip contributions outside of box
 
         MathExtra::sub3(x[i], xbin, dx_atom_bin);
         rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
@@ -798,8 +801,6 @@ void FixContinuumChunk::end_of_step()
             values_one[mtmp][field_index] += voli * w;
           } else if (style == MOMENTUM) {
             values_one[mtmp][field_index] += mi * v[i][component] * w;
-          } else if (style == STRESS || style == STRESSKE) {
-            values_one[mtmp][field_index] -= mi * v[i][a] * v[i][b] * w;
           }
 
           // Fix boundary corrections from Weinhart et al. 2012
@@ -807,8 +808,8 @@ void FixContinuumChunk::end_of_step()
             for (auto wall_fix : wall_fixes) {
               array_atom_fix = wall_fix->array_atom;
 
-              // Skip if not in contact
-              if (array_atom_fix[i][0] != 1.0) continue;
+              // Skip if not in contact with any wall (with some give for rounding)
+              if (array_atom_fix[i][0] < 0.5) continue;
               f_wall[0] = array_atom_fix[i][1];
               f_wall[1] = array_atom_fix[i][2];
               f_wall[2] = array_atom_fix[i][3];
@@ -835,7 +836,7 @@ void FixContinuumChunk::end_of_step()
             j = jlist[jj];
             j &= NEIGHMASK;
 
-            if (!mask[j] & groupbit) continue;
+            if (!(mask[j] & groupbit)) continue;
 
             if (boundary_group_flag && (mask[j] & boundary_groupbit))
               jboundary = 1;
@@ -871,16 +872,15 @@ void FixContinuumChunk::end_of_step()
               MathExtra::sub3(xbin2, xcont, dx_bin_cont);
 
               rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
-              //if (rsq_cont_bin > w_cut_sq)
-              //  continue;
-
-              // May not need both kernel + line integral, but only on boundaries
-              wc = calc_w(sqrt(rsq_cont_bin));
+              wc = calc_w(sqrt(rsq_cont_bin)); // used below
 
               MathExtra::sub3(x[i], xcont, dx_atom_cont); // a in Weinhart et al.
               w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont);
             } else {
-              w_int_tmp = calc_w_int(dx_atom_bin, dx_pair);
+              MathExtra::zero3(dx_pair_filtered);
+              for (int coord = 0; coord < ncoord; coord++)
+                dx_pair_filtered[cdim[coord]] = dx_pair[cdim[coord]];
+              w_int_tmp = calc_w_int(dx_atom_bin, dx_pair_filtered);
             }
 
             field_index = 0;
@@ -891,18 +891,19 @@ void FixContinuumChunk::end_of_step()
               a = component % 3;
               b = (component - a) / 3;
 
+              // Factors of 1/2 b/c this is a full nlist EXCEPT for boundary which filters if one atom is a boundary
               if (style == STRESS || style == STRESSCON) {
                 if (jboundary) {
-                  values_one[mtmp][field_index] -= f_pair[a] * dx_atom_cont[b] * w_int_tmp;
+                  values_one[mtmp][field_index] -= 0.5 * f_pair[a] * dx_atom_cont[b] * w_int_tmp;
                 } else {
-                  values_one[mtmp][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
+                  values_one[mtmp][field_index] -= 0.5 * f_pair[a] * dx_pair[b] * w_int_tmp;
                 }
               } else if (style == IFD) {
                 if (!jboundary) continue;
                 values_one[mtmp][field_index] -= f_pair[a] * wc;
               } else if (style == FABRIC) {
                 if (jboundary) continue;
-                values_one[mtmp][field_index] += voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
+                values_one[mtmp][field_index] += 0.5 * voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
               }
 
               field_index++;
@@ -913,9 +914,9 @@ void FixContinuumChunk::end_of_step()
     }
   }
 
-  // Calculate nontrivially derived values that require an intermediate MPI call
+  // Calculate nontrivially derived values that require a second MPI call
 
-  if (index_temp != -1) {
+  if (calculate_2_loops) {
 
     // Copy intermediate values and sum across processors (will repeat later)
     for (m = 0; m < nchunk; m++) {
@@ -929,16 +930,15 @@ void FixContinuumChunk::end_of_step()
       }
     }
 
-    MPI_Allreduce(&density_one[0], &density_sum_now[0], nchunk,
+    MPI_Allreduce(&density_one[0], &density_sum[0], nchunk,
                 MPI_DOUBLE, MPI_SUM, world);
-    MPI_Allreduce(&momentum_one[0][0], &momentum_sum_now[0][0], nchunk * 3,
+    MPI_Allreduce(&momentum_one[0][0], &momentum_sum[0][0], nchunk * 3,
                 MPI_DOUBLE, MPI_SUM, world);
 
     double dtemp, vtemp[3];
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit && ichunk[i] > 0) {
         m = ichunk[i] - 1;
-
 
         // x[i] is default so won't contribute unless binned in that coord
         MathExtra::copy3(x[i], xbin0);
@@ -952,21 +952,19 @@ void FixContinuumChunk::end_of_step()
         }
 
         for (auto &stencil_offset : stencil) {
-          dx = std::get<0>(stencil_offset);
-          dy = std::get<1>(stencil_offset);
-          dz = std::get<2>(stencil_offset);
-          xbin[0] = xbin0[0] + dx * delta[0];
-          xbin[1] = xbin0[1] + dy * delta[1];
-          xbin[2] = xbin0[2] + dz * delta[2];
+          xbin[0] = xbin0[0] + stencil_offset.dx[0];
+          xbin[1] = xbin0[1] + stencil_offset.dx[1];
+          xbin[2] = xbin0[2] + stencil_offset.dx[2];
 
-          mtmp = stencil_to_index(m, dx, dy, dz);
+          mtmp = shifted_bin(m, stencil_offset.dn);
+          if (mtmp == -1) continue; // skip contributions outside of box
 
           MathExtra::sub3(x[i], xbin, dx_atom_bin);
           rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
           w = calc_w(sqrt(rsq_atom_bin));
 
-          dtemp = density_one[m];
-          MathExtra::copy3(momentum_one[m], vtemp);
+          dtemp = density_sum[m];
+          MathExtra::copy3(momentum_sum[m], vtemp);
           if (dtemp != 0.0)
             MathExtra::scale3(1.0 / dtemp, vtemp);
 
@@ -975,7 +973,22 @@ void FixContinuumChunk::end_of_step()
           if (rmass) mi = rmass[i];
           else mi = mass[itype];
 
-          values_one[mtmp][index_temp] += 0.5 * mi * MathExtra::lensq3(vtemp) * w;
+          field_index = 0;
+          for (auto &val : values) {
+            style = val.first;
+            component = val.second;
+
+            a = component % 3;
+            b = (component - a) / 3;
+
+            if (style == TEMPERATURE) {
+              values_one[mtmp][field_index] += 0.5 * mi * MathExtra::lensq3(vtemp) * w;
+            } else if (style == STRESS || style == STRESSKE) {
+              values_one[mtmp][field_index] -= mi * vtemp[a] * vtemp[b] * w;
+            }
+
+            field_index++;
+          }
         }
       }
     }
@@ -1043,7 +1056,7 @@ void FixContinuumChunk::end_of_step()
   }
 
   // gradients
-  int shift[3], m1, m2;
+  int shift[3], mp, mm;
   for (m = 0; m < nchunk; m++) {
     field_index = 0;
     for (auto &val : values) {
@@ -1054,21 +1067,21 @@ void FixContinuumChunk::end_of_step()
 
       shift[0] = shift[1] = shift[2] = 0;
       shift[a] = 1;
-
-      m1 = stencil_to_index(m, shift[0], shift[1], shift[2]);
-      m2 = stencil_to_index(m, -shift[0], -shift[1], -shift[2]);
+      mp = shifted_bin(m, shift);
+      shift[a] = -1;
+      mm = shifted_bin(m, shift);
 
       // Zero evaluation on boundaries
-      if (m1 == -1 || m2 == -1) {
+      if (mp == -1 || mm == -1) {
         values_sum[m][field_index] = 0.0;
         field_index++;
         continue;
       }
 
       if (style == MGRAD) {
-        values_sum[m][field_index] = (values_sum[m1][index_momentum[b]] - values_sum[m2][index_momentum[b]]) / (2.0 * delta[a]);
+        values_sum[m][field_index] = (values_sum[mp][index_momentum[b]] - values_sum[mm][index_momentum[b]]) / (2.0 * delta[a]);
       } else if (style == VGRAD) {
-        values_sum[m][field_index] = (values_sum[m1][index_velocity[b]] - values_sum[m2][index_velocity[b]]) / (2.0 * delta[a]);
+        values_sum[m][field_index] = (values_sum[mp][index_velocity[b]] - values_sum[mm][index_velocity[b]]) / (2.0 * delta[a]);
       }
 
       field_index++;
@@ -1267,11 +1280,11 @@ void FixContinuumChunk::allocate()
     memory->grow(values_sum, nchunk, nvalues, "continuum/chunk:values_sum");
     memory->grow(values_total, nchunk, nvalues, "continuum/chunk:values_total");
 
-    if (calculate_grad) {
+    if (calculate_2_loops) {
       memory->grow(momentum_one, nchunk, 3, "continuum/chunk:momentum_one");
-      memory->grow(momentum_sum_now, nchunk, 3, "continuum/chunk:momentum_sum_now");
+      memory->grow(momentum_sum, nchunk, 3, "continuum/chunk:momentum_sum");
       memory->grow(density_one, nchunk, "continuum/chunk:density_one");
-      memory->grow(density_sum_now, nchunk, "continuum/chunk:density_sum_now");
+      memory->grow(density_sum, nchunk, "continuum/chunk:density_sum");
     }
 
     // only allocate count and values list for ave = WINDOW
@@ -1440,22 +1453,25 @@ void FixContinuumChunk::add_vector_component(char *option, int variable)
     labels.push_back(option);
     if (variable == MOMENTUM)
         index_momentum[index] = values.size() - 1;
+    if (variable == VELOCITY)
+        index_velocity[index] = values.size() - 1;
   }
 }
 
 /* ----------------------------------------------------------------------*/
 
-int FixContinuumChunk::stencil_to_index(int origin_bin, int dx, int dy, int dz) const
+int FixContinuumChunk::shifted_bin(int origin_bin, int *dn) const
 {
   int x[3];
+  int *chunk_dim = cchunk->get_dim();
+  int ncoord = cchunk->ncoord;
 
-  x[0] = origin_bin % (nlayers[0]) + dx;
-  x[1] = (origin_bin % (nlayers[0] * nlayers[1])) / nlayers[0] + dy;
-  x[2] = origin_bin / (nlayers[0] * nlayers[1]) + dz;
+  x[0] = origin_bin % nlayers[0] + dn[0];
+  x[1] = (origin_bin % (nlayers[0] * nlayers[1])) / nlayers[0] + dn[1];
+  x[2] = origin_bin / (nlayers[0] * nlayers[1]) + dn[2];
 
-  // Wrap at PBC if relevant
-  for (int a = 0; a < 3; a++) {
-    if (!domain->periodicity[a]) {
+  for (int a = 0; a < ncoord; a++) {
+    if (!domain->periodicity[chunk_dim[a]]) {
       if (x[a] < 0 || x[a] >= nlayers[a])
         return -1;
       continue;
@@ -1466,7 +1482,7 @@ int FixContinuumChunk::stencil_to_index(int origin_bin, int dx, int dy, int dz) 
 
   int new_bin = x[0] + x[1] * nlayers[0] + x[2] * nlayers[0] * nlayers[1];
   if (new_bin < 0 || new_bin >= nchunk)
-    error->one(FLERR, "Bad chunk index %d shifted by %d %d %d\n", origin_bin, dx, dy, dz);
+    error->one(FLERR, "Bad chunk index %d shifted by %d %d %d\n", origin_bin, dn[0], dn[1], dn[2]);
 
   return new_bin;
 }
@@ -1475,34 +1491,42 @@ int FixContinuumChunk::stencil_to_index(int origin_bin, int dx, int dy, int dz) 
 
 void FixContinuumChunk::build_stencil()
 {
-
-  // calculate stencil
   stencil.clear();
   int stencil_size[3] = {0, 0, 0};
-  double width[3], nchunkmax;
+  double width[3] = {0.0, 0.0, 0.0};
 
   nlayers = cchunk->get_nlayers();
   double *delta = cchunk->get_delta();
-  int *cdim = cchunk->get_dim();
+  int *chunk_dim = cchunk->get_dim();
   int reducedflag = cchunk->get_reducedflag();
   int ncoord = cchunk->ncoord;
 
-  MathExtra::copy3(delta, width);
-  if (reducedflag)
-    for (int a = 0; a < ncoord; a++) width[cdim[a]] *= domain->prd[cdim[a]];
+  for (int a = 0; a < ncoord; a++) {
+    width[a] = delta[a];
+    if (reducedflag) {
+      width[a] *= domain->prd[chunk_dim[a]];
+    }
+    stencil_size[a] = ceil(w_cut / width[a]);
+  }
 
-  for (int a = 0; a < ncoord; a++)
-    stencil_size[cdim[a]] = ceil(w_cut / width[cdim[a]]);
+  for (int dn0 = -stencil_size[0]; dn0 <= stencil_size[0]; dn0++) {
+    for (int dn1 = -stencil_size[1]; dn1 <= stencil_size[1]; dn1++) {
+      for (int dn2 = -stencil_size[2]; dn2 <= stencil_size[2]; dn2++) {
 
-  for (int nx = -stencil_size[0]; nx <= stencil_size[0]; nx++) {
-    for (int ny = -stencil_size[1]; ny <= stencil_size[1]; ny++) {
-      for (int nz = -stencil_size[2]; nz <= stencil_size[2]; nz++) {
-        double dx = nx * width[0];
-        double dy = ny * width[1];
-        double dz = nz * width[2];
-        double r_sq = dx*dx + dy*dy + dz*dz;
+        StencilOffset offset;
+        offset.dx[0] = 0.0;
+        offset.dx[1] = 0.0;
+        offset.dx[2] = 0.0;
+        if (ncoord >= 1) offset.dx[chunk_dim[0]] = dn0 * width[0];
+        if (ncoord >= 2) offset.dx[chunk_dim[1]] = dn1 * width[1];
+        if (ncoord >= 3) offset.dx[chunk_dim[2]] = dn2 * width[2];
+
+        double r_sq = MathExtra::lensq3(offset.dx);
         if (r_sq <= w_cut_sq) {
-          stencil.push_back(std::tuple<int,int,int>(nx,ny,nz));
+          offset.dn[0] = dn0;
+          offset.dn[1] = dn1;
+          offset.dn[2] = dn2;
+          stencil.push_back(offset);
         }
       }
     }

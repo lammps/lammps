@@ -3637,9 +3637,8 @@ void FixSurfaceGlobal::walk_connections2d(std::vector<int> &composite_surfs, std
   std::set<int> to_add;
 
   // Find next closest surface
-  int j, n;
-  for (n = 0; n < contact_surfs.size(); n++) {
-    j = contact_surfs[n].index;
+  for (std::size_t n = 0; n < contact_surfs.size(); n++) {
+    auto j = contact_surfs[n].index;
 
     if (processed_contacts.find(j) == processed_contacts.end()) {
       to_walk.insert(j);
@@ -3647,7 +3646,7 @@ void FixSurfaceGlobal::walk_connections2d(std::vector<int> &composite_surfs, std
     }
   }
 
-  int k, m, jflag, aflag, fflag, nconnect, nc, contact_at_joint;
+  int j, k, m, n, jflag, aflag, fflag, nconnect, nc, contact_at_joint;
   while (!to_walk.empty()) {
     auto it = to_walk.begin();
     j = *it;

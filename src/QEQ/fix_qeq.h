@@ -43,6 +43,7 @@ class FixQEq : public Fix {
   void unpack_reverse_comm(int, int *, double *) override;
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
   double memory_usage() override;
@@ -78,6 +79,22 @@ class FixQEq : public Fix {
   double **s_hist, **t_hist;
   int nprev;
 
+  // extended-Lagrangian (XL) charge propagation for qeq/*/xlmd styles
+
+  int xl_flag;                   // 1 if this is an xlmd fix style
+  int xl_ncg;                    // CG iterations per solve in XL mode
+  int xl_kdis;                   // dissipation order (0 = plain Verlet)
+  int xl_kappa_set;              // 1 if xlkappa keyword was used
+  double xl_kappa;               // coupling constant kappa = omega^2 * dt^2
+  double xl_alpha;               // dissipation prefactor alpha
+  double xl_c[10];               // dissipation coefficients c_0 ... c_kdis
+  int xl_nhist;                  // auxiliary history depth; 0 unless xlmd style
+  int xl_nseed;                  // consecutive converged solves seeding the history
+  int xl_bypass;                 // force a fully converged solve when set
+  bigint xl_laststep;            // last step the auxiliary history was advanced
+  int imax;                      // CG iteration bound for the current solve
+  double **xls_hist, **xlt_hist; // auxiliary variable trajectories, newest first
+
   // NOLINTBEGIN
   typedef struct {
     int n, m;
@@ -108,6 +125,13 @@ class FixQEq : public Fix {
 
   void vector_sum(double *, double, double *, double, double *, int);
   void vector_add(double *, double, double *, int);
+
+  int parse_common_keyword(int, char **, int);
+  void finalize_xl();
+  int solve_st();
+  bool xl_ready() const;
+  void xl_predict();
+  void xl_update(bool);
 
   void init_storage();
   void read_file(char *);

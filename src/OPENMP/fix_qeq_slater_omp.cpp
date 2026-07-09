@@ -69,9 +69,7 @@ void FixQEqSlaterOMP::pre_force(int /*vflag*/)
   }
 
   init_matvec_thr();
-  matvecs = CG(b_s, s);
-  matvecs += CG(b_t, t);
-  matvecs /= 2;
+  matvecs = solve_st();
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();

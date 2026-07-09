@@ -142,7 +142,9 @@ static OutputData collect_fix(Fix *ifix, Atom *atom)
         for (int i = 0; i < ifix->size_vector; ++i)
             data.vector.push_back(ifix->compute_vector(i));
     }
-    if (ifix->array_flag && !ifix->size_array_rows_variable) {
+    if (ifix->array_flag) {
+        // for variable-size arrays (e.g. fix ave/chunk) the row count is
+        // determined by the fix during the run
         for (int i = 0; i < ifix->size_array_rows; ++i) {
             std::vector<double> row;
             for (int j = 0; j < ifix->size_array_cols; ++j)

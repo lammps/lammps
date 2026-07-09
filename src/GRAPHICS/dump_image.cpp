@@ -115,13 +115,13 @@ savedLights reset_lighting(Image *image, double ambient, double key, double fill
 void restore_lighting(const savedLights &saved, Image *image)
 {
   image->ambientColor[0] = image->ambientColor[1] = image->ambientColor[2] =
-      std::clamp(0.0, 1.0, saved.ambient);
+      std::clamp(saved.ambient, 0.0, 1.0);
   image->keyLightColor[0] = image->keyLightColor[1] = image->keyLightColor[2] =
-      std::clamp(0.0, 1.0, saved.key);
+      std::clamp(saved.key, 0.0, 1.0);
   image->fillLightColor[0] = image->fillLightColor[1] = image->fillLightColor[2] =
-      std::clamp(0.0, 1.0, saved.fill);
+      std::clamp(saved.fill, 0.0, 1.0);
   image->backLightColor[0] = image->backLightColor[1] = image->backLightColor[2] =
-      std::clamp(0.0, 1.0, saved.back);
+      std::clamp(saved.back, 0.0, 1.0);
 }
 
 }    // namespace

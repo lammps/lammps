@@ -1,0 +1,157 @@
+LAMMPS (4 Jul 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# This example demonstrates extended-Lagrangian charge equilibration
+# (fix qeq/shielded/xlmd) with pair style reaxff.
+#
+# Auxiliary charge degrees of freedom propagated alongside the atoms replace
+# the iteration to self-consistency: after a short warm-up with fully
+# converged solves, each step applies only *xlcg* (default 1) conjugate
+# gradient iterations.  The fix scalar (f_2 below) shows the number of
+# iterations per step and thus warm-up and savings directly.  Compare with
+# fix qeq/shielded (commented out below), which converges every step.
+
+units           real
+atom_style      charge
+
+read_data       data.CHO
+Reading data file ...
+  orthogonal box = (0 0 0) to (25 25 25)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  105 atoms
+  read_data CPU = 0.001 seconds
+
+pair_style      reaxff NULL checkqeq no
+pair_coeff      * * ffield.reax.cho H C O
+Reading potential file ffield.reax.cho with DATE: 2011-02-18
+
+neighbor        1 bin
+neigh_modify    every 1 delay 0 check yes
+
+variable        qtot equal charge(all)
+
+velocity        all create 300.0 1281937
+fix             1 all nve
+
+fix             2 all qeq/shielded/xlmd 1 10.0 1.0e-6 400 reaxff
+#fix             2 all qeq/shielded/xlmd 1 10.0 1.0e-6 400 reaxff xlcg 2
+#fix             2 all qeq/shielded 1 10.0 1.0e-8 400 reaxff
+
+thermo_style    custom step temp pe etotal f_2 v_qtot
+thermo          10
+timestep        0.25
+
+run             200
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair reaxff command: https://doi.org/10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ number =  {4--5},
+ pages =   {245--259}
+}
+
+- fix qeq/*/xlmd command: doi:10.1016/j.cpc.2015.02.023
+
+@Article{Nomura2015,
+ author =  {K. Nomura and P. E. Small and R. K. Kalia and A. Nakano and P. Vashishta},
+ title =   {An Extended-Lagrangian Scheme for Charge Equilibration in Reactive Molecular
+    Dynamics Simulations},
+ journal = {Computer Physics Communications},
+ year =    2015,
+ volume =  192,
+ pages =   {91--96}
+}
+
+- fix qeq/*/xlmd keyword xldamp: doi:10.1063/1.3148075
+
+@Article{Niklasson2009,
+ author =  {A. M. N. Niklasson and P. Steneteg and A. Odell and N. Bock and
+    M. Challacombe and C. J. Tymczak and E. Holmstr{\"o}m and G. Zheng and V. Weber},
+ title =   {Extended {Lagrangian} {Born--Oppenheimer} Molecular Dynamics with Dissipation},
+ journal = {Journal of Chemical Physics},
+ year =    2009,
+ volume =  130,
+ pages =   {214109}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 11
+  ghost atom cutoff = 11
+  binsize = 5.5, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/ghost/newtoff
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/shielded/xlmd, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 11.85 | 12.57 | 13.28 Mbytes
+   Step          Temp          PotEng         TotEng          f_2           v_qtot    
+         0   300           -10226.557     -10133.555      29            -1.0547119e-15
+        10   170.19475     -10186.167     -10133.406      2             -2.5812685e-15
+        20   167.22545     -10185.37      -10133.529      2              3.13638e-15  
+        30   157.01351     -10182.116     -10133.441      2              2.2759572e-15
+        40   233.84601     -10206.103     -10133.61       2              2.4147351e-15
+        50   171.20501     -10186.499     -10133.425      2              1.9428903e-16
+        60   202.50802     -10196.364     -10133.585      2             -6.9388939e-16
+        70   157.41333     -10182.254     -10133.455      2             -1.3322676e-15
+        80   197.15245     -10194.689     -10133.571      2             -1.5265567e-15
+        90   130.1674      -10173.786     -10133.434      2              2.4702462e-15
+       100   199.35288     -10195.363     -10133.562      2              2.942091e-15 
+       110   159.2365      -10182.837     -10133.473      2             -3.8857806e-16
+       120   183.07774     -10190.327     -10133.572      2              2.0816682e-15
+       130   154.14859     -10181.247     -10133.461      2             -1.4710455e-15
+       140   201.96529     -10196.2       -10133.589      2             -2.2482016e-15
+       150   146.32209     -10178.825     -10133.464      2              1.5265567e-15
+       160   185.70992     -10191.134     -10133.564      2              6.1062266e-16
+       170   160.84734     -10183.314     -10133.451      2              4.9960036e-16
+       180   211.54356     -10199.119     -10133.54       2              1.1379786e-15
+       190   133.17656     -10174.737     -10133.451      2              4.9960036e-16
+       200   185.27865     -10191.006     -10133.569      2             -3.0531133e-16
+Loop time of 0.067395 on 4 procs for 200 steps with 105 atoms
+
+Performance: 64.100 ns/day, 0.374 hours/ns, 2967.578 timesteps/s, 311.596 katom-step/s
+97.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.041536   | 0.046552   | 0.052071   |   1.7 | 69.07
+Neigh   | 0.00016583 | 0.0001773  | 0.00018917 |   0.0 |  0.26
+Comm    | 0.00098453 | 0.0065273  | 0.011517   |   4.6 |  9.69
+Output  | 0.00013494 | 0.0001515  | 0.0001919  |   0.0 |  0.22
+Modify  | 0.013673   | 0.013703   | 0.013732   |   0.0 | 20.33
+Other   |            | 0.0002839  |            |       |  0.42
+
+Nlocal:          26.25 ave          36 max          14 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+Nghost:          304.5 ave         359 max         246 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:        1019.75 ave        1516 max         384 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+FullNghs:         1257 ave        1935 max         416 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+
+Total # of neighbors = 5028
+Ave neighs/atom = 47.885714
+Neighbor list builds = 1
+Dangerous builds = 0
+Total wall time: 0:00:00

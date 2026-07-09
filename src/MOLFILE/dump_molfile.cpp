@@ -234,7 +234,8 @@ void DumpMolfile::write()
   pack(ids);
   sort();
 
-  int tmp,nlines;
+  int nlines;
+  int tmp = 0;
 
   if (me == 0) {
     MPI_Status status;

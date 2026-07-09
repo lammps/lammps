@@ -448,7 +448,7 @@ void PairRuNNer::compute(int eflag, int vflag)
         if (rank == 0) {
           // Calculate long-range electrostatics on root using the global structure.
           runner_interface_evaluate_electrostatics_3g_part_1(
-            &natoms, xyz_global.data(), &total_charge, lattice, &lperiodic, q_global.data(),
+              &natoms, xyz_global.data(), &total_charge, lattice, &lperiodic, q_global.data(),
               &runner_elec_energy, elec_force_global.data(), de_dq_global.data(),
               runner_elec_d_energy_d_strain);
         }
@@ -1053,7 +1053,7 @@ double PairRuNNer::init_one(int /*i*/, int /*j*/)
 communication between local and ghost atoms
 ------------------------------------------------------------------------- */
 
-int PairRuNNer::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairRuNNer::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, j, m = 0;
 
@@ -1213,8 +1213,9 @@ void PairRuNNer::unpack_reverse_comm(int n, int *list, double *buf)
   }
 }
 
-void PairRuNNer::pack_structure(int rank, int size, int natoms, int inum, int *ilist, tagint *tag,
-                                double **x, int *runner_types, double *xyz_global, int *z_global)
+void PairRuNNer::pack_structure(int /*rank*/, int /*size*/, int natoms, int inum, int *ilist,
+                                tagint *tag, double **x, int *runner_types, double *xyz_global,
+                                int *z_global)
 {
   int i, ii;
   int start;
@@ -1261,7 +1262,7 @@ void PairRuNNer::pack_structure(int rank, int size, int natoms, int inum, int *i
   MPI_Reduce(z_local.data(), z_global, natoms, MPI_INT, MPI_SUM, 0, world);
 }
 
-void PairRuNNer::pack_atomic_property(int rank, int size, int natoms, int inum, int *ilist,
+void PairRuNNer::pack_atomic_property(int /*rank*/, int /*size*/, int natoms, int inum, int *ilist,
                                       tagint *tag, double *local_property, double *global_property)
 {
   int i, ii;
@@ -1286,7 +1287,7 @@ void PairRuNNer::pack_atomic_property(int rank, int size, int natoms, int inum, 
   MPI_Reduce(local_property_sorted.data(), global_property, natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 }
 
-void PairRuNNer::unpack_local_atomic_properties(int rank, int size, int natoms, int inum,
+void PairRuNNer::unpack_local_atomic_properties(int /*rank*/, int /*size*/, int natoms, int inum,
                                                 int *ilist, tagint *tag, int nprop,
                                                 double *global_properties, double *local_properties)
 {

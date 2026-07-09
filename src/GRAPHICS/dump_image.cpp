@@ -1716,7 +1716,7 @@ void DumpImage::create_image()
           xmid[1] = x[atom2][1] - 0.5*dely;
           xmid[2] = x[atom2][2] - 0.5*delz;
           if (bcolor == ATOM)
-            image->draw_cylinder(xmid,x[atom2],color2,diameter,3,aopacity[type[atom1]]);
+            image->draw_cylinder(xmid,x[atom2],color2,diameter,3,aopacity[type[atom2]]);
           else image->draw_cylinder(xmid,x[atom2],color,diameter,3,bopacity[btype]);
 
         } else image->draw_cylinder(x[atom1],x[atom2],color,diameter,3,bopacity[btype]);

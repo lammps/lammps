@@ -943,7 +943,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           // virial = sum(r x F) where each water's atoms are near xi and xj
           // vlist stores 2,4,6 atoms whose forces contribute to virial
 
-          if (EVFLAG && vflag) {
+          if (EVFLAG) {
             n = 0;
             key = 0;
           }
@@ -960,11 +960,11 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] = x[i].x * dely * cforce;
               v[4] = x[i].x * delz * cforce;
               v[5] = x[i].y * delz * cforce;
-              vlist[n++] = i;
             }
+            if (EVFLAG) vlist[n++] = i;
 
           } else {
-            if (EVFLAG && vflag) key++;
+            if (EVFLAG) key++;
             fdx = delx*cforce;
             fdy = dely*cforce;
             fdz = delz*cforce;
@@ -998,6 +998,8 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] = x[i].x*fOy + xH1.x*fHy + xH2.x*fHy;
               v[4] = x[i].x*fOz + xH1.x*fHz + xH2.x*fHz;
               v[5] = x[i].y*fOz + xH1.y*fHz + xH2.y*fHz;
+            }
+            if (EVFLAG) {
               vlist[n++] = i;
               vlist[n++] = iH1;
               vlist[n++] = iH2;
@@ -1016,11 +1018,11 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] -= x[j].x * dely * cforce;
               v[4] -= x[j].x * delz * cforce;
               v[5] -= x[j].y * delz * cforce;
-              vlist[n++] = j;
             }
+            if (EVFLAG) vlist[n++] = j;
 
           } else {
-            if (EVFLAG && vflag) key += 2;
+            if (EVFLAG) key += 2;
 
             fdx = -delx*cforce;
             fdy = -dely*cforce;
@@ -1055,6 +1057,8 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] += x[j].x*fOy + xH1.x*fHy + xH2.x*fHy;
               v[4] += x[j].x*fOz + xH1.x*fHz + xH2.x*fHz;
               v[5] += x[j].y*fOz + xH1.y*fHz + xH2.y*fHz;
+            }
+            if (EVFLAG) {
               vlist[n++] = j;
               vlist[n++] = jH1;
               vlist[n++] = jH2;
@@ -1873,7 +1877,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
           // virial = sum(r x F) where each water's atoms are near xi and xj
           // vlist stores 2,4,6 atoms whose forces contribute to virial
 
-          if (EVFLAG && vflag) {
+          if (EVFLAG) {
             n = 0;
             key = 0;
           }
@@ -1890,11 +1894,11 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
               v[3] = x[i].x * dely * fvirial;
               v[4] = x[i].x * delz * fvirial;
               v[5] = x[i].y * delz * fvirial;
-              vlist[n++] = i;
             }
+            if (EVFLAG) vlist[n++] = i;
 
           } else {
-            if (EVFLAG && vflag) key += 1;
+            if (EVFLAG) key += 1;
 
             fdx = delx*cforce;
             fdy = dely*cforce;
@@ -1942,6 +1946,8 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
               v[3] = x[i].x*fOy + xH1.x*fHy + xH2.x*fHy;
               v[4] = x[i].x*fOz + xH1.x*fHz + xH2.x*fHz;
               v[5] = x[i].y*fOz + xH1.y*fHz + xH2.y*fHz;
+            }
+            if (EVFLAG) {
               vlist[n++] = i;
               vlist[n++] = iH1;
               vlist[n++] = iH2;
@@ -1960,11 +1966,11 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
               v[3] -= x[j].x * dely * fvirial;
               v[4] -= x[j].x * delz * fvirial;
               v[5] -= x[j].y * delz * fvirial;
-              vlist[n++] = j;
             }
+            if (EVFLAG) vlist[n++] = j;
 
           } else {
-            if (EVFLAG && vflag) key += 2;
+            if (EVFLAG) key += 2;
 
             fdx = -delx*cforce;
             fdy = -dely*cforce;
@@ -2012,6 +2018,8 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
               v[3] += x[j].x*fOy + xH1.x*fHy + xH2.x*fHy;
               v[4] += x[j].x*fOz + xH1.x*fHz + xH2.x*fHz;
               v[5] += x[j].y*fOz + xH1.y*fHz + xH2.y*fHz;
+            }
+            if (EVFLAG) {
               vlist[n++] = j;
               vlist[n++] = jH1;
               vlist[n++] = jH2;

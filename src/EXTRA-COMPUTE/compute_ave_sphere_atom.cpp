@@ -38,7 +38,7 @@ using MathConst::MY_PI;
 /* ---------------------------------------------------------------------- */
 
 ComputeAveSphereAtom::ComputeAveSphereAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), result(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), result(nullptr)
 {
   if (narg < 3 || narg > 5) error->all(FLERR, "Illegal compute ave/sphere/atom command");
 
@@ -62,6 +62,8 @@ ComputeAveSphereAtom::ComputeAveSphereAtom(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 3;
 
   nmax = 0;
+  cutsq = 0.0;
+  volume = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

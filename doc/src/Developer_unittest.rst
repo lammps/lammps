@@ -1287,6 +1287,143 @@ Granular Matter, 13, 643-656 (2011),
 https://doi.org/10.1007/s10035-011-0277-0
 
 
+Tests for dump image and GRAPHICS package rendering
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: TBD
+
+The ``unittest/graphics`` folder contains a YAML-driven test suite for
+the image rendering of the :doc:`dump image <dump_image>` command and
+its :doc:`dump_modify <dump_modify>` options: atom, bond, and body
+rendering, color maps, transparency, lighting, view and camera settings,
+and the drawing of simulation boxes, axes, and regions.  These tests are
+only enabled if the :ref:`GRAPHICS package <PKG-GRAPHICS>` is enabled.
+
+The ``test_dump_image`` driver renders a scene described by a YAML file
+from the ``unittest/graphics/tests`` folder and compares sampled pixel
+data of the rendered image against reference data stored directly in the
+same YAML file, so no library of reference images is needed.  The YAML
+files are registered as CTest cases by their file name (``name.yaml``
+becomes test ``GRAPHICS:name``); adding or removing a YAML file requires
+re-running CMake.  As in the granular tests, the entire scene is built
+from the YAML file: the ``setup_commands`` block contains the scene
+setup including the ``dump image`` and ``dump_modify`` commands under
+test, and the ``run_commands`` block triggers the render (usually just
+``run 0``; scenes with time-dependent features run multiple steps and
+the frame with the highest timestep number is compared).
+
+Two complementary sets of reference data are recorded for every test:
+
+- the mean red, green, and blue values of every pixel row and of every
+  pixel column of the image (``row_means`` and ``col_means``).  These
+  projections cover every pixel of the image, so any localized or
+  diffuse rendering change shows up in some row or column mean.  They
+  are compared with the absolute tolerance ``epsilon_projection``
+  (default 0.5 on the 0 to 255 color scale).
+- the mean red, green, and blue values of small pixel blocks (default
+  3x3 pixels) on a uniform grid (default stride 16 pixels), stored as
+  ``sample_blocks`` and compared with the tolerance ``epsilon_blocks``
+  (default 2.0).  Their main purpose is to localize a detected failure
+  to a position in the image.
+
+.. figure:: JPG/unittest-graphics-sampling.png
+   :align: center
+
+   The rendered image of the ``GRAPHICS:dump-image-acolor-type`` test
+   (enlarged 2x) with the sampled 3x3 pixel blocks outlined in gray.
+   The color strips on the right and below show the per-row and
+   per-column mean RGB reference data: where the peptide crosses a row
+   or column, its mean color shifts away from the background value.
+
+.. figure:: JPG/unittest-graphics-regression.png
+   :align: center
+
+   How a rendering change is detected: the reference scene (left) and
+   the same scene with one atom type recolored (right).  The sample
+   blocks whose mean color changed by more than ``epsilon_blocks`` are
+   outlined in red and localize the change; the row and column mean
+   projections (previous figure) detect it as well, in this example in
+   104 of the 200 rows and 69 of the 200 columns, including changed
+   atoms that fall between the sampled blocks.
+
+The rendering code produces bit-identical images in serial across the
+compilers and optimization levels that were tested; the tolerances above
+leave headroom for differences between math libraries.  The rendered
+image legitimately depends on the number of MPI ranks, however: pixels
+where multiple objects tie in depth composite differently, and the
+screen-space ambient occlusion (``ssao``) shading partitions its random
+number stream by rank.  Every test therefore carries an ``nprocs`` key
+with the rank count its reference data was created with: tests with
+``nprocs: 1`` run serially, tests with larger values are registered with
+the MPI launcher by CMake (and are skipped when LAMMPS was compiled
+without MPI) and exercise the parallel image compositing code.  A
+minimal test file looks like this:
+
+.. code-block:: yaml
+
+   ---
+   lammps_version: 4 Jul 2026
+   tags: graphics
+   date_generated: Thu Jul  9 14:30:45 2026
+   epsilon_projection: 0.5
+   epsilon_blocks: 2
+   nprocs: 1
+   prerequisites: |
+     atom full
+     pair lj/charmm/coul/charmm
+   setup_commands: |
+     units real
+     atom_style full
+     [...]
+     read_data ${input_dir}/data.peptide
+     group peptide type <= 12
+     dump viz peptide image 1 ${imagefile} type type size 200 200 &
+          zoom 2.15 view 80 30 center s 0.25 0.5 0.5 box no 0.0 &
+          shiny 0.2 bond atom 0.3
+     dump_modify viz backcolor gray
+   run_commands: |
+     run 0
+   image_size: 200 200
+   sampling: 3 16
+   row_means: ...      # reference data written by the generator
+   col_means: ...
+   sample_blocks: ...
+
+The image file name must be given as ``${imagefile}``: the driver
+defines this variable with a name containing the ``*`` placeholder
+required by ``dump image`` and, for the comparison, picks the written
+frame with the highest timestep number.  The variable ``${input_dir}``
+points to the ``tests`` folder, for scenes that read a data or molecule
+file.  When a comparison fails, the test keeps the rendered image next
+to the test executable as ``<name>.failed.ppm`` for visual inspection.
+
+To add a new test, copy an existing YAML file for a similar scene,
+adjust the commands, delete the reference data blocks (``row_means``,
+``col_means``, ``sample_blocks``), and (re)generate them with the same
+``-u`` (update in place) and ``-g`` (write new file) options as for the
+force-style testers, run from the build folder:
+
+.. code-block:: bash
+
+   test_dump_image path/to/new-test.yaml -u              # serial reference
+   mpirun -np 4 test_dump_image path/to/test.yaml -u     # 4-rank reference
+
+Keep the images small (about 200x200 pixels): each test then runs in
+well under a second and the reference data stays compact.  Most
+importantly, verify that the option under test actually changes the
+rendered image, because ``dump image`` options can be silently ignored
+in some combinations.  For example, ``dump_modify acolor`` has no effect
+when the dump colors atoms by element, ``dump_modify btrans`` has no
+effect when bonds are colored by atom (the two bond halves then follow
+the transparency of their atoms), and the ``autobond`` keyword draws
+nothing on a molecular system with default :doc:`special_bonds
+<special_bonds>` settings because bonded pairs are excluded from the
+neighbor list it searches.  Render the scene with and without the option
+under test and compare the two images before generating the reference
+data.  More authoring notes of this kind are collected in
+``unittest/graphics/README.md``.
+
+
 Tests for programs in the tools folder
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -211,7 +211,7 @@ void no_squish_rotate(int k, double *p, double *q, double *inertia,
 {
   double phi,c_phi,s_phi,kp[4],kq[4];
 
-  // apply permuation operator on p and q, get kp and kq
+  // apply permutation operator on p and q, get kp and kq
 
   if (k == 1) {
     kq[0] = -q[1];  kp[0] = -p[1];

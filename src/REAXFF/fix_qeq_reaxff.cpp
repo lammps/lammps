@@ -149,8 +149,15 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
+  reaxflag = 0;
+  nlevels_respa = 1;
 
   s_hist = t_hist = nullptr;
+  ilist = jlist = numneigh = nullptr;
+  firstneigh = nullptr;
+  H.n = H.m = 0;
+  H.firstnbr = H.numnbrs = H.jlist = nullptr;
+  H.val = nullptr;
   atom->add_callback(Atom::GROW);
 }
 

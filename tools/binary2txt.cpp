@@ -255,10 +255,10 @@ int main(int narg, char **arg)
 
         // extend buffer to fit chunk size
 
-        if (n > maxbuf) {
+        if ((n > maxbuf) || !buf) {
           delete[] buf;
-          buf = new double[n];
-          maxbuf = n;
+          maxbuf = (n > 0) ? n : 1;
+          buf = new double[maxbuf];
         }
 
         // read chunk and write as size_one values per line

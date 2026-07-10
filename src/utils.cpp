@@ -862,8 +862,10 @@ void utils::bounds_typelabel(const char *file, int line, const std::string &str,
   nlo = nhi = -1;
 
   // cannot check for typelabels without a LAMMPS instance or a box
-  if (!lmp || !lmp->domain->box_exist)
-    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, nullptr);
+  if (!lmp || !lmp->domain->box_exist) {
+    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, lmp ? lmp->error : nullptr);
+    return;
+  }
 
   char *typestr = nullptr;
   if ((typestr = utils::expand_type(FLERR, str, mode, lmp)))

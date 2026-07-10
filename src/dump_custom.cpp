@@ -164,6 +164,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     cols += earg[iarg];
   }
   columns_default = utils::strdup(cols);
+
+  nchoose = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1238,6 +1240,9 @@ int DumpCustom::count()
         double **darray = atom->darray[iwhich];
         ptr = &darray[0][argindex[i]-1];
         nstride = atom->dcols[iwhich];
+
+      } else {
+        error->all(FLERR, "Unknown dump_modify threshold attribute");
       }
 
       // unselect atoms that don't meet threshold criterion

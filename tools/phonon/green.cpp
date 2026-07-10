@@ -46,6 +46,7 @@ Green::Green(const int ntm, const int sdim, const int niter, const double min, c
  
    memory = new Memory();
    alpha = beta = NULL;
+   ndim = 0; dw = 0.;
    if (natom < 1 || iatom < 0 || iatom >= natom){
      printf("\nError: Wrong number of total atoms or wrong index of interested atom!\n");
      return;

@@ -39,6 +39,11 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
 {
   options(narg - 9, &arg[9]);
 
+  // defaults, overwritten during parsing below
+
+  radiuslo = radiushi = 0.0;
+  rlostyle = rhistyle = CONSTANT;
+
   // check open face settings
 
   if (openflag)
@@ -694,6 +699,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
       if (distsq < distsqprev) crad = 0;
     }
 
+    if (distsq == BIG) return 0;
     add_contact(0, x, nearest[0], nearest[1], nearest[2]);
     contact[0].radius = crad;
     contact[0].iwall = 0;
@@ -758,6 +764,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
       if (distsq < distsqprev) crad = 0;
     }
 
+    if (distsq == BIG) return 0;
     add_contact(0, x, nearest[0], nearest[1], nearest[2]);
     contact[0].radius = crad;
     contact[0].iwall = 0;

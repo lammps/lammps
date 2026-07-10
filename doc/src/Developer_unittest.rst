@@ -401,6 +401,10 @@ follow some naming conventions so they get associated with the test
 programs and categorized and listed with canonical names in the list
 of tests as displayed by ``ctest -N``.  If you add a new YAML file,
 you need to re-run CMake to update the corresponding list of tests.
+The same folder also contains two more test programs built on the same
+YAML infrastructure: one for minimizer styles and one for the output
+data of computes and fixes; they are described in their own subsections
+at the end of this section.
 
 A minimal YAML file for a (molecular) pair style test will looks
 something like the following (see ``mol-pair-zero.yaml``):
@@ -430,10 +434,12 @@ something like the following (see ``mol-pair-zero.yaml``):
 The following table describes the available keys and their purpose.  The
 ``Tester`` column lists which test program(s) use each key.  ``all`` means
 every force-style tester (``test_pair_style``, ``test_bond_style``,
-``test_angle_style``, ``test_dihedral_style``, ``test_improper_style``, and
-``test_fix_timestep``), and ``bonded interaction tests`` means the
-``test_bond_style``, ``test_angle_style``, ``test_dihedral_style``, and
-``test_improper_style`` testers.  The ``Required`` column indicates whether
+``test_angle_style``, ``test_dihedral_style``, ``test_improper_style``,
+``test_fix_timestep``, and the ``test_min_style`` and ``test_output_style``
+programs described in the subsections below), and ``bonded interaction
+tests`` means the ``test_bond_style``, ``test_angle_style``,
+``test_dihedral_style``, and ``test_improper_style`` testers.  The
+``Required`` column indicates whether
 a valid YAML file (for the listed tester) must contain the key (``yes``) or
 whether it may be omitted (``no``).  The reference generator always writes
 the required keys; the optional keys are either metadata added by hand
@@ -485,13 +491,19 @@ with scalar output):
      - yes
      - LAMMPS input file template
    * - input_coeffs
-     - test_fix_timestep
+     - test_fix_timestep, test_min_style, test_output_style
      - yes
-     - file with the force-field and group setup commands applied after the input template
+     - file with the force-field and group setup commands applied after the input
+       template (optional for ``test_output_style`` when the input template is
+       self-contained, e.g. the metal system template)
    * - natoms
      - all
      - yes
      - number of atoms in the input file template
+   * - timestep
+     - test_fix_timestep, test_min_style, test_output_style
+     - no
+     - timestep size for the test run, overriding the tester's default
    * - pair_style
      - test_pair_style
      - yes
@@ -549,13 +561,15 @@ with scalar output):
      - yes
      - list of improper_coeff arguments to set parameters
    * - init_energy
-     - bonded interaction tests
+     - bonded interaction tests, test_min_style
      - yes
-     - bonded interaction energy after "run 0"
+     - bonded interaction energy after "run 0"; for ``test_min_style`` the
+       potential energy before the minimization
    * - run_energy
-     - bonded interaction tests
+     - bonded interaction tests, test_min_style
      - yes
-     - bonded interaction energy after "run 4"
+     - bonded interaction energy after "run 4"; for ``test_min_style`` the
+       potential energy after the minimization
    * - equilibrium
      - test_bond_style
      - yes
@@ -565,23 +579,23 @@ with scalar output):
      - yes
      - equilibrium angle for each type
    * - extract
-     - all but test_fix_timestep
+     - pair and bonded interaction tests
      - yes
      - list of keywords supported by the style's ``extract()`` method and their dimension
    * - init_stress
-     - all but test_fix_timestep
+     - pair and bonded interaction tests
      - yes
      - stress tensor after "run 0"
    * - init_forces
-     - all but test_fix_timestep
+     - pair and bonded interaction tests
      - yes
      - forces on atoms after "run 0"
    * - run_stress
-     - all
+     - pair and bonded interaction tests, test_fix_timestep
      - no
      - stress tensor after the run (omitted by ``test_fix_timestep`` when the fix has no virial contribution)
    * - run_forces
-     - all but test_fix_timestep
+     - pair and bonded interaction tests
      - yes
      - forces on atoms after "run 4"
    * - run_pos
@@ -597,13 +611,28 @@ with scalar output):
      - no
      - per-atom torques after the run (only when the atom style stores torque)
    * - global_scalar
-     - test_fix_timestep
+     - test_fix_timestep, test_min_style, test_output_style
      - no
-     - the global scalar output of the tested fix, if any
+     - the global scalar output of the tested fix, if any; for
+       ``test_min_style`` the total force norm after the minimization
    * - global_vector
-     - test_fix_timestep
+     - test_fix_timestep, test_min_style, test_output_style
      - no
-     - the global vector output of the tested fix, if any
+     - the global vector output of the tested fix, if any; for
+       ``test_min_style`` the box dimensions and tilt factors after the
+       minimization
+   * - global_array
+     - test_output_style
+     - no
+     - the global array output of the tested compute or fix, if any
+   * - peratom_data
+     - test_output_style
+     - no
+     - the per-atom vector or array output of the tested compute or fix, if any
+   * - local_data
+     - test_output_style
+     - no
+     - the local vector or array output of the tested compute or fix, if any
 
 These reference files can be validated against the JSON schema file
 ``tools/json/force-style-test-schema.json`` with the ``check-jsonschema``
@@ -793,8 +822,8 @@ The ``test_pair_style`` tester is used with 4 categories of test inputs:
   The YAML files match the pattern "atomic-pair-\*.yaml" and the tests are
   correspondingly labeled with "AtomicPairStyle:\*"
 - manybody pair styles.
-  The YAML files match the pattern "atomic-pair-\*.yaml" and the tests are
-  correspondingly labeled with "AtomicPairStyle:\*"
+  The YAML files match the pattern "manybody-pair-\*.yaml" and the tests are
+  correspondingly labeled with "ManybodyPairStyle:\*"
 - kspace styles.
   The YAML files match the pattern "kspace-\*.yaml" and the tests are
   correspondingly labeled with "KSpaceStyle:\*". In these cases a compatible
@@ -886,6 +915,79 @@ of the potentials and differences in compilers.
    numerical noise from reordering floating-point math operations or due to
    the compiler mis-compiling the code. That is not always obvious.
 
+Tests for minimizer styles
+""""""""""""""""""""""""""
+
+.. versionadded:: TBD
+
+The ``test_min_style`` program tests the :doc:`min_style <min_style>`
+minimizers and :doc:`min_modify <min_modify>` settings.  The YAML files
+match the pattern "min-\*.yaml" and the tests are correspondingly labeled
+with "MinStyle:\*".  Each YAML file sets up the molecular test system in
+the same way as the fix tests (``input_file`` plus ``input_coeffs``) and
+selects the minimizer in the ``post_commands`` block (``min_style``,
+``min_modify``, and optional fixes like :doc:`fix box/relax
+<fix_box_relax>`).  The driver then runs a minimization with a fixed
+iteration budget (``minimize 0.0 0.0 100 10000``); using a fixed number
+of iterations instead of a convergence tolerance keeps the reference
+data deterministic.  The ``timestep`` key matters for the
+damped-dynamics minimizers (quickmin and fire).
+
+The line search and step acceptance logic of the minimizers branches on
+floating-point comparisons, so differences in the last bits of the
+computed forces -- for example from a different compiler or math library
+-- can send the descent along a different but equally valid path.  Only
+observables that are stable against such path changes are compared to
+the reference data: the potential energy before (``init_energy``) and
+after (``run_energy``) the minimization and the box dimensions and tilt
+factors (``global_vector``), all with the relative precision
+``epsilon``.  In addition, the minimization must have lowered the
+potential energy and must have reduced the total force norm to no more
+than 10 times the recorded reference value (``global_scalar``).  The
+exact force norm and the per-atom positions after a fixed number of
+iterations are *not* portable across platforms and are therefore not
+part of the reference data.  Only the plain minimizer styles are
+exercised; accelerated variants are not covered.  Reference files are
+created and updated with the same ``-g`` and ``-u`` command-line options
+as for the other testers.
+
+Tests for compute and fix output data
+"""""""""""""""""""""""""""""""""""""
+
+.. versionadded:: TBD
+
+The ``test_output_style`` program tests the *output data* of computes
+and fixes: global scalars, global vectors, global arrays (including
+arrays with a variable number of rows, for example per-chunk data),
+per-atom vectors and arrays, and local vectors and arrays.  The YAML
+files match the patterns "compute-\*.yaml" and "fix-output-\*.yaml" and
+the tests are labeled with "OutputStyle:\*" using the full file base
+name (so ``compute-msd.yaml`` becomes ``OutputStyle:compute-msd``).
+
+The ``post_commands`` block must define the compute or fix to be tested
+with the ID ``test``, plus any helper commands it needs (groups, chunk
+computes, or feeder computes and fixes).  The driver adds a plain
+:doc:`fix nve <fix_nve>` time integrator -- unless the test itself
+defines a time-integrating fix, like :doc:`fix rigid/small <fix_rigid>`
+-- so that history-dependent quantities (mean-squared displacement,
+velocity auto-correlation, time averages) report real data, and runs 10
+MD steps with ``thermo 5``, which matches the sampling windows of the
+``ave/*`` reporting fixes.  It then queries the output flags of the
+tested style (``scalar_flag``, ``vector_flag``, ``array_flag``,
+``peratom_flag``, ``local_flag``) and compares every kind of output the
+style provides against the recorded reference blocks (``global_scalar``,
+``global_vector``, ``global_array``, ``peratom_data``, ``local_data``).
+Output data is a deterministic function of the (short) trajectory, so
+the reference data is typically compared with a tight ``epsilon`` (1e-8).
+
+Computes that require per-atom energy or virial data to be tallied
+during the force computation -- for example :doc:`compute pe/atom
+<compute_pe_atom>`, :doc:`compute stress/atom <compute_stress_atom>`,
+and :doc:`compute heat/flux <compute_heat_flux>` -- are not yet
+supported by this driver.  Reference files are created and updated with
+the same ``-g`` and ``-u`` command-line options as for the other
+testers.
+
 
 Tests for granular (DEM) models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -893,9 +995,10 @@ Tests for granular (DEM) models
 .. versionadded:: 4Jul2026
 
 The ``unittest/granular`` folder contains a YAML-driven test suite for
-discrete element method (DEM) / granular models, built in the same spirit
-as the force-style tests above but specialized for time-resolved
-trajectories of small granular systems.
+discrete element method (DEM) / granular models, built in the same
+spirit as the force-style tests above but specialized for time-resolved
+trajectories of small granular systems.  These tests are only enabled if
+the :ref:`GRANULAR package<PKG-GRANULAR>` is enabled.
 
 Currently, there are 11 test programs. This set of unit tests is still a
 work-in-progress and the tests have not yet been thoroughly vetted. Tests

@@ -82,11 +82,17 @@ public:
 
   // Cluster-pair neighbor list (enabled by 'package kokkos neigh/cluster yes')
   int max_jclusters;
+  int cluster_hash_sh = 0;         // shared-mem hash slots for the cluster build (power of 2)
+  bigint cluster_built_step = -1;  // timestep of the flat-list build the cluster list mirrors
   typename AT::t_int_1d d_cluster_numneigh;
   typename AT::t_int_2d d_cluster_jlist;
   // d_cluster_excl(ci, 2*cj_idx)   = bits 0..31: sbmask(2 bits) for pairs  0..15
   // d_cluster_excl(ci, 2*cj_idx+1) = bits 0..31: sbmask(2 bits) for pairs 16..31
   typename AT::t_int_2d d_cluster_excl;
+  // d_cluster_pres(ci, cj_idx): bit p set iff tile pair p = ki*CJ+kj is an entry
+  // of the flat list. Encodes half-list single storage, deleted special pairs,
+  // and ghost ownership exactly; pairs without their bit are never computed.
+  typename AT::t_int_2d d_cluster_pres;
   typename AT::t_int_1d d_cluster_scratch;  // [0]=overflow flag (1=jlist,2=hash), [1]=new max j-clusters, [2]=hash-full sentinel
   void grow_clusters(int num_iclusters, int max_jc);
   [[noreturn]] void cluster_fatal(const std::string &file, int line, const std::string &msg);

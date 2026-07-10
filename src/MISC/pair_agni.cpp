@@ -281,6 +281,7 @@ void PairAGNI::read_file(char *filename)
 
   fp_counter = 0;
   wantdata = -1;
+  curparam = -1;
 
   // read potential file
   if (comm->me == 0) {
@@ -293,6 +294,14 @@ void PairAGNI::read_file(char *filename)
         ValueTokenizer values(line);
         if (wantdata == -1) {
           std::string tag = values.next_string();
+
+          // these tags describe the current interaction section and
+          // require that n_elements and interaction were seen before
+
+          if (((curparam < 0) || !params) &&
+              ((tag == "eta") || (tag == "gwidth") || (tag == "Rc") || (tag == "n_train") ||
+               (tag == "sigma") || (tag == "b") || (tag == "endVar")))
+            error->all(FLERR,"Invalid AGNI potential file");
 
           if (tag == "n_elements") {
             nparams = values.next_int();

@@ -52,6 +52,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
   finitecutflag = 1;
 
   single_extra = 12;
+  extra_svector = 0;
   svector = new double[single_extra];
 
   neighprev = 0;

@@ -84,6 +84,12 @@ int main(int narg, char **arg)
     strcpy(filetxt, arg[iarg]);
     strcat(filetxt, ".txt");
     FILE *fptxt = fopen(filetxt, "w");
+    if (!fptxt) {
+      printf("ERROR: Could not open %s for writing\n", filetxt);
+      delete[] filetxt;
+      fclose(fp);
+      return 1;
+    }
     delete[] filetxt;
 
     // detect newer format

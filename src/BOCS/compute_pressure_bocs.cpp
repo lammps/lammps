@@ -56,6 +56,13 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   p_match_flag = 0;
   phi_coeff = nullptr;
 
+  // no pressure correction is applied until fix bocs provides one via send_cg_info()
+
+  p_basis_type = -1;
+  N_basis = 0;
+  N_mol = 0;
+  vavg = 0.0;
+
   // store temperature ID used by pressure computation
   // ensure it is valid for temperature computation
 

@@ -774,6 +774,14 @@ int Variable::next(int narg, char **arg)
       error->all(FLERR,"All variables in next command must have same style");
   }
 
+  // reject duplicate variable names: incrementing the first copy may
+  // exhaust and remove the variable, leaving a dangling reference
+
+  for (int iarg = 0; iarg < narg-1; iarg++)
+    for (int jarg = iarg+1; jarg < narg; jarg++)
+      if (strcmp(arg[iarg],arg[jarg]) == 0)
+        error->all(FLERR, jarg, "Duplicate variable '{}' in next command", arg[jarg]);
+
   // invalid styles: STRING, EQUAL, WORLD, GETENV, ATOM, VECTOR,
   //                 FORMAT, PYTHON, TIMER, INTERNAL
 
@@ -4258,7 +4266,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
     // pyvar = index of python-style variable which invokes Python function
 
     int pyvar = find(&word[3]);
-    if (variables[pyvar].style != PYTHON)
+    if ((pyvar < 0) || (variables[pyvar].style != PYTHON))
       print_var_error(FLERR,"Invalid python function variable name",ivar);
 
     // check that wrapper matches Python function

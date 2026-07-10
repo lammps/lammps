@@ -215,7 +215,8 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
     if (axis == 'z') lo = zscale * utils::numeric(FLERR, arg[7], false, lmp);
   }
 
-  if (strcmp(arg[8], "INF") == 0 || strcmp(arg[7], "EDGE") == 0) {
+  histyle = CONSTANT;
+  if (strcmp(arg[8], "INF") == 0 || strcmp(arg[8], "EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "Cannot use region INF or EDGE when box does not exist");
     if (axis == 'x') {
@@ -227,8 +228,9 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
         hi = domain->boxhi_bound[0];
     }
     if (axis == 'y') {
-      if (strcmp(arg[8], "INF") == 0) hi = BIG;
-      if (domain->triclinic == 0)
+      if (strcmp(arg[8], "INF") == 0)
+        hi = BIG;
+      else if (domain->triclinic == 0)
         hi = domain->boxhi[1];
       else
         hi = domain->boxhi_bound[1];

@@ -31,7 +31,8 @@ using namespace LAMMPS_NS;
 
 NPair::NPair(LAMMPS *lmp) :
     Pointers(lmp), nb(nullptr), ns(nullptr), atom2bin(nullptr), bins(nullptr),
-    binatoms_hash_multi(nullptr), stencil(nullptr)
+    binatoms_hash_multi(nullptr), stencil(nullptr), nstencil_multi(nullptr),
+    stencil_multi(nullptr)
 {
   last_build = -1;
   mycutneighsq = nullptr;
@@ -318,6 +319,8 @@ int NPair::coord2bin(double *x, int ic)
 
 /* ----------------------------------------------------------------------
    bigint version for hash bins
+   NOTE: the bin index must be computed in 64-bit: this variant exists
+   for bin counts that overflow 32-bit integers
 ------------------------------------------------------------------------- */
 
 bigint NPair::coord2bin_big(double *x, int ic)
@@ -355,6 +358,6 @@ bigint NPair::coord2bin_big(double *x, int ic)
   ix -= mbinxlo_multi[ic];
   iy -= mbinylo_multi[ic];
   iz -= mbinzlo_multi[ic];
-  ibin = iz*mbiny_multi[ic]*mbinx_multi[ic] + iy*mbinx_multi[ic] + ix;
+  ibin = (bigint) iz*mbiny_multi[ic]*mbinx_multi[ic] + (bigint) iy*mbinx_multi[ic] + ix;
   return ibin;
 }

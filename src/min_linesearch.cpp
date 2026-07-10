@@ -56,6 +56,7 @@ MinLineSearch::MinLineSearch(LAMMPS *lmp) : Min(lmp), x0(nullptr), g(nullptr), h
   searchflag = 1;
   gextra = hextra = nullptr;
   x0extra_atom = gextra_atom = hextra_atom = nullptr;
+  linemin = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

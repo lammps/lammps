@@ -62,7 +62,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     field2index(nullptr), argindex(nullptr), id_compute(nullptr), compute(nullptr), id_fix(nullptr),
     fix(nullptr), id_variable(nullptr), variable(nullptr), vbuf(nullptr), id_custom(nullptr),
     custom(nullptr), custom_flag(nullptr), typenames(nullptr), header_choice(nullptr),
-    pack_choice(nullptr)
+    write_choice(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump {} arguments specified", style);
 

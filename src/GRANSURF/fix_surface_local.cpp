@@ -1700,10 +1700,10 @@ double FixSurfaceLocal::memory_usage()
 
   if (dimension == 2) {
     bytes = nmax_connect * sizeof(Connect2d);
-    bytes = nmax_connect * sizeof(Pool2d);
+    bytes += nmax_connect * sizeof(Pool2d);
   } else {
     bytes = nmax_connect * sizeof(Connect3d);
-    bytes = nmax_connect * sizeof(Pool3d);
+    bytes += nmax_connect * sizeof(Pool3d);
   }
 
   bytes += atom->nmax * sizeof(int);      // atom2connect vector

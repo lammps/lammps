@@ -212,7 +212,7 @@ void ThirdOrder::options(int narg, char **arg)
 {
   if (narg < 0) error->all(FLERR,"Illegal Third Order command");
   int iarg = 0;
-  const char *filename = "Third Order.dat";
+  const char *filename = "third_order.dat";
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"binary") == 0) {
@@ -238,9 +238,10 @@ void ThirdOrder::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal Third Order command");
   }
-  if (file_flag == 1 && me == 0) {
-    openfile(filename);
-  }
+  // always open the output file (documented default name unless changed
+  // with the file keyword); without it rank 0 wrote to a null FILE pointer
+
+  openfile(filename);
 }
 
 /* ----------------------------------------------------------------------
@@ -451,7 +452,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
     clearerr(fp);
     fwrite(&dynmat[0], sizeof(double), dynlen, fp);
   }
-  if (ferror(fp)) error->one(FLERR,"Error writing to file");
+  if (fp && ferror(fp)) error->one(FLERR,"Error writing to file");
 
 }
 
@@ -777,6 +778,7 @@ void ThirdOrder::getNeighbortags() {
   }
 
   free (neighbortags);
+  memory->sfree(datarecv);
   nbytes = ((bigint) sizeof(bigint)) * sum;
   datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
   nbytes = ((bigint) sizeof(bigint *)) * natoms;
@@ -811,6 +813,7 @@ void ThirdOrder::getNeighbortags() {
     }
   }
 
+  memory->sfree(data);
   free (firsttags);
   free (ijnumproc);
   free (temptags);

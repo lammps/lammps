@@ -65,6 +65,8 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
   ny = gny;
   nz = gnz;
 
+  noverlap_list = maxoverlap_list = 0;
+
   // default settings, can be overridden by set() methods
   // these affect assignment of owned and ghost cells
 
@@ -111,6 +113,8 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
   nx = gnx;
   ny = gny;
   nz = gnz;
+
+  noverlap_list = maxoverlap_list = 0;
 
   // store owned/ghost indices provided by caller
 

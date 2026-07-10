@@ -115,13 +115,13 @@ savedLights reset_lighting(Image *image, double ambient, double key, double fill
 void restore_lighting(const savedLights &saved, Image *image)
 {
   image->ambientColor[0] = image->ambientColor[1] = image->ambientColor[2] =
-      std::clamp(0.0, 1.0, saved.ambient);
+      std::clamp(saved.ambient, 0.0, 1.0);
   image->keyLightColor[0] = image->keyLightColor[1] = image->keyLightColor[2] =
-      std::clamp(0.0, 1.0, saved.key);
+      std::clamp(saved.key, 0.0, 1.0);
   image->fillLightColor[0] = image->fillLightColor[1] = image->fillLightColor[2] =
-      std::clamp(0.0, 1.0, saved.fill);
+      std::clamp(saved.fill, 0.0, 1.0);
   image->backLightColor[0] = image->backLightColor[1] = image->backLightColor[2] =
-      std::clamp(0.0, 1.0, saved.back);
+      std::clamp(saved.back, 0.0, 1.0);
 }
 
 }    // namespace
@@ -1716,7 +1716,7 @@ void DumpImage::create_image()
           xmid[1] = x[atom2][1] - 0.5*dely;
           xmid[2] = x[atom2][2] - 0.5*delz;
           if (bcolor == ATOM)
-            image->draw_cylinder(xmid,x[atom2],color2,diameter,3,aopacity[type[atom1]]);
+            image->draw_cylinder(xmid,x[atom2],color2,diameter,3,aopacity[type[atom2]]);
           else image->draw_cylinder(xmid,x[atom2],color,diameter,3,bopacity[btype]);
 
         } else image->draw_cylinder(x[atom1],x[atom2],color,diameter,3,bopacity[btype]);

@@ -228,6 +228,10 @@ void no_squish_rotate(int k, double *p, double *q, double *inertia,
     kq[1] =  q[2];  kp[1] =  p[2];
     kq[2] = -q[1];  kp[2] = -p[1];
     kq[3] =  q[0];  kp[3] =  p[0];
+  } else {
+    // all callers use k = 1, 2, or 3; zero the outputs so they are always defined
+    kq[0] = kq[1] = kq[2] = kq[3] = 0.0;
+    kp[0] = kp[1] = kp[2] = kp[3] = 0.0;
   }
 
   // obtain phi, cosines and sines

@@ -370,6 +370,8 @@ void GranularModel::read_restart(FILE *fp)
     if (comm->me == 0)
       utils::sfread(FLERR, &num_char, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&num_char, 1, MPI_INT, 0, world);
+    if ((num_char < 0) || (num_char > 65536))
+      error->all(FLERR, "Invalid granular model name in restart file");
 
     std::string model_name(num_char, ' ');
     if (comm->me == 0)

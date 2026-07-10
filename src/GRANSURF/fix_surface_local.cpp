@@ -49,8 +49,8 @@ static constexpr int DELTA_RVOUS = 1024;    // must be >= 8
 
 enum { INTERNAL = 0, EXTERNAL, UNCONNECTED };
 
-static constexpr double FLATTHRESH =
-    0.00015230484360876085;        // = 1.0-cos(MY_PI/180.0); = 1 degree
+// = 1.0-cos(MY_PI/180.0); = 1 degree
+static constexpr double FLATTHRESH = 0.00015230484360876085;
 static constexpr int RVOUS = 1;    // 0 for irregular, 1 for all2all
 
 enum { MOLTEMPLATE, STLFILE };
@@ -1700,10 +1700,10 @@ double FixSurfaceLocal::memory_usage()
 
   if (dimension == 2) {
     bytes = nmax_connect * sizeof(Connect2d);
-    bytes = nmax_connect * sizeof(Pool2d);
+    bytes += nmax_connect * sizeof(Pool2d);
   } else {
     bytes = nmax_connect * sizeof(Connect3d);
-    bytes = nmax_connect * sizeof(Pool3d);
+    bytes += nmax_connect * sizeof(Pool3d);
   }
 
   bytes += atom->nmax * sizeof(int);      // atom2connect vector
@@ -3598,6 +3598,9 @@ void FixSurfaceLocal::connectivity3d_complete()
       else if (same_point(cpts[iconnect][1], cpts[jconnect][2]))
         jpsecond = 3;
 
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
       MathExtra::sub3(cpts[iconnect][1], cpts[iconnect][0], iedge);
       edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond,
                         flatthresh, connect3d[iconnect].fflag_e1[m],
@@ -3626,6 +3629,9 @@ void FixSurfaceLocal::connectivity3d_complete()
       else if (same_point(cpts[iconnect][2], cpts[jconnect][2]))
         jpsecond = 3;
 
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
       MathExtra::sub3(cpts[iconnect][2], cpts[iconnect][1], iedge);
       edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond,
                         flatthresh, connect3d[iconnect].fflag_e2[m],
@@ -3653,6 +3659,9 @@ void FixSurfaceLocal::connectivity3d_complete()
         jpsecond = 2;
       else if (same_point(cpts[iconnect][0], cpts[jconnect][2]))
         jpsecond = 3;
+
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
 
       MathExtra::sub3(cpts[iconnect][0], cpts[iconnect][2], iedge);
       edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond,

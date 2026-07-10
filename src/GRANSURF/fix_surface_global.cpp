@@ -63,7 +63,8 @@ enum{LINEAR,WIGGLE,ROTATE,TRANSROT,VARIABLE};
 enum{INTERNAL = 0,EXTERNAL,UNCONNECTED};
 enum{NSQ, BIN};
 
-static constexpr double FLATTHRESH = 0.00015230484360876085; // = 1.0-cos(MY_PI/180.0); = 1 degree
+// = 1.0-cos(MY_PI/180.0); = 1 degree
+static constexpr double FLATTHRESH = 0.00015230484360876085;
 static constexpr int DELTAMODEL = 4;
 static constexpr int DELTAMOTION = 4;
 static constexpr int MAXSURFTYPE = 1024;  // limit for # of surf types
@@ -144,7 +145,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
       if (nmodel == maxmodel) {
         maxmodel += DELTAMODEL;
         modeltypes = (ModelTypes *)
-          memory->srealloc(models,maxmodel*sizeof(ModelTypes),"surf/global:modeltypes");
+          memory->srealloc(modeltypes,maxmodel*sizeof(ModelTypes),"surf/global:modeltypes");
         models = (Granular_NS::GranularModel **)
           memory->srealloc(models,maxmodel*sizeof(Granular_NS::GranularModel *),
                            "surf/global:models");
@@ -273,6 +274,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"temperature") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix surface/global temperature", error);
+      delete[] tstr;
       if (utils::strmatch(arg[iarg+1], "^v_")) {
         tstr = utils::strdup(arg[iarg+1] + 2);
       } else {
@@ -433,8 +435,8 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
   for (int i = 0; i < nmodel; i++) delete models[i];
   memory->sfree(models);
 
-  for (int i = 1; i <= atom->ntypes; i++) delete [] types2model[i];
-  delete [] types2model;
+  for (int i = 1; i <= atom->ntypes; i++) delete[] types2model[i];
+  delete[] types2model;
 
   memory->destroy(neigh_p1);
   memory->destroy(neigh_p2);
@@ -486,22 +488,22 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
 
   for (int i = 0; i < nmotion; i++) {
     if (motions[i].mstyle == VARIABLE) {
-      delete [] motions[i].xvarstr;
-      delete [] motions[i].yvarstr;
-      delete [] motions[i].zvarstr;
-      delete [] motions[i].vxvarstr;
-      delete [] motions[i].vyvarstr;
-      delete [] motions[i].vzvarstr;
+      delete[] motions[i].xvarstr;
+      delete[] motions[i].yvarstr;
+      delete[] motions[i].zvarstr;
+      delete[] motions[i].vxvarstr;
+      delete[] motions[i].vyvarstr;
+      delete[] motions[i].vzvarstr;
     }
   }
 
   memory->sfree(motions);
-  delete [] mol2motion;
+  delete[] mol2motion;
 
   delete list;
   delete listhistory;
-  delete [] zeroes;
-  delete [] tstr;
+  delete[] zeroes;
+  delete[] tstr;
 
   delete nb;
   delete ns;
@@ -1643,7 +1645,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
         next_reneighbor = -1;
       }
 
-      delete [] smols;
+      delete[] smols;
       return 3;
     }
 
@@ -1747,7 +1749,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
     utils::logmesg(lmp,"Fix_modify move:\n");
     utils::logmesg(lmp,"  turned on motion for {} surfs\n", count);
 
-    delete [] smols;
+    delete[] smols;
     return 2 + styleargs;
   }
 
@@ -2547,6 +2549,9 @@ void FixSurfaceGlobal::connectivity3d_complete()
       else if (tris[i].p2 == tris[j].p2) jpsecond = 2;
       else if (tris[i].p2 == tris[j].p3) jpsecond = 3;
 
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
       MathExtra::sub3(points[tris[i].p2].x,points[tris[i].p1].x,iedge);
       edge_connection3d(tris[i].norm,tris[j].norm,iedge,jpfirst,jpsecond,flatthresh,
                         connect3d[i].fflag_e1[m],connect3d[i].ewhich_e1[m],
@@ -2565,6 +2570,9 @@ void FixSurfaceGlobal::connectivity3d_complete()
       else if (tris[i].p3 == tris[j].p2) jpsecond = 2;
       else if (tris[i].p3 == tris[j].p3) jpsecond = 3;
 
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
       MathExtra::sub3(points[tris[i].p3].x,points[tris[i].p2].x,iedge);
       edge_connection3d(tris[i].norm,tris[j].norm,iedge,jpfirst,jpsecond,flatthresh,
                         connect3d[i].fflag_e2[m],connect3d[i].ewhich_e2[m],
@@ -2582,6 +2590,9 @@ void FixSurfaceGlobal::connectivity3d_complete()
       if (tris[i].p1 == tris[j].p1) jpsecond = 1;
       else if (tris[i].p1 == tris[j].p2) jpsecond = 2;
       else if (tris[i].p1 == tris[j].p3) jpsecond = 3;
+
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
 
       MathExtra::sub3(points[tris[i].p1].x,points[tris[i].p3].x,iedge);
       edge_connection3d(tris[i].norm,tris[j].norm,iedge,jpfirst,jpsecond,flatthresh,
@@ -4066,6 +4077,7 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> &composite_surfs)
     flag = contact_surfs[n].flag;
     MathExtra::copy3(contact_surfs[n].surf_norm, jnorm);
 
+    which1 = which2 = -1;
     if (flag == -4) {
       which1 = 0;
       which2 = 2;

@@ -357,6 +357,8 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
           dy = -del2;
           wall_pos = whi;
         }
+      } else {
+        error->one(FLERR, "Unknown wall style in fix wall/body/polyhedron");
       }
 
       rsq = dx*dx + dy*dy + dz*dz;

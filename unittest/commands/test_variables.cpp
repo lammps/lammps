@@ -246,6 +246,20 @@ TEST_F(VariableTest, CreateDelete)
                  variable->compute_equal("c_thermo_press"););
     TEST_FAILURE(".*ERROR: Invalid variable reference v_unknown in variable formula.*",
                  variable->compute_equal("v_unknown"););
+
+    // listing the same variable twice would increment a dangling reference
+    // when the first increment exhausts and removes it
+
+    BEGIN_HIDE_OUTPUT();
+    command("variable  dup  loop 3");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: Duplicate variable 'dup' in next command.*", command("next dup dup"););
+
+    // a py_ function reference without a matching python-style variable
+    // must give an error instead of an out-of-bounds read
+
+    TEST_FAILURE(".*ERROR: Invalid python function variable name.*",
+                 variable->compute_equal("py_nosuchvariable(1.0)"););
 }
 
 TEST_F(VariableTest, AtomicSystem)

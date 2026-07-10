@@ -127,9 +127,9 @@ enum {
 int PairRuNNer::instances = 0;
 
 PairRuNNer::PairRuNNer(LAMMPS *lmp) :
-    Pair(lmp), map(nullptr), atomic_charge(nullptr), hirshfeld_volume(nullptr),
-    electronegativity(nullptr), lagrange_charges(nullptr), de_dq(nullptr), screening_de_dq(nullptr),
-    committee_storage(nullptr)
+    Pair(lmp), directory(nullptr), map(nullptr), atomic_charge(nullptr),
+    hirshfeld_volume(nullptr), electronegativity(nullptr), lagrange_charges(nullptr),
+    de_dq(nullptr), screening_de_dq(nullptr), committee_storage(nullptr)
 {
   // Sanity check: Prevent multiple instances due to static Fortran interface
   if (instances > 0) { error->all(FLERR, "Only one pair runner instance can be active at a time"); }
@@ -167,6 +167,23 @@ PairRuNNer::PairRuNNer(LAMMPS *lmp) :
   // variable for output using pair compute
   nextra = 0;
   pvector = nullptr;
+  nnp_generation = 0;
+  num_committee_members = 0;
+
+  // settings() and the RuNNer potential files assign these before use;
+  // mirror the settings() defaults so they never carry indeterminate values
+
+  cflength = cfenergy = 1.0;
+  luse_prev_q = false;
+  lwrite_f_comm = lwrite_q_comm = false;
+  lcheck_extrap = false;
+  max_extrap = 0;
+  lshow_ew = false;
+  sum_ew_freq = reset_ew_freq = 0;
+  cutoff = 0.0;
+  total_charge = 0.0;
+  lhirshfeld_vdw = false;
+  ltwo_body = false;
 
   if (atom->natoms > MAXSMALLINT / 4) error->all(FLERR, "Too many total atoms");
 }
@@ -727,7 +744,7 @@ void PairRuNNer::compute(int eflag, int vflag)
 
   // Virial is -1.0 * d_energy_d_strain
   if (vflag_global) {
-    memset(virial, 0, 9 * (sizeof *virial));
+    memset(virial, 0, 6 * (sizeof *virial));
     for (i = 0; i < num_committee_members; i++) {
       virial[0] -= committee_d_energy_d_strain[0 + 9 * i] / cfenergy / num_committee_members;
       virial[1] -= committee_d_energy_d_strain[4 + 9 * i] / cfenergy / num_committee_members;

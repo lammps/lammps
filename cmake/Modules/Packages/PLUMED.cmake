@@ -32,9 +32,8 @@ endif()
 
 # Note: must also adjust check for supported API versions in
 # fix_plumed.cpp when version changes from v2.n.x to v2.n+1.y
-set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.10.1/plumed-src-2.10.1.tgz"
-  CACHE STRING "URL for PLUMED tarball")
-set(PLUMED_SHA256 "3679652608cac7da083cfe3a5b164122d6869ac4fbd0e8983a1501b815b25fdf" CACHE STRING "SHA256 checksum of PLUMED tarball")
+set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.9.5/plumed-src-2.9.5.tgz" CACHE STRING "URL for PLUMED tarball")
+set(PLUMED_SHA256 "d2fe917ec594d0c036eded0a94ebca90d76f56efa1764fa6c79e76b3167ce2c9" CACHE STRING "SHA256 checksum of PLUMED tarball")
 
 mark_as_advanced(PLUMED_URL)
 mark_as_advanced(PLUMED_SHA256)

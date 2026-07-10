@@ -280,7 +280,7 @@ int LabelMap::find_or_create(const std::string &mylabel, std::vector<std::string
   if (lmp->citeme) lmp->citeme->add(cite_type_label_framework);
 
   // if no match found, create new label at next available index
-  // label map assumed to be intialized with numeric index
+  // label map assumed to be initialized with numeric index
   // user labels are assumed to be alphanumeric (not a number)
 
   auto labels_map_size = labels_map.size();

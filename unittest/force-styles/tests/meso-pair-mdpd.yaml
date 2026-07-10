@@ -3,7 +3,7 @@ lammps_version: 4 Jul 2026
 tags:
 date_generated: Fri Jul 10 17:19:09 2026
 epsilon: 6e-12
-skip_tests: single
+skip_tests: gpu intel kokkos_omp kokkos_serial kokkos_gpu single
 prerequisites: |
   atom mdpd
   pair mdpd

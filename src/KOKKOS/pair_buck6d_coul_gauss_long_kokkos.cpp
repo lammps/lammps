@@ -225,23 +225,13 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
   // Ewald factor: erf(g_ewald * r)
   const KK_FLOAT grij = g_ewald_kk * r;
   const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
-  const KK_FLOAT tg = static_cast<KK_FLOAT>(1.0) /
-    (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
-  const KK_FLOAT erfc_g = tg * (static_cast<KK_FLOAT>(A1)+tg*(static_cast<KK_FLOAT>(A2)+
-                           tg * (static_cast<KK_FLOAT>(A3)+tg*(static_cast<KK_FLOAT>(A4)+
-                           tg * static_cast<KK_FLOAT>(A5))))) * expm2;
-  const KK_FLOAT erf_ewald = static_cast<KK_FLOAT>(1.0) - erfc_g;
+  const KK_FLOAT erf_ewald = Kokkos::erf(grij);
 
   // Gaussian-alpha factor: erf(alpha_ij * r)
   const KK_FLOAT alpha = STACKPARAMS ? m_params[itype][jtype].alpha_ij : params(itype,jtype).alpha_ij;
   const KK_FLOAT arg = alpha * r;
   const KK_FLOAT expa = Kokkos::exp(-arg*arg);
-  const KK_FLOAT ta = static_cast<KK_FLOAT>(1.0) /
-    (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*arg);
-  const KK_FLOAT erfc_a = ta * (static_cast<KK_FLOAT>(A1)+ta*(static_cast<KK_FLOAT>(A2)+
-                           ta * (static_cast<KK_FLOAT>(A3)+ta*(static_cast<KK_FLOAT>(A4)+
-                           ta * static_cast<KK_FLOAT>(A5))))) * expa;
-  const KK_FLOAT erfa = static_cast<KK_FLOAT>(1.0) - erfc_a;
+  const KK_FLOAT erfa = Kokkos::erf(arg);
 
   const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) * rinv;
   const KK_FLOAT falpha = erfa - static_cast<KK_FLOAT>(EWALD_F)*arg*expa;
@@ -328,28 +318,15 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
 
   // Ewald factor: erf(g_ewald * r)
   const KK_FLOAT grij = g_ewald_kk * r;
-  const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
-  const KK_FLOAT tg = static_cast<KK_FLOAT>(1.0) /
-    (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
-  const KK_FLOAT erfc_g = tg * (static_cast<KK_FLOAT>(A1)+tg*(static_cast<KK_FLOAT>(A2)+
-                           tg * (static_cast<KK_FLOAT>(A3)+tg*(static_cast<KK_FLOAT>(A4)+
-                           tg * static_cast<KK_FLOAT>(A5))))) * expm2;
-  const KK_FLOAT erf_ewald = static_cast<KK_FLOAT>(1.0) - erfc_g;
+  const KK_FLOAT erf_ewald = Kokkos::erf(grij);
 
   // Gaussian-alpha factor: erf(alpha_ij * r)
   const KK_FLOAT alpha = STACKPARAMS ? m_params[itype][jtype].alpha_ij : params(itype,jtype).alpha_ij;
   const KK_FLOAT arg = alpha * r;
-  const KK_FLOAT expa = Kokkos::exp(-arg*arg);
-  const KK_FLOAT ta = static_cast<KK_FLOAT>(1.0) /
-    (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*arg);
-  const KK_FLOAT erfc_a = ta * (static_cast<KK_FLOAT>(A1)+ta*(static_cast<KK_FLOAT>(A2)+
-                           ta * (static_cast<KK_FLOAT>(A3)+ta*(static_cast<KK_FLOAT>(A4)+
-                           ta * static_cast<KK_FLOAT>(A5))))) * expa;
-  const KK_FLOAT erfa = static_cast<KK_FLOAT>(1.0) - erfc_a;
+  const KK_FLOAT erfa = Kokkos::erf(arg);
 
   const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) * rinv;
   KK_FLOAT ealpha = prefactor * (erfa - erf_ewald);
-  if (factor_coul < static_cast<KK_FLOAT>(1.0)) ealpha -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor*erfa;
 
   // optional Coulomb smoothing near cutoff
   if (rsq > rsmooth_sq_c_kk) {
@@ -359,6 +336,9 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
                        + c2_c_kk*rsq + c1_c_kk*r + c0_c_kk;
     ealpha *= sme;
   }
+
+  // smoothing is not applied to the special-bonds correction (see CPU version)
+  if (factor_coul < static_cast<KK_FLOAT>(1.0)) ealpha -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor*erfa;
 
   return ealpha;
 }

@@ -80,6 +80,7 @@ PACKAGE = \
 	fep \
 	graphics \
 	granular \
+	gransurf \
 	intel \
 	interlayer \
 	latboltz \
@@ -153,6 +154,7 @@ PACKMOST = \
 	fep \
 	graphics \
 	granular \
+	gransurf \
 	interlayer \
 	manybody \
 	mc \
@@ -420,7 +422,7 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
-check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-docs check-version
+check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-docs
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
@@ -457,12 +459,6 @@ check-docs:
 
 check-version:
 	$(PYTHON) ../tools/coding_standard/versiontags.py .. || echo
-
-format-src:
-	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h
-
-format-tests:
-	clang-format -i --verbose --style=file ../unittest/*/*.cpp ../unittest/*/*.h
 
 # Package management
 

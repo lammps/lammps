@@ -84,6 +84,8 @@ PairTersoffKokkos<DeviceType>::~PairTersoffKokkos()
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
+
+    delete tuner;
   }
 }
 

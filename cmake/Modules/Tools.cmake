@@ -48,6 +48,9 @@ endif()
 
 if(BUILD_LAMMPS_GUI)
   include(ExternalProject)
+  if(NOT BUILD_SHARED_LIBS)
+    message(FATAL_ERROR "Building LAMMPS-GUI currently requires setting -D BUILD_SHARED_LIBS=ON")
+  endif()
   # When building LAMMPS-GUI with LAMMPS we don't support plugin mode and don't include docs.
   ExternalProject_Add(lammps-gui_build
     GIT_REPOSITORY https://github.com/akohlmey/lammps-gui.git
@@ -75,8 +78,8 @@ if(BUILD_LAMMPS_GUI)
   # packaging support for LAMMPS-GUI when compiled with LAMMPS
   option(BUILD_WHAM "Download and compile WHAM executable from Grossfield Lab" YES)
   if(BUILD_WHAM)
-    set(WHAM_URL "http://membrane.urmc.rochester.edu/sites/default/files/wham/wham-release-2.1.0.tgz" CACHE STRING "URL for WHAM tarball")
-    set(WHAM_SHA256 "bc7ce8a79269d80979a06c3593960ed936333435bb71414913fa7b5a138dd2cf" CACHE STRING "SHA256 checksum of WHAM tarball")
+    set(WHAM_URL "https://download.lammps.org/thirdparty/wham-release-2.1.0.tar.gz" CACHE STRING "URL for WHAM tarball")
+    set(WHAM_SHA256 "a25f574fdbcc15ad5d44fe20bc5f9383da0f8f29bc36803aa62c66a43806b629" CACHE STRING "SHA256 checksum of WHAM tarball")
     mark_as_advanced(WHAM_URL)
     mark_as_advanced(WHAM_SHA256)
 

@@ -65,7 +65,7 @@ PairLJCutCoulLongKokkos<DeviceType>::~PairLJCutCoulLongKokkos()
     memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
   }
 
-  if (tuner) delete tuner;
+  delete tuner;
 }
 
 /* ---------------------------------------------------------------------- */

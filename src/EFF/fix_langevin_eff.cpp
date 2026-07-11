@@ -422,3 +422,12 @@ double FixLangevinEff::compute_scalar()
   MPI_Allreduce(&energy_me,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
   return -energy_all;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixLangevinEff::memory_usage()
+{
+  double bytes = FixLangevin::memory_usage();
+  if (erforcelangevin) bytes += (double) atom->nmax * sizeof(double);    // erforcelangevin[nmax]
+  return bytes;
+}

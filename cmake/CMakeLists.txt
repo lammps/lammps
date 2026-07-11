@@ -297,6 +297,7 @@ set(STANDARD_PACKAGES
   FEP
   GRAPHICS
   GRANULAR
+  GRANSURF
   H5MD
   INTERLAYER
   KIM
@@ -318,6 +319,7 @@ set(STANDARD_PACKAGES
   ML-PACE
   ML-POD
   ML-QUIP
+  ML-RUNNER
   ML-RANN
   ML-SNAP
   ML-UF3
@@ -452,6 +454,7 @@ pkg_depends(CG-DNA ASPHERE)
 pkg_depends(ELECTRODE KSPACE)
 pkg_depends(EXTRA-MOLECULE MOLECULE)
 pkg_depends(MESONT MOLECULE)
+pkg_depends(ML-RUNNER KSPACE)
 pkg_depends(RHEO BPM)
 pkg_depends(APIP ML-PACE)
 
@@ -491,6 +494,36 @@ if(BUILD_OMP)
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
 
+  # Some Clang-based toolchains - most notably hipcc from ROCm - do not ship
+  # omp.h in the compiler's own resource directory, so host code that includes
+  # <omp.h> fails to compile even though -fopenmp is accepted (e.g. when
+  # building the GPU package with GPU_API=hip and a hipcc host compiler).  If
+  # the resource directory has no omp.h, look for a matching-version Clang
+  # omp.h and add it as a fallback include path (with -idirafter, so it is
+  # searched last and does not shadow any other headers).
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-resource-dir
+                    OUTPUT_VARIABLE _omp_resource_dir
+                    OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET
+                    RESULT_VARIABLE _omp_resource_rc)
+    if((_omp_resource_rc EQUAL 0) AND (NOT EXISTS "${_omp_resource_dir}/include/omp.h"))
+      string(REGEX REPLACE "\\..*" "" _omp_clang_major "${CMAKE_CXX_COMPILER_VERSION}")
+      find_path(LAMMPS_OMP_H_DIR NAMES omp.h
+        PATHS /usr/lib/clang/${_omp_clang_major}/include
+              /usr/lib64/clang/${_omp_clang_major}/include
+              /usr/local/lib/clang/${_omp_clang_major}/include)
+      if(LAMMPS_OMP_H_DIR)
+        message(STATUS "Compiler resource directory has no omp.h: "
+                "adding ${LAMMPS_OMP_H_DIR} as a fallback include path")
+        target_compile_options(lammps PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-idirafter${LAMMPS_OMP_H_DIR}>)
+        target_compile_options(lmp PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-idirafter${LAMMPS_OMP_H_DIR}>)
+      else()
+        message(WARNING "Compiler resource directory has no omp.h and no matching "
+                "Clang omp.h was found; OpenMP host compilation may fail")
+      endif()
+    endif()
+  endif()
+
   # this hack is required to correctly link with OpenMP support when using CrayClang version 15.0.2
   # CrayClang is only directly recognized by version 3.28 and later
   if(CMAKE_VERSION VERSION_LESS 3.28)
@@ -520,7 +553,7 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_STANDARD GREATER_EQUA
 endif()
 
 option(USE_INTERNAL_LINALG "Prefer internal library with BLAS/LAPACK subset over system BLAS/LAPACK" OFF)
-if(PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHEO OR BUILD_TOOLS)
+if(PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHEO OR BUILD_TOOLS OR PKG_ML-RUNNER)
   if(NOT USE_INTERNAL_LINALG)
     find_package(LAPACK)
     find_package(BLAS)
@@ -562,7 +595,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL GRAPHICS KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND MBX)
+        PLUMED QMMM ML-QUIP ML-RUNNER SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND MBX)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()

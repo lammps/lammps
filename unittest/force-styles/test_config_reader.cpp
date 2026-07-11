@@ -13,19 +13,112 @@
 
 #include "test_config_reader.h"
 #include "test_config.h"
+#include "tokenizer.h"
 #include "utils.h"
 #include "yaml.h"
 
 #include <cstdlib>
-
-#include <map>
-#include <set>
-#include <sstream>
+#include <iostream>
 #include <string>
-#include <utility>
+#include <vector>
 
+using LAMMPS_NS::Tokenizer;
+using LAMMPS_NS::TokenizerException;
+using LAMMPS_NS::ValueTokenizer;
 using LAMMPS_NS::utils::split_words;
-using LAMMPS_NS::utils::trim;
+
+// convert the scalar value of a yaml event to a string
+static std::string event_string(const yaml_event_t &event)
+{
+    return {(const char *)event.data.scalar.value};
+}
+
+// abort with a clear message on any malformed field. the yaml files are
+// machine generated, so a parse error indicates a corrupted file and
+// continuing would compare against garbage reference data.
+[[noreturn]] static void parse_error(const std::string &what, const std::string &text)
+{
+    std::cerr << "Error parsing yaml data: " << what << "\nOffending text: " << text << std::endl;
+    exit(2);
+}
+
+// parse a block of per-atom data with lines of "tag x y z" into a
+// vector of coord_t indexed by the atom tag
+
+static void parse_coord_block(const yaml_event_t &event, std::vector<coord_t> &block, int natoms)
+{
+    block.clear();
+    block.resize(natoms + 1);
+    for (const auto &line : Tokenizer(event_string(event), "\n").as_vector()) {
+        try {
+            ValueTokenizer values(line);
+            int tag = values.next_int();
+            if ((tag < 1) || (tag > natoms)) parse_error("atom tag out of range", line);
+            block[tag].x = values.next_double();
+            block[tag].y = values.next_double();
+            block[tag].z = values.next_double();
+        } catch (TokenizerException &e) {
+            parse_error(e.what(), line);
+        }
+    }
+}
+
+// parse a block of per-atom data with lines of "tag x y z w" into a
+// vector of coord4_t indexed by the atom tag
+
+static void parse_coord4_block(const yaml_event_t &event, std::vector<coord4_t> &block, int natoms)
+{
+    block.clear();
+    block.resize(natoms + 1);
+    for (const auto &line : Tokenizer(event_string(event), "\n").as_vector()) {
+        try {
+            ValueTokenizer values(line);
+            int tag = values.next_int();
+            if ((tag < 1) || (tag > natoms)) parse_error("atom tag out of range", line);
+            block[tag].x = values.next_double();
+            block[tag].y = values.next_double();
+            block[tag].z = values.next_double();
+            block[tag].w = values.next_double();
+        } catch (TokenizerException &e) {
+            parse_error(e.what(), line);
+        }
+    }
+}
+
+// parse a block scalar with 6 stress tensor components
+
+static void parse_stress(const yaml_event_t &event, stress_t &stress)
+{
+    try {
+        ValueTokenizer values(event_string(event));
+        stress.xx = values.next_double();
+        stress.yy = values.next_double();
+        stress.zz = values.next_double();
+        stress.xy = values.next_double();
+        stress.xz = values.next_double();
+        stress.yz = values.next_double();
+    } catch (TokenizerException &e) {
+        parse_error(e.what(), event_string(event));
+    }
+}
+
+// parse a scalar double value
+
+static double parse_double(const yaml_event_t &event)
+{
+    try {
+        return ValueTokenizer(event_string(event)).next_double();
+    } catch (TokenizerException &e) {
+        parse_error(e.what(), event_string(event));
+    }
+}
+
+// split a block scalar into lines
+
+static std::vector<std::string> parse_lines(const yaml_event_t &event)
+{
+    return Tokenizer(event_string(event), "\n").as_vector();
+}
 
 TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
 {
@@ -38,6 +131,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["pre_commands"]   = &TestConfigReader::pre_commands;
     consumers["post_commands"]  = &TestConfigReader::post_commands;
     consumers["input_file"]     = &TestConfigReader::input_file;
+    consumers["input_coeffs"]   = &TestConfigReader::input_coeffs;
     consumers["extract"]        = &TestConfigReader::extract;
     consumers["natoms"]         = &TestConfigReader::natoms;
     consumers["init_stress"]    = &TestConfigReader::init_stress;
@@ -47,6 +141,10 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["run_pos"]        = &TestConfigReader::run_pos;
     consumers["run_vel"]        = &TestConfigReader::run_vel;
     consumers["run_torque"]     = &TestConfigReader::run_torque;
+    consumers["init_mag_forces"] = &TestConfigReader::init_mag_forces;
+    consumers["run_mag_forces"] = &TestConfigReader::run_mag_forces;
+    consumers["run_spin"]       = &TestConfigReader::run_spin;
+    consumers["timestep"]       = &TestConfigReader::timestep;
 
     consumers["pair_style"] = &TestConfigReader::pair_style;
     consumers["pair_coeff"] = &TestConfigReader::pair_coeff;
@@ -57,6 +155,9 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
 
     consumers["global_scalar"] = &TestConfigReader::global_scalar;
     consumers["global_vector"] = &TestConfigReader::global_vector;
+    consumers["global_array"]  = &TestConfigReader::global_array;
+    consumers["peratom_data"]  = &TestConfigReader::peratom_data;
+    consumers["local_data"]    = &TestConfigReader::local_data;
 
     consumers["bond_style"]     = &TestConfigReader::bond_style;
     consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
@@ -74,321 +175,290 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
 void TestConfigReader::skip_tests(const yaml_event_t &event)
 {
     config.skip_tests.clear();
-    for (auto &word : split_words((char *)event.data.scalar.value))
+    for (const auto &word : split_words(event_string(event)))
         config.skip_tests.insert(word);
 }
 
 void TestConfigReader::prerequisites(const yaml_event_t &event)
 {
     config.prerequisites.clear();
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string key, value;
+    ValueTokenizer data(event_string(event));
 
-    while (true) {
-        data >> key >> value;
-        if (data.eof()) break;
+    while (data.has_next()) {
+        std::string key = data.next_string();
+        if (!data.has_next()) break;
+        std::string value = data.next_string();
         config.prerequisites.emplace_back(key, value);
     }
 }
 
 void TestConfigReader::pre_commands(const yaml_event_t &event)
 {
-    config.pre_commands.clear();
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        config.pre_commands.push_back(line);
-    }
+    config.pre_commands = parse_lines(event);
 }
 
 void TestConfigReader::post_commands(const yaml_event_t &event)
 {
-    config.post_commands.clear();
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        config.post_commands.push_back(line);
-    }
+    config.post_commands = parse_lines(event);
 }
 
 void TestConfigReader::lammps_version(const yaml_event_t &event)
 {
-    config.lammps_version = (char *)event.data.scalar.value;
+    config.lammps_version = event_string(event);
 }
 
 void TestConfigReader::date_generated(const yaml_event_t &event)
 {
-    config.date_generated = (char *)event.data.scalar.value;
+    config.date_generated = event_string(event);
 }
 
 void TestConfigReader::epsilon(const yaml_event_t &event)
 {
-    config.epsilon = atof((char *)event.data.scalar.value);
+    config.epsilon = parse_double(event);
 }
 
 void TestConfigReader::input_file(const yaml_event_t &event)
 {
-    config.input_file = (char *)event.data.scalar.value;
+    config.input_file = event_string(event);
+}
+
+void TestConfigReader::input_coeffs(const yaml_event_t &event)
+{
+    config.input_coeffs = event_string(event);
 }
 
 void TestConfigReader::extract(const yaml_event_t &event)
 {
     config.extract.clear();
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string name;
-    int value;
-    while (true) {
-        data >> name >> value;
-        if (data.eof()) break;
-        config.extract.emplace_back(name, value);
+    ValueTokenizer data(event_string(event));
+
+    try {
+        while (data.has_next()) {
+            std::string name = data.next_string();
+            if (!data.has_next()) break;
+            int value = data.next_int();
+            config.extract.emplace_back(name, value);
+        }
+    } catch (TokenizerException &e) {
+        parse_error(e.what(), event_string(event));
     }
 }
 
 void TestConfigReader::natoms(const yaml_event_t &event)
 {
-    config.natoms = atoi((char *)event.data.scalar.value);
+    try {
+        config.natoms = ValueTokenizer(event_string(event)).next_int();
+    } catch (TokenizerException &e) {
+        parse_error(e.what(), event_string(event));
+    }
 }
 
 void TestConfigReader::init_stress(const yaml_event_t &event)
 {
-    stress_t stress;
-    sscanf((char *)event.data.scalar.value, "%lg %lg %lg %lg %lg %lg", &stress.xx, &stress.yy,
-           &stress.zz, &stress.xy, &stress.xz, &stress.yz);
-    config.init_stress = stress;
+    parse_stress(event, config.init_stress);
 }
 
 void TestConfigReader::run_stress(const yaml_event_t &event)
 {
-    stress_t stress;
-    sscanf((char *)event.data.scalar.value, "%lg %lg %lg %lg %lg %lg", &stress.xx, &stress.yy,
-           &stress.zz, &stress.xy, &stress.xz, &stress.yz);
-    config.run_stress = stress;
+    parse_stress(event, config.run_stress);
 }
 
 void TestConfigReader::init_forces(const yaml_event_t &event)
 {
-    config.init_forces.clear();
-    config.init_forces.resize(config.natoms + 1);
-    std::stringstream data((const char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        int tag = 0;
-        coord_t xyz;
-        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-        config.init_forces[tag] = xyz;
-    }
+    parse_coord_block(event, config.init_forces, config.natoms);
 }
 
 void TestConfigReader::run_forces(const yaml_event_t &event)
 {
-    config.run_forces.clear();
-    config.run_forces.resize(config.natoms + 1);
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        int tag;
-        coord_t xyz;
-        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-        config.run_forces[tag] = xyz;
-    }
+    parse_coord_block(event, config.run_forces, config.natoms);
 }
 
 void TestConfigReader::run_pos(const yaml_event_t &event)
 {
-    config.run_pos.clear();
-    config.run_pos.resize(config.natoms + 1);
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        int tag;
-        coord_t xyz;
-        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-        config.run_pos[tag] = xyz;
-    }
+    parse_coord_block(event, config.run_pos, config.natoms);
 }
 
 void TestConfigReader::run_vel(const yaml_event_t &event)
 {
-    config.run_vel.clear();
-    config.run_vel.resize(config.natoms + 1);
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        int tag;
-        coord_t xyz;
-        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-        config.run_vel[tag] = xyz;
-    }
+    parse_coord_block(event, config.run_vel, config.natoms);
 }
 
 void TestConfigReader::run_torque(const yaml_event_t &event)
 {
-    config.run_torque.clear();
-    config.run_torque.resize(config.natoms + 1);
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
+    parse_coord_block(event, config.run_torque, config.natoms);
+}
 
-    while (std::getline(data, line, '\n')) {
-        int tag;
-        coord_t xyz;
-        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-        config.run_torque[tag] = xyz;
-    }
+void TestConfigReader::init_mag_forces(const yaml_event_t &event)
+{
+    parse_coord_block(event, config.init_mag_forces, config.natoms);
+}
+
+void TestConfigReader::run_mag_forces(const yaml_event_t &event)
+{
+    parse_coord_block(event, config.run_mag_forces, config.natoms);
+}
+
+void TestConfigReader::run_spin(const yaml_event_t &event)
+{
+    parse_coord4_block(event, config.run_spin, config.natoms);
+}
+
+void TestConfigReader::timestep(const yaml_event_t &event)
+{
+    config.timestep = parse_double(event);
 }
 
 void TestConfigReader::pair_style(const yaml_event_t &event)
 {
-    config.pair_style = (char *)event.data.scalar.value;
+    config.pair_style = event_string(event);
 }
 
 void TestConfigReader::pair_coeff(const yaml_event_t &event)
 {
-    config.pair_coeff.clear();
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        config.pair_coeff.push_back(line);
-    }
+    config.pair_coeff = parse_lines(event);
 }
 
 void TestConfigReader::bond_style(const yaml_event_t &event)
 {
-    config.bond_style = (char *)event.data.scalar.value;
+    config.bond_style = event_string(event);
 }
 
 void TestConfigReader::bond_coeff(const yaml_event_t &event)
 {
-    config.bond_coeff.clear();
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        config.bond_coeff.push_back(line);
-    }
+    config.bond_coeff = parse_lines(event);
 }
 
 void TestConfigReader::angle_style(const yaml_event_t &event)
 {
-    config.angle_style = (char *)event.data.scalar.value;
+    config.angle_style = event_string(event);
 }
 
 void TestConfigReader::angle_coeff(const yaml_event_t &event)
 {
-    config.angle_coeff.clear();
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        config.angle_coeff.push_back(line);
-    }
+    config.angle_coeff = parse_lines(event);
 }
 
 void TestConfigReader::dihedral_style(const yaml_event_t &event)
 {
-    config.dihedral_style = (char *)event.data.scalar.value;
+    config.dihedral_style = event_string(event);
 }
 
 void TestConfigReader::dihedral_coeff(const yaml_event_t &event)
 {
-    config.dihedral_coeff.clear();
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        config.dihedral_coeff.push_back(line);
-    }
+    config.dihedral_coeff = parse_lines(event);
 }
 
 void TestConfigReader::improper_style(const yaml_event_t &event)
 {
-    config.improper_style = (char *)event.data.scalar.value;
+    config.improper_style = event_string(event);
 }
 
 void TestConfigReader::improper_coeff(const yaml_event_t &event)
 {
-    config.improper_coeff.clear();
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        config.improper_coeff.push_back(line);
-    }
+    config.improper_coeff = parse_lines(event);
 }
 
 void TestConfigReader::equilibrium(const yaml_event_t &event)
 {
-    std::stringstream data((char *)event.data.scalar.value);
     config.equilibrium.clear();
-    double value;
-    std::size_t num;
-    data >> num;
-    for (std::size_t i = 0; i < num; ++i) {
-        data >> value;
-        if (data.eof()) break;
-        config.equilibrium.push_back(value);
+    try {
+        ValueTokenizer data(event_string(event));
+        std::size_t num = data.next_int();
+        for (std::size_t i = 0; i < num; ++i) {
+            if (!data.has_next()) break;
+            config.equilibrium.push_back(data.next_double());
+        }
+    } catch (TokenizerException &e) {
+        parse_error(e.what(), event_string(event));
     }
 }
 
 void TestConfigReader::init_vdwl(const yaml_event_t &event)
 {
-    config.init_vdwl = atof((char *)event.data.scalar.value);
+    config.init_vdwl = parse_double(event);
 }
 
 void TestConfigReader::init_coul(const yaml_event_t &event)
 {
-    config.init_coul = atof((char *)event.data.scalar.value);
+    config.init_coul = parse_double(event);
 }
 
 void TestConfigReader::run_vdwl(const yaml_event_t &event)
 {
-    config.run_vdwl = atof((char *)event.data.scalar.value);
+    config.run_vdwl = parse_double(event);
 }
 
 void TestConfigReader::run_coul(const yaml_event_t &event)
 {
-    config.run_coul = atof((char *)event.data.scalar.value);
+    config.run_coul = parse_double(event);
 }
 
 void TestConfigReader::init_energy(const yaml_event_t &event)
 {
-    config.init_energy = atof((char *)event.data.scalar.value);
+    config.init_energy = parse_double(event);
 }
 
 void TestConfigReader::run_energy(const yaml_event_t &event)
 {
-    config.run_energy = atof((char *)event.data.scalar.value);
+    config.run_energy = parse_double(event);
 }
 
 void TestConfigReader::global_scalar(const yaml_event_t &event)
 {
-    config.global_scalar = atof((char *)event.data.scalar.value);
+    config.global_scalar = parse_double(event);
 }
 
 void TestConfigReader::global_vector(const yaml_event_t &event)
 {
-    std::stringstream data((char *)event.data.scalar.value);
     config.global_vector.clear();
-    double value;
-    std::size_t num;
-    data >> num;
-    for (std::size_t i = 0; i < num; ++i) {
-        data >> value;
-        config.global_vector.push_back(value);
+    try {
+        ValueTokenizer data(event_string(event));
+        std::size_t num = data.next_int();
+        for (std::size_t i = 0; i < num; ++i) {
+            if (!data.has_next()) break;
+            config.global_vector.push_back(data.next_double());
+        }
+    } catch (TokenizerException &e) {
+        parse_error(e.what(), event_string(event));
     }
+}
+
+
+// parse a block of rows of white-space separated numbers into a
+// vector of vectors, so rows may have different numbers of columns
+
+static void parse_rows(const yaml_event_t &event, std::vector<std::vector<double>> &rows)
+{
+    rows.clear();
+    for (const auto &line : Tokenizer(event_string(event), "\n").as_vector()) {
+        try {
+            ValueTokenizer values(line);
+            std::vector<double> row;
+            while (values.has_next())
+                row.push_back(values.next_double());
+            if (!row.empty()) rows.push_back(row);
+        } catch (TokenizerException &e) {
+            parse_error(e.what(), line);
+        }
+    }
+}
+
+void TestConfigReader::global_array(const yaml_event_t &event)
+{
+    parse_rows(event, config.global_array);
+}
+
+void TestConfigReader::peratom_data(const yaml_event_t &event)
+{
+    parse_rows(event, config.peratom_data);
+}
+
+void TestConfigReader::local_data(const yaml_event_t &event)
+{
+    parse_rows(event, config.local_data);
 }
 
 void TestConfigReader::tags(const yaml_event_t &event)
 {
-    std::stringstream data((char *)event.data.scalar.value);
-    config.tags.clear();
-    for (std::string tag; std::getline(data, tag, ',');) {
-        config.tags.push_back(trim(tag));
-    }
+    config.tags = split_words(event_string(event));
 }

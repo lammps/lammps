@@ -115,7 +115,7 @@ PairDPDKokkos<DeviceType>::~PairDPDKokkos() {
 
   memoryKK->destroy_kokkos(k_cutsq,cutsq);
 
-  if (tuner) delete tuner;
+  delete tuner;
 }
 
 /* ---------------------------------------------------------------------- */

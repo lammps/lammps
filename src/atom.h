@@ -114,7 +114,7 @@ class Atom : protected Pointers {
 
   // PERI package
 
-  double *vfrac, *s0;
+  double *vfrac, *s0, *smin;
   double **x0;
 
   // SPIN package
@@ -128,7 +128,8 @@ class Atom : protected Pointers {
 
   // CG-DNA package
 
-  tagint *id5p;
+  tagint *id3p, *id5p;
+  double *qeff;
 
   // DPD-REACT package
 
@@ -383,7 +384,7 @@ class Atom : protected Pointers {
   virtual int add_custom(const char *, int, int, int ghost = 0);
   virtual void remove_custom(int, int, int);
 
-  void *extract(const char *);
+  virtual void *extract(const char *);
   int extract_datatype(const char *);
   int extract_size(const char *, int);
 

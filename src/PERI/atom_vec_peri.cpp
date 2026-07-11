@@ -54,15 +54,15 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = {"rmass", "vfrac", "s0", "x0"};
-  fields_copy = {"rmass", "vfrac", "s0", "x0"};
-  fields_comm = {"s0"};
-  fields_comm_vel = {"s0"};
-  fields_border = {"rmass", "vfrac", "s0", "x0"};
-  fields_border_vel = {"rmass", "vfrac", "s0", "x0"};
-  fields_exchange = {"rmass", "vfrac", "s0", "x0"};
-  fields_restart = {"rmass", "vfrac", "s0", "x0"};
-  fields_create = {"rmass", "vfrac", "s0", "x0"};
+  fields_grow = {"rmass", "vfrac", "s0", "smin", "x0"};
+  fields_copy = {"rmass", "vfrac", "s0", "smin", "x0"};
+  fields_comm = {"s0", "smin"};
+  fields_comm_vel = {"s0", "smin"};
+  fields_border = {"rmass", "vfrac", "s0", "smin", "x0"};
+  fields_border_vel = {"rmass", "vfrac", "s0", "smin", "x0"};
+  fields_exchange = {"rmass", "vfrac", "s0", "smin", "x0"};
+  fields_restart = {"rmass", "vfrac", "s0", "smin", "x0"};
+  fields_create = {"rmass", "vfrac", "s0", "smin", "x0"};
   fields_data_atom = {"id", "type", "vfrac", "rmass", "x"};
   fields_data_vel = {"id", "v"};
 
@@ -79,6 +79,7 @@ void AtomVecPeri::grow_pointers()
   rmass = atom->rmass;
   vfrac = atom->vfrac;
   s0 = atom->s0;
+  smin = atom->smin;
   x0 = atom->x0;
 }
 
@@ -92,6 +93,9 @@ void AtomVecPeri::create_atom_post(int ilocal)
   vfrac[ilocal] = 1.0;
   rmass[ilocal] = 1.0;
   s0[ilocal] = DBL_MAX;
+  // smin is the minimum (most compressive) bond stretch; initialize so the
+  // implied critical stretch is +infinity and no bonds break on the first step
+  smin[ilocal] = -DBL_MAX;
   x0[ilocal][0] = xinit[ilocal][0];
   x0[ilocal][1] = xinit[ilocal][1];
   x0[ilocal][2] = xinit[ilocal][2];
@@ -106,6 +110,7 @@ void AtomVecPeri::data_atom_post(int ilocal)
 {
   auto *const xinit = atom->x;
   s0[ilocal] = DBL_MAX;
+  smin[ilocal] = -DBL_MAX;
   x0[ilocal][0] = xinit[ilocal][0];
   x0[ilocal][1] = xinit[ilocal][1];
   x0[ilocal][2] = xinit[ilocal][2];
@@ -132,7 +137,6 @@ int AtomVecPeri::property_atom(const std::string &name)
 
 void AtomVecPeri::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
 {
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int n = 0;
 

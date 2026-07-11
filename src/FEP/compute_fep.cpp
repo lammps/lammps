@@ -618,3 +618,18 @@ void ComputeFEP::restore_qfev()
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeFEP::memory_usage()
+{
+  double bytes = (double) nmax * 3 * sizeof(double);    // f_orig[nmax][3]
+  bytes += (double) nmax * sizeof(double);              // peatom_orig[nmax]
+  bytes += (double) nmax * 6 * sizeof(double);          // pvatom_orig[nmax][6]
+  if (q_orig) bytes += (double) nmax * sizeof(double);  // q_orig[nmax] (when chgflag)
+  if (keatom_orig) {
+    bytes += (double) nmax * sizeof(double);            // keatom_orig[nmax]
+    bytes += (double) nmax * 6 * sizeof(double);        // kvatom_orig[nmax][6]
+  }
+  return bytes;
+}

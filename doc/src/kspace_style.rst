@@ -1,4 +1,5 @@
 .. index:: kspace_style ewald
+.. index:: kspace_style ewald/gpu
 .. index:: kspace_style ewald/dipole
 .. index:: kspace_style ewald/dipole/spin
 .. index:: kspace_style ewald/disp
@@ -27,6 +28,7 @@
 .. index:: kspace_style pppm/tip4p/omp
 .. index:: kspace_style pppm/electrode
 .. index:: kspace_style pppm/electrode/intel
+.. index:: kspace_style pppm/rk
 .. index:: kspace_style msm
 .. index:: kspace_style msm/omp
 .. index:: kspace_style msm/cg
@@ -45,12 +47,14 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
+* style = *none* or *ewald* or ewald/gpu or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
 
   .. parsed-literal::
 
        *none* value = none
        *ewald* value = accuracy
+         accuracy = desired relative error in forces
+       *ewald/gpu* value = accuracy
          accuracy = desired relative error in forces
        *ewald/dipole* value = accuracy
          accuracy = desired relative error in forces
@@ -110,6 +114,8 @@ Syntax
        *pppm/electrode* value = accuracy
          accuracy = desired relative error in forces
        *pppm/electrode/intel* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/rk* value = accuracy
          accuracy = desired relative error in forces
        *msm* value = accuracy
          accuracy = desired relative error in forces
@@ -187,6 +193,21 @@ matching keyword to the name of the KSpace style, as in this table:
 The *ewald* style performs a standard Ewald summation as described in
 any solid-state physics text.
 
+.. versionadded:: 4Jul2026
+
+The *ewald/gpu* style is a GPU-accelerated version of the *ewald* style.
+Unlike *pppm/gpu*, it requires no FFTs and therefore avoids the
+bandwidth-intensive grid communication of the PPPM method, which makes
+it competitive with *pppm/gpu* for smaller system sizes despite the less
+favorable scaling of the Ewald method with system size.  The
+reciprocal-space structure factors, per-atom forces, and per-atom energy
+and virial are computed on the device; only the small structure-factor
+vector is reduced across MPI ranks on the host.  Non-orthogonal
+(triclinic) simulation boxes are not supported.  For best accuracy the
+*mixed* or *double* precision builds of the GPU package are recommended;
+the *single* precision build is not recommended for the Ewald summation
+because of round-off in the structure-factor sums.
+
 The *ewald/disp* style adds a long-range dispersion sum option for
 :math:`1/r^6` potentials and is useful for simulation of interfaces
 :ref:`(Veld) <Veld>`.  It also performs standard Coulombic Ewald summations,
@@ -246,6 +267,8 @@ or not.  Its default value is 1.0e-5.
 
 The *pppm/dipole* style invokes a particle-particle particle-mesh solver
 for dipole-dipole interactions, following the method of :ref:`(Cerda) <Cerda2008>`.
+When charges are present in the system, charge-charge and charge-dipole
+interactions are also computed.
 
 The *pppm/dipole/spin* style invokes a particle-particle particle-mesh solver
 for magnetic dipole-dipole interactions between magnetic spins.
@@ -301,16 +324,50 @@ parameters and how to choose them is described in
 
 ----------
 
+.. versionadded:: 4Jul2026
+
+The *pppm/rk* kspace style is a variant of *pppm* designed for a
+heterogeneous multicore pppm computation of long-range forces.  The
+heterogeneity is in the sense that the MPI communicator is partitioned
+into two classes of MPI processes. Thus, the use of *pppm/rk* requires
+the use of the command line `-partition` option.  E.g.,
+
+.. code-block:: LAMMPS
+
+  mpirun -n 100 lmp -partition 96 4 -in in.somescript
+
+The R-process class of processes primarily computes the short-range
+forces and atom-wise updates, the latter of which includes the
+accumulation of charge densities.  In the above command-line example,
+there would be 96 R-processes and 4 K-processes.  The K-process class is
+mainly responsible for solving the Poisson equations with 3d FFT.  The
+number of K-processes divides the number of R-processes, and the total
+number of processes is furthermore partitioned orthogonally into
+inter-RK blocks (as seen also in the `VerletSplit` class).  Each
+inter-RK block communicator has one representative K process, with the
+rest of the processes being R processes.
+
+The *pppm/rk* kspace style must be paired with an analogous *rk* type
+run style, e.g., :doc:`verlet/split/rk <run_style>`.  An error is
+generated otherwise. Also, *pppm/rk* does not currently support
+group/group computation (`group_group_enable==0`).
+
+This approach is based on the enhanced baseline decomposition of
+:ref:`(Dandurand) <kspaceDandurand2025>` and works cited within.
+
+----------
+
 .. note::
 
    All of the PPPM styles can be used with single-precision FFTs by
-   using the compiler switch -DFFT_SINGLE for the FFT_INC setting in your
-   low-level Makefile.  This setting also changes some of the PPPM
+   using the compiler switch -DFFT_SINGLE for the FFT_INC setting in
+   your low-level Makefile.  This setting also changes some of the PPPM
    operations (e.g. mapping charge to mesh and interpolating electric
-   fields to particles) to be performed in single precision.  This option
-   can speed-up long-range calculations, particularly in parallel or on
-   GPUs.  The use of the -DFFT_SINGLE flag is discussed on the :doc:`Build settings <Build_settings>` doc page. MSM does not currently support
-   the -DFFT_SINGLE compiler switch.
+   fields to particles) to be performed in single precision.  This
+   option can speed-up long-range calculations, particularly in parallel
+   or on GPUs.  The use of the -DFFT_SINGLE flag is discussed on the
+   :doc:`Build settings <Build_settings>` doc page. MSM does not
+   currently support the -DFFT_SINGLE compiler switch.
 
 ----------
 
@@ -513,10 +570,25 @@ Note that the long-range electrostatic solvers in LAMMPS assume conducting
 metal (tinfoil) boundary conditions for both charge and dipole
 interactions. Vacuum boundary conditions are not currently supported.
 
-The *ewald/disp*, *ewald*, *esp*, *pppm*, and *msm* styles support
-non-orthogonal (triclinic symmetry) simulation boxes. However,
+The *ewald/disp*, *ewald*, *esp*, *pppm*, *pppm/disp*, and *msm* styles
+support non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
+
+.. versionchanged:: 4Jul2026
+
+Triclinic (non-orthogonal) box support was added to the *pppm/disp*
+style and its *pppm/disp/tip4p*, *pppm/disp/omp*, and
+*pppm/disp/tip4p/omp* variants.  It requires *ik* differentiation (the
+default; the :doc:`kspace_modify <kspace_modify>` *diff ad* option is not
+supported together with a triclinic box).  The :doc:`kspace_modify
+<kspace_modify>` *slab* correction is supported for a triclinic box only
+in the EW3DC *volfactor* form and only with an *xy* tilt (xz = yz = 0, so
+the slab normal remains the z axis); *slab nozforce* and *slab ew2d* are
+not available for a triclinic box.  For the *tip4p* variants the slab
+correction is not (yet) available together with a triclinic box, and (as
+for all TIP4P styles) the communication cutoff must be large enough to
+reconstruct the M-site, see the :doc:`TIP4P howto <Howto_tip4p>`.
 
 Most of the base kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the :doc:`Build
@@ -562,6 +634,11 @@ Default
    kspace_style none
 
 ----------
+
+.. _kspaceDandurand2025:
+
+**(Dandurand)** Dandurand, Vandierendonck, de Supinski, 39th IEEE IPDPS,
+June 3-7, (2025).
 
 .. _Darden:
 

@@ -67,8 +67,7 @@ PairSWKokkos<DeviceType>::~PairSWKokkos()
     eatom = nullptr;
     vatom = nullptr;
 
-    if (tuner) delete tuner;
-    tuner = nullptr;
+    delete tuner;
   }
 }
 

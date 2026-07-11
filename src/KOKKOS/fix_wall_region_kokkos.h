@@ -40,6 +40,7 @@ class FixWallRegionKokkos : public FixWallRegion {
 
   FixWallRegionKokkos(class LAMMPS *, int, char **);
   ~FixWallRegionKokkos() override;
+  void init() override;
   void post_force(int) override;
 
   template<class T>

@@ -69,7 +69,7 @@ PairZBLKokkos<DeviceType>::~PairZBLKokkos()
     memoryKK->destroy_kokkos(k_vatom,vatom);
   }
 
-  if (tuner) delete tuner;
+  delete tuner;
 }
 
 

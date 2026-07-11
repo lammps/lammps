@@ -33,7 +33,7 @@ static constexpr double INERTIA = 0.4;    // moment of inertia prefactor for sph
 /* ---------------------------------------------------------------------- */
 
 ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), id_bias(nullptr)
+    Compute(lmp, narg, arg), id_bias(nullptr), tbias(nullptr)
 {
   if (narg < 3) utils::missing_cmd_args(FLERR, "compute temp/sphere", error);
 
@@ -51,6 +51,7 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg], "bias") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute temp/sphere bias", error);
       tempbias = 1;
+      delete[] id_bias;
       id_bias = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "dof") == 0) {

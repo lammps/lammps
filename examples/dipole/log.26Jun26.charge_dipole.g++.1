@@ -1,0 +1,143 @@
+LAMMPS (30 Mar 2026 - Development - r14624-40107-g055b29e57b-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# ----------------------------------------------------------------------
+# pppm/dipole with BOTH point charges and point dipoles in one system
+#
+#   atom_style hybrid sphere dipole  -> provides q, mu, torque, and the
+#                                       finite size needed to rotate dipoles
+#   pair_style lj/cut/dipole/long    -> real-space LJ + charge/dipole Coulomb
+#   kspace_style pppm/dipole         -> long-range charge-charge,
+#                                       charge-dipole, and dipole-dipole
+# ----------------------------------------------------------------------
+
+units           lj
+atom_style      hybrid sphere dipole
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (src/atom_vec_hybrid.cpp:134)
+dimension       3
+boundary        p p p
+
+# ---- build a simple cubic lattice of particles ----------------------
+
+lattice         sc 0.30
+Lattice spacing in x,y,z = 1.4938016 1.4938016 1.4938016
+region          box block 0 8 0 8 0 8
+create_box      1 box
+Created orthogonal box = (0 0 0) to (11.950413 11.950413 11.950413)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 512 atoms
+  using lattice units in orthogonal box = (0 0 0) to (11.950413 11.950413 11.950413)
+  create_atoms CPU = 0.001 seconds
+
+mass            1 1.0
+
+# finite size (needed by atom_style sphere / fix nve/sphere); set a unit
+# diameter so each particle has a well-defined moment of inertia
+set             group all diameter 1.0
+Setting atom values ...
+  512 settings made for diameter
+set             group all density  1.0
+Setting atom values ...
+  512 settings made for density
+
+# ---- assign charges: alternating +/- by atom id, net-neutral ---------
+
+variable        qi atom ((id%2)*2-1)*0.5
+set             group all charge v_qi
+Setting atom values ...
+  512 settings made for charge
+
+# ---- assign random unit dipoles --------------------------------------
+
+set             group all dipole/random 5783 1.0
+Setting atom values ...
+  512 settings made for dipole/random
+
+# ---- interactions ----------------------------------------------------
+
+pair_style      lj/cut/dipole/long 3.5
+pair_coeff      1 1 1.0 1.0
+
+kspace_style    pppm/dipole 1.0e-4
+
+neighbor        0.3 bin
+neigh_modify    every 1 delay 0 check yes
+
+# ---- integrate translation AND dipole orientation --------------------
+
+fix             1 all nve/sphere update dipole
+
+# ---- equilibrate to a temperature with a Langevin thermostat ---------
+
+velocity        all create 1.0 4928459 mom yes rot yes dist gaussian
+fix             2 all langevin 1.0 1.0 0.5 18273
+
+timestep        0.002
+
+thermo          50
+thermo_style    custom step temp epair elong etotal press
+
+run             500
+PPPMDipole initialization ...
+  G vector (1/distance) = 0.97745191
+  grid = 40 40 40
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00012133286
+  estimated relative force accuracy = 0.00012133286
+  using double precision FFTW3
+  3d grid and FFT values/proc = 103823 64000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.8
+  ghost atom cutoff = 3.8
+  binsize = 1.9, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/dipole/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 28.74 | 28.74 | 28.74 Mbytes
+   Step          Temp          E_pair         E_long         TotEng         Press     
+         0   1             -1.4723665     -0.10492216     0.02470384    -0.47538105   
+        50   1.1282291     -1.730537      -0.16869906    -0.041498731   -0.34350687   
+       100   1.2555304     -2.2040462     -0.28628419    -0.3244289      0.0010890491 
+       150   1.228484      -2.5011316     -0.3172528     -0.66200467     0.014146596  
+       200   1.1601103     -2.5799976     -0.2957795     -0.84323097     0.026117093  
+       250   1.1493089     -2.648134      -0.29569049    -0.9275377     -0.052081     
+       300   1.073759      -2.6762763     -0.30170316    -1.0687836     -0.046956413  
+       350   1.0140216     -2.7542635     -0.29256754    -1.2362019     -0.096657117  
+       400   1.0192177     -2.7967236     -0.29251287    -1.2708831     -0.014862193  
+       450   1.0496098     -2.842878      -0.30000804    -1.2715383     -0.024348362  
+       500   1.0472119     -2.8608648     -0.28831694    -1.293115      -0.085360588  
+Loop time of 14.717 on 1 procs for 500 steps with 512 atoms
+
+Performance: 5870.742 tau/day, 33.974 timesteps/s, 17.395 katom-step/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.41797    | 0.41797    | 0.41797    |   0.0 |  2.84
+Kspace  | 14.233     | 14.233     | 14.233     |   0.0 | 96.71
+Neigh   | 0.020656   | 0.020656   | 0.020656   |   0.0 |  0.14
+Comm    | 0.02251    | 0.02251    | 0.02251    |   0.0 |  0.15
+Output  | 0.00026271 | 0.00026271 | 0.00026271 |   0.0 |  0.00
+Modify  | 0.017908   | 0.017908   | 0.017908   |   0.0 |  0.12
+Other   |            | 0.004498   |            |       |  0.03
+
+Nlocal:            512 ave         512 max         512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1817 ave        1817 max        1817 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          17469 ave       17469 max       17469 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 17469
+Ave neighs/atom = 34.119141
+Neighbor list builds = 36
+Dangerous builds = 0
+Total wall time: 0:00:23

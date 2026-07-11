@@ -27,7 +27,6 @@
 #include "neighbor_kokkos.h"
 #include "neigh_request.h"
 #include "sna.h"
-#include "tune_kokkos.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -44,7 +43,6 @@ template<class DeviceType, typename real_type, typename accum_type, int vector_l
 PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::PairSNAPKokkos(LAMMPS *lmp) : PairSNAP(lmp)
 {
   respa_enable = 0;
-  tuner = nullptr;
 
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -62,8 +60,6 @@ PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::~PairSNAPKokko
 
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
-
-  if (tuner) delete tuner;
 }
 
 /* ----------------------------------------------------------------------
@@ -86,14 +82,6 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::init_styl
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style with pair snap/kk");
-
-  if (lmp->kokkos->autotuning > 0 && !tuner) {
-    tuner = new TuneKokkos(lmp, TuneKokkos::GENERIC, lmp->kokkos->autotuning,
-      1, "pair-snap");
-
-    std::vector<int> tsizes = {4096, 8192, 16384, 32768, 65536};
-    tuner->set_team_size_values(tsizes);
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,11 +136,6 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::compute(i
   if (newton_pair == false)
     error->all(FLERR,"PairSNAPKokkos requires 'newton on'");
 
-  if (lmp->kokkos->autotuning && tuner) {
-    tuner->tuning_kernel_params();
-    chunksize = tuner->get_current_team_size();
-  }
-
   atomKK->sync(execution_space,X_MASK|F_MASK|TYPE_MASK);
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -194,7 +177,6 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::compute(i
     snaKK.d_beta = d_beta;
     MemKK::realloc_kokkos(d_ninside,"PairSNAPKokkos:ninside", inum_pad);
   }
-
 
   chunk_size = MIN(chunksize, inum); // "chunksize" variable is set by user
   // pad chunksize to be a multiple of vector_length * padding_factor

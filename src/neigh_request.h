@@ -39,7 +39,7 @@ class NeighRequest : protected Pointers {
                              // used to track multiple requests from one class
 
   // -----------------------------
-  // flags set by requesting class for attributes of neighor list they need
+  // flags set by requesting class for attributes of neighbor list they need
   // all must be set appropriately, all have defaults
   // -----------------------------
 

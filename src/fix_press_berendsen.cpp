@@ -38,7 +38,8 @@ enum { ISO, ANISO };
 /* ---------------------------------------------------------------------- */
 
 FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), id_temp(nullptr), id_press(nullptr), tflag(0), pflag(0)
+    Fix(lmp, narg, arg), id_temp(nullptr), id_press(nullptr), temperature(nullptr),
+    pressure(nullptr), tflag(0), pflag(0)
 {
   if (narg < 5) error->all(FLERR, "Illegal fix press/berendsen command");
 

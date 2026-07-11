@@ -68,7 +68,7 @@ PairLJCutDipoleCutKokkos<DeviceType>::~PairLJCutDipoleCutKokkos()
     memoryKK->destroy_kokkos(k_cut_coulsq,cut_coulsq);
   }
 
-  if (tuner) delete tuner;
+  delete tuner;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -61,7 +61,7 @@ BondFENEKokkos<DeviceType>::~BondFENEKokkos()
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
 
-    if (tuner) delete tuner;
+    delete tuner;
   }
 }
 

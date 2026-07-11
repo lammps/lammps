@@ -121,6 +121,12 @@ describing packages must also be updated as well as a package specific
 description added.  Likewise, if necessary, some package specific
 build instructions should be included.
 
+A detailed, step-by-step guide for what a documentation page must
+contain, how to register a new style in the command tables and overview
+lists, how to document accelerated variants, and which consistency
+checks to run is given on the :doc:`Writing or updating documentation
+<Developer_write_docs>` page.
+
 As appropriate, the text files with the documentation can include
 inline mathematical expressions or figures (see ``doc/JPG`` for
 examples).  Additional PDF files with further details may also be

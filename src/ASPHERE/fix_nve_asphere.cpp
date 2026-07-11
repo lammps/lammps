@@ -31,7 +31,8 @@ static constexpr double INERTIA = 0.2;          // moment of inertia prefactor f
 /* ---------------------------------------------------------------------- */
 
 FixNVEAsphere::FixNVEAsphere(LAMMPS *lmp, int narg, char **arg) :
-  FixNVE(lmp, narg, arg) {}
+    FixNVE(lmp, narg, arg), avec(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

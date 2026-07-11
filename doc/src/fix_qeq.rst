@@ -1,27 +1,45 @@
 .. index:: fix qeq/point
+.. index:: fix qeq/point/omp
 .. index:: fix qeq/shielded
+.. index:: fix qeq/shielded/omp
 .. index:: fix qeq/slater
+.. index:: fix qeq/slater/omp
 .. index:: fix qeq/ctip
+.. index:: fix qeq/ctip/omp
 .. index:: fix qeq/dynamic
+.. index:: fix qeq/dynamic/omp
 .. index:: fix qeq/fire
+.. index:: fix qeq/fire/omp
 
 fix qeq/point command
 =====================
 
+Accelerator Variants: *qeq/point/omp*
+
 fix qeq/shielded command
 ========================
+
+Accelerator Variants: *qeq/shielded/omp*
 
 fix qeq/slater command
 ======================
 
+Accelerator Variants: *qeq/slater/omp*
+
 fix qeq/ctip command
 ====================
+
+Accelerator Variants: *qeq/ctip/omp*
 
 fix qeq/dynamic command
 =======================
 
+Accelerator Variants: *qeq/dynamic/omp*
+
 fix qeq/fire command
 ====================
+
+Accelerator Variants: *qeq/fire/omp*
 
 Syntax
 """"""
@@ -283,6 +301,12 @@ stored by these fixes for access by various :doc:`output commands
 *start/stop* keywords of the :doc:`run <run>` command.
 
 Thexe fixes are invoked during :doc:`energy minimization <minimize>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

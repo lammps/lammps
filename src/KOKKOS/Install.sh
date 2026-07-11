@@ -83,6 +83,8 @@ action bond_harmonic_kokkos.cpp bond_harmonic.cpp
 action bond_harmonic_kokkos.h bond_harmonic.h
 action bond_hybrid_kokkos.cpp bond_hybrid.cpp
 action bond_hybrid_kokkos.h bond_hybrid.h
+action bond_quartic_exp_kokkos.cpp bond_quartic_exp.cpp
+action bond_quartic_exp_kokkos.h bond_quartic_exp.h
 action comm_kokkos.cpp
 action comm_kokkos.h
 action comm_tiled_kokkos.cpp
@@ -340,6 +342,12 @@ action npair_trim_kokkos.h
 action pack_kokkos.h pack.h
 action pair_adp_kokkos.cpp pair_adp.cpp
 action pair_adp_kokkos.h pair_adp.h
+
+action pair_bondval_kokkos.cpp pair_bondval.cpp
+action pair_bondval_kokkos.h pair_bondval.h
+action pair_bondval_vec_kokkos.cpp pair_bondval_vec.cpp
+action pair_bondval_vec_kokkos.h pair_bondval_vec.h
+
 action pair_brownian_kokkos.cpp pair_brownian.cpp
 action pair_brownian_kokkos.h pair_brownian.h
 action pair_born_gauss_kokkos.cpp pair_born_gauss.cpp

@@ -61,6 +61,14 @@ the top of the list of all fixes.  In those cases an instance of the
 DUMMY fix style may be created by calling ``Modify::add_fix()`` and then
 later replaced by the intended fix through calling ``Modify::replace_fix()``.
 
+fix OXDNA/LRF
+"""""""""""""
+
+Fix OXDNA/LRF calculates the local reference frame of ellipsoids from the quaternions.
+All oxDNA bond and pair styles require the Cartesian local reference frame during the force,
+torque and energy calculation. The fix is invoked internally at the pre-force stage
+and not to be used in an input script.
+
 fix STORE/ATOM
 """"""""""""""
 

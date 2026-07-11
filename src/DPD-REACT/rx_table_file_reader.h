@@ -19,7 +19,6 @@
 #include "tokenizer.h"
 
 #include <queue>
-#include <string>
 
 #if __cplusplus >= 202002L
 #include <concepts>
@@ -34,13 +33,13 @@ class RxTableFileReader : protected Pointers {
   RxTableFileReader(LAMMPS *lmp, const std::string &keyword, const std::string &filename,
                     const std::string &type, bool check_for_unread_tokens = true);
 
-  bool has_next_param_token() const;
+  [[nodiscard]] bool has_next_param_token() const;
 
   std::string next_param_token_as_string();
   int next_param_token_as_int();
   double next_param_token_as_double();
 
-  TableIndex_t get_num_table_entries() const;
+  [[nodiscard]] TableIndex_t get_num_table_entries() const;
 
   template <typename TableLineInvocable_t>
 #if __cplusplus >= 202002L
@@ -49,10 +48,11 @@ class RxTableFileReader : protected Pointers {
   void read_in_table_data(TableLineInvocable_t table_line_invocable)
   {
 
-    if (is_table_already_read) { error->one(FLERR, "Attempted to read table more than once."); }
+    if (is_table_already_read)
+      error->one(FLERR, Error::NOLASTLINE, "Attempted to read table more than once.");
 
     for (TableIndex_t i = 0; i < N; i++) {
-      auto line = reader.next_line();
+      auto *line = reader.next_line();
 
       try {
         ValueTokenizer table_values(line);

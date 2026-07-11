@@ -32,6 +32,7 @@ class FixRigidNH : public FixRigid {
   void write_restart(FILE *) override;
   void restart(char *buf) override;
   void reset_target(double) override;
+  double memory_usage() override;
 
  protected:
   double **conjqm;                // conjugate quaternion momentum

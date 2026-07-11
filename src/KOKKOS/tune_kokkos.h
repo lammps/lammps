@@ -53,6 +53,7 @@ class TuneKokkos : protected Pointers {
   int sample_idx;            // current sample index for the current parameter combination
   int mode;                  // how to determine the optimal performance among multiple samples for each parameter combination: MAX_VALUE, AVERAGE_VALUE, or MEDIAN_VALUE
   double opt_perf;           // stored the optimal performance
+  int opt_combination_idx;   // stored the index of the optimal parameter combination
   double relative_tolerance; // acceptable threshold for performance degradation wrt opt_perf
   int nperf_degraded;        // number of consecutive times the performance is degraded beyond the relative tolerance
 

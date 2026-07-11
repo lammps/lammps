@@ -25,7 +25,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyChunk::ComputePropertyChunk(LAMMPS *lmp, int narg, char **arg) :
-    ComputeChunk(lmp, narg, arg), count_one(nullptr), count_all(nullptr)
+    ComputeChunk(lmp, narg, arg), ichunk(nullptr), buf(nullptr), count_one(nullptr),
+    count_all(nullptr)
 {
   if (narg < 5) utils::missing_cmd_args(FLERR, "compute property/chunk", error);
 

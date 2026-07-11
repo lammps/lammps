@@ -84,14 +84,14 @@ TuneKokkos::TuneKokkos(LAMMPS *lmp, int _kernel_type, int nevery,
 
   // error check the auto-tuning parameters
 
-  if (interval < 0)
-    error->all(FLERR,"Interval for KOKKOS auto-tuning must be non-negative");
+  if (interval <= 0)
+    error->all(FLERR,"Interval for KOKKOS auto-tuning must be positive");
 
-  if (nsamples < 0)
-    error->all(FLERR,"Number of samples for KOKKOS auto-tuning must be non-negative");
+  if (nsamples <= 0)
+    error->all(FLERR,"Number of samples for KOKKOS auto-tuning must be positive");
 
-  if (relative_tolerance < 0.0)
-    error->all(FLERR,"Relative tolerance for KOKKOS auto-tuning must be non-negative");
+  if (relative_tolerance <= 0.0)
+    error->all(FLERR,"Relative tolerance for KOKKOS auto-tuning must be positive");
 
   if (comm->me == 0) {
     std::string filename = fmt::format("tuning-{}.log", my_name);
@@ -274,12 +274,12 @@ void TuneKokkos::tuning_kernel_params()
   // if scanning has just completed, find the parameter set with the optimal performance
 
   if (scanning_completed && sample_idx == nsamples) {
-    int opt_idx = get_optimal_combination_idx();
-    set_param_values(opt_idx);
+    opt_combination_idx = get_optimal_combination_idx();
+    set_param_values(opt_combination_idx);
 
     if (tuning_logfile) {
       int opt_ts = 0, opt_vs = 0;
-      get_current_params(opt_idx, opt_ts, opt_vs);
+      get_current_params(opt_combination_idx, opt_ts, opt_vs);
       std::string mesg = fmt::format("Finished tuning at t = {}. Found the optimal params: ", update->ntimestep);
       mesg += fmt::format("team size = {} vector size = {} ",
                       opt_ts, opt_vs);
@@ -400,7 +400,7 @@ int TuneKokkos::get_current_team_size()
 int TuneKokkos::get_current_vector_size()
 {
   int num_team_sizes = team_sizes.size();
-  int current_vector_size = team_sizes[combination_idx / num_team_sizes];
+  int current_vector_size = vector_sizes[combination_idx / num_team_sizes];
   return current_vector_size;
 }
 
@@ -523,7 +523,7 @@ void TuneKokkos::regular_performance_check()
 
   if (tuning_logfile) {
     int opt_ts = 0, opt_vs = 0;
-    int opt_idx = get_optimal_combination_idx();
+    int opt_idx = opt_combination_idx;
     get_current_params(opt_idx, opt_ts, opt_vs);
     std::string mesg = fmt::format("Using the optimal params at timestep {}: ",
                                     update->ntimestep);

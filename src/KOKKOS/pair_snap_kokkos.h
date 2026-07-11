@@ -284,8 +284,6 @@ class PairSNAPKokkos : public PairSNAP {
   void compute(int, int) override;
   double memory_usage() override;
 
-  class TuneKokkos* tuner;
-
   // CPU and GPU backend
   template<int NEIGHFLAG, int EVFLAG>
 // NOLINTNEXTLINE

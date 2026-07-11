@@ -306,7 +306,7 @@ void FixEOStableRX::read_file(char *file)
     PotentialFileReader reader(lmp, file, "eos/table/rx");
     char * line;
 
-    while (line = reader.next_line(min_params_per_line)) {
+    while ((line = reader.next_line(min_params_per_line))) {
       try {
         ValueTokenizer values(line);
 

@@ -62,7 +62,9 @@ static const char cite_pair_edpd[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairEDPD::PairEDPD(LAMMPS *lmp) : Pair(lmp)
+PairEDPD::PairEDPD(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cutT(nullptr), a0(nullptr), gamma(nullptr), power(nullptr),
+    slope(nullptr), kappa(nullptr), powerT(nullptr), sc(nullptr), kc(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_edpd);
   writedata = 1;
@@ -189,13 +191,13 @@ void PairEDPD::compute(int eflag, int vflag)
         f[i][2] += delz*fpair;
 
         // heat transfer
-        double dQc,dQd,dQr;
+        double dQc = 0.0, dQd = 0.0, dQr = 0.0;
         if (r < cutT[itype][jtype]) {
           double wrT = 1.0 - r/cutT[itype][jtype];
           wrT = MAX(0.0,MIN(1.0,wrT));
           wrT = pow(wrT, 0.5*powerT[itype][jtype]);
           double randnumT = randomT->gaussian();
-          randnumT = MAX(-5.0,MIN(randnum,5.0));
+          randnumT = MAX(-5.0,MIN(randnumT,5.0));
 
           double kappaT = kappa[itype][jtype];
           if (kappa_flag) {

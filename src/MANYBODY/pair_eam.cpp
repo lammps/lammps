@@ -35,12 +35,14 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
+PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp), type2rhor(nullptr), type2z2r(nullptr)
 {
   restartinfo = 0;
   manybody_flag = 1;
   atomic_energy_enable = 1;
   embedstep = -1;
+  he_flag = 0;
+  fileformat = FUNCFL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nmax = 0;
@@ -105,27 +107,8 @@ PairEAM::~PairEAM()
     funcfl = nullptr;
   }
 
-  if (setfl) {
-    for (int i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
-    delete [] setfl->elements;
-    memory->destroy(setfl->mass);
-    memory->destroy(setfl->frho);
-    memory->destroy(setfl->rhor);
-    memory->destroy(setfl->z2r);
-    delete setfl;
-    setfl = nullptr;
-  }
-
-  if (fs) {
-    for (int i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
-    delete [] fs->elements;
-    memory->destroy(fs->mass);
-    memory->destroy(fs->frho);
-    memory->destroy(fs->rhor);
-    memory->destroy(fs->z2r);
-    delete fs;
-    fs = nullptr;
-  }
+  delete_setfl();
+  delete_fs();
 
   memory->destroy(frho);
   memory->destroy(rhor);
@@ -140,9 +123,10 @@ PairEAM::~PairEAM()
 
 void PairEAM::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,m,inum,jnum,itype,jtype;
+  int i,j,ii,jj,m,inum,jnum,itype,jtype,nforce;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,p,rhoip,rhojp,z2,z2p,recip,phip,psip,phi;
+  double rhotmp,fxtmp,fytmp,fztmp,fptmp;
   double *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -194,6 +178,11 @@ void PairEAM::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    // seeding the accumulator with rho[i] keeps the summation order
+    // (and thus the result) identical to in-place accumulation
+
+    rhotmp = rho[i];
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
@@ -211,13 +200,14 @@ void PairEAM::compute(int eflag, int vflag)
         p -= m;
         p = MIN(p,1.0);
         coeff = rhor_spline[type2rhor[jtype][itype]][m];
-        rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        rhotmp += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
         if (newton_pair || j < nlocal) {
           coeff = rhor_spline[type2rhor[itype][jtype]][m];
           rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
         }
       }
     }
+    rho[i] = rhotmp;
   }
 
   // communicate and sum densities
@@ -226,29 +216,11 @@ void PairEAM::compute(int eflag, int vflag)
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
-  // if rho > rhomax (e.g. due to close approach of two atoms),
-  //   will exceed table, so add linear term to conserve energy
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    p = rho[i]*rdrho + 1.0;
-    m = static_cast<int>(p);
-    m = MAX(1,MIN(m,nrho-1));
-    p -= m;
-    p = MIN(p,1.0);
-    coeff = frho_spline[type2frho[type[i]]][m];
-    fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
-    if (eflag) {
-      phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-      if (rho[i] > rhomax) {
-        phi += fp[i] * (rho[i]-rhomax);
-        beyond_rhomax = 1;
-      }
-      phi *= scale[type[i]][type[i]];
-      if (eflag_global) eng_vdwl += phi;
-      if (eflag_atom) eatom[i] += phi;
-    }
-  }
+  if (he_flag)
+    compute_embedding<1>(eflag, beyond_rhomax);
+  else
+    compute_embedding<0>(eflag, beyond_rhomax);
 
   // communicate derivative of embedding function
 
@@ -267,7 +239,16 @@ void PairEAM::compute(int eflag, int vflag)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    numforce[i] = 0;
+    nforce = 0;
+
+    // seeding the accumulators with f[i] keeps the summation order
+    // (and thus the result) identical to in-place accumulation;
+    // fp[i] is constant over the inner loop
+
+    fxtmp = f[i][0];
+    fytmp = f[i][1];
+    fztmp = f[i][2];
+    fptmp = fp[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -279,7 +260,7 @@ void PairEAM::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq) {
-        ++numforce[i];
+        ++nforce;
         jtype = type[j];
         r = sqrt(rsq);
         p = r*rdr + 1.0;
@@ -310,12 +291,12 @@ void PairEAM::compute(int eflag, int vflag)
         recip = 1.0/r;
         phi = z2*recip;
         phip = z2p*recip - phi*recip;
-        psip = fp[i]*rhojp + fp[j]*rhoip + phip;
+        psip = fptmp*rhojp + fp[j]*rhoip + phip;
         fpair = -scale[itype][jtype]*psip*recip;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
@@ -326,6 +307,10 @@ void PairEAM::compute(int eflag, int vflag)
         if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
+    numforce[i] = nforce;
+    f[i][0] = fxtmp;
+    f[i][1] = fytmp;
+    f[i][2] = fztmp;
   }
 
   if (eflag && (!exceeded_rhomax)) {
@@ -339,6 +324,45 @@ void PairEAM::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
+}
+
+/* ----------------------------------------------------------------------
+   embedding energy evaluation loop of compute():
+   fp = derivative of embedding energy at each atom,
+   embedding energy phi added to the global/per-atom energy.
+   if rho > rhomax (e.g. due to close approach of two atoms) the table is
+   exceeded, so add linear term to conserve energy; eam/he format tables
+   (HE=1) start at rhomin and may be exceeded on either side
+------------------------------------------------------------------------- */
+
+template <int HE> void PairEAM::compute_embedding(int eflag, int &beyond_rhomax)
+{
+  int i,m;
+  double p,phi;
+  double *coeff;
+
+  const int *type = atom->type;
+  const int inum = list->inum;
+  const int *ilist = list->ilist;
+
+  for (int ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    embedding_index<HE>(rho[i],m,p);
+    coeff = frho_spline[type2frho[type[i]]][m];
+    fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
+    if (eflag) {
+      phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+      if (HE && (rho[i] < rhomin)) {
+        phi += fp[i] * (rho[i]-rhomin);
+      } else if (rho[i] > rhomax) {
+        phi += fp[i] * (rho[i]-rhomax);
+        if (!HE) beyond_rhomax = 1;
+      }
+      phi *= scale[type[i]][type[i]];
+      if (eflag_global) eng_vdwl += phi;
+      if (eflag_atom) eatom[i] += phi;
+    }
+  }
 }
 
 /*********************************************************************
@@ -393,14 +417,17 @@ double PairEAM::compute_atomic_energy(int i, NeighList *neighborList)
   }
 
   // compute the change in embedding energy of atom i.
+  // classic styles keep their historical behavior of clamping at the table
+  // ends; for eam/he extrapolate linearly as in compute()
 
-  p = rhoi * rdrho + 1.0;
-  m = static_cast<int>(p);
-  m = MAX(1, MIN(m, nrho - 1));
-  p -= m;
-  p = MIN(p, 1.0);
+  embedding_index(rhoi, m, p);
   coeff = frho_spline[type2frho[itype]][m];
   Ei += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+  if (he_flag) {
+    const double fpi = (coeff[0]*p + coeff[1])*p + coeff[2];
+    if (rhoi < rhomin) Ei += fpi * (rhoi - rhomin);
+    else if (rhoi > rhomax) Ei += fpi * (rhoi - rhomax);
+  }
 
   return Ei;
 }
@@ -442,10 +469,22 @@ void PairEAM::settings(int narg, char **/*arg*/)
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
-   read DYNAMO funcfl file
 ------------------------------------------------------------------------- */
 
 void PairEAM::coeff(int narg, char **arg)
+{
+  if (fileformat == FUNCFL)
+    coeff_funcfl(narg, arg);
+  else
+    coeff_mapped(narg, arg);
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+   read DYNAMO funcfl file
+------------------------------------------------------------------------- */
+
+void PairEAM::coeff_funcfl(int narg, char **arg)
 {
   if (!allocated) allocate();
 
@@ -492,6 +531,76 @@ void PairEAM::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs from a single multi-element file
+   (DYNAMO setfl for eam/alloy, Finnis-Sinclair variant for eam/fs and
+   eam/he) and map its elements to the atom types
+------------------------------------------------------------------------- */
+
+void PairEAM::coeff_mapped(int narg, char **arg)
+{
+  int i, j;
+
+  if (!allocated) allocate();
+
+  if (narg != 3 + atom->ntypes)
+    error->all(FLERR, "Number of element to type mappings does not match number of atom types");
+
+  // read potential file, replacing any data read previously
+
+  if (fileformat == SETFL) {
+    delete_setfl();
+    setfl = new Setfl();
+  } else {
+    delete_fs();
+    fs = new Fs();
+  }
+  read_file(arg[2]);
+
+  const int nelements = (fileformat == SETFL) ? setfl->nelements : fs->nelements;
+  char **elements = (fileformat == SETFL) ? setfl->elements : fs->elements;
+  double *mass = (fileformat == SETFL) ? setfl->mass : fs->mass;
+
+  // read args that map atom types to elements in potential file
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
+
+  for (i = 3; i < narg; i++) {
+    if (strcmp(arg[i], "NULL") == 0) {
+      map[i - 2] = -1;
+      continue;
+    }
+    for (j = 0; j < nelements; j++)
+      if (strcmp(arg[i], elements[j]) == 0) break;
+    if (j < nelements)
+      map[i - 2] = j;
+    else
+      error->all(FLERR, "No matching element in EAM potential file");
+  }
+
+  // clear setflag since coeff() called once with I,J = * *
+
+  int n = atom->ntypes;
+  for (i = 1; i <= n; i++)
+    for (j = i; j <= n; j++) setflag[i][j] = 0;
+
+  // set setflag i,j for type pairs where both are mapped to elements
+  // set mass of atom type if i = j
+
+  int count = 0;
+  for (i = 1; i <= n; i++) {
+    for (j = i; j <= n; j++) {
+      if (map[i] >= 0 && map[j] >= 0) {
+        setflag[i][j] = 1;
+        if (i == j) atom->set_mass(FLERR, i, mass[map[i]]);
+        count++;
+      }
+      scale[i][j] = 1.0;
+    }
+  }
+
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
+}
+
+/* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
@@ -534,10 +643,24 @@ double PairEAM::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   read potential values from a DYNAMO single element funcfl file
+   read potential values from the format selected by fileformat
 ------------------------------------------------------------------------- */
 
 void PairEAM::read_file(char *filename)
+{
+  if (fileformat == SETFL)
+    read_setfl(filename);
+  else if (fileformat == FS)
+    read_fs(filename);
+  else
+    read_funcfl(filename);
+}
+
+/* ----------------------------------------------------------------------
+   read potential values from a DYNAMO single element funcfl file
+------------------------------------------------------------------------- */
+
+void PairEAM::read_funcfl(char *filename)
 {
   Funcfl *file = &funcfl[nfuncfl-1];
 
@@ -606,11 +729,263 @@ void PairEAM::read_file(char *filename)
 }
 
 /* ----------------------------------------------------------------------
+   read a multi-element DYNAMO setfl file
+------------------------------------------------------------------------- */
+
+void PairEAM::read_setfl(char *filename)
+{
+  Setfl *file = setfl;
+
+  // read potential file
+  if (comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, "eam/alloy", unit_convert_flag);
+
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
+    try {
+      reader.skip_line();
+      reader.skip_line();
+      reader.skip_line();
+
+      // extract element names from nelements line
+      ValueTokenizer values = reader.next_values(1);
+      file->nelements = values.next_int();
+
+      if ((int) values.count() != file->nelements + 1)
+        error->one(FLERR, "Incorrect element names in EAM potential file");
+
+      file->elements = new char *[file->nelements];
+      for (int i = 0; i < file->nelements; i++)
+        file->elements[i] = utils::strdup(values.next_string());
+
+      values = reader.next_values(5);
+      file->nrho = values.next_int();
+      file->drho = values.next_double();
+      file->nr = values.next_int();
+      file->dr = values.next_double();
+      file->cut = values.next_double();
+
+      if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+        error->one(FLERR, "Invalid EAM potential file");
+
+      memory->create(file->mass, file->nelements, "pair:mass");
+      memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+      memory->create(file->rhor, file->nelements, file->nr + 1, "pair:rhor");
+      memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
+
+      for (int i = 0; i < file->nelements; i++) {
+        values = reader.next_values(2);
+        values.next_int();    // ignore
+        file->mass[i] = values.next_double();
+
+        reader.next_dvector(&file->frho[i][1], file->nrho);
+        reader.next_dvector(&file->rhor[i][1], file->nr);
+        if (unit_convert) {
+          for (int j = 1; j <= file->nrho; ++j) file->frho[i][j] *= conversion_factor;
+        }
+      }
+
+      for (int i = 0; i < file->nelements; i++) {
+        for (int j = 0; j <= i; j++) {
+          reader.next_dvector(&file->z2r[i][j][1], file->nr);
+          if (unit_convert) {
+            for (int k = 1; k <= file->nr; ++k) file->z2r[i][j][k] *= conversion_factor;
+          }
+        }
+      }
+    } catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
+    }
+  }
+
+  // broadcast potential information
+  MPI_Bcast(&file->nelements, 1, MPI_INT, 0, world);
+
+  MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+
+  // allocate memory on other procs
+  if (comm->me != 0) {
+    file->elements = new char *[file->nelements];
+    for (int i = 0; i < file->nelements; i++) file->elements[i] = nullptr;
+    memory->create(file->mass, file->nelements, "pair:mass");
+    memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+    memory->create(file->rhor, file->nelements, file->nr + 1, "pair:rhor");
+    memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
+  }
+
+  // broadcast file->elements string array
+  for (int i = 0; i < file->nelements; i++) {
+    int n;
+    if (comm->me == 0) n = strlen(file->elements[i]) + 1;
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if (comm->me != 0) file->elements[i] = new char[n];
+    MPI_Bcast(file->elements[i], n, MPI_CHAR, 0, world);
+  }
+
+  // broadcast file->mass, frho, rhor
+  for (int i = 0; i < file->nelements; i++) {
+    MPI_Bcast(&file->mass[i], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&file->frho[i][1], file->nrho, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&file->rhor[i][1], file->nr, MPI_DOUBLE, 0, world);
+  }
+
+  // broadcast file->z2r
+  for (int i = 0; i < file->nelements; i++) {
+    for (int j = 0; j <= i; j++) { MPI_Bcast(&file->z2r[i][j][1], file->nr, MPI_DOUBLE, 0, world); }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   read a multi-element DYNAMO setfl file in the Finnis-Sinclair variant
+   with per-element-pair density functions (eam/fs and eam/he)
+------------------------------------------------------------------------- */
+
+void PairEAM::read_fs(char *filename)
+{
+  Fs *file = fs;
+
+  // read potential file
+  if (comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, he_flag ? "eam/he" : "eam/fs", unit_convert_flag);
+
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
+    try {
+      reader.skip_line();
+      reader.skip_line();
+      reader.skip_line();
+
+      // extract element names from nelements line
+      ValueTokenizer values = reader.next_values(1);
+      file->nelements = values.next_int();
+
+      if ((int) values.count() != file->nelements + 1)
+        error->one(FLERR, "Incorrect element names in EAM potential file");
+
+      file->elements = new char *[file->nelements];
+      for (int i = 0; i < file->nelements; i++)
+        file->elements[i] = utils::strdup(values.next_string());
+
+      if (he_flag)
+        values = reader.next_values(6);
+      else
+        values = reader.next_values(5);
+      file->nrho = values.next_int();
+      file->drho = values.next_double();
+      file->nr = values.next_int();
+      file->dr = values.next_double();
+      file->cut = values.next_double();
+      if (he_flag) rhomax = values.next_double();
+
+      if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+        error->one(FLERR, "Invalid EAM potential file");
+
+      memory->create(file->mass, file->nelements, "pair:mass");
+      memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+      memory->create(file->rhor, file->nelements, file->nelements, file->nr + 1, "pair:rhor");
+      memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
+
+      for (int i = 0; i < file->nelements; i++) {
+        values = reader.next_values(2);
+        values.next_int();    // ignore
+        file->mass[i] = values.next_double();
+
+        reader.next_dvector(&file->frho[i][1], file->nrho);
+        if (unit_convert) {
+          for (int j = 1; j <= file->nrho; ++j) file->frho[i][j] *= conversion_factor;
+        }
+
+        for (int j = 0; j < file->nelements; j++) {
+          reader.next_dvector(&file->rhor[i][j][1], file->nr);
+        }
+      }
+
+      for (int i = 0; i < file->nelements; i++) {
+        for (int j = 0; j <= i; j++) {
+          reader.next_dvector(&file->z2r[i][j][1], file->nr);
+          if (unit_convert) {
+            for (int k = 1; k <= file->nr; ++k) file->z2r[i][j][k] *= conversion_factor;
+          }
+        }
+      }
+    } catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
+    }
+  }
+
+  // broadcast potential information
+  MPI_Bcast(&file->nelements, 1, MPI_INT, 0, world);
+
+  MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&rhomax, 1, MPI_DOUBLE, 0, world);
+
+  // allocate memory on other procs
+  if (comm->me != 0) {
+    file->elements = new char *[file->nelements];
+    for (int i = 0; i < file->nelements; i++) file->elements[i] = nullptr;
+    memory->create(file->mass, file->nelements, "pair:mass");
+    memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+    memory->create(file->rhor, file->nelements, file->nelements, file->nr + 1, "pair:rhor");
+    memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
+  }
+
+  // broadcast file->elements string array
+  for (int i = 0; i < file->nelements; i++) {
+    int n;
+    if (comm->me == 0) n = strlen(file->elements[i]) + 1;
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if (comm->me != 0) file->elements[i] = new char[n];
+    MPI_Bcast(file->elements[i], n, MPI_CHAR, 0, world);
+  }
+
+  // broadcast file->mass, frho, rhor
+  for (int i = 0; i < file->nelements; i++) {
+    MPI_Bcast(&file->mass[i], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&file->frho[i][1], file->nrho, MPI_DOUBLE, 0, world);
+
+    for (int j = 0; j < file->nelements; j++) {
+      MPI_Bcast(&file->rhor[i][j][1], file->nr, MPI_DOUBLE, 0, world);
+    }
+  }
+
+  // broadcast file->z2r
+  for (int i = 0; i < file->nelements; i++) {
+    for (int j = 0; j <= i; j++) { MPI_Bcast(&file->z2r[i][j][1], file->nr, MPI_DOUBLE, 0, world); }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   convert read-in potential(s) to standard array format
+------------------------------------------------------------------------- */
+
+void PairEAM::file2array()
+{
+  if (fileformat == SETFL)
+    file2array_setfl();
+  else if (fileformat == FS)
+    file2array_fs();
+  else
+    file2array_funcfl();
+}
+
+/* ----------------------------------------------------------------------
    convert read-in funcfl potential(s) to standard array format
    interpolate all file values to a single grid and cutoff
 ------------------------------------------------------------------------- */
 
-void PairEAM::file2array()
+void PairEAM::file2array_funcfl()
 {
   int i,j,k,m,n;
   int ntypes = atom->ntypes;
@@ -818,6 +1193,289 @@ void PairEAM::file2array()
   }
 }
 
+/* ----------------------------------------------------------------------
+   copy read-in setfl potential to standard array format
+------------------------------------------------------------------------- */
+
+void PairEAM::file2array_setfl()
+{
+  int i, j, m, n;
+  int ntypes = atom->ntypes;
+
+  // set function params directly from setfl file
+
+  nrho = setfl->nrho;
+  nr = setfl->nr;
+  drho = setfl->drho;
+  dr = setfl->dr;
+  rhomax = (nrho - 1) * drho;
+
+  // ------------------------------------------------------------------
+  // setup frho arrays
+  // ------------------------------------------------------------------
+
+  // allocate frho arrays
+  // nfrho = # of setfl elements + 1 for zero array
+
+  nfrho = setfl->nelements + 1;
+  memory->destroy(frho);
+  memory->create(frho, nfrho, nrho + 1, "pair:frho");
+
+  // copy each element's frho to global frho
+
+  for (i = 0; i < setfl->nelements; i++)
+    for (m = 1; m <= nrho; m++) frho[i][m] = setfl->frho[i][m];
+
+  // add extra frho of zeroes for non-EAM types to point to (pair hybrid)
+  // this is necessary b/c fp is still computed for non-EAM atoms
+
+  for (m = 1; m <= nrho; m++) frho[nfrho - 1][m] = 0.0;
+
+  // type2frho[i] = which frho array (0 to nfrho-1) each atom type maps to
+  // if atom type doesn't point to element (non-EAM atom in pair hybrid)
+  // then map it to last frho array of zeroes
+
+  for (i = 1; i <= ntypes; i++)
+    if (map[i] >= 0)
+      type2frho[i] = map[i];
+    else
+      type2frho[i] = nfrho - 1;
+
+  // ------------------------------------------------------------------
+  // setup rhor arrays
+  // ------------------------------------------------------------------
+
+  // allocate rhor arrays
+  // nrhor = # of setfl elements
+
+  nrhor = setfl->nelements;
+  memory->destroy(rhor);
+  memory->create(rhor, nrhor, nr + 1, "pair:rhor");
+
+  // copy each element's rhor to global rhor
+
+  for (i = 0; i < setfl->nelements; i++)
+    for (m = 1; m <= nr; m++) rhor[i][m] = setfl->rhor[i][m];
+
+  // type2rhor[i][j] = which rhor array (0 to nrhor-1) each type pair maps to
+  // for setfl files, I,J mapping only depends on I
+  // OK if map = -1 (non-EAM atom in pair hybrid) b/c type2rhor not used
+
+  for (i = 1; i <= ntypes; i++)
+    for (j = 1; j <= ntypes; j++) type2rhor[i][j] = map[i];
+
+  // ------------------------------------------------------------------
+  // setup z2r arrays
+  // ------------------------------------------------------------------
+
+  // allocate z2r arrays
+  // nz2r = N*(N+1)/2 where N = # of setfl elements
+
+  nz2r = setfl->nelements * (setfl->nelements + 1) / 2;
+  memory->destroy(z2r);
+  memory->create(z2r, nz2r, nr + 1, "pair:z2r");
+
+  // copy each element pair z2r to global z2r, only for I >= J
+
+  n = 0;
+  for (i = 0; i < setfl->nelements; i++)
+    for (j = 0; j <= i; j++) {
+      for (m = 1; m <= nr; m++) z2r[n][m] = setfl->z2r[i][j][m];
+      n++;
+    }
+
+  // type2z2r[i][j] = which z2r array (0 to nz2r-1) each type pair maps to
+  // set of z2r arrays only fill lower triangular Nelement matrix
+  // value = n = sum over rows of lower-triangular matrix until reach irow,icol
+  // swap indices when irow < icol to stay lower triangular
+  // if map = -1 (non-EAM atom in pair hybrid):
+  //   type2z2r is not used by non-opt
+  //   but set type2z2r to 0 since accessed by opt
+
+  int irow, icol;
+  for (i = 1; i <= ntypes; i++) {
+    for (j = 1; j <= ntypes; j++) {
+      irow = map[i];
+      icol = map[j];
+      if (irow == -1 || icol == -1) {
+        type2z2r[i][j] = 0;
+        continue;
+      }
+      if (irow < icol) {
+        irow = map[j];
+        icol = map[i];
+      }
+      n = 0;
+      for (m = 0; m < irow; m++) n += m + 1;
+      n += icol;
+      type2z2r[i][j] = n;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   copy read-in Finnis-Sinclair setfl potential to standard array format
+------------------------------------------------------------------------- */
+
+void PairEAM::file2array_fs()
+{
+  int i, j, m, n;
+  int ntypes = atom->ntypes;
+
+  // set function params directly from fs file
+
+  nrho = fs->nrho;
+  nr = fs->nr;
+  drho = fs->drho;
+  dr = fs->dr;
+  if (he_flag)
+    rhomin = rhomax - (nrho - 1) * drho;
+  else
+    rhomax = (nrho - 1) * drho;
+
+  // ------------------------------------------------------------------
+  // setup frho arrays
+  // ------------------------------------------------------------------
+
+  // allocate frho arrays
+  // nfrho = # of fs elements + 1 for zero array
+
+  nfrho = fs->nelements + 1;
+  memory->destroy(frho);
+  memory->create(frho, nfrho, nrho + 1, "pair:frho");
+
+  // copy each element's frho to global frho
+
+  for (i = 0; i < fs->nelements; i++)
+    for (m = 1; m <= nrho; m++) frho[i][m] = fs->frho[i][m];
+
+  // add extra frho of zeroes for non-EAM types to point to (pair hybrid)
+  // this is necessary b/c fp is still computed for non-EAM atoms
+
+  for (m = 1; m <= nrho; m++) frho[nfrho - 1][m] = 0.0;
+
+  // type2frho[i] = which frho array (0 to nfrho-1) each atom type maps to
+  // if atom type doesn't point to element (non-EAM atom in pair hybrid)
+  // then map it to last frho array of zeroes
+
+  for (i = 1; i <= ntypes; i++)
+    if (map[i] >= 0)
+      type2frho[i] = map[i];
+    else
+      type2frho[i] = nfrho - 1;
+
+  // ------------------------------------------------------------------
+  // setup rhor arrays
+  // ------------------------------------------------------------------
+
+  // allocate rhor arrays
+  // nrhor = square of # of fs elements
+
+  nrhor = fs->nelements * fs->nelements;
+  memory->destroy(rhor);
+  memory->create(rhor, nrhor, nr + 1, "pair:rhor");
+
+  // copy each element pair rhor to global rhor
+
+  n = 0;
+  for (i = 0; i < fs->nelements; i++)
+    for (j = 0; j < fs->nelements; j++) {
+      for (m = 1; m <= nr; m++) rhor[n][m] = fs->rhor[i][j][m];
+      n++;
+    }
+
+  // type2rhor[i][j] = which rhor array (0 to nrhor-1) each type pair maps to
+  // for fs files, there is a full NxN set of rhor arrays
+  // OK if map = -1 (non-EAM atom in pair hybrid) b/c type2rhor not used
+
+  for (i = 1; i <= ntypes; i++)
+    for (j = 1; j <= ntypes; j++) type2rhor[i][j] = map[i] * fs->nelements + map[j];
+
+  // ------------------------------------------------------------------
+  // setup z2r arrays
+  // ------------------------------------------------------------------
+
+  // allocate z2r arrays
+  // nz2r = N*(N+1)/2 where N = # of fs elements
+
+  nz2r = fs->nelements * (fs->nelements + 1) / 2;
+  memory->destroy(z2r);
+  memory->create(z2r, nz2r, nr + 1, "pair:z2r");
+
+  // copy each element pair z2r to global z2r, only for I >= J
+
+  n = 0;
+  for (i = 0; i < fs->nelements; i++)
+    for (j = 0; j <= i; j++) {
+      for (m = 1; m <= nr; m++) z2r[n][m] = fs->z2r[i][j][m];
+      n++;
+    }
+
+  // type2z2r[i][j] = which z2r array (0 to nz2r-1) each type pair maps to
+  // set of z2r arrays only fill lower triangular Nelement matrix
+  // value = n = sum over rows of lower-triangular matrix until reach irow,icol
+  // swap indices when irow < icol to stay lower triangular
+  // if map = -1 (non-EAM atom in pair hybrid):
+  //   type2z2r is not used by non-opt
+  //   but set type2z2r to 0 since accessed by opt
+
+  int irow, icol;
+  for (i = 1; i <= ntypes; i++) {
+    for (j = 1; j <= ntypes; j++) {
+      irow = map[i];
+      icol = map[j];
+      if (irow == -1 || icol == -1) {
+        type2z2r[i][j] = 0;
+        continue;
+      }
+      if (irow < icol) {
+        irow = map[j];
+        icol = map[i];
+      }
+      n = 0;
+      for (m = 0; m < irow; m++) n += m + 1;
+      n += icol;
+      type2z2r[i][j] = n;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   free potential data read from a setfl file
+------------------------------------------------------------------------- */
+
+void PairEAM::delete_setfl()
+{
+  if (!setfl) return;
+
+  for (int i = 0; i < setfl->nelements; i++) delete[] setfl->elements[i];
+  delete[] setfl->elements;
+  memory->destroy(setfl->mass);
+  memory->destroy(setfl->frho);
+  memory->destroy(setfl->rhor);
+  memory->destroy(setfl->z2r);
+  delete setfl;
+  setfl = nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   free potential data read from a Finnis-Sinclair setfl file
+------------------------------------------------------------------------- */
+
+void PairEAM::delete_fs()
+{
+  if (!fs) return;
+
+  for (int i = 0; i < fs->nelements; i++) delete[] fs->elements[i];
+  delete[] fs->elements;
+  memory->destroy(fs->mass);
+  memory->destroy(fs->frho);
+  memory->destroy(fs->rhor);
+  memory->destroy(fs->z2r);
+  delete fs;
+  fs = nullptr;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void PairEAM::array2spline()
@@ -894,14 +1552,11 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   }
 
   if (numforce[i] > 0) {
-    p = rho[i]*rdrho + 1.0;
-    m = static_cast<int>(p);
-    m = MAX(1,MIN(m,nrho-1));
-    p -= m;
-    p = MIN(p,1.0);
+    embedding_index(rho[i],m,p);
     coeff = frho_spline[type2frho[itype]][m];
     phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-    if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+    if (he_flag && (rho[i] < rhomin)) phi += fp[i] * (rho[i]-rhomin);
+    else if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
     phi *= 1.0/static_cast<double>(numforce[i]);
   } else phi = 0.0;
 
